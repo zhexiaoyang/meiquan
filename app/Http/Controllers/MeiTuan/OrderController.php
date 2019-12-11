@@ -9,7 +9,7 @@ class OrderController
 {
     public function status(Request $request)
     {
-        \Log::info('message', $request);
+        \Log::info('message', [$request]);
         $result = [];
         $status = $request->get('status', '');
         $delivery_id = $request->get('delivery_id', 0);
@@ -31,7 +31,7 @@ class OrderController
 
     public function exception(Request $request)
     {
-        \Log::info('message', $request);
+        \Log::info('message', [$request]);
         $result = [];
         $delivery_id = $request->get('delivery_id', 0);
         $data = $request->only(['exception_id', 'exception_code', 'exception_descr', 'exception_time', 'courier_name', 'courier_phone']);
