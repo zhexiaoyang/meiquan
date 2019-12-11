@@ -16,10 +16,10 @@ class OrderController
         $data = $request->only(['courier_name', 'courier_phone', 'cancel_reason_id', 'cancel_reason','status']);
         if (($order = Order::where('delivery_id', $delivery_id)->first()) && in_array($status, [0, 20, 30, 50, 99])) {
             $order->status = $data['status'];
-            $order->courier_name = $data['courier_name'];
-            $order->courier_phone = $data['courier_phone'];
-            $order->cancel_reason_id = $data['cancel_reason_id'];
-            $order->cancel_reason = $data['cancel_reason'];
+            $order->courier_name = $data['courier_name'] ?? '';
+            $order->courier_phone = $data['courier_phone'] ?? '';
+            $order->cancel_reason_id = $data['cancel_reason_id'] ?? '';
+            $order->cancel_reason = $data['cancel_reason'] ?? '';
             if ($order->save()) {
                 $result = json_encode(['code' => 0]);
             }
