@@ -18,7 +18,7 @@ class OrderController
             $order->status = $data['status'];
             $order->courier_name = $data['courier_name'] ?? '';
             $order->courier_phone = $data['courier_phone'] ?? '';
-            $order->cancel_reason_id = $data['cancel_reason_id'] ?? '';
+            $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
             $order->cancel_reason = $data['cancel_reason'] ?? '';
             if ($order->save()) {
                 $result = json_encode(['code' => 0]);
