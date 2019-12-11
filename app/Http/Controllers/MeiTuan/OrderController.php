@@ -25,7 +25,7 @@ class OrderController
             }
         }
         $result = json_encode(['code' => 1]);
-        \Log::info('message', $result);
+        \Log::info('message', [$result]);
         return $result;
     }
 
@@ -47,7 +47,7 @@ class OrderController
             }
         }
         $result = json_encode(['code' => 1]);
-        \Log::info('message', $result);
+        \Log::info('message', [$result]);
         return $result;
     }
 }
