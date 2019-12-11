@@ -39,7 +39,11 @@ class OrderController extends Controller
             'cancel_reason' => '顾客主动取消',
         ]);
 
-        $order->update(['status' => 99]);
+        if ($result['code'] === 0 && $order->update(['status' => 99])) {
+            return $this->success([]);
+        }
+
+        return $this->error("取消失败");
     }
 
     public function show(Order $order)
