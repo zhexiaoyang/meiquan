@@ -22,6 +22,8 @@ class OrderController
             $order->cancel_reason = $data['cancel_reason'] ?? '';
             if ($order->save()) {
                 $result = json_encode(['code' => 0]);
+                \Log::info('message', [$result]);
+                return $result;
             }
         }
         $result = json_encode(['code' => 1]);
@@ -44,6 +46,8 @@ class OrderController
             $order->courier_phone = $data['courier_phone'];
             if ($order->save()) {
                 $result = json_encode(['code' => 0]);
+                \Log::info('message', [$result]);
+                return $result;
             }
         }
         $result = json_encode(['code' => 1]);
