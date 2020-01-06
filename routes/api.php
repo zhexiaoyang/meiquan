@@ -7,6 +7,8 @@ Route::post('auth/login', 'AuthController@login');
 // 模拟接单建店
 Route::post('arrange/{order}', 'TestController@arrange');
 Route::post('shopStatus/{shop}', 'TestController@shopStatus');
+// 同步订单
+Route::get('order/sync', 'OrderController@sync')->name('api.order.sync');
 
 Route::middleware('auth:api')->group(function () {
     // 退出
@@ -31,8 +33,6 @@ Route::middleware('auth:api')->group(function () {
     Route::get('shop/wei', 'ShopController@wei')->name('api.shop.wei')->middleware('role:super_man');
     // 同步门店
     Route::post('shop/sync', 'ShopController@sync')->name('api.shop.sync')->middleware('role:super_man');
-    // 同步订单
-    Route::get('order/sync', 'OrderController@sync')->name('api.order.sync')->middleware('role:super_man');
     // 管理员手动充值
     Route::post('user/recharge', 'UserController@recharge')->name('api.shop.recharge')->middleware('role:super_man');
     // 管理员查看充值列表
