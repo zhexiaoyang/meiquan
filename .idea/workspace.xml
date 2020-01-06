@@ -3,35 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="0cf58ac8-2aad-4f16-86e6-1cb5172fe520" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/meiquan.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/meiquan.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/php.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/php.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Exceptions/Handler.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Exceptions/Handler.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ApiResponse.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ApiResponse.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/Auth/LoginController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/Auth/LoginController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/AuthController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/OrderController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/ShopController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/ShopController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Controllers/UserController.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Controllers/UserController.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Http/Kernel.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Http/Kernel.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Jobs/CreateMtOrder.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Jobs/CreateMtOrder.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Jobs/CreateMtShop.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Jobs/CreateMtShop.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Api.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Http.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Http.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Libraries/Meituan/Api/Order.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Libraries/Meituan/MeiTuan.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Libraries/Meituan/MeiTuan.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Order.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Order.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/Shop.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/Shop.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Models/User.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Models/User.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Providers/AppServiceProvider.php" beforeDir="false" afterPath="$PROJECT_DIR$/app/Providers/AppServiceProvider.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.json" beforeDir="false" afterPath="$PROJECT_DIR$/composer.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/composer.lock" beforeDir="false" afterPath="$PROJECT_DIR$/composer.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/laravels.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/laravels.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/passport.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/passport.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/config/ps.php" beforeDir="false" afterPath="$PROJECT_DIR$/config/ps.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/routes/api.php" beforeDir="false" afterPath="$PROJECT_DIR$/routes/api.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/laravels.json" beforeDir="false" afterPath="$PROJECT_DIR$/storage/laravels.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/storage/laravels.pid" beforeDir="false" afterPath="$PROJECT_DIR$/storage/laravels.pid" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -59,20 +31,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/storage/logs/laravel-2020-01-06.log">
           <provider selected="true" editor-type-id="LogFileEditorProvider">
-            <state relative-caret-position="546">
+            <state relative-caret-position="61">
               <caret line="39" selection-start-line="38" selection-start-column="2" selection-end-line="39" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/.gitignore">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="168">
-              <caret line="12" column="6" selection-start-line="12" selection-start-column="6" selection-end-line="12" selection-end-column="6" />
             </state>
           </provider>
         </entry>
@@ -437,7 +400,7 @@
       <workItem from="1576771198566" duration="914000" />
       <workItem from="1576823744958" duration="9219000" />
       <workItem from="1577178791769" duration="19000" />
-      <workItem from="1577178825545" duration="64464000" />
+      <workItem from="1577178825545" duration="65153000" />
     </task>
     <task id="LOCAL-00001" summary="修改web首页">
       <created>1576027244145</created>
@@ -499,13 +462,12 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="139443000" />
+    <option name="totallyTimeSpent" value="140132000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="0" y="23" width="1440" height="833" extended-state="0" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21530758" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.21530758" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="npm" order="2" side_tool="true" />
       <window_info id="Favorites" order="3" side_tool="true" />
@@ -521,7 +483,7 @@
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Migrations" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
-      <window_info anchor="bottom" id="Terminal" order="12" weight="0.7705803" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="12" visible="true" weight="0.7705803" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -538,20 +500,6 @@
     <option name="LAST_COMMIT_MESSAGE" value="通知添加日志" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/config/auth.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="873">
-          <caret line="78" selection-start-line="78" selection-end-line="78" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/app/Http/Kernel.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="224">
-          <caret line="16" column="41" lean-forward="true" selection-start-line="16" selection-end-line="17" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/app/Http/Controllers/Auth/LoginController.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="392">
@@ -916,17 +864,23 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/storage/logs/laravel-2020-01-06.log">
-      <provider selected="true" editor-type-id="LogFileEditorProvider">
-        <state relative-caret-position="546">
-          <caret line="39" selection-start-line="38" selection-start-column="2" selection-end-line="39" />
-        </state>
-      </provider>
+    <entry file="file://$PROJECT_DIR$/storage/laravels.pid">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/storage/laravels.json">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="168">
-          <caret line="12" column="6" selection-start-line="12" selection-start-column="6" selection-end-line="12" selection-end-column="6" />
+        <state relative-caret-position="238">
+          <caret line="17" selection-start-line="17" selection-end-line="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/storage/logs/laravel-2020-01-06.log">
+      <provider selected="true" editor-type-id="LogFileEditorProvider">
+        <state relative-caret-position="61">
+          <caret line="39" selection-start-line="38" selection-start-column="2" selection-end-line="39" />
         </state>
       </provider>
     </entry>
