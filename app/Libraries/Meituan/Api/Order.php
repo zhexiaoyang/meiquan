@@ -101,4 +101,40 @@ class Order extends Api
         return $this->request('shop/query', $params);
     }
 
+
+    public function arrange(array $params)
+    {
+        return $this->request('test/order/arrange', $params);
+    }
+
+    public function shopStatus(array $params)
+    {
+        return $this->request('test/shop/status/callback', $params);
+    }
+
+    public function deliver(array $params)
+    {
+        return $this->request('test/order/deliver', $params);
+    }
+
+    public function rearrange(array $params)
+    {
+        return $this->request('test/order/rearrange', $params);
+    }
+
+    public function reportException(array $params)
+    {
+        return $this->request('test/order/reportException', $params);
+    }
+
+    public function getShops(array $params)
+    {
+        return $this->request_get('v1/poi/mget', $params);
+    }
+
+    public function getOrderDetail(array $params)
+    {
+        return $this->request_get('v1/order/getOrderDetail', $params);
+    }
+
 }

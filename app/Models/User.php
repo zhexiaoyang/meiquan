@@ -6,10 +6,13 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable;
+    use HasApiTokens, Notifiable, HasRoles;
+
+    protected $guard_name = 'api';
 
     /**
      * The attributes that are mass assignable.
@@ -37,4 +40,23 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function findForPassport($username)
+    {
+//        filter_var($username, FILTER_VALIDATE_EMAIL) ?
+//            $credentials['email'] = $username :
+//            $credentials['phone'] = $username;
+
+        return self::where(['phone' => $username])->first();
+    }
+
+    public function deposit()
+    {
+        return $this->hasMany(Deposit::class);
+    }
+
+    public function shops()
+    {
+        return $this->hasMany(Shop::class);
+    }
 }

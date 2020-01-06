@@ -49,7 +49,7 @@ trait ApiResponse
      * @param int $http_code
      * @return mixed
      */
-    public function success($data, $message = "成功", $code = 0, $http_code = 200)
+    public function success($data = [], $message = "成功", $code = 0, $http_code = 200)
     {
 
         return $this->status($data, $message, $code, $http_code);

@@ -42,12 +42,15 @@ class CreateMtShop implements ShouldQueue
             'contact_name' => $this->shop->contact_name,
             'contact_phone' => $this->shop->contact_phone,
             'shop_address' => $this->shop->shop_address,
-            'shop_lng' => $this->shop->shop_lng,
-            'shop_lat' => $this->shop->shop_lat,
+            'shop_lng' => $this->shop->shop_lng * 1000000,
+            'shop_lat' => $this->shop->shop_lat * 1000000,
             'coordinate_type' => $this->shop->coordinate_type,
             'business_hours' => json_encode($this->shop->business_hours),
         ];
         $result = $meituan->shopCreate($params);
-        Log::debug($result);
+        if (!isset($result['code']) || $result['code'] != 0) {
+            $this->shop->status = 0;
+            $this->shop->save();
+        }
     }
 }

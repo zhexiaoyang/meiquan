@@ -15,6 +15,11 @@ class Http
         return $this->request('POST', $url, ['form_params' => $form]);
     }
 
+    public function get($url, array $form = [])
+    {
+        return $this->request('GET', $url, $form);
+    }
+
     public function request($method, $url, $options = [])
     {
         $method = strtoupper($method);

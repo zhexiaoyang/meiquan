@@ -10,13 +10,15 @@ class Api
     private $http;
     private $appKey;
     private $secret;
+    private $url;
 
-    const URL = 'https://peisongopen.meituan.com/api/';
+    // const URL = 'https://peisongopen.meituan.com/api/';
 
-    public function __construct(string $appKey, string $secret)
+    public function __construct(string $appKey, string $secret, string $url)
     {
         $this->appKey = $appKey;
         $this->secret = $secret;
+        $this->url = $url;
     }
 
 
@@ -41,7 +43,7 @@ class Api
 
         $http = $this->getHttp();
 
-        $response = $http->post(self::URL . $method, $params);
+        $response = $http->post($this->url . $method, $params);
 
         $result = json_decode(strval($response->getBody()), true);
 
@@ -50,6 +52,47 @@ class Api
         return $result;
     }
 
+
+    public function request_get(string $method, array $params)
+    {
+        $params = array_merge($params, [
+            'app_id' => $this->appKey,
+            'timestamp' => time(),
+        ]);
+
+        \Log::info('message', [$method]);
+        \Log::info('message', [$this->secret]);
+        \Log::info('message', [$this->appKey]);
+
+        $sig = $this->generate_signature($method, $params);
+
+        $http = $this->getHttp();
+
+        $url = $this->url.$method."?sig=".$sig."&".$this->concatParams($params);
+
+        $response = $http->get($url, $params);
+
+        $result = json_decode(strval($response->getBody()), true);
+
+        // $this->checkErrorAndThrow($result);
+
+        return $result;
+    }
+
+    private function concatParams($params) {
+        ksort($params);
+        $pairs = array();
+        foreach($params as $key=>$val) {
+            array_push($pairs, $key . '=' . $val);
+        }
+        return join('&', $pairs);
+    }
+
+    private function generate_signature($action, $params) {
+        $params = $this->concatParams($params);
+        $str = $this->url.$action.'?'.$params.$this->secret;
+        return md5($str);
+    }
 
     public function signature(array $params)
     {

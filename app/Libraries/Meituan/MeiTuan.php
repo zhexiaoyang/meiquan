@@ -14,7 +14,7 @@ class MeiTuan
     public function __construct($config)
     {
         $this->config = $config;
-        $this->order = new Order($config['app_key'], $config['secret']);
+        $this->order = new Order($config['app_key'], $config['secret'], $config['url']);
     }
 
     public function __call($name, $arguments)
