@@ -153,7 +153,7 @@ class OrderController extends Controller
                 //     $order->delivery_id = $order->order_id;
                 //     $order->save();
                 // }
-                // dispatch(new CreateMtOrder($order));
+                dispatch(new CreateMtOrder($order));
             }
             return $this->success([]);
         }
