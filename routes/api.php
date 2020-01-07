@@ -9,6 +9,8 @@ Route::post('arrange/{order}', 'TestController@arrange');
 Route::post('shopStatus/{shop}', 'TestController@shopStatus');
 // 同步订单
 Route::get('order/sync', 'OrderController@sync')->name('api.order.sync');
+// 取消订单
+Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
 
 Route::middleware('auth:api')->group(function () {
     // 退出

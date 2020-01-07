@@ -59,6 +59,11 @@ class ShopController extends Controller
     public function store(Request $request, Shop $shop)
     {
         $shop->fill($request->all());
+
+        if (!$shop->shop_id) {
+            unset($shop->shop_id);
+        }
+
         if ($shop->save()) {
             if (!$shop->shop_id) {
                 $shop->shop_id = $shop->id;
@@ -67,6 +72,7 @@ class ShopController extends Controller
             dispatch(new CreateMtShop($shop));
             return $this->success([]);
         }
+
         return $this->error("创建失败");
     }
 

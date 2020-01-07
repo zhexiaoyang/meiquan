@@ -159,4 +159,24 @@ class OrderController extends Controller
         }
         return $this->error('未获取到订单');
     }
+
+    public function cancel(Request $request)
+    {
+        $order = Order::where('order_id', $request->get('order_id', 0))->first();
+        if ($order) {
+            $meituan = app("meituan");
+            $result = $meituan->delete([
+                'delivery_id' => $order->delivery_id,
+                'mt_peisong_id' => $order->mt_peisong_id,
+                'cancel_reason_id' => 101,
+                'cancel_reason' => '顾客主动取消',
+            ]);
+
+            if ($result['code'] === 0 && $order->update(['status' => 99])) {
+                return $this->success([]);
+            }
+        }
+
+        return $this->error("取消失败");
+    }
 }
