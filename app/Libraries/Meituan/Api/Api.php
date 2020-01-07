@@ -60,10 +60,6 @@ class Api
             'timestamp' => time(),
         ]);
 
-        \Log::info('message', [$method]);
-        \Log::info('message', [$this->secret]);
-        \Log::info('message', [$this->appKey]);
-
         $sig = $this->generate_signature($method, $params);
 
         $http = $this->getHttp();

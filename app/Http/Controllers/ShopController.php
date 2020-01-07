@@ -83,6 +83,8 @@ class ShopController extends Controller
         $shop_id = $request->get('shop_id', 0);
         $cat = $request->get('category', 0);
 
+        \Log::info('message',[$type,$cat,gettype($type),gettype($cat)]);
+
         if (!$type || !$shop_id || !$cat) {
             return $this->error('参数错误');
         }
@@ -90,12 +92,15 @@ class ShopController extends Controller
         $category = 0;
         $second_category = 0;
 
-        if ($cat === 1) {
+        if (intval($cat) === 2) {
+            $second_category = 240001;
+        }
+
+        if (intval($type) === 1) {
             $category = 200;
             $second_category = 200001;
-        } elseif ($cat === 2) {
+        } elseif (intval($type) === 2) {
             $category = 240;
-            $second_category = 240001;
         }
 
         $meituan = app("yaojite");
@@ -125,7 +130,7 @@ class ShopController extends Controller
                     'category' => $category,
                     'second_category' => $second_category,
                     'contact_name' => '臧润书',
-                    'contact_phone' => '18611683889',
+                    'contact_phone' => '13843209606',
                     'shop_address' => $shop_res['address'],
                     'shop_lng' => $shop_res['longitude'] / 1000000,
                     'shop_lat' => $shop_res['latitude'] / 1000000,
