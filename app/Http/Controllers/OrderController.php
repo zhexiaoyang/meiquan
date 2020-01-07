@@ -96,7 +96,7 @@ class OrderController extends Controller
 
     public function sync(Request $request)
     {
-        $type = $request->get('type', 0);
+        $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
 
         if (!$type || !in_array($type, [1,2]) || !$order_id) {
