@@ -11,7 +11,7 @@ class OrderController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->except('sync');
+        $this->middleware('auth:api')->except('sync', 'cancel');
     }
 
     public function index(Request $request)
