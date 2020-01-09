@@ -38,7 +38,7 @@ class CreateMtOrder implements ShouldQueue
             'delivery_id' => $this->order->delivery_id,
             'order_id' => $this->order->order_id,
             'shop_id' => $this->order->shop_id,
-            'delivery_service_code' => "4012",
+            'delivery_service_code' => "4011",
             'receiver_name' => $this->order->receiver_name,
             'receiver_address' => $this->order->receiver_address,
             'receiver_phone' => $this->order->receiver_phone,
