@@ -137,7 +137,7 @@ class OrderController extends Controller
                 // 'delivery_id' => $data['delivery_id'],
                 'order_id' => $data['wm_order_id_view'],
                 'shop_id' => $shop_id,
-                'delivery_service_code' => 4012,
+                'delivery_service_code' => "4012",
                 'receiver_name' => $data['recipient_name'],
                 'receiver_address' => $data['recipient_address'],
                 'receiver_phone' => $data['recipient_phone'],

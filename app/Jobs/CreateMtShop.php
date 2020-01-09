@@ -45,7 +45,7 @@ class CreateMtShop implements ShouldQueue
             'shop_lng' => $this->shop->shop_lng * 1000000,
             'shop_lat' => $this->shop->shop_lat * 1000000,
             'coordinate_type' => $this->shop->coordinate_type,
-            'delivery_service_codes' => 4011,
+            'delivery_service_codes' => "4012",
             'business_hours' => json_encode($this->shop->business_hours),
         ];
         $result = $meituan->shopCreate($params);
