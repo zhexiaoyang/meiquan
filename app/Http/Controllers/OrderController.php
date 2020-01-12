@@ -99,14 +99,16 @@ class OrderController extends Controller
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
 
-        if (!$type || !in_array($type, [1,2]) || !$order_id) {
+        if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
             return $this->error('参数错误');
         }
 
         if ($type === 1) {
             $meituan = app("yaojite");
+        } elseif($type === 2) {
+            $meituan = app("mrx");
         } else {
-            $meituan = app("meiquan");
+            $meituan = app("jay");
         }
 
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
@@ -122,19 +124,21 @@ class OrderController extends Controller
                 return $this->error('药店不存在');
             }
 
-            $weight = 0;
-
-            if (isset($data['detail']) && is_string($data['detail'])) {
-                $goods_data = json_decode($data['detail'], true);
-                if (!empty($goods_data)) {
-                    foreach ($goods_data as $goods) {
-                        $weight += $goods['weight'];
-                    }
-                }
+            // 设置状态
+            $status = -1;
+            if ($data['status'] < 4) {
+                $status = -2;
+            }
+            if ($data['status'] > 4) {
+                $status = -3;
             }
 
-            $order = new Order([
-                // 'delivery_id' => $data['delivery_id'],
+            // 设置重量
+            $weight = isset($data['total_weight']) ? $data['total_weight'] : 0;
+
+            // 创建订单信息
+            $order_data = [
+                'delivery_id' => $data['wm_order_id_view'],
                 'order_id' => $data['wm_order_id_view'],
                 'shop_id' => $shop_id,
                 'delivery_service_code' => "4011",
@@ -146,14 +150,25 @@ class OrderController extends Controller
                 'coordinate_type' => 0,
                 'goods_value' => $data['total'],
                 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
-            ]);
+                'type' => $type,
+                'status' => $status,
+            ];
 
+            // 判断是否预约单
+            if (isset($data['delivery_time']) && $data['delivery_time'] > 0) {
+                $order_data['order_type'] = 1;
+                $order_data['expected_pickup_time'] = $data['delivery_time'] - 3600;
+                $order_data['expected_delivery_time'] = $data['delivery_time'];
+            }
+
+            // 创建订单
+            $order = new Order($order_data);
+
+            // 保存订单
             if ($order->save()) {
-                // if (!$order->delivery_id) {
-                //     $order->delivery_id = $order->order_id;
-                //     $order->save();
-                // }
-                dispatch(new CreateMtOrder($order));
+                if ($status === -1) {
+                    dispatch(new CreateMtOrder($order));
+                }
             }
             return $this->success([]);
         }
@@ -164,7 +179,15 @@ class OrderController extends Controller
     {
         $order = Order::where('order_id', $request->get('order_id', 0))->first();
         if ($order) {
-            $meituan = app("meituan");
+
+            if ($order->type === 1) {
+                $meituan = app("yaojite");
+            } elseif($order->type === 2) {
+                $meituan = app("mrx");
+            } else {
+                $meituan = app("jay");
+            }
+
             $result = $meituan->delete([
                 'delivery_id' => $order->delivery_id,
                 'mt_peisong_id' => $order->mt_peisong_id,

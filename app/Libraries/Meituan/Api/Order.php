@@ -137,4 +137,9 @@ class Order extends Api
         return $this->request_get('v1/order/getOrderDetail', $params);
     }
 
+    public function getOrderViewStatus(array $params)
+    {
+        return $this->request_get('v1/order/viewstatus', $params);
+    }
+
 }

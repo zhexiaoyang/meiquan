@@ -33,8 +33,9 @@ return [
         //],
     ],
     'timer'                    => [
-        'enable'        => false,
+        'enable'        => true,
         'jobs'          => [
+            \App\Jobs\CheckOrderJob::class, // 检查订单状态
             // Enable LaravelScheduleJob to run `php artisan schedule:run` every 1 minute, replace Linux Crontab
             //\Hhxsv5\LaravelS\Illuminate\LaravelScheduleJob::class,
             // Two ways to configure parameters:

@@ -52,7 +52,6 @@ class CreateMtOrder implements ShouldQueue
         if ($result['code'] === 0) {
             \DB::table('orders')->where('id', $this->order->id)->update(['mt_peisong_id' => $result['data']['mt_peisong_id']]);
         } else {
-            Log::alert(['123321']);
             \DB::table('orders')->where('id', $this->order->id)->update(['failed' => $result['message']]);
         }
     }

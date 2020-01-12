@@ -22,8 +22,12 @@ class AppServiceProvider extends ServiceProvider
             $config = config('ps.yaojite');
             return new MeiTuan($config);
         });
-        $this->app->singleton('meiquan', function () {
-            $config = config('ps.meiquan');
+        $this->app->singleton('mrx', function () {
+            $config = config('ps.mrx');
+            return new MeiTuan($config);
+        });
+        $this->app->singleton('jay', function () {
+            $config = config('ps.jay');
             return new MeiTuan($config);
         });
     }

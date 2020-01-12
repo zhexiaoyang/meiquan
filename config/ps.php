@@ -11,9 +11,14 @@ return [
         'secret' => env('YAOJITE_SECRET', ''),
         'url' => 'https://waimaiopen.meituan.com/api/'
     ],
-    "meiquan" => [
-        'app_key' => env('MEIQUAN_APP_KEY', ''),
-        'secret' => env('MEIQUAN_SECRET', ''),
+    "mrx" => [
+        'app_key' => env('MRX_APP_KEY', ''),
+        'secret' => env('MRX_SECRET', ''),
+        'url' => 'https://waimaiopen.meituan.com/api/'
+    ],
+    "jay" => [
+        'app_key' => env('JAY_APP_KEY', ''),
+        'secret' => env('JAY_SECRET', ''),
         'url' => 'https://waimaiopen.meituan.com/api/'
     ],
 ];
