@@ -53,8 +53,8 @@ class OrderController extends Controller
         $result = $meituan->delete([
             'delivery_id' => $order->delivery_id,
             'mt_peisong_id' => $order->mt_peisong_id,
-            'cancel_reason_id' => 101,
-            'cancel_reason' => '顾客主动取消',
+            'cancel_reason_id' => 399,
+            'cancel_reason' => '其他原因',
         ]);
 
         if ($result['code'] === 0 && $order->update(['status' => 99])) {
@@ -180,19 +180,13 @@ class OrderController extends Controller
         $order = Order::where('order_id', $request->get('order_id', 0))->first();
         if ($order) {
 
-            if ($order->type === 1) {
-                $meituan = app("yaojite");
-            } elseif($order->type === 2) {
-                $meituan = app("mrx");
-            } else {
-                $meituan = app("jay");
-            }
+            $meituan = app("meituan");
 
             $result = $meituan->delete([
                 'delivery_id' => $order->delivery_id,
                 'mt_peisong_id' => $order->mt_peisong_id,
-                'cancel_reason_id' => 101,
-                'cancel_reason' => '顾客主动取消',
+                'cancel_reason_id' => 399,
+                'cancel_reason' => '其他原因',
             ]);
 
             if ($result['code'] === 0 && $order->update(['status' => 99])) {
