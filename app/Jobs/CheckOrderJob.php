@@ -34,7 +34,7 @@ class CheckOrderJob extends CronJob
                     $meituan = app("jay");
                 }
 
-                $res = $meituan->getOrderDetail(['order_id' => $order->order_id]);
+                $res = $meituan->getOrderViewStatus(['order_id' => $order->order_id]);
                 if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
                     $status = isset($res['data']['status']) ? $res['data']['status'] : 0;
 
