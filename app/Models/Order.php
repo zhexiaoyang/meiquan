@@ -11,6 +11,7 @@ class Order extends Model
     ];
 
     public $status_data = [
+        -2 => '等待发送',
         -1 => '发送失败',
         0 => '待调度',
         20 => '已接单',

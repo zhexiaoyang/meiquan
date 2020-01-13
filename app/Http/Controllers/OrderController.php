@@ -34,6 +34,11 @@ class OrderController extends Controller
         $orders = $query->orderBy('id', 'desc')->paginate($page_size);
         if (!empty($orders)) {
             foreach ($orders as $order) {
+                if (in_array($order->status, [0, 20 ,30])) {
+                    $order->is_cancel = 1;
+                } else {
+                    $order->is_cancel = 0;
+                }
                 $order->status = $order->status_label;
             }
         }
