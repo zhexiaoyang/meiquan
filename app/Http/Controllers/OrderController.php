@@ -28,6 +28,9 @@ class OrderController extends Controller
                     ->orWhere('receiver_phone', 'like', "%{$search_key}%");
             });
         }
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('shop_id'));
+        }
         $orders = $query->orderBy('id', 'desc')->paginate($page_size);
         if (!empty($orders)) {
             foreach ($orders as $order) {
