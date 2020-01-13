@@ -31,7 +31,7 @@ class OrderController extends Controller
         if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('shop_id'));
         }
-        $orders = $query->orderBy('id', 'desc')->paginate($page_size);
+        $orders = $query->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 if (in_array($order->status, [0, 20 ,30])) {
