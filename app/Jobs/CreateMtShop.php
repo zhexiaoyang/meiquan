@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Shop;
+use function GuzzleHttp\Psr7\str;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -39,11 +40,11 @@ class CreateMtShop implements ShouldQueue
             'shop_name' => $this->shop->shop_name,
             'category' => $this->shop->category,
             'second_category' => $this->shop->second_category,
-            'contact_name' => $this->shop->contact_name,
+            'contact_name' => (string) $this->shop->contact_name,
             'contact_phone' => $this->shop->contact_phone,
             'shop_address' => $this->shop->shop_address,
-            'shop_lng' => $this->shop->shop_lng * 1000000,
-            'shop_lat' => $this->shop->shop_lat * 1000000,
+            'shop_lng' => ceil($this->shop->shop_lng * 1000000),
+            'shop_lat' => ceil($this->shop->shop_lat * 1000000),
             'coordinate_type' => $this->shop->coordinate_type,
             'delivery_service_codes' => "4011",
             'business_hours' => json_encode($this->shop->business_hours),
