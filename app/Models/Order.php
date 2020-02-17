@@ -30,7 +30,7 @@ class Order extends Model
         'courier_phone', 'cancel_reason_id', 'cancel_reason','status','failed','type'];
 
     public function shop() {
-        return $this->belongsTo(Shop::class, 'id', 'shop_id');
+        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
     }
 
 
@@ -61,11 +61,11 @@ class Order extends Model
 
                 $delivery = new Delivery();
 
-                if (!($money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat))) {
-                    throw new HttpException('获取距离出错');
-                }
+                // if (!($money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat))) {
+                //     throw new HttpException('获取距离出错');
+                // }
 
-                $model->money = getMoney($shop, $model->receiver_lng, $model->receiver_lat);
+                $model->money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat);
 
             }
         });

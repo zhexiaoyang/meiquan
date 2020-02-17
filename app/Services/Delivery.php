@@ -29,12 +29,14 @@ class Delivery
 
             $data = json_decode($str, true);
 
-            \Log::info('获取距离结果：', [$str]);
+            \Log::info('获取距离结果：', [$data['results'][0]['distance'] / 1000]);
 
             return $data['results'][0]['distance'] / 1000;
 
         } catch (\Exception $e) {
-            throw new HttpException($e->getMessage(), $e->getCode(), $e);
+            \Log::info('请求获取距离失败', []);
+            return 1;
+            // throw new HttpException($e->getMessage(), $e->getCode(), $e);
         }
     }
 
@@ -48,14 +50,13 @@ class Delivery
 
         $start_arr = [ 3 => 8.7, 4 => 8.5, 5 => 8, 6 => 7.5, 7 => 7.2, 11 => 9, 12 => 9, 13 => 8.7 ];
 
-        $money = isset($start_arr[$shop->city_level]) ?? 9;
+        $money = $start_arr[$shop->city_level] ?? 9;
 
         if ($juli > 10) {
             throw new MessageException("距离 {$juli}KM，无法配送");
         }
 
         // 距离加价
-        $juli_jia = 0;
         if ($juli > 1 && $juli <= 3) {
             $money += 1;
         } elseif ($juli > 3 && $juli <= 5) {

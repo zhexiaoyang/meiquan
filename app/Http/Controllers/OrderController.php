@@ -20,7 +20,7 @@ class OrderController extends Controller
         $search_key = $request->get('search_key', '');
         $query = Order::with(['shop' => function($query) {
             $query->select('shop_id', 'shop_name');
-        }]);
+        }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','status','created_at');
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                 $query->where('delivery_id', 'like', "%{$search_key}%")
