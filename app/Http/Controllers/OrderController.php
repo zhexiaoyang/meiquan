@@ -18,7 +18,9 @@ class OrderController extends Controller
     {
         $page_size = $request->get('page_size', 10);
         $search_key = $request->get('search_key', '');
-        $query = Order::query();
+        $query = Order::with(['shop' => function($query) {
+            $query->select('shop_id', 'shop_name');
+        }]);
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                 $query->where('delivery_id', 'like', "%{$search_key}%")
@@ -40,6 +42,12 @@ class OrderController extends Controller
                     $order->is_cancel = 0;
                 }
                 $order->status = $order->status_label;
+                if (isset($order->shop->shop_name)) {
+                    $order->shop_name = $order->shop->shop_name;
+                } else {
+                    $order->shop_name = "";
+                }
+                unset($order->shop);
             }
         }
         return $this->success($orders);

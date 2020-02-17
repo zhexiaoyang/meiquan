@@ -21,4 +21,8 @@ return [
         'secret' => env('JAY_SECRET', ''),
         'url' => 'https://waimaiopen.meituan.com/api/'
     ],
+    'jieri' => [
+        '2020-02-16',
+        '2020-02-17',
+    ],
 ];

@@ -63,3 +63,8 @@ Route::namespace('MeiTuan')->prefix('mt')->group(function () {
     // 订单异常回调
     Route::post('order/exception', "OrderController@exception");
 });
+
+Route::group(['namespace' => 'Api'], function () {
+    Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
+    Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
+});

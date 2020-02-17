@@ -45,6 +45,8 @@ class ExceptionReport
         AuthenticationException::class => ['未授权',401],
         ModelNotFoundException::class => ['该模型未找到',404],
         UnauthorizedException::class => ['没有权限',403],
+        HttpException::class => ['请求第三方失败',500],
+        MessageException::class => ['错误，稍后再试',500],
     ];
 
     /**
@@ -84,6 +86,10 @@ class ExceptionReport
     public function report(){
 
         $message = $this->doReport[$this->report];
+
+        if ($this->exception instanceof MessageException) {
+            $message[0] = $this->exception->getMessage() ?? $message[0];
+        }
 
         return $this->error($message[0],$message[1]);
 

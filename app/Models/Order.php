@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Exceptions\HttpException;
+use App\Services\Delivery;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -28,7 +30,7 @@ class Order extends Model
         'courier_phone', 'cancel_reason_id', 'cancel_reason','status','failed','type'];
 
     public function shop() {
-        return $this->belongsTo(Shop::class);
+        return $this->belongsTo(Shop::class, 'id', 'shop_id');
     }
 
 
@@ -53,6 +55,18 @@ class Order extends Model
             }
             if (!$model->delivery_id) {
                 $model->delivery_id = $model->order_id;
+            }
+
+            if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
+
+                $delivery = new Delivery();
+
+                if (!($money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat))) {
+                    throw new HttpException('获取距离出错');
+                }
+
+                $model->money = getMoney($shop, $model->receiver_lng, $model->receiver_lat);
+
             }
         });
     }

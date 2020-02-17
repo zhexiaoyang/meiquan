@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Deposit;
 use Illuminate\Http\Request;
-use Yansongda\Pay\Pay;
+use Pay;
 
 class DepositController extends Controller
 {
@@ -16,7 +16,7 @@ class DepositController extends Controller
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 10);
-        $data = $request->user()->deposit()->where("status", 1)->paginate($page_size);
+        $data = $request->user()->deposit()->where("status", 1)->orderBy('id', 'desc')->paginate($page_size);
         return $this->success($data);
     }
 
@@ -30,7 +30,7 @@ class DepositController extends Controller
             return $this->error("金额不正确");
         }
 
-        if ($pay_method !== 1 || $pay_method !== 2) {
+        if ($pay_method != 1 && $pay_method != 2) {
             return $this->error("方式不正确");
         }
 
@@ -42,14 +42,36 @@ class DepositController extends Controller
         // 写入数据库
         $deposit->save();
 
-        $order = [
-            'out_trade_no' => $deposit->no,
-            'total_amount' => $deposit->amount,
-            'subject' => '美全配送充值',
-        ];
+        if ($pay_method == 1) {
 
-        $config = config('pay.alipay');
+            $order = [
+                'out_trade_no' => $deposit->no,
+                'total_amount' => $deposit->amount,
+                'subject' => '美全配送充值',
+            ];
 
-        return $this->success(['html' => Pay::alipay($config)->web($order)->getContent()]);
+            // $config = config('pay.alipay');
+
+            return $this->success(['html' => Pay::alipay()->web($order)->getContent()]);
+
+        } else {
+
+            $order = [
+                'out_trade_no'  => $deposit->no,
+                'body'          => '美全配送充值',
+                'total_fee'     => $deposit->amount * 100
+            ];
+
+            $wechatOrder = Pay::wechat()->scan($order);
+
+            $data = [
+                'code_url' => $wechatOrder->code_url,
+                'amount'  => $deposit->amount,
+                'out_trade_no'  => $deposit->no,
+            ];
+
+            return $this->success($data);
+
+        }
     }
 }
