@@ -14,13 +14,21 @@ class OrderController extends Controller
         $this->middleware('auth:api')->except('sync', 'cancel');
     }
 
+    /**
+     * 订单列表
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 10);
         $search_key = $request->get('search_key', '');
+        $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
             $query->select('shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','status','created_at');
+
+        // 关键字搜索
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                 $query->where('delivery_id', 'like', "%{$search_key}%")
@@ -30,9 +38,18 @@ class OrderController extends Controller
                     ->orWhere('receiver_phone', 'like', "%{$search_key}%");
             });
         }
+
+        // 判断可以查询的药店
         if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('shop_id'));
         }
+
+        // 状态查询
+        if (!is_null($status)) {
+            $query->where('status', $status);
+        }
+
+        // 查询订单
         $orders = $query->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -41,6 +58,7 @@ class OrderController extends Controller
                 } else {
                     $order->is_cancel = 0;
                 }
+                $order->status_code = $order->status;
                 $order->status = $order->status_label;
                 if (isset($order->shop->shop_name)) {
                     $order->shop_name = $order->shop->shop_name;
@@ -53,9 +71,23 @@ class OrderController extends Controller
         return $this->success($orders);
     }
 
+    /**
+     * 创建订单
+     * @param Request $request
+     * @param Order $order
+     * @return mixed
+     */
     public function store(Request $request, Order $order)
     {
+        $shop_id = $request->get('shop_id', 0);
+        if (!$shop = Shop::query()->find($shop_id)) {
+            $shop = Shop::query()->where('shop_id', $shop_id)->first();
+        }
+        if (!$shop) {
+            return $this->error('门店不存在');
+        }
         $order->fill($request->all());
+        $order->shop_id = $shop->shop_id;
         if ($order->save()) {
             dispatch(new CreateMtOrder($order));
             return $this->success([]);
@@ -211,5 +243,40 @@ class OrderController extends Controller
         }
 
         return $this->error("取消失败");
+    }
+
+    public function money(Request $request, Shop $shop)
+    {
+        $lng = $request->get('lng', 0);
+        $lat = $request->get('lat', 0);
+        $weight = $request->get('weight', 0);
+
+        if (!$lng || !$lat || !$weight) {
+            return $this->error('参数错误');
+        }
+
+        $distance = distanceMoney($shop, $lng, $lat);
+
+        if ($distance == -2) {
+            return $this->error('获取距离错误请稍后再试');
+        }
+
+        if ($distance == -1) {
+            return $this->error('超出配送距离');
+        }
+
+        $base = baseMoney($shop->city_level ?: 9);
+        $time = timeMoney();
+        $date_money = dateMoney();
+        $weight = weightMoney($weight);
+
+        return $this->success([
+            'base' => $base,
+            'time' => $time,
+            'date_money' => $date_money,
+            'weight' => $weight,
+            'distance' => $distance,
+            'total' => $base + $time + $date_money + $distance + $weight
+        ]);
     }
 }

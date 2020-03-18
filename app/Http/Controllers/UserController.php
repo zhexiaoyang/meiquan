@@ -16,9 +16,22 @@ class UserController extends Controller
         $this->middleware('auth:api');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::query()->orderBy('id', 'desc')->paginate();
+
+        $search_key = $request->get('search_key', '');
+
+        $query = User::query();
+
+        if ($search_key) {
+            $query->where(function ($query) use ($search_key) {
+                $query->where('name', 'like', "%{$search_key}%")
+                    ->orWhere('phone', 'like', "%{$search_key}%");
+            });
+        }
+
+        $users = $query->orderBy('id', 'desc')->paginate();
+
         if (!empty($users)) {
             foreach ($users as $user) {
                 if ($user->hasRole('super_man')) {
@@ -37,6 +50,12 @@ class UserController extends Controller
         $user->user_shops = Arr::pluck($user->shops, 'id');
         unset($user->shops);
         $shops = Shop::select('id','shop_name')->where('user_id', 0)->orWhereIn('id', $user->user_shops)->get();
+        if (!empty($shops)) {
+            foreach ($shops as $v) {
+                $v->key = (string) $v->id;
+                $v->title = (string) $v->shop_name;
+            }
+        }
         return $this->success(compact(['user', 'shops']));
     }
 

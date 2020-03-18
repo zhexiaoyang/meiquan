@@ -4,17 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use GuzzleHttp\Client;
-use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Password;
-use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->except(['login']);
+        $this->middleware('auth:api')->except(['login', 'register']);
     }
 
     public function login(Request $request)
@@ -36,6 +34,38 @@ class AuthController extends Controller
             return $this->success($data);
         } catch (\Exception $e) {
             return $this->error("用户名或密码错误", 400);
+        }
+    }
+
+
+    public function register(Request $request)
+    {
+        $phone = $request->get('phone');
+        $password = $request->get('password');
+        $verifyCode = (string)$request->get('verifyCode');
+
+
+        $verifyData = \Cache::get($phone);
+
+        if (!$verifyData) {
+            return $this->error('验证码已失效');
+        }
+
+        if (!hash_equals($verifyData['code'], $verifyCode)) {
+            return $this->error('验证码失效');
+        }
+
+
+        $user = User::query()->create([
+            'name' => $request->get('phone'),
+            'phone' => $request->get('phone'),
+            'password' => bcrypt($password),
+        ]);
+
+        if ($user) {
+            return $this->error("注册成功，请登录", 421);
+        } else {
+            return $this->error("注册失败，稍后再试", 500);
         }
     }
 
@@ -63,6 +93,50 @@ class AuthController extends Controller
             'phone' => $request->user()->phone ?? '',
             'money' => $request->user()->money ?? '',
             'roles' => $request->user()->hasRole('super_man') ? ['super_man'] : ['index'],
+        ];
+        return $this->success($user);
+    }
+
+    public function me(Request $request)
+    {
+        $role_name = $request->user()->getRoleNames()[0];
+
+        $data = [];
+
+        $role = Role::with(['permissions' => function($query) {
+            $query->select('name', 'title', 'id', 'pid')->orderBy('pid', 'asc');
+        }])->select('name', 'title', 'id')->where('name', $role_name)->first();
+
+        if ($role) {
+            $data['id'] = $role->name;
+            $data['name'] = $role->title;
+            $permissions = [];
+            if (!empty($role->permissions)) {
+                foreach ($role->permissions as $permission) {
+                    if ($permission->pid ==0) {
+                        $permissions[$permission->id]['permissionId'] = $permission->name;
+                        $permissions[$permission->id]['permissionName'] = $permission->title;
+                    } else {
+                        \Log::info('message',[$permissions]);
+                        \Log::info('message',[$permission->pid]);
+                        if (isset($permissions[$permission->pid])) {
+                            $tmp['action'] = $permission->name;
+                            $tmp['describe'] = $permission->title;
+                            $tmp['ddefaultCheck'] = true;
+                            $permissions[$permission->pid]['actionEntitySet'][] = $tmp;
+                        }
+                    }
+                }
+                $data['permissions'] = array_values($permissions);
+            }
+        }
+
+        $user = [
+            'id' => $request->user()->phone ?? '',
+            'name' => $request->user()->phone ?? '',
+            'phone' => $request->user()->phone ?? '',
+            'money' => $request->user()->money ?? '',
+            'role' => $data,
         ];
         return $this->success($user);
     }

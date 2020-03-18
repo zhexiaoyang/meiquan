@@ -22,6 +22,11 @@ class Shop extends Model
         40 => '上线可发单'
     ];
 
+    public function range()
+    {
+        return $this->hasOne(ShopRange::class);
+    }
+
     public function orders() {
         return $this->hasMany(Order::class);
     }

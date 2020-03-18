@@ -27,7 +27,8 @@ class Order extends Model
         'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info',
         'goods_delivery_info','expected_pickup_time','expected_delivery_time','order_type','poi_seq',
         'note','cash_on_delivery','cash_on_pickup','invoice_title','mt_peisong_id', 'courier_name',
-        'courier_phone', 'cancel_reason_id', 'cancel_reason','status','failed','type'];
+        'courier_phone', 'cancel_reason_id', 'cancel_reason','status','failed','type','money','base_money',
+        'distance_money','weight_money','time_money','date_money'];
 
     public function shop() {
         return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
@@ -65,7 +66,7 @@ class Order extends Model
                 //     throw new HttpException('获取距离出错');
                 // }
 
-                $model->money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat);
+                $model->money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat, $model->goods_weight);
 
             }
         });

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
+use App\Models\ShopRange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 
@@ -42,16 +43,23 @@ class ShopController extends Controller
     // 添加用户返回没有绑定的门店
     public function wei()
     {
-        return $this->success(Shop::select('id','shop_name')->where('user_id', 0)->get());
+        $wei = Shop::select('id','shop_name')->where('user_id', 0)->get();
+        if (!empty($wei)) {
+            foreach ($wei as $v) {
+                $v->key = (string) $v->id;
+                $v->title = (string) $v->shop_name;
+            }
+        }
+        return $this->success($wei);
     }
 
-    // 返回用户下所有的门店
+    // 返回用户下所有可发单的门店
     public function all(Request $request)
     {
         if ($request->user()->hasRole('super_man')) {
-            $shop = Shop::select('id','shop_id','shop_name')->get();
+            $shop = Shop::select('id','shop_id','shop_name')->where('status', 40)->get();
         } else {
-            $shop = $request->user()->shops()->select('id','shop_id','shop_name')->get();
+            $shop = $request->user()->shops()->select('id','shop_id','shop_name')->where('status', 40)->get();
         }
         return $this->success($shop);
     }
@@ -78,11 +86,57 @@ class ShopController extends Controller
 
     public function show(Shop $shop)
     {
-        $meituan = app("meituan");
+        // $meituan = app("meituan");
 
-        return $meituan->shopInfo(['shop_id' => $shop->shop_id]);
+        // return $meituan->shopInfo(['shop_id' => $shop->shop_id]);
+
+        // [{"beginTime":"11:29","endTime":"12:29"}]
+
+        $shop->beginTime = $shop->business_hours[0]['beginTime'] ?? '-';
+        $shop->endTime = $shop->business_hours[0]['endTime'] ?? '-';
+
+        return $this->success($shop);
     }
 
+    /**
+     * 配送范围获取
+     */
+    public function range(Shop $shop)
+    {
+        if (!$shop->range) {
+            $meituan = app("meituan");
+            $res = $meituan->getShopArea(['delivery_service_code' => 4011, 'shop_id' => $shop->shop_id]);
+            if (isset($res['data']['scope'])) {
+                $scope = [];
+                $range = json_decode($res['data']['scope'], true);
+                if (!empty($range)) {
+                    foreach ($range as $k => $v) {
+                        $tmp[] = $v['y'];
+                        $tmp[] = $v['x'];
+                        $scope[] = $tmp;
+                        unset($tmp);
+                    }
+                }
+                ShopRange::query()->create(['shop_id' => $shop->id, 'range' => json_encode($scope)]);
+                $shop->load('range');
+            }
+        }
+
+        $data = [
+            'id' => $shop->id,
+            'lng' => $shop->shop_lng,
+            'lat' => $shop->shop_lat,
+            'range' => isset($shop->range->range) ? json_decode($shop->range->range) : [],
+        ];
+
+        return $this->success($data);
+    }
+
+    /**
+     * 同步药剂特药店
+     * @param Request $request
+     * @return mixed
+     */
     public function sync(Request $request)
     {
         $type = $request->get('type', 0);

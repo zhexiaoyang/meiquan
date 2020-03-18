@@ -12,6 +12,9 @@ Route::get('order/sync', 'OrderController@sync')->name('api.order.sync');
 // 取消订单
 Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
 
+Route::post('code', 'CommonController@getVerifyCode')->name('code');
+Route::post('auth/register', 'AuthController@register');
+
 Route::middleware('auth:api')->group(function () {
     // 退出
     Route::post('auth/logout', 'AuthController@logout');
@@ -19,6 +22,8 @@ Route::middleware('auth:api')->group(function () {
     // Route::post('auth/register', 'AuthController@register');
     // 个人中心-用户信息
     Route::get('user/info', 'AuthController@user');
+    // 个人中心-用户信息-ant框架返回
+    Route::get('user/me', 'AuthController@me');
     // 用户全部药店
     Route::get('shop/all', 'ShopController@all')->name('api.shop.all');
     // 订单状态
@@ -29,7 +34,6 @@ Route::middleware('auth:api')->group(function () {
     /**
      * 管理员操作
      */
-
     Route::get('order/location/{order}', "OrderController@location");
     // 未绑定全部药店
     Route::get('shop/wei', 'ShopController@wei')->name('api.shop.wei')->middleware('role:super_man');
@@ -45,13 +49,18 @@ Route::middleware('auth:api')->group(function () {
     /**
      * 资源路由
      */
-
     // 门店
     Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
+    // 门店地址加配送范围信息
+    Route::get('shop/range/{shop}', "ShopController@range")->name('shop.range');
     // 订单
     Route::resource('order', "OrderController", ['only' => ['store', 'show', 'index', 'destroy']]);
+    // 获取配送费
+    Route::get('order/money/{shop}', "OrderController@money");
     // 个人中心-用户充值
     Route::resource('deposit', "DepositController", ['only' => ['store', 'show', 'index']]);
+    // 权限管理
+    Route::resource('permission', "PermissionController", ['only' => ['store', 'show', 'index']]);
 });
 
 

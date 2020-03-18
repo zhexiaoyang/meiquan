@@ -142,4 +142,14 @@ class Order extends Api
         return $this->request_get('v1/order/viewstatus', $params);
     }
 
+    /**
+     * 获取门店配送范围
+     * @param array $params
+     * @return mixed
+     */
+    public function getShopArea(array $params)
+    {
+        return $this->request('shop/area/query', $params);
+    }
+
 }
