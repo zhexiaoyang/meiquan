@@ -40,7 +40,7 @@ class PaymentController
             DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
 
             try {
-                $user = DB::table()->where('id', $order->user_id)->first();
+                $user = DB::table('users')->where('id', $order->user_id)->first();
                 app('easysms')->send('13843209606', [
                     'template' => 'SMS_186360326',
                     'data' => [
@@ -119,7 +119,7 @@ class PaymentController
             DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
 
             try {
-                $user = DB::table()->where('id', $order->user_id)->first();
+                $user = DB::table('users')->where('id', $order->user_id)->first();
                 app('easysms')->send('13843209606', [
                     'template' => 'SMS_186360326',
                     'data' => [
