@@ -45,7 +45,7 @@ class AuthController extends Controller
         $verifyCode = (string)$request->get('verifyCode');
 
         if (User::query()->where('phone', $phone)->first()) {
-            return $this->success('手机号已存在，请登录', 101);
+            return $this->message('手机号已存在，请登录');
         }
 
         $verifyData = \Cache::get($phone);
@@ -66,7 +66,7 @@ class AuthController extends Controller
         $user->assignRole('shop');
 
         if ($user) {
-            return $this->success("注册成功，请登录");
+            return $this->message("注册成功，请登录");
         } else {
             return $this->error("注册失败，稍后再试", 500);
         }
