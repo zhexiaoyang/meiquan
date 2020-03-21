@@ -38,12 +38,11 @@ class AuthController extends Controller
     }
 
 
-    public function register(Request $request)
+    public function register(Request $request, User $user)
     {
         $phone = $request->get('phone');
         $password = $request->get('password');
         $verifyCode = (string)$request->get('verifyCode');
-
 
         $verifyData = \Cache::get($phone);
 
@@ -55,12 +54,12 @@ class AuthController extends Controller
             return $this->error('验证码失效');
         }
 
+        $user->name = $request->get('phone');
+        $user->phone = $request->get('phone');
+        $user->password = bcrypt($password);
+        $user->save();
 
-        $user = User::query()->create([
-            'name' => $request->get('phone'),
-            'phone' => $request->get('phone'),
-            'password' => bcrypt($password),
-        ]);
+        $user->assignRole('shop');
 
         if ($user) {
             return $this->error("注册成功，请登录", 421);
@@ -68,22 +67,6 @@ class AuthController extends Controller
             return $this->error("注册失败，稍后再试", 500);
         }
     }
-
-//    public function register(Request $request)
-//    {
-//        $user = User::create([
-//            'name' => $request->get('username'),
-//            'email' => $request->get('email'),
-//            'password' => bcrypt($request->get('password')),
-//        ]);
-//
-//
-//        $token = $user->createToken('Laravel Password Grant Client')->accessToken;
-//
-//        return response()->json([
-//            'token' => $token,
-//        ]);
-//    }
 
     public function user(Request $request)
     {
@@ -114,15 +97,14 @@ class AuthController extends Controller
             if (!empty($role->permissions)) {
                 foreach ($role->permissions as $permission) {
                     if ($permission->pid ==0) {
+                        $permissions[$permission->id]['roleId'] = $role->name;
                         $permissions[$permission->id]['permissionId'] = $permission->name;
                         $permissions[$permission->id]['permissionName'] = $permission->title;
                     } else {
-                        \Log::info('message',[$permissions]);
-                        \Log::info('message',[$permission->pid]);
                         if (isset($permissions[$permission->pid])) {
                             $tmp['action'] = $permission->name;
                             $tmp['describe'] = $permission->title;
-                            $tmp['ddefaultCheck'] = true;
+                            $tmp['defaultCheck'] = true;
                             $permissions[$permission->pid]['actionEntitySet'][] = $tmp;
                         }
                     }

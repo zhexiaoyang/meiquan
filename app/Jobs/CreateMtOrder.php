@@ -52,7 +52,14 @@ class CreateMtOrder implements ShouldQueue
         if ($result['code'] === 0) {
             \DB::table('orders')->where('id', $this->order->id)->update(['mt_peisong_id' => $result['data']['mt_peisong_id']]);
         } else {
-            \DB::table('orders')->where('id', $this->order->id)->update(['failed' => $result['message']]);
+            $shop = \DB::table('shops')->find($this->order->shop_id);
+            if (isset($shop->user_id) && $shop->user_id) {
+                \DB::table('users')->where('id', $shop->user_id)->increment('money', $this->order->money);
+                \Log::info('创建订单失败，将钱返回给用户', [$this->order->money]);
+            } else {
+                \Log::info('创建订单失败，门店不存在', [$shop]);
+            }
+            \DB::table('orders')->where('id', $this->order->id)->update(['failed' => $result['message'], 'status' => -1]);
         }
     }
 }

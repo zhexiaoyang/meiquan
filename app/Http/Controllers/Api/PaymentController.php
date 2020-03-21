@@ -39,6 +39,29 @@ class PaymentController
 
             DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
 
+            try {
+                $user = DB::table()->where('id', $order->user_id)->first();
+                app('easysms')->send('13843209606', [
+                    'template' => 'SMS_186360326',
+                    'data' => [
+                        'name' => $user->phone ?? '',
+                        'type' => '微信',
+                        'number' => $data->total_fee / 100
+                    ],
+                ]);
+                app('easysms')->send('18611683889', [
+                    'template' => 'SMS_186360326',
+                    'data' => [
+                        'name' => $user->phone ?? '',
+                        'type' => '微信',
+                        'number' => $data->total_fee / 100
+                    ],
+                ]);
+            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                $message = $exception->getException('qcloud')->getMessage();
+                \Log::info('充值通知短信发送失败');
+            }
+
             return true;
 
         });
@@ -94,6 +117,29 @@ class PaymentController
             ]);
 
             DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+
+            try {
+                $user = DB::table()->where('id', $order->user_id)->first();
+                app('easysms')->send('13843209606', [
+                    'template' => 'SMS_186360326',
+                    'data' => [
+                        'name' => $user->phone ?? '',
+                        'type' => '支付宝',
+                        'number' => $data->total_fee / 100
+                    ],
+                ]);
+                app('easysms')->send('18611683889', [
+                    'template' => 'SMS_186360326',
+                    'data' => [
+                        'name' => $user->phone ?? '',
+                        'type' => '支付宝',
+                        'number' => $data->total_fee / 100
+                    ],
+                ]);
+            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                $message = $exception->getException('qcloud')->getMessage();
+                \Log::info('充值通知短信发送失败');
+            }
 
             return true;
 

@@ -7,6 +7,7 @@ use App\Models\Shop;
 use App\Models\ShopRange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Overtrue\EasySms\EasySms;
 
 class ShopController extends Controller
 {
@@ -15,6 +16,11 @@ class ShopController extends Controller
         $this->middleware('auth:api');
     }
 
+    /**
+     * 门店列表
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 10);
@@ -64,6 +70,12 @@ class ShopController extends Controller
         return $this->success($shop);
     }
 
+    /**
+     * 保存门店
+     * @param Request $request
+     * @param Shop $shop
+     * @return mixed
+     */
     public function store(Request $request, Shop $shop)
     {
         $shop->fill($request->all());
@@ -84,6 +96,40 @@ class ShopController extends Controller
         return $this->error("创建失败");
     }
 
+    /**
+     * 保存待审核门店
+     * @param Request $request
+     * @param Shop $shop
+     * @return mixed
+     */
+    public function storeShop(Request $request, Shop $shop)
+    {
+        $shop->fill($request->all());
+
+        if (!$shop->shop_id) {
+            unset($shop->shop_id);
+        }
+
+        $shop->status = 100;
+        $shop->user_id = auth()->user()->id;
+
+        if ($shop->save()) {
+            if (!$shop->shop_id) {
+                $shop->shop_id = $shop->id;
+                $shop->save();
+            }
+            // dispatch(new CreateMtShop($shop));
+            return $this->success([]);
+        }
+
+        return $this->error("创建失败");
+    }
+
+    /**
+     * 门店详情
+     * @param Shop $shop
+     * @return mixed
+     */
     public function show(Shop $shop)
     {
         // $meituan = app("meituan");
@@ -210,4 +256,69 @@ class ShopController extends Controller
         }
         return $this->error('未获取到门店');
     }
+
+    public function examine(Shop $shop)
+    {
+        dispatch(new CreateMtShop($shop));
+
+        $shop->load(['user']);
+        $phone =  $shop->user->phone ?? 0;
+
+        if ($phone) {
+            try {
+                app('easysms')->send($phone, [
+                    'template' => 'SMS_186400271',
+                    'data' => [
+                        'name' => $phone,
+                        'title' => $shop->shop_name
+                    ],
+                ]);
+            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                $message = $exception->getException('aliyun')->getMessage();
+                \Log::info('审核通过发送短信异常', [$phone, $message]);
+            }
+        }
+
+        return $this->success('审核成功');
+    }
+
+    // public function examine(Request $request, Shop $shop, EasySms $easySms)
+    // {
+    //     $meituan = app("meituan");
+    //     $params = [
+    //         'shop_id' => $shop->shop_id,
+    //         'shop_name' => $shop->shop_name,
+    //         'category' => $shop->category,
+    //         'second_category' => $shop->second_category,
+    //         'contact_name' => (string) $shop->contact_name,
+    //         'contact_phone' => $shop->contact_phone,
+    //         'shop_address' => $shop->shop_address,
+    //         'shop_lng' => ceil($shop->shop_lng * 1000000),
+    //         'shop_lat' => ceil($shop->shop_lat * 1000000),
+    //         'coordinate_type' => $shop->coordinate_type,
+    //         'delivery_service_codes' => "4011",
+    //         'business_hours' => json_encode($shop->business_hours),
+    //     ];
+    //     $result = $meituan->shopCreate($params);
+    //     if (!isset($result['code']) || $result['code'] != 0) {
+    //         $shop->status = 0;
+    //         $shop->save();
+    //
+    //         $shop->load(['user']);
+    //         $phone =  $shop->user->phone ?? 0;
+    //
+    //         if ($phone) {
+    //             try {
+    //                 $easySms->send($phone, [
+    //                     'content'  =>  "您的验证码是{$code}。如非本人操作，请忽略本短信"
+    //                 ]);
+    //             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+    //                 \Log::info('审核通过发送短信异常', [$phone]);
+    //             }
+    //         }
+    //         return $this->success('审核成功');
+    //     }
+    //
+    //     return $this->error('审核失败');
+    // }
 }

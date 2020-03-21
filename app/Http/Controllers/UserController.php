@@ -16,12 +16,17 @@ class UserController extends Controller
         $this->middleware('auth:api');
     }
 
+    /**
+     * 用户列表
+     * @param Request $request
+     * @return mixed
+     */
     public function index(Request $request)
     {
 
         $search_key = $request->get('search_key', '');
 
-        $query = User::query();
+        $query = User::with(['roles']);
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -39,16 +44,27 @@ class UserController extends Controller
                 } else {
                     $user->is_admin = 0;
                 }
+                $user->role_name = $user->roles[0]->title ?? '';
+                unset($user->roles);
             }
         }
         return $this->success($users);
     }
 
+    /**
+     * 用户详情
+     * @param User $user
+     * @return mixed
+     */
     public function show(User $user)
     {
-        $user->load(['shops']);
+        $user->load(['shops', 'roles']);
         $user->user_shops = Arr::pluck($user->shops, 'id');
+
+        $user->role_id = $user->roles[0]->id ?? 0;
+
         unset($user->shops);
+        unset($user->roles);
         $shops = Shop::select('id','shop_name')->where('user_id', 0)->orWhereIn('id', $user->user_shops)->get();
         if (!empty($shops)) {
             foreach ($shops as $v) {
@@ -59,10 +75,13 @@ class UserController extends Controller
         return $this->success(compact(['user', 'shops']));
     }
 
+    /**
+     * 添加用户
+     * @param Request $request
+     * @return mixed
+     */
     public function store(Request $request)
     {
-//        $name = $request->get('username', '');
-//        $email = $request->get('email', '');
         $phone = $request->get('phone', '');
         $password = $request->get('password', '654321');
 
@@ -70,7 +89,6 @@ class UserController extends Controller
             \DB::transaction(function () use ($phone, $password, $request) {
                 $user = User::create([
                     'name' => $phone,
-//                'email' => $email,
                     'phone' => $phone,
                     'password' => bcrypt($password),
                 ]);
@@ -88,8 +106,27 @@ class UserController extends Controller
         return $this->error("创建失败");
     }
 
+    /**
+     * 更新用户
+     * @param User $user
+     * @param Request $request
+     * @return mixed
+     */
     public function update(User $user, Request $request)
     {
+        if ($phone = $request->get('phone')) {
+            $user->phone = $phone;
+            $user->save();
+        }
+
+        $user->load(['roles']);
+
+        $user_role_id = $user->roles[0]->id ?? 0;
+        $role_id = $request->get('role_id');
+
+        if ($role_id && ($user_role_id != $role_id)) {
+            $user->syncRoles([$role_id]);
+        }
 
         \DB::transaction(function () use ($user, $request) {
             $user->shops()->update(['user_id' => 0]);
@@ -101,6 +138,11 @@ class UserController extends Controller
 
     }
 
+    /**
+     * 手动充值
+     * @param Request $request
+     * @return mixed
+     */
     public function recharge(Request $request)
     {
         $user_id = $request->get('user_id', 0);
@@ -128,6 +170,11 @@ class UserController extends Controller
         return $this->success([]);
     }
 
+    /**
+     * 充值列表
+     * @param Request $request
+     * @return mixed
+     */
     public function rechargeList(Request $request)
     {
         $page_size = $request->get('page_size', 10);

@@ -13,6 +13,7 @@ class Order extends Model
     ];
 
     public $status_data = [
+        200 => '未发送',
         -2 => '等待发送',
         -1 => '发送失败',
         0 => '待调度',
@@ -60,14 +61,29 @@ class Order extends Model
 
             if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
 
-                $delivery = new Delivery();
 
-                // if (!($money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat))) {
-                //     throw new HttpException('获取距离出错');
-                // }
+                $distance = distanceMoney($shop, $model->receiver_lng, $model->receiver_lat);
 
-                $model->money = $delivery->getMoney($shop, $model->receiver_lng, $model->receiver_lat, $model->goods_weight);
+                if ($distance == -2) {
+                    return false;
+                }
 
+                if ($distance == -1) {
+                    return false;
+                }
+
+
+                $base = baseMoney($shop->city_level ?: 9);
+                $time = timeMoney();
+                $date_money = dateMoney();
+                $weight = weightMoney($model->goods_weight ?: 1);
+
+                $model->base_money = $base;
+                $model->distance_money = $distance;
+                $model->weight_money = $weight;
+                $model->time_money = $time;
+                $model->date_money = $date_money;
+                $model->money = $base + $time + $date_money + $distance + $weight;
             }
         });
     }

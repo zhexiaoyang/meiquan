@@ -11,7 +11,7 @@ return [
 
         // 默认可用的发送网关
         'gateways' => [
-            'qcloud',
+            'aliyun',
         ],
     ],
     // 可用的网关配置
@@ -19,17 +19,17 @@ return [
         'errorlog' => [
             'file' => '/tmp/easy-sms.log',
         ],
-        // 'aliyun' => [
-        //     'access_key_id' => env('SMS_ALIYUN_ACCESS_KEY_ID'),
-        //     'access_key_secret' => env('SMS_ALIYUN_ACCESS_KEY_SECRET'),
-        //     'sign_name' => '甲子营软件',
-        //     'templates' => [
-        //         'register' => env('SMS_ALIYUN_TEMPLATE_REGISTER'),
-        //     ]
-        // ],
-        'qcloud' => [
-            'sdk_app_id' => env('QCLOUD_APP_ID'),
-            'app_key' => env('QCLOUD_APP_KEY'),
+        'aliyun' => [
+            'access_key_id' => env('SMS_ALIYUN_ACCESS_KEY_ID'),
+            'access_key_secret' => env('SMS_ALIYUN_ACCESS_KEY_SECRET'),
+            'sign_name' => '美全科技',
+            'templates' => [
+                'register' => env('SMS_ALIYUN_TEMPLATE_REGISTER'),
+            ]
         ],
+        // 'qcloud' => [
+        //     'sdk_app_id' => env('QCLOUD_APP_ID'),
+        //     'app_key' => env('QCLOUD_APP_KEY'),
+        // ],
     ],
 ];

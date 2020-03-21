@@ -13,11 +13,10 @@ class CommonController extends Controller
     /**
      * 发送短信验证码
      * @param Request $request
-     * @param EasySms $easySms
      * @return mixed
-     * @throws \Overtrue\EasySms\Exceptions\InvalidArgumentException
+     * @throws \Exception
      */
-    public function getVerifyCode(Request $request, EasySms $easySms)
+    public function getVerifyCode(Request $request)
     {
         $request->validate([
             'phone' => [
@@ -32,21 +31,16 @@ class CommonController extends Controller
         $code = str_pad(random_int(1, 9999), 4, 0, STR_PAD_LEFT);
 
         try {
-            // $easySms->send($phone, [
-            //     'template' => config('easysms.gateways.aliyun.templates.register'),
-            //     'data' => [
-            //         'code' => $code
-            //     ],
-            // ]);
-            $easySms->send($phone, [
-                'content'  =>  "您的验证码是{$code}。如非本人操作，请忽略本短信"
+            app('easysms')->send($phone, [
+                'template' => 'SMS_186405048',
+                'data' => [
+                    'code' => $code
+                ],
             ]);
         } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-            // $message = $exception->getException('aliyun')->getMessage();
             $message = $exception->getException('qcloud')->getMessage();
-            \Log::info('短信发送异常', [$phone]);
+            \Log::info('注册短信验证码发送异常', [$phone]);
             return $this->error($message ?: '短信发送异常');
-            // abort(500, $message ?: '短信发送异常');
         }
 
         $key = $phone;

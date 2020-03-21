@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\CreateMtOrder;
 use App\Models\Order;
 use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -26,7 +27,7 @@ class OrderController extends Controller
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
             $query->select('shop_id', 'shop_name');
-        }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','status','created_at');
+        }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','failed','status','created_at');
 
         // 关键字搜索
         if ($search_key) {
@@ -93,6 +94,115 @@ class OrderController extends Controller
             return $this->success([]);
         }
         return $this->error("创建失败");
+    }
+
+    public function store2(Request $request, Order $order)
+    {
+        $shop_id = $request->get('shop_id', 0);
+        if (!$shop = Shop::query()->find($shop_id)) {
+            $shop = Shop::query()->where('shop_id', $shop_id)->first();
+        }
+        if (!$shop) {
+            return $this->error('门店不存在');
+        }
+        $order->fill($request->all());
+        $order->shop_id = $shop->shop_id;
+        $order->status = 200;
+
+        if ($order->save()) {
+
+            $user = User::query()->find($shop->user_id);
+
+            if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+                dispatch(new CreateMtOrder($order));
+                if ($user->money < 20) {
+                    try {
+                        app('easysms')->send($user->phone, [
+                            'template' => 'SMS_186380293',
+                            'data' => [
+                                'name' => $user->phone ?? '',
+                                'number' => 20
+                            ],
+                        ]);
+                    } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                        $message = $exception->getException('qcloud')->getMessage();
+                        \Log::info('余额不足发送短信失败', [$user->phone]);
+                    }
+                }
+            } else {
+                try {
+                    app('easysms')->send($user->phone, [
+                        'template' => 'SMS_186380293',
+                        'data' => [
+                            'name' => $user->phone ?? '',
+                            'number' => 20
+                        ],
+                    ]);
+                } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                    $message = $exception->getException('qcloud')->getMessage();
+                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                }
+            }
+            return $this->success([]);
+        }
+        return $this->error("创建失败");
+    }
+
+    /**
+     * 重新发送订单
+     * @param Order $order
+     * @return mixed
+     */
+    public function send( Order $order)
+    {
+        if (!$shop = Shop::query()->where('status', 40)->find($order->shop_id)) {
+            return $this->error("该门店不能发单");
+        }
+
+        $time = timeMoney();
+        $date_money = dateMoney();
+
+        $order->time_money = $time;
+        $order->date_money = $date_money;
+        $order->money = $order->base_money + $time + $date_money + $order->distance_money + $order->weight_money;
+        $order->save();
+
+        \Log::info('message', [$order->money]);
+
+        $user = User::query()->find($shop->user_id);
+
+        if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+            dispatch(new CreateMtOrder($order));
+            if ($user->money < 20) {
+                try {
+                    app('easysms')->send($user->phone, [
+                        'template' => 'SMS_186380293',
+                        'data' => [
+                            'name' => $user->phone ?? '',
+                            'number' => 20
+                        ],
+                    ]);
+                } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                    $message = $exception->getException('qcloud')->getMessage();
+                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                }
+            }
+            return $this->success([]);
+        } else {
+            try {
+                app('easysms')->send($user->phone, [
+                    'template' => 'SMS_186380293',
+                    'data' => [
+                        'name' => $user->phone ?? '',
+                        'number' => 20
+                    ],
+                ]);
+            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                $message = $exception->getException('qcloud')->getMessage();
+                \Log::info('余额不足发送短信失败', [$user->phone]);
+            }
+        }
+        return $this->error("余额不足，请充值后再发送");
     }
 
     public function destroy(Order $order)
@@ -240,6 +350,27 @@ class OrderController extends Controller
             if ($result['code'] === 0 && $order->update(['status' => 99])) {
                 return $this->success([]);
             }
+        }
+
+        return $this->error("取消失败");
+    }
+
+    public function cancel2(Order $order)
+    {
+        $meituan = app("meituan");
+
+        $result = $meituan->delete([
+            'delivery_id' => $order->delivery_id,
+            'mt_peisong_id' => $order->mt_peisong_id,
+            'cancel_reason_id' => 399,
+            'cancel_reason' => '其他原因',
+        ]);
+
+        if ($result['code'] === 0 && $order->update(['status' => 99])) {
+            $shop = \DB::table('shops')->find($order->shop_id);
+            \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+            \Log::info('创建订单失败，将钱返回给用户', [$order->money]);
+            return $this->success([]);
         }
 
         return $this->error("取消失败");

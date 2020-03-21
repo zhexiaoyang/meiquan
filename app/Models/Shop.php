@@ -19,7 +19,8 @@ class Shop extends Model
         10 => '审核驳回',
         20 => '审核通过',
         30 => '创建成功',
-        40 => '上线可发单'
+        40 => '上线可发单',
+        100 => '等待审核'
     ];
 
     public function range()
