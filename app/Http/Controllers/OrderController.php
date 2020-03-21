@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtOrder;
+use App\Models\MoneyLog;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
@@ -114,6 +115,10 @@ class OrderController extends Controller
             $user = User::query()->find($shop->user_id);
 
             if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+                MoneyLog::query()->create([
+                   'order_id' => $order->id,
+                   'amount' => $order->money,
+                ]);
                 dispatch(new CreateMtOrder($order));
                 if ($user->money < 20) {
                     try {
@@ -367,9 +372,14 @@ class OrderController extends Controller
         ]);
 
         if ($result['code'] === 0 && $order->update(['status' => 99])) {
-            $shop = \DB::table('shops')->find($order->shop_id);
-            \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-            \Log::info('创建订单失败，将钱返回给用户', [$order->money]);
+            $log = MoneyLog::query()->where('order_id', $order->id)->first();
+            if ($log) {
+                $log->status = 2;
+                $log->save();
+                $shop = \DB::table('shops')->find($order->shop_id);
+                \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+                \Log::info('创建订单失败，将钱返回给用户', [$order->money]);
+            }
             return $this->success([]);
         }
 
