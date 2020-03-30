@@ -23,6 +23,7 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
+        $page_size = $request->get('page_size', 15);
 
         $search_key = $request->get('search_key', '');
 
@@ -35,7 +36,7 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('id', 'desc')->paginate();
+        $users = $query->orderBy('id', 'desc')->paginate($page_size);
 
         if (!empty($users)) {
             foreach ($users as $user) {
