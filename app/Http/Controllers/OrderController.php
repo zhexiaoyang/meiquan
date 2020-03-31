@@ -492,9 +492,9 @@ class OrderController extends Controller
             if ($log) {
                 $log->status = 2;
                 $log->save();
-                $shop = \DB::table('shops')->find($order->shop_id);
+                $shop = \DB::table('shops')->where('shop_id', $order->shop_id)->first();
                 \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-                \Log::info('创建订单失败，将钱返回给用户', [$order->money]);
+                \Log::info('取消订单成功，将钱返回给用户', [$order->money]);
             }
             return $this->success([]);
         }
