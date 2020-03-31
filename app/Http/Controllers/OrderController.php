@@ -338,6 +338,122 @@ class OrderController extends Controller
         return $this->error('未获取到订单');
     }
 
+    public function sync2(Request $request)
+    {
+        $type = intval($request->get('type', 0));
+        $order_id = $request->get('order_id', 0);
+
+        if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
+            return $this->error('参数错误');
+        }
+
+        if ($type === 1) {
+            $meituan = app("yaojite");
+        } elseif($type === 2) {
+            $meituan = app("mrx");
+        } else {
+            $meituan = app("jay");
+        }
+
+        $res = $meituan->getOrderDetail(['order_id' => $order_id]);
+        if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
+            $data = $res['data'];
+            if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
+                return $this->error('订单已存在');
+            }
+
+            $shop_id = isset($data['app_poi_code']) ? $data['app_poi_code'] : 0;
+
+            if (!$shop = Shop::where('shop_id', $shop_id)->first()) {
+                return $this->error('药店不存在');
+            }
+
+            // 设置状态
+            $status = 200;
+            if ($data['status'] < 4) {
+                $status = -2;
+            }
+            if ($data['status'] > 4) {
+                $status = -3;
+            }
+
+            // 设置重量
+            $weight = isset($data['total_weight']) ? $data['total_weight'] : 0;
+
+            // 创建订单信息
+            $order_data = [
+                'delivery_id' => $data['wm_order_id_view'],
+                'order_id' => $data['wm_order_id_view'],
+                'shop_id' => $shop_id,
+                'delivery_service_code' => "4011",
+                'receiver_name' => $data['recipient_name'],
+                'receiver_address' => $data['recipient_address'],
+                'receiver_phone' => $data['recipient_phone'],
+                'receiver_lng' => $data['longitude'],
+                'receiver_lat' => $data['latitude'],
+                'coordinate_type' => 0,
+                'goods_value' => $data['total'],
+                'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
+                'type' => $type,
+                'status' => $status,
+            ];
+
+            // 判断是否预约单
+            if (isset($data['delivery_time']) && $data['delivery_time'] > 0) {
+                $order_data['order_type'] = 1;
+                $order_data['expected_pickup_time'] = $data['delivery_time'] - 3600;
+                $order_data['expected_delivery_time'] = $data['delivery_time'];
+            }
+
+            // 创建订单
+            $order = new Order($order_data);
+
+            // 保存订单
+            if ($order->save()) {
+                if ($status === -1) {
+                    $user = User::query()->find($shop->user_id);
+
+                    if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+                        MoneyLog::query()->create([
+                            'order_id' => $order->id,
+                            'amount' => $order->money,
+                        ]);
+                        dispatch(new CreateMtOrder($order));
+                        if ($user->money < 20) {
+                            try {
+                                app('easysms')->send($user->phone, [
+                                    'template' => 'SMS_186380293',
+                                    'data' => [
+                                        'name' => $user->phone ?? '',
+                                        'number' => 20
+                                    ],
+                                ]);
+                            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                                $message = $exception->getException('qcloud')->getMessage();
+                                \Log::info('余额不足发送短信失败', [$user->phone]);
+                            }
+                        }
+                    } else {
+                        try {
+                            app('easysms')->send($user->phone, [
+                                'template' => 'SMS_186380293',
+                                'data' => [
+                                    'name' => $user->phone ?? '',
+                                    'number' => 20
+                                ],
+                            ]);
+                        } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                            $message = $exception->getException('qcloud')->getMessage();
+                            \Log::info('余额不足发送短信失败', [$user->phone]);
+                        }
+                    }
+                }
+            }
+            return $this->success([]);
+        }
+        return $this->error('未获取到订单');
+    }
+
     public function cancel(Request $request)
     {
         $order = Order::where('order_id', $request->get('order_id', 0))->first();

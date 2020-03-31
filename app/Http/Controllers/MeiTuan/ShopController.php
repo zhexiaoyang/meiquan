@@ -16,6 +16,25 @@ class ShopController
             $shop->status = $status;
             if ($shop->save()) {
                 $res = ['code' => 0];
+                if ($status == 40) {
+                    $shop->load(['user']);
+                    $phone =  $shop->user->phone ?? 0;
+
+                    if ($phone) {
+                        try {
+                            app('easysms')->send($phone, [
+                                'template' => 'SMS_186400271',
+                                'data' => [
+                                    'name' => $phone,
+                                    'title' => $shop->shop_name
+                                ],
+                            ]);
+                        } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                            $message = $exception->getException('aliyun')->getMessage();
+                            \Log::info('审核通过发送短信异常', [$phone, $message]);
+                        }
+                    }
+                }
             }
         }
         \Log::info('门店状态回调', ['status' => $status, 'shop_id' => $shop_id, 'res' => $res]);

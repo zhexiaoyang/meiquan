@@ -4,7 +4,9 @@
 namespace App\Jobs;
 
 
+use App\Models\MoneyLog;
 use App\Models\Order;
+use App\Models\User;
 use Hhxsv5\LaravelS\Swoole\Timer\CronJob;
 
 class CheckOrderJob extends CronJob
@@ -46,7 +48,44 @@ class CheckOrderJob extends CronJob
                     if ($status == 4) {
                         $order->status = -1;
                         $order->save();
-                        dispatch(new CreateMtOrder($order));
+
+                        $order->load('shop');
+                        $user = User::query()->find($order->shop->user_id);
+
+                        if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+                            MoneyLog::query()->create([
+                                'order_id' => $order->id,
+                                'amount' => $order->money,
+                            ]);
+                            dispatch(new CreateMtOrder($order));
+                            if ($user->money < 20) {
+                                try {
+                                    app('easysms')->send($user->phone, [
+                                        'template' => 'SMS_186380293',
+                                        'data' => [
+                                            'name' => $user->phone ?? '',
+                                            'number' => 20
+                                        ],
+                                    ]);
+                                } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                                    $message = $exception->getException('qcloud')->getMessage();
+                                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                                }
+                            }
+                        } else {
+                            try {
+                                app('easysms')->send($user->phone, [
+                                    'template' => 'SMS_186380293',
+                                    'data' => [
+                                        'name' => $user->phone ?? '',
+                                        'number' => 20
+                                    ],
+                                ]);
+                            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+                                $message = $exception->getException('qcloud')->getMessage();
+                                \Log::info('余额不足发送短信失败', [$user->phone]);
+                            }
+                        }
                     }
                 } else {
                     \Log::error('获取订单状态失败', ['order' => $order, 'res' => $res]);

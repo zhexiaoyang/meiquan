@@ -259,25 +259,10 @@ class ShopController extends Controller
 
     public function examine(Shop $shop)
     {
+        $shop->status = 1;
+        $shop->save();
+
         dispatch(new CreateMtShop($shop));
-
-        $shop->load(['user']);
-        $phone =  $shop->user->phone ?? 0;
-
-        if ($phone) {
-            try {
-                app('easysms')->send($phone, [
-                    'template' => 'SMS_186400271',
-                    'data' => [
-                        'name' => $phone,
-                        'title' => $shop->shop_name
-                    ],
-                ]);
-            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('aliyun')->getMessage();
-                \Log::info('审核通过发送短信异常', [$phone, $message]);
-            }
-        }
 
         return $this->success('审核成功');
     }
