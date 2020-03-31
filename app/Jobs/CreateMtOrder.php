@@ -51,13 +51,13 @@ class CreateMtOrder implements ShouldQueue
         ];
         $result = $meituan->createByShop($params);
         if ($result['code'] === 0) {
-            \DB::table('orders')->where('id', $this->order->id)->update(['mt_peisong_id' => $result['data']['mt_peisong_id']]);
+            \DB::table('orders')->where('id', $this->order->id)->update(['mt_peisong_id' => $result['data']['mt_peisong_id'], 'status' => 0]);
         } else {
             $log = MoneyLog::query()->where('order_id', $this->order->id)->first();
             if ($log) {
                 $log->status = 2;
                 $log->save();
-                $shop = \DB::table('shops')->find($this->order->shop_id);
+                $shop = \DB::table('shops')->where('shop_id', $this->order->shop_id)->first();
                 if (isset($shop->user_id) && $shop->user_id) {
                     \DB::table('users')->where('id', $shop->user_id)->increment('money', $this->order->money);
                     \Log::info('创建订单失败，将钱返回给用户', [$this->order->money]);
