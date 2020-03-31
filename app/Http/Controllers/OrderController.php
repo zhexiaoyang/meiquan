@@ -160,7 +160,7 @@ class OrderController extends Controller
      */
     public function send( Order $order)
     {
-        if (!$shop = Shop::query()->where('status', 40)->find($order->shop_id)) {
+        if (!$shop = Shop::query()->where(['status' => 40, 'shop_id' => $order->shop_id])->first()) {
             return $this->error("该门店不能发单");
         }
 
