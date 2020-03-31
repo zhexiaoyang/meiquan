@@ -9,9 +9,9 @@ Route::middleware(['force-json'])->group(function() {
     Route::post('arrange/{order}', 'TestController@arrange');
     Route::post('shopStatus/{shop}', 'TestController@shopStatus');
     // 同步订单
-    Route::get('order/sync', 'OrderController@sync')->name('api.order.sync');
+    Route::get('order/sync', 'OrderController@sync2')->name('api.order.sync');
     // 取消订单
-    Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
+    Route::get('order/cancel', 'OrderController@cancel2')->name('api.order.cancel');
 
     Route::post('code', 'CommonController@getVerifyCode')->name('code');
     Route::post('auth/register', 'AuthController@register');
