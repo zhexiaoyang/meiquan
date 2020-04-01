@@ -114,7 +114,7 @@ class OrderController extends Controller
 
             $user = User::query()->find($shop->user_id);
 
-            if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+            if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
                 MoneyLog::query()->create([
                    'order_id' => $order->id,
                    'amount' => $order->money,
