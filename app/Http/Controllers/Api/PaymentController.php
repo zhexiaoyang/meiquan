@@ -125,7 +125,7 @@ class PaymentController
                     'data' => [
                         'name' => $user->phone ?? '',
                         'type' => '支付宝',
-                        'number' => $data->total_fee
+                        'number' => $data->total_amount
                     ],
                 ]);
                 app('easysms')->send('18611683889', [
@@ -133,7 +133,7 @@ class PaymentController
                     'data' => [
                         'name' => $user->phone ?? '',
                         'type' => '支付宝',
-                        'number' => $data->total_fee
+                        'number' => $data->total_amount
                     ],
                 ]);
             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
