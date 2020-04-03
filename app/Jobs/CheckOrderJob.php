@@ -68,8 +68,8 @@ class CheckOrderJob extends CronJob
                                         ],
                                     ]);
                                 } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                                    $message = $exception->getException('qcloud')->getMessage();
-                                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                                    $message = $exception->getException('aliyun')->getMessage();
+                                    \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                                 }
                             }
                         } else {
@@ -82,8 +82,8 @@ class CheckOrderJob extends CronJob
                                     ],
                                 ]);
                             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                                $message = $exception->getException('qcloud')->getMessage();
-                                \Log::info('余额不足发送短信失败', [$user->phone]);
+                                $message = $exception->getException('aliyun')->getMessage();
+                                \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                             }
                         }
                     }

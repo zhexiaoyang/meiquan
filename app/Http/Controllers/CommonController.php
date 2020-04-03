@@ -38,8 +38,8 @@ class CommonController extends Controller
                 ],
             ]);
         } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-            $message = $exception->getException('qcloud')->getMessage();
-            \Log::info('注册短信验证码发送异常', [$phone]);
+            $message = $exception->getException('aliyun')->getMessage();
+            \Log::info('注册短信验证码发送异常', [$phone, $message]);
             return $this->error($message ?: '短信发送异常');
         }
 

@@ -130,8 +130,8 @@ class OrderController extends Controller
                             ],
                         ]);
                     } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                        $message = $exception->getException('qcloud')->getMessage();
-                        \Log::info('余额不足发送短信失败', [$user->phone]);
+                        $message = $exception->getException('aliyun')->getMessage();
+                        \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                     }
                 }
             } else {
@@ -144,8 +144,8 @@ class OrderController extends Controller
                         ],
                     ]);
                 } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                    $message = $exception->getException('qcloud')->getMessage();
-                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                    $message = $exception->getException('aliyun')->getMessage();
+                    \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                 }
             }
             return $this->success([]);
@@ -188,8 +188,8 @@ class OrderController extends Controller
                         ],
                     ]);
                 } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                    $message = $exception->getException('qcloud')->getMessage();
-                    \Log::info('余额不足发送短信失败', [$user->phone]);
+                    $message = $exception->getException('aliyun')->getMessage();
+                    \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                 }
             }
             return $this->success([]);
@@ -203,8 +203,8 @@ class OrderController extends Controller
                     ],
                 ]);
             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('qcloud')->getMessage();
-                \Log::info('余额不足发送短信失败', [$user->phone]);
+                $message = $exception->getException('aliyun')->getMessage();
+                \Log::info('余额不足发送短信失败', [$user->phone, $message]);
             }
         }
         return $this->error("余额不足，请充值后再发送");
@@ -429,8 +429,8 @@ class OrderController extends Controller
                                     ],
                                 ]);
                             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                                $message = $exception->getException('qcloud')->getMessage();
-                                \Log::info('余额不足发送短信失败', [$user->phone]);
+                                $message = $exception->getException('aliyun')->getMessage();
+                                \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                             }
                         }
                     } else {
@@ -443,8 +443,8 @@ class OrderController extends Controller
                                 ],
                             ]);
                         } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                            $message = $exception->getException('qcloud')->getMessage();
-                            \Log::info('余额不足发送短信失败', [$user->phone]);
+                            $message = $exception->getException('aliyun')->getMessage();
+                            \Log::info('余额不足发送短信失败', [$user->phone, $message]);
                         }
                     }
                 }

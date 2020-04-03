@@ -58,8 +58,8 @@ class PaymentController
                     ],
                 ]);
             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('qcloud')->getMessage();
-                \Log::info('充值通知短信发送失败');
+                $message = $exception->getException('aliyun')->getMessage();
+                \Log::info('充值通知短信发送失败', [$message]);
             }
 
             return true;
@@ -137,8 +137,8 @@ class PaymentController
                     ],
                 ]);
             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('qcloud')->getMessage();
-                \Log::info('充值通知短信发送失败');
+                $message = $exception->getException('aliyun')->getMessage();
+                \Log::info('充值通知短信发送失败', [$message]);
             }
 
             return true;
