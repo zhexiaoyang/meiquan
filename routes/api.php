@@ -58,6 +58,7 @@ Route::middleware(['force-json'])->group(function() {
         Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
         // 门店地址加配送范围信息
         Route::get('shop/range/{shop}', "ShopController@range")->name('shop.range');
+        Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
         // 订单
         Route::post('order/send/{order}', 'OrderController@send')->name('order.send');
         Route::post('order2', 'OrderController@store2')->name('order.store2');

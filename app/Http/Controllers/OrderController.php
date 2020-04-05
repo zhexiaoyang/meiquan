@@ -28,7 +28,7 @@ class OrderController extends Controller
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
             $query->select('shop_id', 'shop_name');
-        }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','failed','status','created_at');
+        }])->select('id','shop_id','order_id','mt_peisong_id','receiver_name','receiver_phone','money','failed','receiver_lng','receiver_lat','status','created_at');
 
         // 关键字搜索
         if ($search_key) {

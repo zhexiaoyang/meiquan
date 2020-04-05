@@ -179,6 +179,44 @@ class ShopController extends Controller
     }
 
     /**
+     * 配送范围获取
+     */
+    public function rangeByShopId(Request $request)
+    {
+        if (!$shop = Shop::query()->where('shop_id', $request->get('shop_id', 0))->first()) {
+            return $this->error('门店不存在');
+        }
+
+        if (!$shop->range) {
+            $meituan = app("meituan");
+            $res = $meituan->getShopArea(['delivery_service_code' => 4011, 'shop_id' => $shop->shop_id]);
+            if (isset($res['data']['scope'])) {
+                $scope = [];
+                $range = json_decode($res['data']['scope'], true);
+                if (!empty($range)) {
+                    foreach ($range as $k => $v) {
+                        $tmp[] = $v['y'];
+                        $tmp[] = $v['x'];
+                        $scope[] = $tmp;
+                        unset($tmp);
+                    }
+                }
+                ShopRange::query()->create(['shop_id' => $shop->id, 'range' => json_encode($scope)]);
+                $shop->load('range');
+            }
+        }
+
+        $data = [
+            'id' => $shop->id,
+            'lng' => $shop->shop_lng,
+            'lat' => $shop->shop_lat,
+            'range' => isset($shop->range->range) ? json_decode($shop->range->range) : [],
+        ];
+
+        return $this->success($data);
+    }
+
+    /**
      * 同步药剂特药店
      * @param Request $request
      * @return mixed
