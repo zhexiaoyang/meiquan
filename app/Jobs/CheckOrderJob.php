@@ -52,12 +52,13 @@ class CheckOrderJob extends CronJob
                         $order->load('shop');
                         $user = User::query()->find($order->shop->user_id);
 
-                        if ($user->money > $order->money && $user->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
+                        if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
                             MoneyLog::query()->create([
                                 'order_id' => $order->id,
                                 'amount' => $order->money,
                             ]);
                             dispatch(new CreateMtOrder($order));
+                            $user = User::query()->find($order->shop->user_id);
                             if ($user->money < 20) {
                                 try {
                                     app('easysms')->send($user->phone, [
