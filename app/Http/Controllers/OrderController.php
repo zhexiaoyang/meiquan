@@ -361,7 +361,10 @@ class OrderController extends Controller
             $meituan = app("jay");
         }
 
+        \Log::info('$type', [$type]);
+
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
+        \Log::info('$res', [$res]);
         if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
             $data = $res['data'];
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
