@@ -13,7 +13,7 @@ class OrderController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->except('sync', 'sync2', 'cancel');
+        $this->middleware('auth:api')->except('sync', 'sync2', 'cancel', 'cancel2');
     }
 
     /**
