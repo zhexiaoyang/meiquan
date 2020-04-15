@@ -13,7 +13,7 @@ class OrderController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:api')->except('sync', 'sync2', 'cancel', 'cancel2');
+        $this->middleware('auth:api')->except('sync', 'sync2', 'cancel');
     }
 
     /**
@@ -479,6 +479,14 @@ class OrderController extends Controller
             ]);
 
             if ($result['code'] === 0 && $order->update(['status' => 99])) {
+                $log = MoneyLog::query()->where('order_id', $order->id)->first();
+                if ($log) {
+                    $log->status = 2;
+                    $log->save();
+                    $shop = \DB::table('shops')->where('shop_id', $order->shop_id)->first();
+                    \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+                    \Log::info('取消订单成功，将钱返回给用户', [$order->money]);
+                }
                 return $this->success([]);
             }
         }
