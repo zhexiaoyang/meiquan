@@ -49,7 +49,11 @@ class CreateMtOrder implements ShouldQueue
             'goods_value' => $this->order->goods_value,
             'goods_weight' => $this->order->goods_weight,
         ];
+
+        Log::info('发送配送订单-开始');
         $result = $meituan->createByShop($params);
+        Log::info('发送配送订单-结束');
+
         if ($result['code'] === 0) {
             \DB::table('orders')->where('id', $this->order->id)->update(['mt_peisong_id' => $result['data']['mt_peisong_id'], 'status' => 0]);
         } else {

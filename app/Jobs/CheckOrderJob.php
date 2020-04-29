@@ -74,6 +74,9 @@ class CheckOrderJob extends CronJob
                                 }
                             }
                         } else {
+                            $order->status = 200;
+                            $order->save();
+
                             try {
                                 app('easysms')->send($user->phone, [
                                     'template' => 'SMS_186380293',
