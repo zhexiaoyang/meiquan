@@ -385,6 +385,9 @@ class OrderController extends Controller
             if ($data['status'] > 4) {
                 $status = -3;
             }
+            if ($data['status'] == 4) {
+                $status = 0;
+            }
 
             // 设置重量
             $weight = isset($data['total_weight']) ? $data['total_weight'] : 0;
@@ -419,7 +422,7 @@ class OrderController extends Controller
 
             // 保存订单
             if ($order->save()) {
-                if ($status === -1) {
+                if ($status === 0) {
                     $user = User::query()->find($shop->user_id);
 
                     if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
