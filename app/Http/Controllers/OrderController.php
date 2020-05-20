@@ -469,9 +469,9 @@ class OrderController extends Controller
 
     public function cancel(Request $request)
     {
-        $order = Order::where('order_id', $request->get('order_id', 0))->first();
+        $order = Order::query()->where('order_id', $request->get('order_id', 0))->first();
 
-        \Log::info('接口取消订单', ['请求参数' => $request->all(), '订单信息' => $order->toArray]);
+        \Log::info('接口取消订单', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
 
         if ($order) {
 
@@ -486,7 +486,7 @@ class OrderController extends Controller
 
             if ($result['code'] === 0 && $order->update(['status' => 99])) {
                 $log = MoneyLog::query()->where('order_id', $order->id)->first();
-                if ($log && $log->status == 1) {
+                if ($log && $log->status === 1) {
                     $log->status = 2;
                     $log->save();
                     $shop = \DB::table('shops')->where('shop_id', $order->shop_id)->first();
@@ -513,7 +513,7 @@ class OrderController extends Controller
 
         if ($result['code'] === 0 && $order->update(['status' => 99])) {
             $log = MoneyLog::query()->where('order_id', $order->id)->first();
-            if ($log) {
+            if ($log && $log->status === 1) {
                 $log->status = 2;
                 $log->save();
                 $shop = \DB::table('shops')->where('shop_id', $order->shop_id)->first();
