@@ -103,7 +103,7 @@ Route::namespace('MeiTuan')->prefix('mt')->group(function () {
 /**
  * 蜂鸟回调接口
  */
-Route::namespace('FengNiao')->prefix('mt')->group(function () {
+Route::namespace('FengNiao')->prefix('fengniao')->group(function () {
     // 门店状态回调
     Route::post('shop/status', "ShopController@status");
     // 订单状态回调
