@@ -108,8 +108,6 @@ Route::namespace('FengNiao')->prefix('mt')->group(function () {
     Route::post('shop/status', "ShopController@status");
     // 订单状态回调
     Route::post('order/status', "OrderController@status");
-    // 订单异常回调
-    Route::post('order/exception', "OrderController@exception");
 });
 
 /**
