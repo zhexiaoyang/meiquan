@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Libraries\Fengniao\Fengniao;
 use App\Libraries\Meituan\MeiTuan;
 use Illuminate\Support\ServiceProvider;
 
@@ -17,6 +18,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('meituan', function () {
             $config = config('ps.meituan');
             return new MeiTuan($config);
+        });
+        $this->app->singleton('fengniao', function () {
+            $config = config('ps.fengniao');
+            return new Fengniao($config);
         });
         $this->app->singleton('yaojite', function () {
             $config = config('ps.yaojite');

@@ -1,6 +1,18 @@
 <?php
 
 /**
+ * 获取蜂鸟配送token
+ * @return mixed
+ */
+function fengNiaoToken() {
+    return \Illuminate\Support\Facades\Cache::remember('feng_niao_token', 43200, function () {
+        $fengniao = app('fengniao');
+        $data = $fengniao->generateSign();
+        return $data['data']['access_token'];
+    });
+}
+
+/**
  * 时间加价
  * @return int
  */

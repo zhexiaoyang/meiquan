@@ -344,10 +344,17 @@ class OrderController extends Controller
         return $this->error('未获取到订单');
     }
 
+    /**
+     * 同步订单
+     * @param Request $request
+     * @return mixed
+     */
     public function sync2(Request $request)
     {
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
+
+        \Log::info('同步订单参数', [$type, $order_id]);
 
         if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
             return $this->error('参数错误');
@@ -361,10 +368,10 @@ class OrderController extends Controller
             $meituan = app("jay");
         }
 
-        \Log::info('$type', [$type]);
-
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
-        \Log::info('$res', [$res]);
+
+        \Log::info('获取订单信息', [$res]);
+
         if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
             $data = $res['data'];
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
@@ -467,6 +474,11 @@ class OrderController extends Controller
         return $this->error('未获取到订单');
     }
 
+    /**
+     * 接口取消订单
+     * @param Request $request
+     * @return mixed
+     */
     public function cancel(Request $request)
     {
         $order = Order::query()->where('order_id', $request->get('order_id', 0))->first();
@@ -500,6 +512,11 @@ class OrderController extends Controller
         return $this->error("取消失败");
     }
 
+    /**
+     * 后台取消订单
+     * @param Order $order
+     * @return mixed
+     */
     public function cancel2(Order $order)
     {
         $meituan = app("meituan");
@@ -526,6 +543,12 @@ class OrderController extends Controller
         return $this->error("取消失败");
     }
 
+    /**
+     * 获取美团配送价格
+     * @param Request $request
+     * @param Shop $shop
+     * @return mixed
+     */
     public function money(Request $request, Shop $shop)
     {
         $lng = $request->get('lng', 0);

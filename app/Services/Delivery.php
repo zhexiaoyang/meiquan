@@ -11,11 +11,11 @@ use function GuzzleHttp\Psr7\str;
 class Delivery
 {
 
-    public function getMoney(Shop $shop, $receiver_lng, $receiver_lat)
+    public function getMoney(Shop $shop, $receiver_lng, $receiver_lat, $goods_weight)
     {
         $juli = $this->getJuli($shop, $receiver_lng, $receiver_lat);
 
-        return $this->getMeituan($shop, $juli);
+        return $this->getMeituan($shop, $juli, $goods_weight);
     }
 
     public function getJuli($shop, $receiver_lng, $receiver_lat) {
@@ -45,7 +45,7 @@ class Delivery
     //     $dada = $this->getMeituan($juli);
     // }
 
-    public function getMeituan($shop, $juli)
+    public function getMeituan($shop, $juli, $goods_weight)
     {
 
         $start_arr = [ 3 => 8.7, 4 => 8.5, 5 => 8, 6 => 7.5, 7 => 7.2, 11 => 9, 12 => 9, 13 => 8.7 ];
@@ -68,6 +68,11 @@ class Delivery
         }
 
         // 重量加价
+        $weight_money = 0;
+        if ($goods_weight > 5) {
+
+        }
+
 
         // 夜间加价
         if (time() >= strtotime(date("Y-m-d 21:00:00")) || time() < strtotime(date("Y-m-d 6:00:00"))) {

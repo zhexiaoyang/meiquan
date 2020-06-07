@@ -80,7 +80,17 @@ Route::middleware(['force-json'])->group(function() {
     });
 });
 
+/**
+ * 支付回调接口
+ */
+Route::group(['namespace' => 'Api'], function () {
+    Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
+    Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
+});
 
+/**
+ * 美团回调接口
+ */
 Route::namespace('MeiTuan')->prefix('mt')->group(function () {
     // 门店状态回调
     Route::post('shop/status', "ShopController@status");
@@ -90,7 +100,33 @@ Route::namespace('MeiTuan')->prefix('mt')->group(function () {
     Route::post('order/exception', "OrderController@exception");
 });
 
-Route::group(['namespace' => 'Api'], function () {
-    Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
-    Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
+/**
+ * 蜂鸟回调接口
+ */
+Route::namespace('FengNiao')->prefix('mt')->group(function () {
+    // 门店状态回调
+    Route::post('shop/status', "ShopController@status");
+    // 订单状态回调
+    Route::post('order/status', "OrderController@status");
+    // 订单异常回调
+    Route::post('order/exception', "OrderController@exception");
+});
+
+/**
+ * 测试接口
+ */
+Route::group(['namespace' => 'Test'], function () {
+    Route::post('/test/fn/createShop', 'FengNiaoTestController@createShop');
+    Route::post('/test/fn/updateShop', 'FengNiaoTestController@updateShop');
+    Route::post('/test/fn/getShop', 'FengNiaoTestController@getShop');
+    Route::post('/test/fn/getArea', 'FengNiaoTestController@getArea');
+
+    Route::post('/test/fn/createOrder', 'FengNiaoTestController@createOrder');
+    Route::post('/test/fn/cancelOrder', 'FengNiaoTestController@cancelOrder');
+    Route::post('/test/fn/getOrder', 'FengNiaoTestController@getOrder');
+    Route::post('/test/fn/complaintOrder', 'FengNiaoTestController@complaintOrder');
+
+    Route::post('/test/fn/delivery', 'FengNiaoTestController@delivery');
+    Route::post('/test/fn/carrier', 'FengNiaoTestController@carrier');
+    Route::post('/test/fn/route', 'FengNiaoTestController@route');
 });
