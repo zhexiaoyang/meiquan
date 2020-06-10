@@ -131,9 +131,9 @@ function distanceMoney($shop, $lan, $lat) {
  */
 function baseMoney($shop_live) {
 
-    $start_arr = [ 3 => 8.7, 4 => 8.5, 5 => 8, 6 => 7.5, 7 => 7.2, 11 => 9, 12 => 9, 13 => 8.7 ];
+    $start_arr = [ 3 => 6.7, 4 => 6.5, 5 => 6, 6 => 5.5, 7 => 5.2, 11 => 7, 12 => 7, 13 => 6.7 ];
 
-    return $start_arr[$shop_live] ?? 9;
+    return $start_arr[$shop_live] ?? 7;
 }
 
 function getMoney($shop, $receiver_lng, $receiver_lat) {
