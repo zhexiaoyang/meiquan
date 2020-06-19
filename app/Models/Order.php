@@ -32,7 +32,7 @@ class Order extends Model
         'time_money','date_money','fail_mt','fail_fn','fail_ss','ps','created_at','updated_at'];
 
     public function shop() {
-        return $this->belongsTo(Shop::class, 'id', 'shop_id');
+        return $this->belongsTo(Shop::class, 'shop_id', 'id');
     }
 
 
