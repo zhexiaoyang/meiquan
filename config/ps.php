@@ -9,7 +9,7 @@ return [
     "fengniao" => [
         'app_key' => env('FENGNIAO_APP_KEY', ''),
         'secret' => env('FENGNIAO_SECRET', ''),
-        'url' => 'https://exam-anubis.ele.me/anubis-webapi/'
+        'url' => 'https://open-anubis.ele.me/anubis-webapi/'
     ],
     "shansong" => [
         'shop_id' => env('SS_SHOP_ID', ''),
