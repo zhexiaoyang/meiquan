@@ -23,16 +23,16 @@ class Order extends Model
         99 => '已取消'
     ];
 
-    protected $fillable = ['delivery_id','order_id','shop_id','delivery_service_code','receiver_name',
+    protected $fillable = ['delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
         'receiver_address','receiver_phone','receiver_lng','receiver_lat','coordinate_type','goods_value',
-        'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info',
-        'goods_delivery_info','expected_pickup_time','expected_delivery_time','order_type','poi_seq',
-        'note','cash_on_delivery','cash_on_pickup','invoice_title','mt_peisong_id', 'courier_name',
-        'courier_phone', 'cancel_reason_id', 'cancel_reason','status','failed','type','money','base_money',
-        'distance_money','weight_money','time_money','date_money'];
+        'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info','goods_delivery_info',
+        'expected_pickup_time','expected_delivery_time','order_type','poi_seq','note','type','status','failed',
+        'courier_name','courier_phone','cancel_reason_id','cancel_reason','exception_id','exception_code',
+        'exception_descr','exception_time','distance','money','base_money','distance_money','weight_money',
+        'time_money','date_money','fail_mt','fail_fn','fail_ss','ps','created_at','updated_at'];
 
     public function shop() {
-        return $this->belongsTo(Shop::class, 'shop_id', 'shop_id');
+        return $this->belongsTo(Shop::class, 'id', 'shop_id');
     }
 
 
@@ -61,29 +61,31 @@ class Order extends Model
 
             if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
 
-
-                $distance = distanceMoney($shop, $model->receiver_lng, $model->receiver_lat);
-
-                if ($distance == -2) {
-                    return false;
-                }
-
-                if ($distance == -1) {
-                    return false;
-                }
+                $model->distance = getShopDistance($shop, $model->receiver_lng, $model->receiver_lat);
 
 
-                $base = baseMoney($shop->city_level ?: 9);
-                $time = timeMoney();
-                $date_money = dateMoney();
-                $weight = weightMoney($model->goods_weight ?: 1);
-
-                $model->base_money = $base;
-                $model->distance_money = $distance;
-                $model->weight_money = $weight;
-                $model->time_money = $time;
-                $model->date_money = $date_money;
-                $model->money = $base + $time + $date_money + $distance + $weight;
+                // $distance = distanceMoney($shop, $model->receiver_lng, $model->receiver_lat);
+                //
+                // if ($distance == -2) {
+                //     return false;
+                // }
+                //
+                // if ($distance == -1) {
+                //     return false;
+                // }
+                //
+                //
+                // $base = baseMoney($shop->city_level ?: 9);
+                // $time = timeMoney();
+                // $date_money = dateMoney();
+                // $weight = weightMoney($model->goods_weight ?: 1);
+                //
+                // $model->base_money = $base;
+                // $model->distance_money = $distance;
+                // $model->weight_money = $weight;
+                // $model->time_money = $time;
+                // $model->date_money = $date_money;
+                // $model->money = $base + $time + $date_money + $distance + $weight;
             }
         });
     }

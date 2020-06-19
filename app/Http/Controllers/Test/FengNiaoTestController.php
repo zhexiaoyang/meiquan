@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Test;
 
 
 use App\Http\Controllers\Controller;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class FengNiaoTestController extends Controller
@@ -17,24 +18,31 @@ class FengNiaoTestController extends Controller
         $this->fengniap = app('fengniao');
     }
 
-    public function createShop(Request $request)
+    public function createShop(Request $request, Shop $shop)
     {
-        return $this->fengniap->createShop($request->all());
+        $shop->shop_name = $request->name;
+        $shop->contact_phone = $request->phone;
+        $shop->shop_address = $request->address;
+        $shop->shop_lng = $request->shop_lng;
+        $shop->shop_lat = $request->shop_lat;
+        $shop->save();
+
+        return $this->fengniap->createShop($shop);
     }
 
-    public function updateShop(Request $request)
-    {
-        return $this->fengniap->updateShop($request->all());
-    }
+    // public function updateShop(Request $request)
+    // {
+    //     return $this->fengniap->updateShop($request->all());
+    // }
 
     public function getShop(Request $request)
     {
-        return $this->fengniap->getShop($request->all());
+        return $this->fengniap->getShop($request->get("shop_id"));
     }
 
     public function getArea(Request $request)
     {
-        return $this->fengniap->getArea($request->all());
+        return $this->fengniap->getArea($request->get("shop_id"));
     }
 
     // 订单

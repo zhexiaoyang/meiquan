@@ -61,7 +61,7 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
         // 订单
         Route::post('order/send/{order}', 'OrderController@send')->name('order.send');
-        Route::post('order2', 'OrderController@store2')->name('order.store2');
+        // Route::post('order2', 'OrderController@store2')->name('order.store2');
         // 取消订单
         Route::delete('order/cancel2/{order}', 'OrderController@cancel2')->name('api.order.cancel2');
         Route::resource('order', "OrderController", ['only' => ['store', 'show', 'index', 'destroy']]);
@@ -83,7 +83,7 @@ Route::middleware(['force-json'])->group(function() {
 /**
  * 支付回调接口
  */
-Route::group(['namespace' => 'Api'], function () {
+Route::group(['namespace' => 'Request'], function () {
     Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
     Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
 });
@@ -111,20 +111,46 @@ Route::namespace('FengNiao')->prefix('fengniao')->group(function () {
 });
 
 /**
- * 测试接口
+ * 闪送回调接口
  */
-Route::group(['namespace' => 'Test'], function () {
-    Route::post('/test/fn/createShop', 'FengNiaoTestController@createShop');
-    Route::post('/test/fn/updateShop', 'FengNiaoTestController@updateShop');
-    Route::post('/test/fn/getShop', 'FengNiaoTestController@getShop');
-    Route::post('/test/fn/getArea', 'FengNiaoTestController@getArea');
-
-    Route::post('/test/fn/createOrder', 'FengNiaoTestController@createOrder');
-    Route::post('/test/fn/cancelOrder', 'FengNiaoTestController@cancelOrder');
-    Route::post('/test/fn/getOrder', 'FengNiaoTestController@getOrder');
-    Route::post('/test/fn/complaintOrder', 'FengNiaoTestController@complaintOrder');
-
-    Route::post('/test/fn/delivery', 'FengNiaoTestController@delivery');
-    Route::post('/test/fn/carrier', 'FengNiaoTestController@carrier');
-    Route::post('/test/fn/route', 'FengNiaoTestController@route');
+Route::namespace('ShanSong')->prefix('shansong')->group(function () {
+    // 订单状态回调
+    Route::post('order/status', "OrderController@status");
 });
+
+/**
+ * 蜂鸟测试接口
+ */
+// Route::group(['namespace' => 'Test'], function () {
+//     Route::post('/test/fn/createShop', 'FengNiaoTestController@createShop');
+//     Route::post('/test/fn/updateShop', 'FengNiaoTestController@updateShop');
+//     Route::post('/test/fn/getShop', 'FengNiaoTestController@getShop');
+//     Route::post('/test/fn/getArea', 'FengNiaoTestController@getArea');
+//
+//     Route::post('/test/fn/createOrder', 'FengNiaoTestController@createOrder');
+//     Route::post('/test/fn/cancelOrder', 'FengNiaoTestController@cancelOrder');
+//     Route::post('/test/fn/getOrder', 'FengNiaoTestController@getOrder');
+//     Route::post('/test/fn/complaintOrder', 'FengNiaoTestController@complaintOrder');
+//
+//     Route::post('/test/fn/delivery', 'FengNiaoTestController@delivery');
+//     Route::post('/test/fn/carrier', 'FengNiaoTestController@carrier');
+//     Route::post('/test/fn/route', 'FengNiaoTestController@route');
+// });
+
+/**
+ * 闪送测试接口
+ */
+// Route::namespace('Test')->prefix("test/ss")->group(function () {
+//     Route::post('createShop', 'ShanSongTestController@createShop');
+//     Route::post('getShop', 'ShanSongTestController@getShop');
+//
+//     Route::post('orderCalculate', 'ShanSongTestController@orderCalculate');
+//     Route::post('createOrder', 'ShanSongTestController@createOrder');
+//     Route::post('cancelOrder', 'ShanSongTestController@cancelOrder');
+//     Route::post('getOrder', 'ShanSongTestController@getOrder');
+//     Route::post('complaintOrder', 'ShanSongTestController@complaintOrder');
+//
+//     Route::post('delivery', 'ShanSongTestController@delivery');
+//     Route::post('carrier', 'ShanSongTestController@carrier');
+//     Route::post('route', 'ShanSongTestController@route');
+// });

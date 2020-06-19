@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\FengNiao;
 
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class OrderController
@@ -11,7 +12,7 @@ class OrderController
     public function status(Request $request)
     {
 
-        \Log::info('蜂鸟订单状态回调Request', [$request->all()]);
+        \Log::info('蜂鸟订单状态回调-全部参数', [$request->all()]);
 
         if (!$data_str = $request->get('data', '')) {
             return [];
@@ -35,8 +36,44 @@ class OrderController
         $description = $data['description'] ?? '';
         // 错误信息详细
         $detail_description = $data['detail_description'] ?? '';
+
+        $order = Order::query()->where('order_id', $order_id)->first();
+
+        if ($order) {
+            $order->courier_name = $name;
+            $order->courier_phone = $phone;
+            $order->exception_descr = $description;
+
+            if ($status == 1) {
+
+                $order->status = 30;
+
+            } elseif ($status == 20) {
+
+                $order->status = 40;
+
+            } elseif ($status == 80) {
+
+                $order->status = 50;
+
+            } elseif ($status == 2) {
+
+                $order->status = 60;
+
+            } elseif ($status == 3) {
+
+                $order->status = 70;
+
+            } elseif ($status == 5) {
+
+                $order->status = 80;
+
+            }
+
+            $order->save();
+        }
         
-        \Log::info('蜂鸟订单状态回调', compact('order_id', 'status', 'name', 'phone', 'description', 'detail_description'));
+        \Log::info('蜂鸟订单状态回调-部分参数', compact('order_id', 'status', 'name', 'phone', 'description', 'detail_description'));
 
 
         return [];

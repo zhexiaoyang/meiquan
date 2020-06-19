@@ -11,6 +11,13 @@ return [
         'secret' => env('FENGNIAO_SECRET', ''),
         'url' => 'https://exam-anubis.ele.me/anubis-webapi/'
     ],
+    "shansong" => [
+        'shop_id' => env('SS_SHOP_ID', ''),
+        'client_id' => env('SS_CLIENT_ID', ''),
+        'secret' => env('SS_SECRET', ''),
+        // 'url' => 'http://open.ishansong.com'
+        'url' => 'http://open.s.bingex.com'
+    ],
     "yaojite" => [
         'app_key' => env('YAOJITE_APP_KEY', ''),
         'secret' => env('YAOJITE_SECRET', ''),

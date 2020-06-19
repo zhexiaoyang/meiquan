@@ -13,7 +13,7 @@ class TestController extends Controller
         $meituan = app("meituan");
         $result = $meituan->arrange([
             'delivery_id' => $order->delivery_id,
-            'mt_peisong_id' => $order->mt_peisong_id
+            'peisong_id' => $order->peisong_id
         ]);
 
         if ($result['code'] === 0 && $order->update(['status' => 20])) {

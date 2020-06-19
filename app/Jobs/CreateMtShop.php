@@ -34,25 +34,36 @@ class CreateMtShop implements ShouldQueue
      */
     public function handle()
     {
-        $meituan = app("meituan");
-        $params = [
-            'shop_id' => $this->shop->shop_id,
-            'shop_name' => $this->shop->shop_name,
-            'category' => $this->shop->category,
-            'second_category' => $this->shop->second_category,
-            'contact_name' => (string) $this->shop->contact_name,
-            'contact_phone' => $this->shop->contact_phone,
-            'shop_address' => $this->shop->shop_address,
-            'shop_lng' => ceil($this->shop->shop_lng * 1000000),
-            'shop_lat' => ceil($this->shop->shop_lat * 1000000),
-            'coordinate_type' => $this->shop->coordinate_type,
-            'delivery_service_codes' => "4011",
-            'business_hours' => json_encode($this->shop->business_hours),
-        ];
-        $result = $meituan->shopCreate($params);
-        if (!isset($result['code']) || $result['code'] != 0) {
-            $this->shop->status = 0;
-            $this->shop->save();
+        if (!$this->shop->shop_id) {
+            $meituan = app("meituan");
+            $result = $meituan->shopCreate($this->shop);
+            if (isset($result['code']) && $result['code'] == 0) {
+                if ($this->shop->status < 10) {
+                    $this->shop->status = 10;
+                    $this->shop->save();
+                }
+            }
+        }
+
+        if (!$this->shop->shop_id_fn) {
+            $fengniao = app("fengniao");
+            $result = $fengniao->createShop($this->shop);
+            if (isset($result['code']) && $result['code'] == 200) {
+                if ($this->shop->status < 10) {
+                    $this->shop->status = 10;
+                    $this->shop->save();
+                }
+            }
+        }
+
+        if (!$this->shop->shop_id_ss) {
+            $shansong = app("shansong");
+            $result = $shansong->createShop($this->shop);
+            if (isset($result['status']) && $result['status'] == 200) {
+                // $this->shop->status = 40;
+                $this->shop->shop_id_ss = $result['data'];
+                $this->shop->save();
+            }
         }
     }
 }
