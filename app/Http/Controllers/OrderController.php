@@ -27,7 +27,7 @@ class OrderController extends Controller
         $search_key = $request->get('search_key', '');
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
-            $query->select('shop_id', 'shop_name');
+            $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps','receiver_lng','receiver_lat','status','created_at');
 
         // 关键字搜索
@@ -53,6 +53,7 @@ class OrderController extends Controller
 
         // 查询订单
         $orders = $query->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
+
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 if (in_array($order->status, [20 ,30 ,40 ,50 ,60])) {
