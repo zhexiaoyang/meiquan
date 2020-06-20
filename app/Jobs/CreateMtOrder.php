@@ -105,7 +105,7 @@ class CreateMtOrder implements ShouldQueue
                     if (isset($check_fn['code']) && ($check_fn['code'] == 200) ) {
 
                         $distance = distanceMoneyFn($shop, $this->order->receiver_lng, $this->order->receiver_lat);
-                        $base = baseMoneyFn($shop->city_level ?: 9);
+                        $base = baseMoneyFn($shop->city_level_fn ?: "G");
                         $time_money = timeMoneyFn();
                         $date_money = 0;
                         $weight_money = weightMoneyFn($this->order->goods_weight);

@@ -718,7 +718,7 @@ class OrderController extends Controller
             if ($res_fn['code'] == 200) {
                 $send = 1;
                 $distance = distanceMoney($shop, $lng, $lat);
-                $base = baseMoneyFn($shop->city_level ?: 9);
+                $base = baseMoneyFn($shop->city_level_fn ?: 'G');
                 $time = timeMoneyFn();
                 $date_money = 0;
                 $weight_money = weightMoneyFn($weight);
