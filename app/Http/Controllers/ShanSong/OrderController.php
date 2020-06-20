@@ -84,6 +84,9 @@ class OrderController
 
             }
 
+            $order->courier_name = $name ?? '';
+            $order->courier_phone = $phone ?? '';
+
             $order->save();
         }
         
