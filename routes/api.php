@@ -83,7 +83,7 @@ Route::middleware(['force-json'])->group(function() {
 /**
  * 支付回调接口
  */
-Route::group(['namespace' => 'Request'], function () {
+Route::group(['namespace' => 'Api'], function () {
     Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
     Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
 });
