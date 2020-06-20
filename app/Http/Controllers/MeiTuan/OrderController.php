@@ -14,7 +14,22 @@ class OrderController
         $delivery_id = $request->get('delivery_id', 0);
         $data = $request->only(['courier_name', 'courier_phone', 'cancel_reason_id', 'cancel_reason','status']);
         if (($order = Order::where('delivery_id', $delivery_id)->first()) && in_array($status, [0, 20, 30, 50, 99])) {
-            $order->status = $data['status'];
+            if ($status == 0) {
+                $order->status = 30;
+
+            } elseif ($status == 20) {
+                $order->status = 50;
+
+            } elseif ($status == 30) {
+                $order->status = 60;
+
+            } elseif ($status == 50) {
+                $order->status = 70;
+
+            } elseif ($status == 99) {
+                $order->status = 99;
+            }
+
             $order->courier_name = $data['courier_name'] ?? '';
             $order->courier_phone = $data['courier_phone'] ?? '';
             $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
