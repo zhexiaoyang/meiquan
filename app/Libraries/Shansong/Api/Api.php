@@ -46,6 +46,9 @@ class Api extends Request
      */
     public function orderCalculate(Shop $shop, Order $order)
     {
+
+        $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
+        $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
         $data = [
             "cityName" => $shop->city,
             "sender" => [
@@ -53,19 +56,19 @@ class Api extends Request
                 "fromAddressDetail" => $shop->shop_address,
                 "fromSenderName" => $shop->contact_name,
                 "fromMobile" => $shop->contact_phone,
-                "fromLatitude" => $shop->shop_lat,
-                "fromLongitude" => $shop->shop_lng
+                "fromLatitude" => $jwd1['lat'],
+                "fromLongitude" => $jwd1['lng']
             ],
             "receiverList" => [[
                 "orderNo" => $order->order_id,
                 "toAddress" => $order->receiver_address,
                 "toAddressDetail" => $order->receiver_address,
-                "toLatitude" => $order->receiver_lat,
-                "toLongitude" => $order->receiver_lng,
+                "toLatitude" => $jwd2['lat'],
+                "toLongitude" => $jwd2['lng'],
                 "toReceiverName" => $order->receiver_name,
-                "toMobile" => $order->receiver_phone,
+                "toMobile" => str_replace('_', '#', $order->receiver_phone),
                 "goodType" => 1,
-                "weight" => $order->goods_weight,
+                "weight" => ceil($order->goods_weight),
                 "remarks" => $order->note ?? "",
                 // "additionFee" => 500,
                 // "insurance" => 200,
