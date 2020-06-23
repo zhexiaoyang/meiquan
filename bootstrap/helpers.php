@@ -190,15 +190,43 @@ function distanceMoney($shop, $lan, $lat) {
             // return -1;
         }
 
-        if ($juli > 1 && $juli <= 3) {
-            $money += 1;
-        } elseif ($juli > 3 && $juli <= 5) {
-            $money += 2;
-        } elseif ($juli > 5 && $juli <= 7) {
-            $money += 3;
-        } elseif ($juli > 7 && $juli <= 10) {
-            $money += 5;
+        if ($juli > 1) {
+            if ($juli <= 3) {
+                $money += ceil($juli - 1) * 1;
+            } else {
+                $money += 2 * 1;
+            }
         }
+
+        if ($juli > 3) {
+            if ($juli <= 5) {
+                $money += ceil($juli - 3) * 2;
+            } else {
+                $money += 2 * 2;
+            }
+        }
+
+        if ($juli > 5) {
+            if ($juli <= 7) {
+                $money += ceil($juli - 5) * 3;
+            } else {
+                $money += 2 * 3;
+            }
+        }
+
+        if ($juli > 7) {
+            $money += ceil($juli - 7) * 5;
+        }
+
+        // if ($juli > 1 && $juli <= 3) {
+        //     $money += 1;
+        // } elseif ($juli > 3 && $juli <= 5) {
+        //     $money += 2;
+        // } elseif ($juli > 5 && $juli <= 7) {
+        //     $money += 3;
+        // } elseif ($juli > 7 && $juli <= 10) {
+        //     $money += 5;
+        // }
 
     } catch (\Exception $e) {
         \Log::info('请求获取距离失败', []);

@@ -176,7 +176,9 @@ class CreateMtOrder implements ShouldQueue
                             $money = ($check_ss['data']['totalAmount'] ?? 0) / 100;
 
                             if ($money <= 26) {
-                                $money = $money * 0.85;
+                                $money = $money * 0.8;
+                            } else {
+                                $money = (26 * 0.8) + ($money - 26);
                             }
 
                             $order_id = $check_ss['data']['orderNumber'] ?? 0;
