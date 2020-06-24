@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Agreement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Overtrue\EasySms\EasySms;
@@ -49,5 +50,11 @@ class CommonController extends Controller
         Cache::put($key, ['phone' => $phone, 'code' => $code], $expiredAt);
 
         return $this->success();
+    }
+
+    public function agreement()
+    {
+        $agreements = Agreement::query()->select('id','title','cover','url','date')->where('status', 1)->get();
+        return $this->success($agreements);
     }
 }

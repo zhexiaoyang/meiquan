@@ -142,31 +142,75 @@ class ShopController extends Controller
      */
     public function range(Shop $shop)
     {
-        // if (!$shop->range) {
-        //     $meituan = app("meituan");
-        //     $res = $meituan->getShopArea(['delivery_service_code' => 4011, 'shop_id' => $shop->shop_id]);
-        //     if (isset($res['data']['scope'])) {
-        //         $scope = [];
-        //         $range = json_decode($res['data']['scope'], true);
-        //         if (!empty($range)) {
-        //             foreach ($range as $k => $v) {
-        //                 $tmp[] = $v['y'];
-        //                 $tmp[] = $v['x'];
-        //                 $scope[] = $tmp;
-        //                 unset($tmp);
-        //             }
-        //         }
-        //         ShopRange::query()->create(['shop_id' => $shop->id, 'range' => json_encode($scope)]);
-        //         $shop->load('range');
-        //     }
-        // }
+        $resrange = [];
+        if (!$shop->range) {
+            ShopRange::query()->create(['shop_id' => $shop->id, 'range' => '', 'range_fn' => '']);
+        }
+
+        $shop->load('range');
+        if ($shop->range) {
+            if ($shop->shop_id) {
+                if (!$shop->range->range) {
+                    $meituan = app("meituan");
+                    $res = $meituan->getShopArea(['delivery_service_code' => 4011, 'shop_id' => $shop->shop_id]);
+                    if (isset($res['data']['scope'])) {
+                        $scope = [];
+                        $range = json_decode($res['data']['scope'], true);
+                        if (!empty($range)) {
+                            foreach ($range as $k => $v) {
+                                $tmp[] = $v['y'];
+                                $tmp[] = $v['x'];
+                                $scope[] = $tmp;
+                                unset($tmp);
+                            }
+                        }
+                        $shop->range->range = json_encode($scope);
+                        $shop->range->save();
+                        $_range['name'] = '美团';
+                        $_range['range'] = $scope;
+                        $resrange[] = $_range;
+                    }
+                } else {
+                    $_range['name'] = '美团';
+                    $_range['range'] = json_decode($shop->range->range);
+                    $resrange[] = $_range;
+                }
+            }
+            if ($shop->shop_id_fn) {
+                if (!$shop->range->range_fn) {
+                    $fengniao = app("fengniao");
+                    $resfn = $fengniao->getArea($shop->shop_id_fn);
+                    if (isset($resfn['data']['range_list'][0]['ranges'])) {
+                        $scope = [];
+                        // $range = json_decode($res['data']['scope'], true);
+                        if (!empty($resfn['data']['range_list'][0]['ranges'])) {
+                            foreach ($resfn['data']['range_list'][0]['ranges'] as $k => $v) {
+                                $tmp[] = (float) $v['longitude'];
+                                $tmp[] = (float) $v['latitude'];
+                                $scope[] = $tmp;
+                                unset($tmp);
+                            }
+                        }
+                        $shop->range->range_fn = json_encode($scope);
+                        $shop->range->save();
+                        $_range['name'] = '蜂鸟';
+                        $_range['range'] = $scope;
+                        $resrange[] = $_range;
+                    }
+                } else {
+                    $_range['name'] = '蜂鸟';
+                    $_range['range'] = json_decode($shop->range->range_fn);
+                    $resrange[] = $_range;
+                }
+            }
+        }
 
         $data = [
             'id' => $shop->id,
-            'lng' => $shop->shop_lng,
-            'lat' => $shop->shop_lat,
-            // 'range' => isset($shop->range->range) ? json_decode($shop->range->range) : [],
-            'range' => [],
+            // 'lng' => $shop->shop_lng,
+            // 'lat' => $shop->shop_lat,
+            'shop' => [$shop->shop_lng, $shop->shop_lat],
+            'range' => $resrange,
         ];
 
         return $this->success($data);

@@ -13,7 +13,10 @@ Route::middleware(['force-json'])->group(function() {
     // 取消订单
     Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
 
+    // 注册验证码
     Route::post('code', 'CommonController@getVerifyCode')->name('code');
+    // 服务协议
+    Route::get('getAgreementList', 'CommonController@agreement')->name('agreement');
     Route::post('auth/register', 'AuthController@register');
 
     Route::middleware('auth:api')->group(function () {
