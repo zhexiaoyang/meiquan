@@ -5,6 +5,7 @@ namespace App\Http\Controllers\ShanSong;
 
 
 use App\Models\Order;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class OrderController
@@ -40,6 +41,7 @@ class OrderController
         if ($order) {
             $order->courier_name = $name;
             $order->courier_phone = $phone;
+            $tui = false;
 
             // -30 未付款，
             // -20 等待发送，
@@ -80,6 +82,10 @@ class OrderController
 
             } elseif ($status == 60) {
 
+                if ($order->status < 99) {
+                    $tui = true;
+                }
+
                 $order->status = 99;
 
             }
@@ -88,6 +94,16 @@ class OrderController
             $order->courier_phone = $phone ?? '';
 
             $order->save();
+
+
+            if ($tui) {
+                $shop = Shop::query()->find($order->shop_id);
+                if ($shop) {
+                    \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+                    \Log::info('闪送平台取消订单-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                }
+                return $this->success([]);
+            }
         }
         
         \Log::info('闪送订单状态回调-部分参数', compact('ss_order_id','order_id', 'status', 'name', 'phone', 'longitude', 'latitude'));

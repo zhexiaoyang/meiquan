@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\MeiTuan;
 
 use App\Models\Order;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class OrderController
@@ -14,6 +15,7 @@ class OrderController
         $delivery_id = $request->get('delivery_id', 0);
         $data = $request->only(['courier_name', 'courier_phone', 'cancel_reason_id', 'cancel_reason','status']);
         if (($order = Order::where('delivery_id', $delivery_id)->first()) && in_array($status, [0, 20, 30, 50, 99])) {
+            $tui = false;
             if ($status == 0) {
                 $order->status = 30;
 
@@ -27,6 +29,11 @@ class OrderController
                 $order->status = 70;
 
             } elseif ($status == 99) {
+
+                if ($order->status < 99) {
+                    $tui = true;
+                }
+
                 $order->status = 99;
             }
 
@@ -34,8 +41,18 @@ class OrderController
             $order->courier_phone = $data['courier_phone'] ?? '';
             $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
             $order->cancel_reason = $data['cancel_reason'] ?? '';
+
             if ($order->save()) {
                 $res = ['code' => 0];
+
+                if ($tui) {
+                    $shop = Shop::query()->find($order->shop_id);
+                    if ($shop) {
+                        \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+                        \Log::info('美团平台取消订单-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    }
+                    return $this->success([]);
+                }
             }
         }
         \Log::info('订单状态回调', ['request' => $request, 'response' => $res]);

@@ -564,7 +564,7 @@ class OrderController extends Controller
 
             $result = $shansong->cancelOrder($order->peisong_id);
 
-            if ($result['status'] == 200) {
+            if ($result['status'] == 200 && ($order->status < 99)) {
                 if (Order::query()->where(['id' => $order->id])->where('status', '<>', 99)->update(['status' => 99])) {
                     \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
                     \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
