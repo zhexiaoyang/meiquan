@@ -373,7 +373,7 @@ class OrderController extends Controller
 
         \Log::info('同步订单参数', ['type' => $type, 'order_id' => $order_id]);
 
-        if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
+        if (!$type || !in_array($type, [1,2,3,4]) || !$order_id) {
             return $this->error('参数错误');
         }
 
