@@ -381,8 +381,10 @@ class OrderController extends Controller
             $meituan = app("yaojite");
         } elseif($type === 2) {
             $meituan = app("mrx");
-        } else {
+        } elseif($type === 3) {
             $meituan = app("jay");
+        } else {
+            $meituan = app("minkang");
         }
 
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
