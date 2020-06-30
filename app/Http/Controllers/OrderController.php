@@ -394,12 +394,14 @@ class OrderController extends Controller
         if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
             $data = $res['data'];
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
+                \Log::info('订单已存在', compact("type", "order_id"));
                 return $this->error('订单已存在');
             }
 
             $shop_id = isset($data['app_poi_code']) ? $data['app_poi_code'] : 0;
 
             if (!$shop = Shop::where('mt_shop_id', $shop_id)->first()) {
+                \Log::info('药店不存在', compact("type", "order_id"));
                 return $this->error('药店不存在');
             }
 
