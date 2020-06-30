@@ -33,6 +33,16 @@ return [
         'secret' => env('JAY_SECRET', ''),
         'url' => 'https://waimaiopen.meituan.com/api/'
     ],
+    "minkang" => [
+        'app_key' => env('MINKANG_APP_KEY', ''),
+        'secret' => env('MINKANG_SECRET', ''),
+        'url' => 'https://waimaiopen.meituan.com/api/'
+    ],
+    "yaogui" => [
+        'app_key' => env('YAOGUI_APP_KEY', ''),
+        'secret' => env('YAOGUI_SECRET', ''),
+        'url' => 'https://openapi.vendingtech.vip/openapi/v1/'
+    ],
     'jieri' => [
         '2020-02-16',
         '2020-02-17',

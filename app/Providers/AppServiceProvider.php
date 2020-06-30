@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Libraries\Fengniao\Fengniao;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
+// use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,6 +29,10 @@ class AppServiceProvider extends ServiceProvider
             $config = config('ps.shansong');
             return new Shansong($config);
         });
+        // $this->app->singleton('yaogui', function () {
+        //     $config = config('ps.yaogui');
+        //     return new Yaogui($config);
+        // });
 
         $this->app->singleton('yaojite', function () {
             $config = config('ps.yaojite');
@@ -39,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
         });
         $this->app->singleton('jay', function () {
             $config = config('ps.jay');
+            return new MeiTuan($config);
+        });
+        $this->app->singleton('minkang', function () {
+            $config = config('ps.minkang');
             return new MeiTuan($config);
         });
     }
