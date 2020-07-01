@@ -99,7 +99,7 @@ class CreateMtOrder implements ShouldQueue
                 }
 
                 // 蜂鸟订单
-                if ($shop->shop_id && !$this->order->fail_fn && !$send) {
+                if ($shop->shop_id_fn && !$this->order->fail_fn && !$send) {
                     $fengniao = app("fengniao");
                     $check_fn = $fengniao->delivery($shop, $this->order);
                     if (isset($check_fn['code']) && ($check_fn['code'] == 200) ) {
@@ -148,7 +148,7 @@ class CreateMtOrder implements ShouldQueue
                 }
 
                 // 闪送订单
-                if ($shop->shop_id && !$this->order->fail_ss && !$send && !$this->order->ps) {
+                if ($shop->shop_id_ss && !$this->order->fail_ss && !$send && !$this->order->ps) {
                     $shansong = app("shansong");
                     $check_ss = $shansong->orderCalculate($shop, $this->order);
                     if (isset($check_ss['status']) && ($check_ss['status'] === 200) ) {
