@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\PassportToken;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,6 +11,8 @@ use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {
+    use PassportToken;
+
     public function __construct()
     {
         $this->middleware('auth:api')->except(['login', 'register']);
@@ -17,6 +20,9 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        if ($request->get("captcha")) {
+            return $this->loginByMobile($request);
+        }
         try {
             $token = app(Client::class)->post(url('/oauth/token'), [
                 'form_params' => [
@@ -35,6 +41,50 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return $this->error("用户名或密码错误", 400);
         }
+    }
+
+    public function loginByMobile(Request $request)
+    {
+
+        $request->validate([
+            'mobile' => 'required',
+            'captcha' => 'required',
+        ], [], [
+            'phone' => '手机号',
+            'captcha' => '短信验证码',
+        ]);
+
+        $phone = $request->get('mobile', '');
+        $captcha = $request->get('captcha', '');
+
+        $verifyData = \Cache::get($phone);
+
+        if (!$verifyData) {
+            return $this->error('验证码已失效');
+        }
+
+        if (!hash_equals($verifyData['code'], $captcha)) {
+            return $this->error('验证码失效');
+        }
+
+        $user = User::query()->where('phone', $phone)->first();
+
+        if (!$user) {
+            $password = round(111111, 999999);
+            $user = new User();
+            $user->name = $request->get('phone');
+            $user->phone = $request->get('phone');
+            $user->password = bcrypt($password);
+            $user->save();
+
+            \Log::info('验证码登录注册', compact($phone, $password));
+        }
+
+        $result = $this->getBearerTokenByUser($user, '1', false);
+
+        \Cache::forget($phone);
+
+        return $this->success($result);
     }
 
 
