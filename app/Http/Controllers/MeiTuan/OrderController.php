@@ -20,16 +20,18 @@ class OrderController
                 $order->status = 30;
 
             } elseif ($status == 20) {
+                // 已接单
                 $order->status = 50;
 
             } elseif ($status == 30) {
+                // 已取货
                 $order->status = 60;
 
             } elseif ($status == 50) {
+                // 已送达
                 $order->status = 70;
 
             } elseif ($status == 99) {
-
                 if ($order->status < 99) {
                     $tui = true;
                 }

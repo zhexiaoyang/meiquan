@@ -52,6 +52,27 @@ class Request
         return $result;
     }
 
+    public function request_post(string $method, array $params)
+    {
+        $params = array_merge($params, [
+            'app_id' => $this->appKey,
+            'timestamp' => time(),
+            'version' => '1.0',
+        ]);
+
+        $params['sig'] = $this->generate_signature($method, $params);
+
+        $http = $this->getHttp();
+
+        $response = $http->post($this->url . $method, $params);
+
+        $result = json_decode(strval($response->getBody()), true);
+
+        // $this->checkErrorAndThrow($result);
+
+        return $result;
+    }
+
 
     public function request_get(string $method, array $params)
     {

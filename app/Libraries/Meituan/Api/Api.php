@@ -191,6 +191,11 @@ class Api extends Request
         return $this->request_get('v1/order/viewstatus', $params);
     }
 
+    public function logisticsSync(array $params)
+    {
+        return $this->request_post('v1/ecommerce/order/logistics/sync', $params);
+    }
+
     /**
      * 获取门店配送范围
      * @param array $params

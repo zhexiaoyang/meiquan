@@ -69,11 +69,11 @@ class OrderController
                 $order->status = 30;
 
             } elseif ($status == 30) {
-
-                $order->status = 40;
+                // 取货中
+                $order->status = 50;
 
             } elseif ($status == 40) {
-
+                // 送货中
                 $order->status = 60;
 
             } elseif ($status == 50) {
