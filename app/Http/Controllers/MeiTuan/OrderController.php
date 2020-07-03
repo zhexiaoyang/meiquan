@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MeiTuan;
 
+use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -58,6 +59,11 @@ class OrderController
             }
         }
         \Log::info('订单状态回调', ['request' => $request, 'response' => $res]);
+
+        if (in_array($order->status, [40, 50, 60, 70])) {
+            dispatch(new MtLogisticsSync($order));
+        }
+
         return json_encode($res);
     }
 

@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\ShanSong;
 
 
+use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -36,7 +37,7 @@ class OrderController
         // 配送员纬度
         $latitude = $data['courier']['latitude'] ?? '';
 
-        $order = Order::query()->where('order_id', $order_id)->first();
+        $order = Order::where('order_id', $order_id)->first();
 
         if ($order) {
             $order->courier_name = $name;
@@ -108,6 +109,9 @@ class OrderController
         
         \Log::info('闪送订单状态回调-部分参数', compact('ss_order_id','order_id', 'status', 'name', 'phone', 'longitude', 'latitude'));
 
+        if (in_array($order->status, [40, 50, 60, 70])) {
+            dispatch(new MtLogisticsSync($order));
+        }
 
         return $res;
     }
