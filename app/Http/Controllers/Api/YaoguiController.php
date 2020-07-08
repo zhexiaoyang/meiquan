@@ -164,6 +164,9 @@ class YaoguiController
                     \Log::info('闪送取消订单成功-已经是取消状态了', ['order_id' => $order->id, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                     return json_encode($res);
                 }
+            } else {
+                \Log::info('药柜取消订单-未配送');
+                return json_encode($res);
             }
 
             \Log::info('药柜取消订单-失败');
