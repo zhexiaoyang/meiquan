@@ -41,15 +41,14 @@ class Api extends Request
      * @param Order $order
      * @return mixed
      */
-    public function logisticsOrder(Order $order)
+    public function logisticsOrder($data)
     {
-        $data = [
-            "courierName" =>  $order->courier_name,
-            "orderNo" => $order->order_id,
-            "courierPhone" => $order->courier_phone,
-            // "latitude" => $order->aaa,
-            // "longitude" => $order->aaa
-        ];
+        // $data = [
+        //     "courierName" =>  $order->courier_name,
+        //     "orderNo" => $order->order_id,
+        //     "courierPhone" => $order->courier_phone,
+        //     "logisticsStatus" => 1
+        // ];
         return $this->post("order/syncLogistics", $data);
     }
 

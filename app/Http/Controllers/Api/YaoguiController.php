@@ -15,25 +15,60 @@ class YaoguiController
     public function settlement(Request $request)
     {
         Log::info('药柜-结算订单', $request->all());
+
+        $res = [
+            "code" => 200,
+            "message" => "SUCCESS"
+        ];
+
+        return json_encode($res);
     }
 
     public function downgrade(Request $request)
     {
         Log::info('药柜-隐私号降级', $request->all());
+
+        $res = [
+            "code" => 200,
+            "message" => "SUCCESS"
+        ];
+
+        return json_encode($res);
     }
 
     public function create(Request $request)
     {
         Log::info('药柜-创建订单', $request->all());
+
+        $res = [
+            "code" => 200,
+            "message" => "SUCCESS"
+        ];
+
+        return json_encode($res);
     }
 
     public function cancel(Request $request)
     {
         Log::info('药柜-取消订单', $request->all());
+
+        $res = [
+            "code" => 200,
+            "message" => "SUCCESS"
+        ];
+
+        return json_encode($res);
     }
 
     public function urge(Request $request)
     {
         Log::info('药柜-催单', $request->all());
+
+        $res = [
+            "code" => 200,
+            "message" => "SUCCESS"
+        ];
+
+        return json_encode($res);
     }
 }
