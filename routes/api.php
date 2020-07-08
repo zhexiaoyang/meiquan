@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['force-json'])->group(function() {
+
     // 登录
     Route::post('auth/login', 'AuthController@login');
     // 模拟接单建店
@@ -119,6 +120,22 @@ Route::namespace('FengNiao')->prefix('fengniao')->group(function () {
 Route::namespace('ShanSong')->prefix('shansong')->group(function () {
     // 订单状态回调
     Route::post('order/status', "OrderController@status");
+});
+
+/**
+ * 药柜回调接口
+ */
+Route::namespace('Api')->prefix('zg')->group(function () {
+    // 结算订单
+    Route::post('order/settlement', "YaoguiController@settlement");
+    // 隐私号降级
+    Route::post('order/downgrade', "YaoguiController@downgrade");
+    // 创建订单
+    Route::post('order/create', "YaoguiController@create");
+    // 取消订单
+    Route::post('order/cancel', "YaoguiController@cancel");
+    // 催单
+    Route::post('order/urge', "YaoguiController@urge");
 });
 
 /**
