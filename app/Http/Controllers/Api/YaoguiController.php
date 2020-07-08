@@ -90,7 +90,7 @@ class YaoguiController
 
         if ($order_id) {
 
-            $order = Order::query()->where('order_id', $request->get('order_id', 0))->first();
+            $order = Order::query()->where('order_id', $order_id)->first();
 
             if (!$order) {
                 \Log::info('药柜接口取消订单-订单未找到', ['请求参数' => $request->all()]);
