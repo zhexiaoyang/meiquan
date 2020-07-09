@@ -35,6 +35,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('order/status/{order}', "OrderController@checkStatus");
         // 修改密码
         Route::post('user/reset_password', 'AuthController@resetPassword');
+        // 统计页面
+        Route::get('statistics', 'StatisticsController@index');
 
         /**
          * 管理员操作
