@@ -30,7 +30,7 @@ class Api extends Request
             'coordinate_type' => 0,
             'goods_value' => $order->goods_value,
             'goods_weight' => $order->goods_weight,
-            'goods_pickup_info' => $order->goods_pickup_info
+            'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
         ];
 
         return $this->request('order/createByShop', $params);

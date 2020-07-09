@@ -59,6 +59,7 @@ class YaoguiController
                 'goods_weight' => 4.5,
                 'type' => 11,
                 'status' => 0,
+                'goods_pickup_info' => substr($data['fourthPartyOrderId'], -6)
             ];
 
             $order = new Order($order_data);

@@ -100,7 +100,7 @@ class Api extends Request
                 "transport_latitude" => $shop->shop_lat,
                 "position_source" => 3,
                 "transport_tel" => $shop->contact_phone,
-                "transport_remark" => $order->goods_pickup_info
+                "transport_remark" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ],
             "order_add_time" => strtotime($order->created_at) * 1000,
             "order_total_amount" => $order->goods_value,

@@ -74,7 +74,8 @@ class Api extends Request
                 // "insurance" => 200,
                 // "insuranceProId" => "SS_baofei_001",
                 // "orderingSourceType" =>4,
-                "orderingSourceNo" => $order->goods_pickup_info ?? ""
+                // "orderingSourceNo" => $order->goods_pickup_info ?? "",
+                "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ]],
             "appointType" => $order->order_type ?? "",
             "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i:s", $order->expected_pickup_time) : "",
