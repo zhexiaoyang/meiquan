@@ -41,8 +41,8 @@ return [
     "yaogui" => [
         'app_key' => env('YAOGUI_APP_KEY', ''),
         'secret' => env('YAOGUI_SECRET', ''),
-        // 'url' => 'https://openapi.vendingtech.vip/openapi/v1/'
-        'url' => 'https://openapi-test.vendingtech.vip/openapi/v1/'
+        'url' => 'https://openapi.vendingtech.vip/openapi/v1/'
+        // 'url' => 'https://openapi-test.vendingtech.vip/openapi/v1/'
     ],
     'jieri' => [
         '2020-02-16',
