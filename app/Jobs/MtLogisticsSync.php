@@ -65,9 +65,33 @@ class MtLogisticsSync implements ShouldQueue
                 "logistics_status" => $status
             ];
 
-            \Log::info('同步美团配送信息开始', []);
+            \Log::info('美团外卖同步配送信息开始', []);
             $result = $meituan->logisticsSync($params);
-            \Log::info('同步美团配送信息结束', compact("params", "result"));
+            \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
+        } elseif ($this->order->type == 11) {
+            $yaogui = app("yaogui");
+
+            $status = 5;
+
+            if ($this->order->status == 40) {
+                $status = 10;
+            }elseif ($this->order->status == 50) {
+                $status = 15;
+            }elseif ($this->order->status == 60) {
+                $status = 20;
+            }elseif ($this->order->status == 70) {
+                $status = 40;
+            }
+
+            $params = [
+                "courierName" =>  $this->order->courier_name,
+                "orderNo" => $this->order->order_id,
+                "courierPhone" => $this->order->courier_phone,
+                "logisticsStatus" => $status
+            ];
+            \Log::info('药柜同步配送信息开始', []);
+            $result = $yaogui->logisticsOrder($params);
+            \Log::info('药柜同步配送信息结束', compact("params", "result"));
         }
     }
 }

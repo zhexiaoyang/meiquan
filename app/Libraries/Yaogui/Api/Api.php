@@ -38,8 +38,6 @@ class Api extends Request
 
     /**
      * 同步配送订单
-     * @param Order $order
-     * @return mixed
      */
     public function logisticsOrder($data)
     {

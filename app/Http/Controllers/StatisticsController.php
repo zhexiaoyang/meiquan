@@ -53,9 +53,9 @@ class StatisticsController extends Controller
             $start += 86400;
         }
 
-        \Log::info('message', $request->all());
-        \Log::info('message', [$date_num]);
-        \Log::info('message', [$date_money]);
+        // \Log::info('message', $request->all());
+        // \Log::info('message', [$date_num]);
+        // \Log::info('message', [$date_money]);
 
 
         // $date_num = [
