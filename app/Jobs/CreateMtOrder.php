@@ -64,11 +64,11 @@ class CreateMtOrder implements ShouldQueue
 
                         if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
                             Log::info('美团订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
+                            $send = true;
                             // 发送美团订单
                             $result_mt = $meituan->createByShop($shop, $this->order);
                             if ($result_mt['code'] === 0) {
                                 // 订单发送成功
-                                $send = true;
                                 // 写入订单信息
                                 $update_info = [
                                     'money' => $money,
@@ -82,6 +82,7 @@ class CreateMtOrder implements ShouldQueue
                                     'ps' => 1
                                 ];
                                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
+                                Log::info('美团订单-更新创建订单状态成功');
                             } else {
                                 $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
                                 DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt]);
@@ -114,10 +115,10 @@ class CreateMtOrder implements ShouldQueue
 
                         if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
                             Log::info('蜂鸟订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
+                            $send = true;
                             $result_fn = $fengniao->createOrder($shop, $this->order);
                             if ($result_fn['code'] == 200) {
                                 // 订单发送成功
-                                $send = true;
                                 // 写入订单信息
                                 $update_info = [
                                     'money' => $money,
@@ -131,6 +132,7 @@ class CreateMtOrder implements ShouldQueue
                                     'ps' => 2
                                 ];
                                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
+                                Log::info('蜂鸟订单-更新创建订单状态成功');
                             } else {
                                 $fail_fn = $result_fn['msg'] ?? "蜂鸟创建订单失败";
                                 DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $fail_fn]);
@@ -186,11 +188,11 @@ class CreateMtOrder implements ShouldQueue
 
                         if ($order_id && ($money >= 0) && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
                             Log::info('闪送订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
+                            $send = true;
                             // 发送闪送订单
                             $result_ss = $shansong->createOrder($order_id);
                             if ($result_ss['status'] === 200) {
                                 // 订单发送成功
-                                $send = true;
                                 // 写入订单信息
                                 $update_info = [
                                     'money' => $money,
@@ -204,6 +206,7 @@ class CreateMtOrder implements ShouldQueue
                                     'ps' => 3
                                 ];
                                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
+                                Log::info('闪送订单-更新创建订单状态成功');
                             } else {
                                 $fail_ss = $result_ss['msg'] ?? "闪送创建订单失败";
                                 DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $fail_ss]);
