@@ -65,7 +65,7 @@ class YaoguiController
             $order = new Order($order_data);
 
             if ($order->save()) {
-                // dispatch(new CreateMtOrder($order));
+                dispatch(new CreateMtOrder($order));
                 \Log::info('众柜创建订单成功', $order->toArray());
             }
         }
