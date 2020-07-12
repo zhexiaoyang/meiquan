@@ -73,14 +73,20 @@ class Api extends Request
                 // "additionFee" => 500,
                 // "insurance" => 200,
                 // "insuranceProId" => "SS_baofei_001",
-                "orderingSourceType" => '美团',
+                // "orderingSourceType" =>4,
                 // "orderingSourceNo" => $order->goods_pickup_info ?? "",
-                "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
+                // "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ]],
             "appointType" => $order->order_type ?? "",
             "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i:s", $order->expected_pickup_time) : "",
             "storeId" => $shop->shop_id_ss
         ];
+
+
+        if ($order->goods_pickup_info) {
+            $data['receiverList']['orderingSourceType'] = 4;
+            $data['receiverList']['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
+        }
 
         return $this->post('/openapi/merchants/v5/orderCalculate', $data);
     }
