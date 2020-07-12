@@ -116,6 +116,7 @@ class OrderController extends Controller
 
         if ($order->save()) {
 
+            \Log::info('手动创建订单-发送订单');
             dispatch(new CreateMtOrder($order));
 
             // $user = User::query()->find($shop->user_id);
