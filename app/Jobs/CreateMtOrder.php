@@ -51,7 +51,6 @@ class CreateMtOrder implements ShouldQueue
                 // 美团订单
                 Log::info("PS-美团", ['ps' => $this->order->ps, 'send' => $send]);
                 if ($shop->shop_id && !$this->order->fail_mt && !$send && !$this->order->ps) {
-                    $send = true;
                     $meituan = app("meituan");
                     $check_mt = $meituan->check($shop, $this->order);
                     if (isset($check_mt['code']) && ($check_mt['code'] === 0) ) {
