@@ -73,7 +73,7 @@ class Api extends Request
                 // "additionFee" => 500,
                 // "insurance" => 200,
                 // "insuranceProId" => "SS_baofei_001",
-                // "orderingSourceType" =>4,
+                "orderingSourceType" => '美团',
                 // "orderingSourceNo" => $order->goods_pickup_info ?? "",
                 "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ]],
