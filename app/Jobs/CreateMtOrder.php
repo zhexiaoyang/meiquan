@@ -49,6 +49,7 @@ class CreateMtOrder implements ShouldQueue
                 // 创建订单-开始
 
                 // 美团订单
+                Log::info("PS-美团", ['ps' => $this->order->ps, 'send' => $send]);
                 if ($shop->shop_id && !$this->order->fail_mt && !$send && !$this->order->ps) {
                     $meituan = app("meituan");
                     $check_mt = $meituan->check($shop, $this->order);
@@ -100,6 +101,7 @@ class CreateMtOrder implements ShouldQueue
                 }
 
                 // 蜂鸟订单
+                Log::info("PS-蜂鸟", ['ps' => $this->order->ps, 'send' => $send]);
                 if ($shop->shop_id_fn && !$this->order->fail_fn && !$send) {
                     $fengniao = app("fengniao");
                     $check_fn = $fengniao->delivery($shop, $this->order);
@@ -150,6 +152,7 @@ class CreateMtOrder implements ShouldQueue
                 }
 
                 // 闪送订单
+                Log::info("PS-闪送", ['ps' => $this->order->ps, 'send' => $send]);
                 if ($shop->shop_id_ss && !$this->order->fail_ss && !$send && !$this->order->ps) {
                     $shansong = app("shansong");
                     $check_ss = $shansong->orderCalculate($shop, $this->order);
