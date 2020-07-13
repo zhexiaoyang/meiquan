@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Libraries\DingTalk\DingTalkRobot;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
@@ -125,6 +126,10 @@ class CreateMtOrder implements ShouldQueue
                             $result_fn = $fengniao->createOrder($shop, $this->order);
                             if ($result_fn['code'] == 200) {
                                 // 订单发送成功
+                                $dingding = new DingTalkRobot();
+                                $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
+                                $res = $dingding->sendMarkdownMsg("发送蜂鸟订单了", "订单号：" . $this->order->order_id);
+                                \Log::info('钉钉日志发送状态', [$res]);
                                 // 写入订单信息
                                 $update_info = [
                                     'money' => $money,
