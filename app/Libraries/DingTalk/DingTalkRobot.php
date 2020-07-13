@@ -212,8 +212,8 @@ class DingTalkRobot
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($msgData));
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             // 线下环境不用开启curl证书验证, 未调通情况可尝试添加该代码
-            curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            // curl_setopt ($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            // curl_setopt ($ch, CURLOPT_SSL_VERIFYPEER, 0);
             $data = curl_exec($ch);
             curl_close($ch);
             return $data;
