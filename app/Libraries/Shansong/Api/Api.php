@@ -84,8 +84,8 @@ class Api extends Request
 
 
         if ($order->goods_pickup_info) {
-            $data['receiverList']['orderingSourceType'] = 4;
-            $data['receiverList']['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
+            $data['receiverList'][0]['orderingSourceType'] = 4;
+            $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
         }
 
         return $this->post('/openapi/merchants/v5/orderCalculate', $data);
