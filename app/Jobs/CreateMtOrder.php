@@ -103,11 +103,22 @@ class CreateMtOrder implements ShouldQueue
                     }
                 }
 
+                $status_fn = true;
+
+                if ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
+                    \Log::info('禁止发送蜂鸟', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
+                    $dingding = new DingTalkRobot();
+                    $dingding->accessToken = "f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323";
+                    $res = $dingding->sendMarkdownMsg("关闭蜂鸟发单", "date：" . date("Y-m-d H:i:s") . ",时间:" . time());
+                    \Log::info('钉钉日志发送状态', [$res]);
+                    $status_fn = false;
+                }
+
                 // 蜂鸟订单
                 Log::info("PS-蜂鸟", ['ps' => $this->order->ps, 'send' => $send]);
                 $_order = Order::query()->find($this->order->id);
                 Log::info("PS-蜂鸟2", ['ps' => $_order->ps, 'send' => $send]);
-                if ($shop->shop_id_fn && !$this->order->fail_fn && !$send && !$_order->ps) {
+                if ($shop->shop_id_fn && !$this->order->fail_fn && !$send && !$_order->ps && $status_fn) {
                     $fengniao = app("fengniao");
                     $check_fn = $fengniao->delivery($shop, $this->order);
                     if (isset($check_fn['code']) && ($check_fn['code'] == 200) ) {
