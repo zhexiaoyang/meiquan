@@ -162,6 +162,25 @@ function getShopDistance($shop, $lng, $lat)
     return $data['results'][0]['distance'] / 1000;
 }
 
+function getShopDistanceV4($shop, $lng, $lat)
+{
+    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
+
+    $str = file_get_contents($url);
+
+    $data = json_decode($str, true);
+
+    $distance = $data['data']['paths'][0]['distance'] / 1000 ?? 0;
+
+    if ($distance === 0) {
+        \Log::error('获取距离结果-出错：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
+    }
+
+    \Log::info('获取距离结果：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
+
+    return $distance;
+}
+
 /**
  * 获取距离加价
  * @param $shop

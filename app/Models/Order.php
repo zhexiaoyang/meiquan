@@ -61,7 +61,7 @@ class Order extends Model
 
             if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
 
-                $model->distance = getShopDistance($shop, $model->receiver_lng, $model->receiver_lat);
+                $model->distance = getShopDistanceV4($shop, $model->receiver_lng, $model->receiver_lat);
 
 
                 // $distance = distanceMoney($shop, $model->receiver_lng, $model->receiver_lat);
