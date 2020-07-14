@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\Fengniao\Fengniao;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
@@ -49,6 +50,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('minkang', function () {
             $config = config('ps.minkang');
             return new MeiTuan($config);
+        });
+
+        // 钉钉通知
+        $this->app->singleton('ding', function () {
+            return new DingTalkRobotNotice("f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323");
         });
     }
 

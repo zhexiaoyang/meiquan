@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Libraries\DingTalk\DingTalkRobot;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\User;
@@ -37,6 +36,7 @@ class CreateMtOrder implements ShouldQueue
      */
     public function handle()
     {
+        $ding_notice = app("ding");
         // $shop = DB::table('shops')->where('id', $this->order->shop_id)->first();
         // $user = DB::table('users')->where('id', $shop->user_id)->first();
         $shop = Shop::query()->find($this->order->shop_id);
@@ -95,6 +95,8 @@ class CreateMtOrder implements ShouldQueue
                             }
                         } else {
                             Log::info('美团订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
+                            $this->order->status = 5;
+                            $this->order->save();
                             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
                         }
                     } else {
@@ -107,10 +109,8 @@ class CreateMtOrder implements ShouldQueue
 
                 if ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
                     \Log::info('禁止发送蜂鸟', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
-                    $dingding = new DingTalkRobot();
-                    $dingding->accessToken = "f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323";
-                    $res = $dingding->sendMarkdownMsg("关闭蜂鸟发单", "date：" . date("Y-m-d H:i:s") . ",时间:" . time());
-                    \Log::info('钉钉日志发送状态', [$res]);
+                    $res = $ding_notice->sendMarkdownMsgArray("关闭蜂鸟发单", ["datetime" => date("Y-m-d H:i:s"), "time" => time()]);
+                    \Log::info('钉钉日志发送状态-关闭蜂鸟发单', [$res]);
                     $status_fn = false;
                 }
 
@@ -137,10 +137,12 @@ class CreateMtOrder implements ShouldQueue
                             $result_fn = $fengniao->createOrder($shop, $this->order);
                             if ($result_fn['code'] == 200) {
                                 // 订单发送成功
-                                $dingding = new DingTalkRobot();
-                                $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
-                                $res = $dingding->sendMarkdownMsg("发送蜂鸟订单了", "发送蜂鸟订单了-订单号：" . $this->order->order_id);
-                                \Log::info('钉钉日志发送状态', [$res]);
+                                // $dingding = new DingTalkRobot();
+                                // $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
+                                // $res = $dingding->sendMarkdownMsg("发送蜂鸟订单了", "发送蜂鸟订单了-订单号：" . $this->order->order_id);
+                                // \Log::info('钉钉日志发送状态', [$res]);
+                                $res = $ding_notice->sendMarkdownMsgArray("发送蜂鸟订单了", ["datetime" => date("Y-m-d H:i:s"), "order_id" => $this->order->order_id]);
+                                \Log::info('钉钉日志发送状态-发送蜂鸟订单了', [$res]);
                                 // 写入订单信息
                                 $update_info = [
                                     'money' => $money,
@@ -163,6 +165,8 @@ class CreateMtOrder implements ShouldQueue
                             }
                         } else {
                             Log::info('蜂鸟订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
+                            $this->order->status = 5;
+                            $this->order->save();
                             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
                         }
                     } else {
@@ -240,6 +244,8 @@ class CreateMtOrder implements ShouldQueue
                             }
                         } else {
                             Log::info('闪送订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
+                            $this->order->status = 5;
+                            $this->order->save();
                             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
                         }
                     } else {
@@ -255,6 +261,7 @@ class CreateMtOrder implements ShouldQueue
                     if ($user->money < 20) {
                         dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
                     }
+                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
                 } else {
                     $this->order->status = 10;
                     $this->order->save();
@@ -263,6 +270,8 @@ class CreateMtOrder implements ShouldQueue
                     // Log::info('创建发送失败，将钱返回给用户', ["user_id" => $shop->user_id, "order_id" => $this->order->id, "money" => $this->order->money]);
                 }
             } else {
+                $this->order->status = 5;
+                $this->order->save();
                 dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
             }
         }

@@ -118,11 +118,13 @@ class OrderController extends Controller
         if ($order->save()) {
 
             \Log::info('手动创建订单-发送订单');
-
-            $dingding = new DingTalkRobot();
-            $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
-            $res = $dingding->sendMarkdownMsg("用户手动创建订单了", "用户手动创建订单了-订单号：" . $order->order_id);
-            \Log::info('钉钉日志发送状态', [$res]);
+            // $dingding = new DingTalkRobot();
+            // $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
+            // $res = $dingding->sendMarkdownMsg("用户手动创建订单了", "用户手动创建订单了-订单号：" . $order->order_id);
+            // \Log::info('钉钉日志发送状态', [$res]);
+            $ding_notice = app("ding");
+            $res = $ding_notice->sendMarkdownMsgArray("用户手动创建订单了", ["datetime" => date("Y-m-d H:i:s"), "order_id" => $order->order_id]);
+            \Log::info('钉钉日志发送状态-用户手动创建订单了', [$res]);
 
             dispatch(new CreateMtOrder($order));
 
