@@ -58,7 +58,7 @@ class CreateMtOrder implements ShouldQueue
                     $check_mt = $meituan->check($shop, $this->order);
                     if (isset($check_mt['code']) && ($check_mt['code'] === 0) ) {
 
-                        $distance = distanceMoney($shop, $this->order->receiver_lng, $this->order->receiver_lat);
+                        $distance = distanceMoney($this->order->distance);
                         $base = baseMoney($shop->city_level ?: 9);
                         $time_money = timeMoney();
                         $date_money = dateMoney();
@@ -123,7 +123,7 @@ class CreateMtOrder implements ShouldQueue
                     $check_fn = $fengniao->delivery($shop, $this->order);
                     if (isset($check_fn['code']) && ($check_fn['code'] == 200) ) {
 
-                        $distance = distanceMoneyFn($shop, $this->order->receiver_lng, $this->order->receiver_lat);
+                        $distance = distanceMoneyFn($this->order->distance);
                         $base = baseMoneyFn($shop->city_level_fn ?: "G");
                         $time_money = timeMoneyFn();
                         $date_money = 0;

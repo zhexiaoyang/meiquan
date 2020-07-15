@@ -173,83 +173,55 @@ function getShopDistanceV4($shop, $lng, $lat)
     $distance = $data['data']['paths'][0]['distance'] / 1000 ?? 0;
 
     if ($distance === 0) {
-        \Log::error('获取距离结果-出错：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
+        \Log::error('获取距离结果-出错-默认 1 ：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
+        $distance = 1;
+    } else {
+        \Log::info('获取距离结果：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
     }
 
-    \Log::info('获取距离结果：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
 
     return $distance;
 }
 
 /**
  * 获取距离加价
- * @param $shop
- * @param $lan
- * @param $lat
- * @return bool|int
+ * @param $juli
+ * @return float|int
  */
-function distanceMoney($shop, $lan, $lat) {
+function distanceMoney($juli) {
     $money = 0;
 
-    try {
+    if ($juli > 10) {
+        \Log::info('美团获取距离超出10公里', []);
+        // return -1;
+    }
 
-        // $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
-        $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$lan},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
-
-        $str = file_get_contents($url);
-
-        $data = json_decode($str, true);
-
-        \Log::info('获取距离结果：', [$data['results'][0]['distance'] / 1000]);
-
-        $juli = $data['results'][0]['distance'] / 1000;
-
-        if ($juli > 10) {
-            \Log::info('美团获取距离超出10公里', []);
-            // return -1;
+    if ($juli > 1) {
+        if ($juli <= 3) {
+            $money += ceil($juli - 1) * 1;
+        } else {
+            $money += 2 * 1;
         }
+    }
 
-        if ($juli > 1) {
-            if ($juli <= 3) {
-                $money += ceil($juli - 1) * 1;
-            } else {
-                $money += 2 * 1;
-            }
+    if ($juli > 3) {
+        if ($juli <= 5) {
+            $money += ceil($juli - 3) * 2;
+        } else {
+            $money += 2 * 2;
         }
+    }
 
-        if ($juli > 3) {
-            if ($juli <= 5) {
-                $money += ceil($juli - 3) * 2;
-            } else {
-                $money += 2 * 2;
-            }
+    if ($juli > 5) {
+        if ($juli <= 7) {
+            $money += ceil($juli - 5) * 3;
+        } else {
+            $money += 2 * 3;
         }
+    }
 
-        if ($juli > 5) {
-            if ($juli <= 7) {
-                $money += ceil($juli - 5) * 3;
-            } else {
-                $money += 2 * 3;
-            }
-        }
-
-        if ($juli > 7) {
-            $money += ceil($juli - 7) * 5;
-        }
-
-        // if ($juli > 1 && $juli <= 3) {
-        //     $money += 1;
-        // } elseif ($juli > 3 && $juli <= 5) {
-        //     $money += 2;
-        // } elseif ($juli > 5 && $juli <= 7) {
-        //     $money += 3;
-        // } elseif ($juli > 7 && $juli <= 10) {
-        //     $money += 5;
-        // }
-
-    } catch (\Exception $e) {
-        \Log::info('请求获取距离失败', []);
-        return -2;
+    if ($juli > 7) {
+        $money += ceil($juli - 7) * 5;
     }
 
     return $money;
@@ -257,55 +229,34 @@ function distanceMoney($shop, $lan, $lat) {
 
 /**
  * 获取 蜂鸟 距离加价
- * @param $shop
- * @param $lan
- * @param $lat
- * @return bool|int
+ * @param $juli
+ * @return float|int
  */
-function distanceMoneyFn($shop, $lan, $lat) {
+function distanceMoneyFn($juli) {
     $money = 0;
 
-    try {
+    if ($juli > 20) {
+        \Log::info('超出10公里', []);
+    }
 
-        // $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
-        $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$lan},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
-
-        $str = file_get_contents($url);
-
-        $data = json_decode($str, true);
-
-        \Log::info('蜂鸟获取距离结果：', [$data['results'][0]['distance'] / 1000]);
-
-        $juli = $data['results'][0]['distance'] / 1000;
-
-        if ($juli > 20) {
-            \Log::info('超出10公里', []);
-            return -1;
+    if ($juli >=3) {
+        if ($juli < 5) {
+            $money += ceil($juli - 2) * 2;
+        } else {
+            $money += ceil($juli - 2) * 2;
         }
+    }
 
-        if ($juli >=3) {
-            if ($juli < 5) {
-                $money += ceil($juli - 2) * 2;
-            } else {
-                $money += ceil($juli - 2) * 2;
-            }
+    if ($juli >=5) {
+        if ($juli < 6) {
+            $money += ceil($juli - 4) * 3;
+        } else {
+            $money += 1 * 3;
         }
+    }
 
-        if ($juli >=5) {
-            if ($juli < 6) {
-                $money += ceil($juli - 4) * 3;
-            } else {
-                $money += 1 * 3;
-            }
-        }
-
-        if ($juli >= 6) {
-            $money += ceil($juli - 5) * 5;
-        }
-
-    } catch (\Exception $e) {
-        \Log::info('请求获取距离失败', []);
-        return -2;
+    if ($juli >= 6) {
+        $money += ceil($juli - 5) * 5;
     }
 
     return $money;
