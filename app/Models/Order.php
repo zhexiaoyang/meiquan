@@ -29,7 +29,7 @@ class Order extends Model
         'expected_pickup_time','expected_delivery_time','order_type','poi_seq','note','type','status','failed',
         'courier_name','courier_phone','cancel_reason_id','cancel_reason','exception_id','exception_code',
         'exception_descr','exception_time','distance','money','base_money','distance_money','weight_money',
-        'time_money','date_money','fail_mt','fail_fn','fail_ss','ps','created_at','updated_at'];
+        'time_money','date_money','money_mt','money_fn','money_ss','ss_order_id','fail_mt','fail_fn','fail_ss','ps','created_at','updated_at'];
 
     public function shop() {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');

@@ -83,6 +83,10 @@ class OrderController
 
             } elseif ($status == 60) {
 
+                if ($order->ps != 3) {
+                    return json_encode($res);
+                }
+
                 if ($order->status < 99) {
                     $tui = true;
                 }
@@ -113,6 +117,6 @@ class OrderController
             dispatch(new MtLogisticsSync($order));
         }
 
-        return $res;
+        return json_encode($res);
     }
 }

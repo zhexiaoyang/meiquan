@@ -33,6 +33,10 @@ class OrderController
                 $order->status = 70;
 
             } elseif ($status == 99) {
+                if ($order->ps != 1) {
+                    return json_encode($res);
+                }
+
                 if ($order->status < 99) {
                     $tui = true;
                 }

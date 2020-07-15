@@ -95,6 +95,21 @@ class CheckSendStatus implements ShouldQueue
                     }
                     dispatch(new CreateMtOrder($this->order));
                 }
+            } elseif ($this->order->ps == 3) {
+
+                $shansong = app("shansong");
+
+                $result = $shansong->cancelOrder($this->order->peisong_id);
+
+                if ($result['status'] == 200) {
+                    if (Order::query()->where(['id' => $this->order->id])->where('status', '<>', 99)->update(['fail_ss' => "长时间未接单，换配送方式", "ps" => 0])) {
+                        \DB::table('users')->where('id', $shop->user_id)->increment('money', $this->order->money);
+                        \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $this->order->id, 'money' => $this->order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    } else {
+                        \Log::info('闪送取消订单成功-将钱返回给用户-失败了', ['order_id' => $this->order->id, 'money' => $this->order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    }
+                    dispatch(new CreateMtOrder($this->order));
+                }
             }
         } else {
             $res = $ding_notice->sendMarkdownMsgArray("不重新发送订单", $logs);
