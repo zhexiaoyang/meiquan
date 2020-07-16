@@ -107,7 +107,7 @@ class OrderController
                     \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
                     \Log::info('闪送平台取消订单-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 }
-                return $this->success([]);
+                return json_encode($res);
             }
         }
         
