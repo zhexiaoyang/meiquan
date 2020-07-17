@@ -80,7 +80,7 @@ class YaoguiController
                         OrderDetail::query()->create($item);
                     }
                 }
-                // dispatch(new CreateMtOrder($order));
+                dispatch(new CreateMtOrder($order));
                 \Log::info('众柜创建订单成功', $order->toArray());
             }
         }
