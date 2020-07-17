@@ -33,6 +33,21 @@ class Api extends Request
             'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
         ];
 
+        $goods = [];
+
+        if ($items = $order->items) {
+            foreach ($items as $item) {
+                $_tmp['goodCount'] = $item->quantity;
+                $_tmp['goodName'] = $item->name;
+                $_tmp['goodPrice'] = $item->goods_price;
+                $goods[] = $_tmp;
+            }
+        }
+
+        if (!empty($goods)) {
+            $params['goods_detail'] = json_encode(['goods' => $goods], JSON_UNESCAPED_UNICODE);
+        }
+
         return $this->request('order/createByShop', $params);
     }
 
