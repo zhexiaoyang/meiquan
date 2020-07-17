@@ -84,21 +84,26 @@ class CreateMtOrder implements ShouldQueue
         // 判断蜂鸟是否可以接单、并加入数组
         if ($shop->shop_id_fn && !$this->order->fail_fn) {
 
-
-            if ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
-                \Log::info('禁止发送蜂鸟', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
+            if ($this->order->type == 11) {
+                \Log::info('禁止发送蜂鸟-药柜订单', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
             } else {
-                $fengniao = app("fengniao");
-                $check_fn = $fengniao->delivery($shop, $this->order);
-                if (isset($check_fn['code']) && ($check_fn['code'] == 200)) {
-                    $money_fn = distanceMoneyFn($this->order->distance) + baseMoneyFn($shop->city_level_fn ?: "G") + timeMoneyFn() + weightMoneyFn($this->order->goods_weight);
-                    $this->services['fengniao'] = $money_fn;
-                    Log::info('发送订单-蜂鸟可以', ['money' => $money_fn, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                if ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
+                    \Log::info('禁止发送蜂鸟-时间问题', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
                 } else {
-                    $this->order->fail_fn = $check_fn['msg'] ?? "蜂鸟校验请求失败";
-                    $this->order->save();
+                    $fengniao = app("fengniao");
+                    $check_fn = $fengniao->delivery($shop, $this->order);
+                    if (isset($check_fn['code']) && ($check_fn['code'] == 200)) {
+                        $money_fn = distanceMoneyFn($this->order->distance) + baseMoneyFn($shop->city_level_fn ?: "G") + timeMoneyFn() + weightMoneyFn($this->order->goods_weight);
+                        $this->services['fengniao'] = $money_fn;
+                        Log::info('发送订单-蜂鸟可以', ['money' => $money_fn, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                    } else {
+                        $this->order->fail_fn = $check_fn['msg'] ?? "蜂鸟校验请求失败";
+                        $this->order->save();
+                    }
                 }
             }
+
+
         }
 
         // 判断闪送是否可以接单、并加入数组
