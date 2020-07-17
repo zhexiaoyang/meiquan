@@ -157,21 +157,27 @@ class CreateMtOrder implements ShouldQueue
 
         if ($ps === "meituan") {
             if ($this->meituan()) {
-                dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                }
             } else {
                 $this->dingTalk("发送订单失败", "发送订单失败");
             }
             return;
         } else if ($ps === "fengniao") {
             if ($this->fengniao()) {
-                dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                }
             } else {
                 $this->dingTalk("发送订单失败", "发送订单失败");
             }
             return;
         } else if ($ps === "shansong") {
             if ($this->shansong()) {
-                dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                }
             } else {
                 $this->dingTalk("发送订单失败", "发送订单失败");
             }

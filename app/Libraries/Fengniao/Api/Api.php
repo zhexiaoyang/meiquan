@@ -116,7 +116,7 @@ class Api extends Request
             // 商品数量
             "goods_count" => 4,
             "require_receive_time" => $order->expected_delivery_time * 1000,
-            "serial_number" => "5678",
+            // "serial_number" => $order->goods_pickup_info,
             "receiver_info" => [
                 "receiver_name" => $order->receiver_name,
                 "receiver_primary_phone" => $order->receiver_phone,
@@ -141,6 +141,10 @@ class Api extends Request
             // "platform_created_time" => 1452570728594,
             // "merchant_code" => "testmerchant"
         ];
+
+        if ($order->goods_pickup_info) {
+            $data['serial_number'] = $order->goods_pickup_info;
+        }
         return $this->post('v2/order', $data);
     }
 
