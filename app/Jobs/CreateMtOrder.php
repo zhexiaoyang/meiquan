@@ -125,16 +125,17 @@ class CreateMtOrder implements ShouldQueue
                         }
                     }
 
-                    $money_ss = ($check_ss['data']['totalAmount'] ?? 0) / 100;
-                    if ($money_ss <= 26) {
-                        $money_ss = $money_ss * 0.8;
+                    $money_ss = ($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100;
+                    $money_log = ($check_ss['data']['totalAmount'] ?? 0) / 100;
+                    if ($money_log <= 26) {
+                        $money_log = $money_log * 0.8;
                     } else {
-                        $money_ss = (26 * 0.8) + ($money_ss - 26);
+                        $money_log = (26 * 0.8) + ($money_log - 26);
                     }
                     $this->money_ss = $money_ss;
                     $ss_order_id = $check_ss['data']['orderNumber'] ?? 0;
                     $this->services['shansong'] = $money_ss;
-                    Log::info('发送订单-闪送可以', ['money' => $money_ss, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                    Log::info('发送订单-闪送可以', ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
                 }
             } else {
                 $this->order->fail_ss = $check_ss['msg'] ?? "闪送校验订单请求失败";
@@ -228,7 +229,7 @@ class CreateMtOrder implements ShouldQueue
             $result_mt = $meituan->createByShop($shop, $this->order);
             if ($result_mt['code'] === 0) {
                 // 订单发送成功
-                $this->dingTalk("美团成功", "发送美团订单成功");
+                $this->dingTalk("美团成功", "发送美团订单成功。money：{$money}");
                 // 写入订单信息
                 $update_info = [
                     'money' => $money,
@@ -304,7 +305,7 @@ class CreateMtOrder implements ShouldQueue
             $result_fn = $fengniao->createOrder($shop, $this->order);
             if ($result_fn['code'] == 200) {
                 // 订单发送成功
-                $this->dingTalk("蜂鸟成功", "发送蜂鸟订单成功");
+                $this->dingTalk("蜂鸟成功", "发送蜂鸟订单成功。money：{$money}");
                 // 写入订单信息
                 $update_info = [
                     'money' => $money,
@@ -380,7 +381,7 @@ class CreateMtOrder implements ShouldQueue
             $result_ss = $shansong->createOrder($order->ss_order_id);
             if ($result_ss['status'] === 200) {
                 // 订单发送成功
-                $this->dingTalk("闪送成功", "发送闪送订单成功");
+                $this->dingTalk("闪送成功", "发送闪送订单成功。money：{$money}");
                 // 写入订单信息
                 $update_info = [
                     'money' => $money,

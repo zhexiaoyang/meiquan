@@ -44,6 +44,8 @@ class Api extends Request
             }
         }
 
+        \Log::info('美团商品信息',[$goods]);
+
         if (!empty($goods)) {
             $params['goods_detail'] = json_encode(['goods' => $goods], JSON_UNESCAPED_UNICODE);
         }
