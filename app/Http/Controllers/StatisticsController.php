@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OrdersExport;
+use App\Exports\OrderStatisticsExport;
 use App\Models\Order;
 use Illuminate\Http\Request;
 
@@ -52,33 +54,6 @@ class StatisticsController extends Controller
             $date_money[date("Y-m-d", $start)] = ["x" => date("m-d", $start), "y" => 0];
             $start += 86400;
         }
-
-        // \Log::info('message', $request->all());
-        // \Log::info('message', [$date_num]);
-        // \Log::info('message', [$date_money]);
-
-
-        // $date_num = [
-        //     1 => ["x" => "1日", "y" => 0], 2 => ["x" => "2日", "y" => 0], 3 => ["x" => "3日", "y" => 0], 4 => ["x" => "4日", "y" => 0],
-        //     5 => ["x" => "5日", "y" => 0], 6 => ["x" => "6日", "y" => 0], 7 => ["x" => "7日", "y" => 0], 8 => ["x" => "8日", "y" => 0],
-        //     9 => ["x" => "9日", "y" => 0], 10 => ["x" => "10日", "y" => 0], 11 => ["x" => "11日", "y" => 0], 12 => ["x" => "12日", "y" => 0],
-        //     13 => ["x" => "13日", "y" => 0], 14 => ["x" => "14日", "y" => 0], 15 => ["x" => "15日", "y" => 0], 16 => ["x" => "16日", "y" => 0],
-        //     17 => ["x" => "17日", "y" => 0], 18 => ["x" => "18日", "y" => 0], 19 => ["x" => "19日", "y" => 0], 20 => ["x" => "20日", "y" => 0],
-        //     21 => ["x" => "21日", "y" => 0], 22 => ["x" => "22日", "y" => 0], 23 => ["x" => "23日", "y" => 0], 24 => ["x" => "24日", "y" => 0],
-        //     25 => ["x" => "25日", "y" => 0], 26 => ["x" => "26日", "y" => 0], 27 => ["x" => "27日", "y" => 0], 28 => ["x" => "28日", "y" => 0],
-        //     29 => ["x" => "29日", "y" => 0], 30 => ["x" => "30日", "y" => 0], 31 => ["x" => "31日", "y" => 0]
-        // ];
-        //
-        // $date_money = [
-        //     1 => ["x" => "1日", "y" => 0], 2 => ["x" => "2日", "y" => 0], 3 => ["x" => "3日", "y" => 0], 4 => ["x" => "4日", "y" => 0],
-        //     5 => ["x" => "5日", "y" => 0], 6 => ["x" => "6日", "y" => 0], 7 => ["x" => "7日", "y" => 0], 8 => ["x" => "8日", "y" => 0],
-        //     9 => ["x" => "9日", "y" => 0], 10 => ["x" => "10日", "y" => 0], 11 => ["x" => "11日", "y" => 0], 12 => ["x" => "12日", "y" => 0],
-        //     13 => ["x" => "13日", "y" => 0], 14 => ["x" => "14日", "y" => 0], 15 => ["x" => "15日", "y" => 0], 16 => ["x" => "16日", "y" => 0],
-        //     17 => ["x" => "17日", "y" => 0], 18 => ["x" => "18日", "y" => 0], 19 => ["x" => "19日", "y" => 0], 20 => ["x" => "20日", "y" => 0],
-        //     21 => ["x" => "21日", "y" => 0], 22 => ["x" => "22日", "y" => 0], 23 => ["x" => "23日", "y" => 0], 24 => ["x" => "24日", "y" => 0],
-        //     25 => ["x" => "25日", "y" => 0], 26 => ["x" => "26日", "y" => 0], 27 => ["x" => "27日", "y" => 0], 28 => ["x" => "28日", "y" => 0],
-        //     29 => ["x" => "29日", "y" => 0], 30 => ["x" => "30日", "y" => 0], 31 => ["x" => "31日", "y" => 0]
-        // ];
 
         $query = Order::select("id","shop_id","ps","money","created_at")->where("status", 70)
             ->where("created_at", ">=", $start_date)
@@ -156,5 +131,15 @@ class StatisticsController extends Controller
 
         return $this->success($res);
     }
+
+    public function export(Request $request, OrderStatisticsExport $orderStatisticsExport)
+    {
+        return $orderStatisticsExport->withRequest($request);
+    }
+
+    // public function detail(Request $request, OrdersExport $ordersExport)
+    // {
+    //     return $ordersExport->withRequest($request);
+    // }
 
 }

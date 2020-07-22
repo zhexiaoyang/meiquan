@@ -37,6 +37,10 @@ Route::middleware(['force-json'])->group(function() {
         Route::post('user/reset_password', 'AuthController@resetPassword');
         // 统计页面
         Route::get('statistics', 'StatisticsController@index');
+        // 统计导出-统计
+        Route::get('statistics/export', 'StatisticsController@export');
+        // 统计导出-统计-明细
+        // Route::get('statistics/export/detail', 'StatisticsController@detail');
 
         /**
          * 管理员操作
