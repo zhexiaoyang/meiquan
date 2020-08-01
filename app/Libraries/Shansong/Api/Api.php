@@ -88,6 +88,10 @@ class Api extends Request
             $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
         }
 
+        if ($order->type === 11) {
+            $data['appointmentDate'] = '';
+        }
+
         return $this->post('/openapi/merchants/v5/orderCalculate', $data);
     }
 

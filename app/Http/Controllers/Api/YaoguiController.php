@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 
 
 use App\Jobs\CreateMtOrder;
+use App\Jobs\PushDeliveryOrder;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Shop;
@@ -50,18 +51,43 @@ class YaoguiController
                 'order_id' => $data['orderNo'],
                 'shop_id' => $data['appStoreCode'],
                 'delivery_service_code' => "4011",
-                'receiver_name' => $data['deliveryAddress']['receiverName'],
+                'receiver_name' => $data['deliveryAddress']['receiverName'] ?? "无名",
                 'receiver_address' => $data['deliveryAddress']['receiverAddress'],
                 'receiver_phone' => $data['deliveryAddress']['receiverPhone'],
                 'receiver_lng' => $data['deliveryAddress']['receiverLongitude'],
                 'receiver_lat' => $data['deliveryAddress']['receiverLatitude'],
                 'coordinate_type' => 0,
+                // 'note' => $data['caution'] ?? "",
                 'goods_value' => $data['totalAmount'],
                 'goods_weight' => 4.5,
                 'type' => 11,
                 'status' => 0,
-                'goods_pickup_info' => $data['takeCode'] ?? substr($data['fourthPartyOrderId'], -6)
+                'order_type' => 0,
+                'goods_pickup_info' => $data['takeCode'] ?? substr($data['fourthPartyOrderId'], -6),
             ];
+
+            // 判断收货人姓名
+            if (empty($order_data['receiver_name'])) {
+                $order_data['receiver_name'] = "无名";
+            }
+
+            if (!empty($data['caution'])) {
+                $a = $data['caution'];
+                $a = preg_replace("/收餐人隐私号 \d+_\d+，手机号 \d+\*\*\*\*\d+/","",$a);
+                $a = trim($a);
+                $order_data['note'] = $a;
+            }
+
+            if (isset($data['deliveryTime']) && $data['deliveryTime'] > (time() + 3610)) {
+
+                $order_data['expected_pickup_time'] = $data['deliveryTime'] - 3600;
+                $order_data['expected_delivery_time'] = $data['deliveryTime'];
+                $order_data['order_type'] = 1;
+                // 'expected_pickup_time' => ($data['deliveryTime'] > (time() + 3660)) ? ($data['deliveryTime'] - 3600) : 0,
+                // 'expected_delivery_time' => ($data['deliveryTime'] > (time() + 3660)) ? $data['deliveryTime'] : 0,
+                // 'order_type' => ($data['deliveryTime'] > (time() + 3660)) ? 1 : 0,
+
+            }
 
             $order = new Order($order_data);
 
@@ -80,8 +106,25 @@ class YaoguiController
                         OrderDetail::query()->create($item);
                     }
                 }
-                dispatch(new CreateMtOrder($order));
-                \Log::info('众柜创建订单成功', $order->toArray());
+                if ($order->order_type) {
+                    dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - 3600)));
+                    \Log::info('众柜创建预约订单成功', $order->toArray());
+
+                    $ding_notice = app("ding");
+
+                    $logs = [
+                        "des" => "接到预订单",
+                        "datetime" => date("Y-m-d H:i:s"),
+                        "order_id" => $order->order_id,
+                        "status" => $order->status,
+                        "ps" => $order->ps
+                    ];
+
+                    $ding_notice->sendMarkdownMsgArray("接到预订单", $logs);
+                } else {
+                    dispatch(new CreateMtOrder($order));
+                    \Log::info('众柜创建订单成功', $order->toArray());
+                }
             }
         }
 

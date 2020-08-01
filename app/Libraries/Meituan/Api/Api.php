@@ -33,6 +33,10 @@ class Api extends Request
             'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
         ];
 
+        if (!empty($order->note)) {
+            $params['goods_delivery_info'] = $order->note ?? "";
+        }
+
         $goods = [];
 
         if ($items = $order->items) {
