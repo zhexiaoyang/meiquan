@@ -225,6 +225,8 @@ class YaoguiController
                     return json_encode($res);
                 }
             } else {
+                $order->status = 99;
+                $order->save();
                 \Log::info('药柜取消订单-未配送');
                 return json_encode($res);
             }
