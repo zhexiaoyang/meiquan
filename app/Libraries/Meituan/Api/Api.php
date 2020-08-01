@@ -33,7 +33,7 @@ class Api extends Request
             'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
         ];
 
-        if (!empty($order->expected_pickup_time)) {
+        if (!empty($order->expected_pickup_time) && ($order->type != 11)) {
             // $params['expected_delivery_time'] = $order->expected_delivery_time;
             $params['expected_pickup_time'] = $order->expected_pickup_time;
         }
