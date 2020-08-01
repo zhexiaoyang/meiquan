@@ -52,6 +52,7 @@ class OrderController
             } elseif ($status == 20) {
                 // 已分配骑手
                 $order->status = 40;
+                $order->receive_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 80) {
                 // 骑手已到店
@@ -60,10 +61,12 @@ class OrderController
             } elseif ($status == 2) {
                 // 配送中
                 $order->status = 60;
+                $order->take_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 3) {
                 // 已送达
                 $order->status = 70;
+                $order->over_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 5) {
                 // 系统拒单

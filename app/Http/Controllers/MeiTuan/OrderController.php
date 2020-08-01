@@ -23,14 +23,17 @@ class OrderController
             } elseif ($status == 20) {
                 // 已接单
                 $order->status = 50;
+                $order->receive_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 30) {
                 // 已取货
                 $order->status = 60;
+                $order->take_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 50) {
                 // 已送达
                 $order->status = 70;
+                $order->over_at = date("Y-m-d H:i:s");
 
             } elseif ($status == 99) {
                 if ($order->ps != 1) {
@@ -38,6 +41,7 @@ class OrderController
                 }
 
                 if ($order->status < 99) {
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $tui = true;
                 }
 

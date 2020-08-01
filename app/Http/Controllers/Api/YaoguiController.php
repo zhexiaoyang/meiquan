@@ -98,7 +98,7 @@ class YaoguiController
                         $weight = $detail['weight'] ?? 0;
                         $item['order_id'] = $order->id;
                         $item['goods_id'] = $detail['appGoodsId'] ?? 0;
-                        $item['name'] = $this->getName($detail['barcode'] ?? "");
+                        $item['name'] = $detail['goodsName'] ?? '';
                         $item['upc'] = $detail['barcode'] ?? "";
                         $item['quantity'] = $detail['quantity'];
                         $item['goods_price'] = $detail['activityPrice'];
