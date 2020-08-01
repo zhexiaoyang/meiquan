@@ -83,6 +83,7 @@ class YaoguiController
                 $order_data['expected_pickup_time'] = $data['deliveryTime'] - 3600;
                 $order_data['expected_delivery_time'] = $data['deliveryTime'];
                 $order_data['order_type'] = 1;
+                $order_data['status'] = 3;
                 // 'expected_pickup_time' => ($data['deliveryTime'] > (time() + 3660)) ? ($data['deliveryTime'] - 3600) : 0,
                 // 'expected_delivery_time' => ($data['deliveryTime'] > (time() + 3660)) ? $data['deliveryTime'] : 0,
                 // 'order_type' => ($data['deliveryTime'] > (time() + 3660)) ? 1 : 0,
