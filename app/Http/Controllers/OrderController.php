@@ -6,6 +6,7 @@ use App\Jobs\CreateMtOrder;
 use App\Libraries\DingTalk\DingTalkRobot;
 use App\Models\MoneyLog;
 use App\Models\Order;
+use App\Models\OrderDeduction;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -582,8 +583,31 @@ class OrderController extends Controller
 
             if ($result['status'] == 200 && ($order->status < 99)) {
                 if (Order::query()->where(['id' => $order->id])->where('status', '<>', 99)->update(['status' => 99])) {
-                    \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-                    \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    // 计算扣款
+                    $jian_money = 0;
+                    if (!empty($order->receive_at)) {
+                        $jian_money = 2;
+                        $jian = time() - strtotime($order->receive_at);
+                        if ($jian >= 480) {
+                            $jian_money = 5;
+                        }
+                        if (!empty($order->take_at)) {
+                            $jian_money = 5;
+                        }
+                    }
+                    // 返钱
+                    // \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+                    \DB::table('users')->where('id', $shop->user_id)->increment('money', ($order->money - $jian_money));
+                    if ($jian_money > 0) {
+                        $jian_data = [
+                            'order_id' => $order->id,
+                            'money' => $jian_money,
+                            'ps' => $order->ps
+                        ];
+                        OrderDeduction::query()->create($jian_data);
+                    }
+                    // \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => ($order->money - $jian_money), 'jian_money' => $jian_money, 'order_money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 } else {
                     \Log::info('闪送取消订单成功-将钱返回给用户-失败了', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 }
@@ -660,8 +684,29 @@ class OrderController extends Controller
 
             if ($result['status'] == 200 && ($order->status < 99)) {
                 if (Order::query()->where(['id' => $order->id])->where('status', '<>', 99)->update(['status' => 99])) {
-                    \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-                    \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                    // 计算扣款
+                    $jian_money = 0;
+                    if (!empty($order->receive_at)) {
+                        $jian_money = 2;
+                        $jian = time() - strtotime($order->receive_at);
+                        if ($jian >= 480) {
+                            $jian_money = 5;
+                        }
+                        if (!empty($order->take_at)) {
+                            $jian_money = 5;
+                        }
+                    }
+                    // 返钱
+                    \DB::table('users')->where('id', $shop->user_id)->increment('money', ($order->money - $jian_money));
+                    if ($jian_money > 0) {
+                        $jian_data = [
+                            'order_id' => $order->id,
+                            'money' => $jian_money,
+                            'ps' => $order->ps
+                        ];
+                        OrderDeduction::query()->create($jian_data);
+                    }
+                    \Log::info('闪送取消订单成功-将钱返回给用户', ['order_id' => $order->id, 'money' => ($order->money - $jian_money), 'jian_money' => $jian_money, 'order_money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 } else {
                     \Log::info('闪送取消订单成功-将钱返回给用户-失败了', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 }
