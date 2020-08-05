@@ -506,10 +506,10 @@ class OrderController extends Controller
         $order = Order::query()->where('order_id', $request->get('order_id', 0))->first();
 
         if (!$order) {
-            \Log::info('接口取消订单-订单未找到', ['请求参数' => $request->all()]);
+            \Log::info('美团外卖接口取消订单-订单未找到', ['请求参数' => $request->all()]);
         }
 
-        \Log::info('接口取消订单-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
+        \Log::info('美团外卖接口取消订单-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
 
         $ps = $order->ps;
         $shop = Shop::query()->find($order->shop_id);
@@ -600,6 +600,11 @@ class OrderController extends Controller
                 \Log::info('闪送取消订单成功-已经是取消状态了', ['order_id' => $order->id, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 return $this->success([]);
             }
+        } else {
+            $order->status = 99;
+            $order->save();
+            \Log::info('美团外卖取消订单-未配送');
+            return $this->success([]);
         }
 
         return $this->error("取消失败");
