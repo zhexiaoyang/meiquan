@@ -78,7 +78,8 @@ class Api extends Request
                 // "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ]],
             "appointType" => $order->order_type ?? "",
-            "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
+            // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
+            "appointmentDate" => "",
             "storeId" => $shop->shop_id_ss
         ];
 
@@ -88,9 +89,9 @@ class Api extends Request
             $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
         }
 
-        if ($order->type === 11) {
-            $data['appointmentDate'] = '';
-        }
+        // if ($order->type === 11) {
+        //     $data['appointmentDate'] = '';
+        // }
 
         return $this->post('/openapi/merchants/v5/orderCalculate', $data);
     }

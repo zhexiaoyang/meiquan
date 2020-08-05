@@ -53,50 +53,25 @@ class CheckOrderJob extends CronJob
                     if ($status == 4) {
                         $order->status = 0;
                         if ($order->save()) {
-                            dispatch(new CreateMtOrder($order));
-                        }
+                            if ($order->order_type) {
+                                dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - 3600)));
+                                \Log::info('美团创建预约订单成功', $order->toArray());
 
-                        // $order->load('shop');
-                        // $user = User::query()->find($order->shop->user_id);
-                        //
-                        // if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
-                        //     MoneyLog::query()->create([
-                        //         'order_id' => $order->id,
-                        //         'amount' => $order->money,
-                        //     ]);
-                        //     dispatch(new CreateMtOrder($order));
-                        //     $user = User::query()->find($order->shop->user_id);
-                        //     if ($user->money < 20) {
-                        //         try {
-                        //             app('easysms')->send($user->phone, [
-                        //                 'template' => 'SMS_186380293',
-                        //                 'data' => [
-                        //                     'name' => $user->phone ?? '',
-                        //                     'number' => 20
-                        //                 ],
-                        //             ]);
-                        //         } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                        //             $message = $exception->getException('aliyun')->getMessage();
-                        //             \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-                        //         }
-                        //     }
-                        // } else {
-                        //     $order->status = 200;
-                        //     $order->save();
-                        //
-                        //     try {
-                        //         app('easysms')->send($user->phone, [
-                        //             'template' => 'SMS_186380293',
-                        //             'data' => [
-                        //                 'name' => $user->phone ?? '',
-                        //                 'number' => 20
-                        //             ],
-                        //         ]);
-                        //     } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                        //         $message = $exception->getException('aliyun')->getMessage();
-                        //         \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-                        //     }
-                        // }
+                                $ding_notice = app("ding");
+
+                                $logs = [
+                                    "des" => "接到预订单",
+                                    "datetime" => date("Y-m-d H:i:s"),
+                                    "order_id" => $order->order_id,
+                                    "status" => $order->status,
+                                    "ps" => $order->ps
+                                ];
+
+                                $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
+                            } else {
+                                dispatch(new CreateMtOrder($order));
+                            }
+                        }
                     }
                 } else {
                     \Log::error('获取订单状态失败', ['order' => $order, 'res' => $res]);
