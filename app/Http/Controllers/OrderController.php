@@ -72,6 +72,7 @@ class OrderController extends Controller
                 } else {
                     $order->shop_name = "";
                 }
+                $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
                 unset($order->shop);
             }
         }
