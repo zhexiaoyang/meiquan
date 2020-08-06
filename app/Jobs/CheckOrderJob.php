@@ -51,7 +51,11 @@ class CheckOrderJob extends CronJob
                     }
 
                     if ($status == 4) {
-                        $order->status = 0;
+                        if ($order->order_type) {
+                            $order->status = 3;
+                        } else {
+                            $order->status = 0;
+                        }
                         if ($order->save()) {
                             if ($order->order_type) {
                                 dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - 3600)));
