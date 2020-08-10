@@ -58,13 +58,23 @@ class CheckOrderJob extends CronJob
                         }
                         if ($order->save()) {
                             if ($order->order_type) {
-                                dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - 3600)));
+                                $qu = 3600;
+                                if ($order->distance <= 1) {
+                                    $qu = 1800;
+                                }
+                                if ($order->distance <= 2) {
+                                    $qu = 2400;
+                                }
+                                if ($order->distance <= 3) {
+                                    $qu = 3000;
+                                }
+                                dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
                                 \Log::info('美团创建预约订单成功', $order->toArray());
 
                                 $ding_notice = app("ding");
 
                                 $logs = [
-                                    "des" => "接到预订单",
+                                    "des" => "接到预订单：" . $qu,
                                     "datetime" => date("Y-m-d H:i:s"),
                                     "order_id" => $order->order_id,
                                     "status" => $order->status,
