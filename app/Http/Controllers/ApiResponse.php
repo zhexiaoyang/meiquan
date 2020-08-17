@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Response;
 
 trait ApiResponse
@@ -53,6 +54,17 @@ trait ApiResponse
     {
 
         return $this->status($data, $message, $code, $http_code);
+
+    }
+
+    public function page(LengthAwarePaginator $page, $message = "成功", $code = 0, $http_code = 200)
+    {
+        $res['list'] = $page->items();
+        $res['page'] = $page->currentPage();
+        $res['total'] = $page->total();
+        $res['page_total'] = $page->lastPage();
+
+        return $this->status($res, $message, $code, $http_code);
 
     }
 

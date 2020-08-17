@@ -87,6 +87,28 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('role/all', "RoleController@all")->name('role.all');
         // 角色管理
         Route::resource('role', "RoleController", ['only' => ['store', 'show', 'index', 'update']]);
+
+        /**
+         * 采购系统
+         */
+        Route::prefix("/purchase")->group(function () {
+            // 采购购物车
+            Route::get("category", "SupplierCategoryController@index");
+            // 采购商品列表
+            Route::get("product", "SupplierProductController@index");
+            // 采购商品详情
+            Route::get("product/{supplier_product}", "SupplierProductController@show");
+            // 采购购物车
+            Route::get("cart", "SupplierCartController@index");
+            // 采购购物车
+            Route::post("cart", "SupplierCartController@store");
+            // 地址
+            Route::get("address", "SupplierAddressController@index");
+            // 订单
+            Route::resource("order", "SupplierOrderController");
+            // 收货
+            Route::post("received/{supplier_order}", "SupplierOrderController@received")->name("supplier.order.received");
+        });
     });
 });
 

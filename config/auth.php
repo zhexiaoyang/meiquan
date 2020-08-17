@@ -46,6 +46,12 @@ return [
             'provider' => 'users',
             'hash' => false,
         ],
+
+        'supplier' => [
+            'driver' => 'passport',
+            'provider' => 'supplier_users',
+            'hash' => false,
+        ],
     ],
 
     /*
@@ -71,10 +77,10 @@ return [
             'model' => App\Models\User::class,
         ],
 
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'supplier_users' => [
+            'driver' => 'database',
+            'table' => App\Models\SupplierUser::class,
+        ],
     ],
 
     /*
