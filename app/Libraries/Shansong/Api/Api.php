@@ -65,7 +65,7 @@ class Api extends Request
                 "toAddressDetail" => $order->receiver_address,
                 "toLatitude" => $jwd2['lat'],
                 "toLongitude" => $jwd2['lng'],
-                "toReceiverName" => $order->receiver_name,
+                "toReceiverName" => $order->receiver_name ?: "无名",
                 "toMobile" => str_replace('_', '#', $order->receiver_phone),
                 "goodType" => 1,
                 "weight" => ceil($order->goods_weight),
