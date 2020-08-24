@@ -321,5 +321,5 @@ function getJuli($shop, $receiver_lng, $receiver_lat) {
         return $data['results'][0]['distance'] / 1000;
     }
 
-    return 0;
+    return 1;
 }
