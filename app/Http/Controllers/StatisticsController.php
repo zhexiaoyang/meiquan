@@ -55,12 +55,13 @@ class StatisticsController extends Controller
             $start += 86400;
         }
 
-        $query = Order::select("id","shop_id","ps","money","created_at")->where("status", 70)
+        $query = Order::query()->select("id","shop_id","ps","money","created_at")->where("status", 70)
             ->where("created_at", ">=", $start_date)
             ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         if (!$request->user()->hasRole('super_man')) {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $_shop_ids = $request->user()->shops()->pluck('id') ?? [];
+            $query->whereIn('shop_id', $_shop_ids);
         }
 
         $orders = $query->get();
