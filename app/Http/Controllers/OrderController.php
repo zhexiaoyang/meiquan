@@ -443,7 +443,7 @@ class OrderController extends Controller
                 'order_id' => $data['wm_order_id_view'],
                 'shop_id' => $shop->id,
                 'delivery_service_code' => "4011",
-                'receiver_name' => $data['recipient_name'],
+                'receiver_name' => trim($data['recipient_name']) ? trim($data['recipient_name']) : '无名',
                 'receiver_address' => $data['recipient_address'],
                 'receiver_phone' => $data['recipient_phone'],
                 'receiver_lng' => $data['longitude'],
