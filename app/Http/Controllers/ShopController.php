@@ -7,6 +7,7 @@ use App\Models\Shop;
 use App\Models\ShopRange;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Overtrue\EasySms\EasySms;
 
 class ShopController extends Controller
@@ -76,15 +77,18 @@ class ShopController extends Controller
      */
     public function store(Request $request, Shop $shop)
     {
+        $user = Auth::user();
+
         $shop->fill($request->all());
 
         if (!$shop->shop_id) {
             unset($shop->shop_id);
         }
 
-        $shop->user_id = auth()->user()->id;
+        $shop->user_id = $user->id;
 
         if ($shop->save()) {
+            $user->shops()->attach($shop->id);
             return $this->success([]);
         }
 
