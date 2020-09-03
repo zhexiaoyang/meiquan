@@ -407,6 +407,12 @@ class OrderController extends Controller
 
         if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
             $data = $res['data'];
+
+            if ($data['recipient_address'] == "到店自取") {
+                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                return $this->error('到店自取订单');
+            }
+
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
                 \Log::info('订单已存在', compact("type", "order_id"));
                 return $this->error('订单已存在');
