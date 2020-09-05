@@ -87,7 +87,7 @@ trait ApiResponse
      * @param int $http_code
      * @return mixed
      */
-    public function error($message, $code=100, $http_code = 200)
+    public function error($message, $code=400, $http_code = 200)
     {
         return $this->status(null, $message, $code, $http_code);
     }
