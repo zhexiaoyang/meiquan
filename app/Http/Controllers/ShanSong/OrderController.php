@@ -72,7 +72,7 @@ class OrderController
             } elseif ($status == 30) {
                 // 取货中
                 $order->status = 50;
-                if (!empty($order->receive_at)) {
+                if (empty($order->receive_at)) {
                     $order->receive_at = date("Y-m-d H:i:s");
                 }
 
