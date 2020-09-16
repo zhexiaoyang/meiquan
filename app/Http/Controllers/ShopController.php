@@ -88,6 +88,7 @@ class ShopController extends Controller
         }
 
         $shop->user_id = $user->id;
+        $shop->own_id = $user->id;
 
         if ($shop->save()) {
             $user->shops()->attach($shop->id);
