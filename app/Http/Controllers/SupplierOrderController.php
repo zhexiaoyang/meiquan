@@ -11,10 +11,12 @@ class SupplierOrderController extends Controller
 {
     public function index(Request $request)
     {
+        $user_id = $request->user()->id;
+
         $page_size = $request->get("page_size", 10);
         $query = SupplierOrder::with(['shop' => function($query) {
             $query->select("id","name");
-        }, 'items'])->orderBy("id", "desc");
+        }, 'items'])->orderBy("id", "desc")->where("user_id", $user_id);
 
         $orders = $query->paginate($page_size);
 
