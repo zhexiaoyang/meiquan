@@ -156,6 +156,7 @@ class PaymentController
 
     public function wechatSupplierNotify(Request $request)
     {
+        \Log::info('订单支付回调', $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat()->verify($request->getContent());
         // 找到对应的订单
@@ -178,6 +179,7 @@ class PaymentController
 
         $status = DB::transaction(function () use ($data, $order) {
 
+            \Log::info('将订单标记为已支付');
             // 将订单标记为已支付
             DB::table('supplier_orders')->where("id", $order->id)->update([
                 'paid_at'           => date('Y-m-d H:i:s'),
