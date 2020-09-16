@@ -42,7 +42,16 @@ class ShopController extends Controller
         }
         $shops = $query->orderBy('id', 'desc')->paginate($page_size);
 
-        return $this->page($shops);
+        $res = [];
+
+        $res['page'] = $shops->currentPage();
+        $res['current_page'] = $shops->currentPage();
+        $res['total'] = $shops->total();
+        $res['page_total'] = $shops->lastPage();
+        $res['last_page'] = $shops->lastPage();
+        $res['data'] = $shops->items();
+
+        return $this->success($res);
     }
 
     // 添加用户返回没有绑定的门店
