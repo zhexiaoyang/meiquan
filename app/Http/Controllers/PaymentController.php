@@ -29,7 +29,8 @@ class PaymentController extends Controller
         $order = [
             'out_trade_no'  => $supplier_order->no,
             'body'          => '订单支付-' . $supplier_order->no,
-            'total_fee'     => $supplier_order->total_amount * 100
+            // 'total_fee'     => $supplier_order->total_amount * 100,
+            'total_fee'     => 1
         ];
 
         $wechatOrder = app('pay.wechat_supplier')->scan($order);

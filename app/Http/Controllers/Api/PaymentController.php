@@ -172,9 +172,9 @@ class PaymentController
         }
 
         // 订单金额判断
-        if ($order->total_amount != $data->total_fee/100) {
-            return $this->wechat();
-        }
+        // if ($order->total_amount != $data->total_fee/100) {
+        //     return $this->wechat();
+        // }
 
         $status = DB::transaction(function () use ($data, $order) {
 
