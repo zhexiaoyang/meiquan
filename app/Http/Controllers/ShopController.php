@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
+use App\Models\ShopAuthentication;
 use App\Models\ShopRange;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -40,7 +42,7 @@ class ShopController extends Controller
         }
         $shops = $query->orderBy('id', 'desc')->paginate($page_size);
 
-        return $this->success($shops);
+        return $this->page($shops);
     }
 
     // 添加用户返回没有绑定的门店
@@ -388,4 +390,170 @@ class ShopController extends Controller
     //
     //     return $this->error('审核失败');
     // }
+
+    /**
+     * 用户所属门店列表
+     * @param Request $request
+     * @return mixed
+     */
+    public function myShops(Request $request)
+    {
+        $user = Auth::user();
+
+        $status = $request->get("auth", 0);
+
+        $my_shops = $user->my_shops()->where('auth', $status)->get();
+
+        $request = [];
+
+        if (!empty($my_shops)) {
+            foreach ($my_shops as $my_shop) {
+                $tmp['id'] = $my_shop->id;
+                $tmp['shop_name'] = $my_shop->shop_name;
+                $tmp['shop_address'] = $my_shop->shop_address;
+                $request[] = $tmp;
+            }
+        }
+
+        return $this->success($request);
+    }
+
+    /**
+     * 提交认证门店
+     * @param Request $request
+     * @return mixed
+     */
+    public function shopAuth(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
+            return $this->error("门店不存在");
+        }
+
+        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
+            $shop_auth = new ShopAuthentication();
+        }
+
+        $shop_auth->shop_id = $shop->id;
+        $shop_auth->yyzz = $request->yyzz;
+        $shop_auth->sfz = $request->sfz;
+        $shop_auth->xkz = $request->xkz;
+        $shop_auth->wts = $request->wts;
+
+        if ($shop_auth->save()) {
+            $shop->auth = 1;
+            $shop->save();
+        }
+
+        return $this->success();
+    }
+
+    /**
+     * 管理员审核门店
+     * @param Request $request
+     * @return mixed
+     */
+    public function shopExamineSuccess(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
+            return $this->error("门店不存在");
+        }
+
+        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
+            return $this->error("门店未提交资质");
+        }
+
+        $shop->update(['auth' => 10]);
+        $shop_auth->update(['examine_user_id' => Auth::user()->id, 'examine_at' => date("Y-m-d H:i:s")]);
+
+        $user = User::find($shop->own_id);
+
+        if ($user && !$user->can("supplier")) {
+            $user->givePermissionTo("supplier");
+        }
+
+        // $user->
+        $user->assignRole('shop');
+
+        return $this->success();
+    }
+
+    /**
+     * 提交认证列表
+     * @param Request $request
+     * @return mixed
+     */
+    public function shopAuthList(Request $request)
+    {
+        $search_key = $request->get('search_key', '');
+
+        $shops = [];
+
+        $user = Auth::user();
+
+        $query = Shop::with("auth_shop")->where("own_id", $user->id)->where("auth", ">", 0);
+
+        if ($search_key) {
+            $query->where("shop_name", "like", "{$search_key}");
+        }
+
+        $data = $query->get();
+
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if ($v->auth_shop) {
+                    $tmp['id'] = $v->id;
+                    $tmp['shop_name'] = $v->shop_name;
+                    $tmp['auth'] = $v->auth;
+                    $tmp['yyzz'] = $v->auth_shop->yyzz;
+                    $tmp['xkz'] = $v->auth_shop->xkz;
+                    $tmp['sfz'] = $v->auth_shop->sfz;
+                    $tmp['wts'] = $v->auth_shop->wts;
+                    $tmp['examine_at'] = $v->auth_shop->examine_at ? date("Y-m-d H:i:s", strtotime($v->auth_shop->examine_at)) : "";
+                    $tmp['created_at'] = date("Y-m-d H:i:s", strtotime($v->auth_shop->created_at));
+                    $shops[] = $tmp;
+                }
+            }
+        }
+
+        return $this->success($shops);
+    }
+
+    /**
+     * 管理员审核门店-列表
+     * @param Request $request
+     * @return mixed
+     */
+    public function shopExamineAuthList(Request $request)
+    {
+        $search_key = $request->get('search_key', '');
+
+        $shops = [];
+
+        $query = Shop::with("auth_shop")->where("auth", 1);
+
+        if ($search_key) {
+            $query->where("shop_name", "like", "{$search_key}");
+        }
+
+        $data = $query->get();
+
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if ($v->auth_shop) {
+                    $tmp['id'] = $v->id;
+                    $tmp['shop_name'] = $v->shop_name;
+                    $tmp['auth'] = $v->auth;
+                    $tmp['yyzz'] = $v->auth_shop->yyzz;
+                    $tmp['xkz'] = $v->auth_shop->xkz;
+                    $tmp['sfz'] = $v->auth_shop->sfz;
+                    $tmp['wts'] = $v->auth_shop->wts;
+                    $tmp['examine_at'] = $v->auth_shop->examine_at ? date("Y-m-d H:i:s", strtotime($v->auth_shop->examine_at)) : "";
+                    $tmp['created_at'] = date("Y-m-d H:i:s", strtotime($v->auth_shop->created_at));
+                    $shops[] = $tmp;
+                }
+            }
+        }
+
+        return $this->success($shops);
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Deposit;
+use App\Models\SupplierOrder;
 use Illuminate\Http\Request;
 use Pay;
 use DB;
@@ -148,6 +149,50 @@ class PaymentController
         if ($status) {
 
             return $this->alipay();
+        }
+
+        return '';
+    }
+
+    public function wechatSupplierNotify(Request $request)
+    {
+        // 校验回调参数是否正确
+        $data  = Pay::wechat()->verify($request->getContent());
+        // 找到对应的订单
+        $order = SupplierOrder::where('no', $data->out_trade_no)->first();
+
+        // 订单不存在
+        if (!$order) {
+            return $this->wechat();
+        }
+
+        // 订单已支付
+        if ($order->status > 0) {
+            return $this->wechat();
+        }
+
+        // 订单金额判断
+        if ($order->total_amount != $data->total_fee/100) {
+            return $this->wechat();
+        }
+
+        $status = DB::transaction(function () use ($data, $order) {
+
+            // 将订单标记为已支付
+            DB::table('supplier_orders')->where("id", $order->id)->update([
+                'paid_at'           => date('Y-m-d H:i:s'),
+                'payment_no'        => $data->transaction_id,
+                'payment_method'    => 1,
+                'status'            => 30
+            ]);
+
+            return true;
+
+        });
+
+        if ($status) {
+
+            return $this->wechat();
         }
 
         return '';

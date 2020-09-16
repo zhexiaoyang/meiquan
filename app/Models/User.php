@@ -6,11 +6,12 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable, HasRoles;
+    use HasApiTokens, Notifiable, HasRoles, HasPermissions;
 
     protected $guard_name = 'api';
 
@@ -59,6 +60,11 @@ class User extends Authenticatable
     {
         // return $this->hasMany(Shop::class);
         return $this->belongsToMany(Shop::class, "user_has_shops", "user_id", "shop_id");
+    }
+
+    public function my_shops()
+    {
+        return $this->hasMany(Shop::class, 'own_id', 'id');
     }
 
     public function carts()

@@ -12,4 +12,10 @@ class SupplierProduct extends Model
     {
         return $this->hasOne(SupplierDepot::class, "id", "depot_id");
     }
+
+
+    public function user()
+    {
+        return $this->hasOne(SupplierUser::class, "id", "user_id");
+    }
 }

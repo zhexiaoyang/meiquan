@@ -79,7 +79,7 @@ return [
 
         'supplier_users' => [
             'driver' => 'database',
-            'table' => App\Models\SupplierUser::class,
+            'model' => App\Models\SupplierUser::class,
         ],
     ],
 

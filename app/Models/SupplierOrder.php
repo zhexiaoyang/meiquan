@@ -10,6 +10,7 @@ class SupplierOrder extends Model
     protected $fillable = [
         'no',
         'address',
+        'shop_id',
         'total_amount',
         'remark',
         'paid_at',
@@ -61,6 +62,11 @@ class SupplierOrder extends Model
     public function items()
     {
         return $this->hasMany(SupplierOrderItem::class, "order_id");
+    }
+
+    public function shop()
+    {
+        return $this->belongsTo(SupplierUser::class, "shop_id");
     }
 
     public static function findAvailableNo()

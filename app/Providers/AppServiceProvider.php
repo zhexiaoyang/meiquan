@@ -8,6 +8,7 @@ use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
+use Yansongda\Pay\Pay;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -55,6 +56,11 @@ class AppServiceProvider extends ServiceProvider
         // 钉钉通知
         $this->app->singleton('ding', function () {
             return new DingTalkRobotNotice("f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323");
+        });
+
+        // 采购微信支付
+        $this->app->singleton('pay.wechat_supplier', function () {
+            return Pay::wechat(config('pay.wechat_supplier'));
         });
     }
 

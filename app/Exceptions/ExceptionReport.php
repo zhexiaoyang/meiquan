@@ -55,7 +55,7 @@ class ExceptionReport
         ValidationException::class => ['参数错误', 422],
         PermissionAlreadyExists::class => ['权限已存在', 422],
         RoleAlreadyExists::class => ['角色已存在', 422],
-        MethodNotAllowedHttpException::class => ['请求方法错误', 403],
+        MethodNotAllowedHttpException::class => ['请求方法错误', 405],
         QueryException::class => ['查询失败', 600],
     ];
 

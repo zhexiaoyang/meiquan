@@ -54,6 +54,7 @@ class Kernel extends HttpKernel
     protected $routeMiddleware = [
         'force-json' => \App\Http\Middleware\ForceJson::class,
         'auth' => \App\Http\Middleware\Authenticate::class,
+        'multiauth' => \SMartins\PassportMultiauth\Http\Middleware\MultiAuthenticate::class,
         'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
@@ -66,6 +67,7 @@ class Kernel extends HttpKernel
         // 权限判断
         'role' => \Spatie\Permission\Middlewares\RoleMiddleware::class,
 //        'permission' => \Spatie\Permission\Middlewares\PermissionMiddleware::class,
+        'oauth.providers' => \SMartins\PassportMultiauth\Http\Middleware\AddCustomProvider::class,
     ];
 
     /**

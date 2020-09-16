@@ -8,6 +8,10 @@ class SupplierCart extends Model
 {
     protected $fillable = ["amount","user_id","product_id"];
 
+    protected $casts = [
+        "checked" => "boolean"
+    ];
+
     public function product()
     {
         return $this->belongsTo(SupplierProduct::class);

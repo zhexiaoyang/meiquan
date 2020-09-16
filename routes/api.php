@@ -98,18 +98,45 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("product", "SupplierProductController@index");
             // 采购商品详情
             Route::get("product/{supplier_product}", "SupplierProductController@show");
-            // 采购购物车
+            // 采购购物车列表
             Route::get("cart", "SupplierCartController@index");
-            // 采购购物车
+            // 采购购物车添加
             Route::post("cart", "SupplierCartController@store");
+            // 采购购物车删除
+            Route::delete("cart", "SupplierCartController@destroy");
+            // 采购购物车-修改数量
+            Route::post("cart/change", "SupplierCartController@change");
+            // 采购购物车-设置选中
+            Route::post("cart/checked", "SupplierCartController@checked");
             // 地址
             Route::get("address", "SupplierAddressController@index");
             // 订单
             Route::resource("order", "SupplierOrderController");
+            // 订单
+            Route::post("order/pay", "PaymentController@payByWechat");
             // 收货
             Route::post("received/{supplier_order}", "SupplierOrderController@received")->name("supplier.order.received");
         });
+        // 我的门店
+        Route::get("my_shop", "ShopController@myShops");
+        // 提交门店认证
+        Route::post("shop_auth", "ShopController@shopAuth");
+        // 提交认证门店列表
+        Route::get("shop_auth_list", "ShopController@shopAuthList");
+        // 管理员审核-提交认证门店列表
+        Route::get("shop_examine_auth_list", "ShopController@shopExamineAuthList");
+        // 管理员审核-通过
+        Route::post("shop_examine_success", "ShopController@shopExamineSuccess");
     });
+});
+
+/**
+ * 供货商
+ */
+Route::middleware(['force-json'])->prefix("g")->namespace("Supplier")->group(function() {
+
+    // 登录
+    Route::post('auth/login', 'AuthController@login');
 });
 
 /**
@@ -117,6 +144,7 @@ Route::middleware(['force-json'])->group(function() {
  */
 Route::group(['namespace' => 'Api'], function () {
     Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
+    Route::post('payment/wechat/notify_supplier', 'PaymentController@wechatSupplierNotify');
     Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
 });
 

@@ -32,6 +32,7 @@ class AuthController extends Controller
                     'username' => $request->get('username'),
                     'password' => $request->get('password'),
                     'scope' => '',
+                    "provider" => "users"
                 ],
             ]);
 
@@ -50,7 +51,7 @@ class AuthController extends Controller
             'mobile' => 'required',
             'captcha' => 'required',
         ], [], [
-            'phone' => '手机号',
+            'mobile' => '手机号',
             'captcha' => '短信验证码',
         ]);
 
@@ -136,7 +137,11 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        $role_name = $request->user()->getRoleNames()[0];
+        $user = $request->user();
+
+        $role_name = $user->getRoleNames()[0];
+
+        $user_permissions = $user->permissions;
 
         $data = [];
 
@@ -161,6 +166,15 @@ class AuthController extends Controller
                             $tmp['defaultCheck'] = true;
                             $permissions[$permission->pid]['actionEntitySet'][] = $tmp;
                         }
+                    }
+                }
+                if (!empty($user_permissions)) {
+                    foreach ($user_permissions as $user_permission) {
+                        unset($tmp);
+                        $tmp['roleId'] = $user_permission->name;
+                        $tmp['permissionId'] = $user_permission->name;
+                        $tmp['permissionName'] = $user_permission->title;
+                        $permissions[] = $tmp;
                     }
                 }
                 $data['permissions'] = array_values($permissions);
