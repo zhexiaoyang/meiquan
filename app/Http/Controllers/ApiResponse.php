@@ -57,14 +57,14 @@ trait ApiResponse
 
     }
 
-    public function page(LengthAwarePaginator $page, $message = "成功", $code = 0, $http_code = 200)
+    public function page(LengthAwarePaginator $page, $data = [], $message = "成功", $code = 0, $http_code = 200)
     {
         $res['page'] = $page->currentPage();
         $res['current_page'] = $page->currentPage();
         $res['total'] = $page->total();
         $res['page_total'] = $page->lastPage();
         $res['last_page'] = $page->lastPage();
-        $res['list'] = $page->items();
+        $res['list'] = $data ?: $page->items();
 
         return $this->status($res, $message, $code, $http_code);
 

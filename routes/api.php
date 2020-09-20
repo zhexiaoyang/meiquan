@@ -20,7 +20,7 @@ Route::middleware(['force-json'])->group(function() {
     Route::get('getAgreementList', 'CommonController@agreement')->name('agreement');
     Route::post('auth/register', 'AuthController@register');
 
-    Route::middleware('auth:api')->group(function () {
+    Route::middleware('multiauth:api')->group(function () {
         // 退出
         Route::post('auth/logout', 'AuthController@logout');
         // 注册
@@ -133,10 +133,38 @@ Route::middleware(['force-json'])->group(function() {
 /**
  * 供货商
  */
-Route::middleware(['force-json'])->prefix("g")->namespace("Supplier")->group(function() {
-
+Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->group(function() {
     // 登录
     Route::post('auth/login', 'AuthController@login');
+    // 需要认证接口
+    Route::middleware("multiauth:supplier")->group(function() {
+        Route::get("auth/me", "AuthController@me");
+        Route::prefix("product")->group(function () {
+            // 商品列表
+            Route::get("index", "ProductController@index");
+            // 商品详情
+            Route::get("show", "ProductController@show");
+            // 添加商品
+            Route::post("store", "ProductController@store");
+            // 编辑商品
+            Route::post("update", "ProductController@update");
+            // 品库添加商品
+            Route::post("add", "ProductController@add");
+            // 删除商品
+            Route::post("destroy", "ProductController@destroy");
+            // 商品上下架
+            Route::post("online", "ProductController@online");
+        });
+
+        Route::prefix("order")->group(function () {
+            // 订单列表
+            Route::get("index", "OrderController@index");
+            // 订单详情
+            Route::get("show", "OrderController@show");
+            // 订单发货
+            Route::post("deliver", "OrderController@deliver");
+        });
+    });
 });
 
 /**

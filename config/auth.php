@@ -78,7 +78,7 @@ return [
         ],
 
         'supplier_users' => [
-            'driver' => 'database',
+            'driver' => 'eloquent',
             'model' => App\Models\SupplierUser::class,
         ],
     ],

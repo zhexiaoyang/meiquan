@@ -6,13 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierProduct extends Model
 {
-    protected $fillable = ["price","amount"];
+    protected $fillable = ["user_id","depot_id","price","amount","stock","status"];
 
     public function depot()
     {
         return $this->hasOne(SupplierDepot::class, "id", "depot_id");
     }
-
 
     public function user()
     {
