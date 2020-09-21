@@ -47,7 +47,7 @@ return [
     'events'                   => [],
     'swoole_tables'            => [],
     'register_providers'       => [
-        SMartins\PassportMultiauth\Providers\MultiauthServiceProvider::class,
+        // SMartins\PassportMultiauth\Providers\MultiauthServiceProvider::class,
     ],
     'cleaners'                 => [
         // If you use the session/authentication/passport in your project

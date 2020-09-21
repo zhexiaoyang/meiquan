@@ -79,6 +79,9 @@ class OrderController extends Controller
 
         $order_info['id'] = $order->id;
         $order_info['no'] = $order->no;
+        $order_info['ship_no'] = $order->ship_no;
+        $order_info['ship_platform'] = $order->ship_platform;
+        $order_info['deliver_at'] = $order->deliver_at;
         $order_info['address'] = $order->address;
         $order_info['shipping_fee'] = $order->shipping_fee;
         $order_info['total_amount'] = $order->total_amount;
@@ -123,12 +126,12 @@ class OrderController extends Controller
 
         $request->validate([
             'ship_no' => 'bail|required|min:5',
-            'ship_platform' => 'bail|required|numeric',
+            'ship_platform' => 'bail|required',
         ],[
             'ship_no.required' => '物流单号不能为空',
-            'ship_no.min' => '物流单号长度不能小于5',
+            'ship_no.min' => '物流单号长度不正确',
             'ship_platform.required' => '物流平台不能为空',
-            'ship_platform.numeric' => '物流平台不存在',
+            // 'ship_platform.numeric' => '物流平台不存在',
         ]);
 
         $order->deliver_at = date("Y-m-d H:i:s");

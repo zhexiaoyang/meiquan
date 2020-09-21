@@ -137,7 +137,7 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
     // 登录
     Route::post('auth/login', 'AuthController@login');
     // 需要认证接口
-    Route::middleware(["api","multiauth:supplier"])->group(function() {
+    Route::middleware(["multiauth:supplier"])->group(function() {
         Route::post("auth/logout", "AuthController@logout");
         Route::get("auth/me", "AuthController@me");
         Route::prefix("product")->group(function () {
