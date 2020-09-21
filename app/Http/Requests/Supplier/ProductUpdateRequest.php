@@ -15,7 +15,7 @@ class ProductUpdateRequest extends Request
                 'required',
                 Rule::exists('supplier_products', 'id')->where('user_id', $this->user()->id),
             ],
-            'status' => 'nullable|in:10,20',
+            'status' => 'nullable|in:0,10,20',
             'price' => 'bail|required|numeric|min:0.01',
             'stock' => 'bail|required|numeric'
         ];

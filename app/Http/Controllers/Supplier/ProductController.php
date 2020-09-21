@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Supplier;
 
 use App\Http\Requests\Supplier\ProductRequest;
 use App\Http\Requests\Supplier\ProductUpdateRequest;
+use App\Models\SupplierCategory;
 use App\Models\SupplierDepot;
 use App\Models\SupplierProduct;
 use Illuminate\Database\Eloquent\Builder;
@@ -25,7 +26,7 @@ class ProductController extends Controller
         $page_size = $request->get("page_size", 20);
         $search_key = $request->get("search_key", "");
         $status = $request->get("status", "");
-        $stock = $request->get("stock", "");
+        $stock = intval($request->get("stock", 0));
 
         $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
@@ -66,7 +67,7 @@ class ProductController extends Controller
         }
 
 
-        $products = $query->paginate($page_size);
+        $products = $query->orderBy("id", "desc")->paginate($page_size);
 
         $result = [];
 
@@ -87,6 +88,28 @@ class ProductController extends Controller
         }
 
         return $this->page($products, $result);
+    }
+
+    public function depot(Request $request)
+    {
+        $page_size = $request->get("page_size", 20);
+        $upc = $request->get("upc", "");
+        $search_key = $request->get("search_key", "");
+
+        $query = SupplierDepot::query()->select("id","cover","name","spec","unit","upc","status");
+
+        if ($search_key) {
+            $query->where("name", "like", "%{$search_key}%");
+        }
+
+        if ($upc) {
+            $query->where("upc", "like", "%{$upc}%");
+        }
+
+        $depots = $query->orderBy("id", "desc")->paginate($page_size);
+
+
+        return $this->page($depots);
     }
 
     /**
@@ -157,13 +180,15 @@ class ProductController extends Controller
     {
         $user = Auth::user();
 
-        $depot_data = $request->only("name","spec","unit","is_otc","description","upc","approval","cover","category_id","price");
+        $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","category_id","price");
 
         $depot_data['images'] = implode(",", $request->get("images"));
 
         $product_data['user_id'] = $user->id;
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
+
+        \Log::info('message', [$depot_data]);
 
         try {
             DB::transaction(function () use ($depot_data, $product_data) {
@@ -244,7 +269,7 @@ class ProductController extends Controller
             return $this->error("品库中无此商品");
         }
 
-        if ($depot->status !== 20) {
+        if ($depot->status !== 1) {
             return $this->error("商品正在审核中，请稍后");
         }
 
@@ -268,11 +293,34 @@ class ProductController extends Controller
 
         $product_data['user_id'] = $user->id;
         $product_data['depot_id'] = $depot->id;
-        $product_data['status'] = 30;
+        $product_data['status'] = 20;
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
         SupplierProduct::query()->create($product_data);
 
         return $this->success();
+    }
+
+    public function category()
+    {
+        $result = [];
+
+        $categories = SupplierCategory::query()->select("id","parent_id","title")->where("status", 1)
+            ->orderBy("parent_id")->get()->toArray();
+
+        if (!empty($categories)) {
+            foreach ($categories as $category) {
+                if ($category['parent_id'] === 0) {
+                    $category['children'] = [];
+                    $result[$category['id']] = $category;
+                } else {
+                    if (isset($result[$category['parent_id']])) {
+                        $result[$category['parent_id']]['children'][] = $category;
+                    }
+                }
+            }
+        }
+
+        return $this->success(array_values($result));
     }
 }

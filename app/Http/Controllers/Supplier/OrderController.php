@@ -44,6 +44,7 @@ class OrderController extends Controller
                         if (isset($item->id)) {
                             $item_info['id'] = $item->product_id;
                             $item_info['name'] = $item->name;
+                            $item_info['upc'] = $item->upc;
                             $item_info['cover'] = $item->cover;
                             $item_info['spec'] = $item->spec;
                             $item_info['unit'] = $item->unit;

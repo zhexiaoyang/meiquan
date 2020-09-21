@@ -127,6 +127,7 @@ class SupplierOrderController extends Controller
                         'cover'  => $depot->cover,
                         'spec'  => $depot->spec,
                         'unit'  => $depot->unit,
+                        'upc'  => $depot->upc,
                     ]);
                     $item->product()->associate($product->id);
                     $item->save();
@@ -173,6 +174,7 @@ class SupplierOrderController extends Controller
                     $item_info['cover'] = $item->cover;
                     $item_info['spec'] = $item->spec;
                     $item_info['unit'] = $item->unit;
+                    $item_info['upc'] = $item->upc;
                     $item_info['amount'] = $item->amount;
                     $item_info['price'] = $item->price;
                     $order_info['items'][] = $item_info;

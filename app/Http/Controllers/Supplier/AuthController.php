@@ -44,7 +44,7 @@ class AuthController extends Controller
             [
                 "roleId"=> "supplier",
                 "permissionId"=> "auth",
-                "permissionName"=> "订单管理",
+                "permissionName"=> "认证",
                 "actionEntitySet"=> []
             ]
         ];
@@ -52,7 +52,7 @@ class AuthController extends Controller
         if (SupplierUser::query()->find($user->id)->is_auth) {
             $permission[] = [
                 "roleId"=> "supplier",
-                "permissionId"=> "edit",
+                "permissionId"=> "supplier",
                 "permissionName"=> "编辑",
                 "actionEntitySet"=> []
             ];
@@ -70,5 +70,14 @@ class AuthController extends Controller
         ];
 
         return $this->success($result);
+    }
+
+    public function logout(Request $request)
+    {
+        if (\Auth::guard('supplier')->check()) {
+            \Auth::guard('supplier')->user()->token()->delete();
+        }
+
+        return $this->success();
     }
 }

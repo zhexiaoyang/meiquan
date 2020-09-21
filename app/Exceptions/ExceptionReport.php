@@ -13,6 +13,7 @@ use Spatie\Permission\Exceptions\PermissionAlreadyExists;
 use Spatie\Permission\Exceptions\RoleAlreadyExists;
 use Spatie\Permission\Exceptions\UnauthorizedException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ExceptionReport
 {
@@ -49,6 +50,7 @@ class ExceptionReport
     public $doReport = [
         AuthenticationException::class => ['未授权',401],
         ModelNotFoundException::class => ['该模型未找到',404],
+        NotFoundHttpException::class => ['请求错误',404],
         UnauthorizedException::class => ['没有权限',403],
         HttpException::class => ['请求第三方失败',500],
         MessageException::class => ['错误，稍后再试',500],

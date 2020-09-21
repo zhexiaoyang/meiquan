@@ -46,7 +46,9 @@ return [
     ],
     'events'                   => [],
     'swoole_tables'            => [],
-    'register_providers'       => [],
+    'register_providers'       => [
+        SMartins\PassportMultiauth\Providers\MultiauthServiceProvider::class,
+    ],
     'cleaners'                 => [
         // If you use the session/authentication/passport in your project
          Hhxsv5\LaravelS\Illuminate\Cleaners\SessionCleaner::class,

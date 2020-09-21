@@ -17,7 +17,6 @@ class ProductRequest extends Request
             'unit' => 'bail|required|max:100',
             'is_otc' => 'required|integer|in:1,0',
             'upc' => 'bail|required|min:2|max:100|unique:supplier_depots,upc',
-            'description' => 'nullable|string',
             'approval' => 'bail|required|min:2|max:100',
             'cover' => 'bail|required|min:2|max:255',
             'images' => 'nullable|array',
