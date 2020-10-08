@@ -169,6 +169,9 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             // 订单发货
             Route::post("deliver", "OrderController@deliver");
         });
+
+        // 订单列表
+        Route::get("city/index", "ProvinceController@cities");
     });
 });
 

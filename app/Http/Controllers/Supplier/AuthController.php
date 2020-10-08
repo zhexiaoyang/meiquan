@@ -46,6 +46,12 @@ class AuthController extends Controller
                 "permissionId"=> "auth",
                 "permissionName"=> "认证",
                 "actionEntitySet"=> []
+            ],
+            [
+                "roleId"=> "supplier",
+                "permissionId"=> "user",
+                "permissionName"=> "个人中心",
+                "actionEntitySet"=> []
             ]
         ];
 

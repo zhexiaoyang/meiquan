@@ -47,6 +47,7 @@ return [
     'events'                   => [],
     'swoole_tables'            => [],
     'register_providers'       => [
+        Laravel\Passport\PassportServiceProvider::class,
         // SMartins\PassportMultiauth\Providers\MultiauthServiceProvider::class,
     ],
     'cleaners'                 => [

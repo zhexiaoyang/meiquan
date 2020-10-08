@@ -28,13 +28,13 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
         })->with(["depot" => function ($query) {
-            $query->select("id","cover","name","spec","unit","upc");
+            $query->select("id","cover","name","spec","unit","upc","manufacturer","term_of_validity","approval","generi_name");
         }])->where("user_id", $user->id);
 
         if ($status !== "") {
@@ -78,11 +78,16 @@ class ProductController extends Controller
                 $tmp['stock'] = $product->stock;
                 $tmp['sale_count'] = $product->sale_count;
                 $tmp['status'] = $product->status;
+                $tmp['number'] = $product->number;
+                $tmp['product_date'] = $product->product_date;
                 $tmp['cover'] = $product->depot->cover;
                 $tmp['upc'] = $product->depot->upc;
                 $tmp['name'] = $product->depot->name;
                 $tmp['spec'] = $product->depot->spec;
                 $tmp['unit'] = $product->depot->unit;
+                $tmp['manufacturer'] = $product->depot->manufacturer;
+                $tmp['approval'] = $product->depot->approval;
+                $tmp['term_of_validity'] = $product->depot->term_of_validity;
                 $result[] = $tmp;
             }
         }
@@ -96,15 +101,19 @@ class ProductController extends Controller
         $upc = $request->get("upc", "");
         $search_key = $request->get("search_key", "");
 
-        $query = SupplierDepot::query()->select("id","cover","name","spec","unit","upc","status");
+        $query = SupplierDepot::query()->select("id","cover","name","spec","unit","upc","status","manufacturer","approval","term_of_validity");
 
         if ($search_key) {
-            $query->where("name", "like", "%{$search_key}%");
+            $query->where("name", "like", "%{$search_key}%")
+                ->orWhere("generi_name", "like", "%{$search_key}%")
+                ->orWhere("upc", "like", "%{$search_key}%")
+                ->orWhere("manufacturer", "like", "%{$search_key}%")
+                ->orWhere("approval", "like", "%{$search_key}%");
         }
 
-        if ($upc) {
-            $query->where("upc", "like", "%{$upc}%");
-        }
+//        if ($upc) {
+//            $query->where("upc", "like", "%{$upc}%");
+//        }
 
         $depots = $query->orderBy("id", "desc")->paginate($page_size);
 
@@ -180,15 +189,14 @@ class ProductController extends Controller
     {
         $user = Auth::user();
 
-        $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","category_id","price");
+        $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","category_id","price","term_of_validity","manufacturer","generi_name");
 
         $depot_data['images'] = implode(",", $request->get("images"));
 
         $product_data['user_id'] = $user->id;
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
-
-        \Log::info('message', [$depot_data]);
+        $product_data['number'] = $request->get("number") ?? "";
 
         try {
             DB::transaction(function () use ($depot_data, $product_data) {
@@ -213,7 +221,7 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request)
     {
-        $data = $request->only("stock","price", "status");
+        $data = $request->only("stock","price", "status","number","product_date");
 
         if (!$product = SupplierProduct::query()->find($request->get("id"))) {
             return $this->error("药品不存在");
@@ -282,6 +290,8 @@ class ProductController extends Controller
         $request->validate([
             'price' => 'bail|required|numeric|min:0.01',
             'stock' => 'bail|required|numeric',
+            'number' => 'bail|required',
+            'product_date' => 'bail|required|date',
         ],[
             'price.required' => '药品价格不能为空',
             'price.numeric' => '药品价格格式不正确',
@@ -289,6 +299,8 @@ class ProductController extends Controller
             'stock.required' => '药品库存不能为空',
             'stock.numeric' => '药品库存格式不正确',
             'spec.required' => '药品规格不能为空',
+            'number.required' => '批号不能为空',
+            'product_date.required' => '生产日期不能为空',
         ]);
 
         $product_data['user_id'] = $user->id;
@@ -296,6 +308,8 @@ class ProductController extends Controller
         $product_data['status'] = 20;
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
+        $product_data['number'] = $request->get("number");
+        $product_data['product_date'] = $request->get("product_date");
         SupplierProduct::query()->create($product_data);
 
         return $this->success();
