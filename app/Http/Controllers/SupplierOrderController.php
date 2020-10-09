@@ -94,7 +94,6 @@ class SupplierOrderController extends Controller
         $order = \DB::transaction(function () use ($user, $data, $shop, $remark) {
 
             foreach ($data as $shop_id => $carts) {
-                \Log::info('message', [$shop_id]);
                 // 创建一个订单
                 $order   = new SupplierOrder([
                     'shop_id'       => $shop_id,
@@ -118,7 +117,6 @@ class SupplierOrderController extends Controller
                     // $product  = SupplierProduct::query()->find($data['product_id']);
                     $product = $cart->product;
                     $depot = $product->depot;
-                    \Log::info('message', [$depot]);
                     // 创建一个 OrderItem 并直接与当前订单关联
                     $item = $order->items()->make([
                         'amount' => $cart['amount'],
@@ -135,6 +133,7 @@ class SupplierOrderController extends Controller
                 }
 
 
+                \Log::info('$totalAmount', [$totalAmount]);
                 if ($totalAmount <= 0) {
                     // 更新支付状态
                     $order->update(['status' => 30]);
