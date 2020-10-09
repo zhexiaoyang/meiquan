@@ -134,8 +134,14 @@ class SupplierOrderController extends Controller
                     $totalAmount += $product->price * $cart['amount'];
                 }
 
-                // 更新订单总金额
-                $order->update(['total_amount' => $totalAmount]);
+
+                if ($totalAmount <= 0) {
+                    // 更新支付状态
+                    $order->update(['status' => 30]);
+                } else {
+                    // 更新订单总金额
+                    $order->update(['total_amount' => $totalAmount]);
+                }
 
                 // 将下单的商品从购物车中移除
                 $product_ids = collect($carts)->pluck('id');
