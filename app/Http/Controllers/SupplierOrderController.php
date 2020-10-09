@@ -133,7 +133,6 @@ class SupplierOrderController extends Controller
                 }
 
 
-                \Log::info('$totalAmount', [$totalAmount]);
                 if ($totalAmount <= 0) {
                     // 更新支付状态
                     $order->update(['status' => 30]);
