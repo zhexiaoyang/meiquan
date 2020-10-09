@@ -17,6 +17,7 @@ use League\OAuth2\Server\Entities\AccessTokenEntityInterface;
 use League\OAuth2\Server\Exception\OAuthServerException;
 use League\OAuth2\Server\Exception\UniqueTokenIdentifierConstraintViolationException;
 use League\OAuth2\Server\ResponseTypes\BearerTokenResponse;
+use SMartins\PassportMultiauth\Provider;
 
 # https://github.com/laravel/passport/issues/71
 
@@ -64,12 +65,18 @@ trait PassportToken
     protected function createPassportTokenByUser(User $user, $clientId)
     {
         $accessToken = new AccessToken($user->id,[],new Client($clientId, null, null));
-        $accessToken->setIdentifier($this->generateUniqueIdentifier());
+        $iii = $this->generateUniqueIdentifier();
+        $accessToken->setIdentifier($iii);
         $accessToken->setExpiryDateTime((new DateTimeImmutable())->add(Passport::tokensExpireIn()) );
 
         $accessTokenRepository = new AccessTokenRepository(new TokenRepository(), new Dispatcher());
         $accessTokenRepository->persistNewAccessToken($accessToken);
         $refreshToken = $this->issueRefreshToken($accessToken);
+
+        $provider = new Provider();
+        $provider->oauth_access_token_id = $iii;
+        $provider->provider = "users";
+        $provider->save();
 
         return [
             'access_token' => $accessToken,
