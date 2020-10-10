@@ -24,7 +24,7 @@ class SupplierProductController extends Controller
         }]);
 
 
-        $products = $query->paginate($page_size);
+        $products = $query->where("status", 20)->paginate($page_size);
 
         return $this->page($products);
     }
