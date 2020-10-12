@@ -31,6 +31,7 @@ class SupplierOrderController extends Controller
                 $order_info['total_amount'] = $order->total_amount;
                 $order_info['original_amount'] = $order->original_amount;
                 $order_info['payment_method'] = $order->payment_method;
+                $order_info['cancel_reason'] = $order->cancel_reason;
                 $order_info['status'] = $order->status;
                 $order_info['created_at'] = date("Y-m-d H:i:s", strtotime($order->created_at));
                 $order_info['shop_name'] = $order->shop->name ?? "";
@@ -99,6 +100,8 @@ class SupplierOrderController extends Controller
                     'shop_id'       => $shop_id,
                     'address'       => [
                         'address'       => $shop->shop_address,
+                        'shop_name'       => $shop->shop_name,
+                        'meituan_id'       => $shop->mt_shop_id,
                         'contact_name'  => $shop->contact_name,
                         'contact_phone' => $shop->contact_phone,
                     ],
@@ -135,7 +138,11 @@ class SupplierOrderController extends Controller
 
                 if ($totalAmount <= 0) {
                     // 更新支付状态
-                    $order->update(['status' => 30]);
+                    $order->update([
+                        'status' => 30,
+                        'paid_at' => date("Y-m-d"),
+                        'payment_method' => 3
+                    ]);
                 } else {
                     // 更新订单总金额
                     $order->update(['total_amount' => $totalAmount]);

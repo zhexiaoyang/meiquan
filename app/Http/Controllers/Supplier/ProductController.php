@@ -28,7 +28,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -80,6 +80,7 @@ class ProductController extends Controller
                 $tmp['status'] = $product->status;
                 $tmp['number'] = $product->number;
                 $tmp['product_date'] = $product->product_date;
+                $tmp['detail'] = $product->detail;
                 $tmp['cover'] = $product->depot->cover;
                 $tmp['upc'] = $product->depot->upc;
                 $tmp['name'] = $product->depot->name;
@@ -148,6 +149,7 @@ class ProductController extends Controller
             "depot_id" => $product->depot_id,
             "stock" => $product->stock,
             "price" => $product->price,
+            "detail" => $product->detail,
             "category_id" => $product->depot->category_id,
             "name" => $product->depot->name,
             "spec" => $product->depot->spec,
@@ -197,6 +199,7 @@ class ProductController extends Controller
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
         $product_data['number'] = $request->get("number") ?? "";
+        $product_data['detail'] = $request->get("detail") ?? "";
 
         try {
             DB::transaction(function () use ($depot_data, $product_data) {
@@ -221,7 +224,7 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request)
     {
-        $data = $request->only("stock","price", "status","number","product_date");
+        $data = $request->only("stock","price", "status","number","product_date","detail");
 
         if (!$product = SupplierProduct::query()->find($request->get("id"))) {
             return $this->error("药品不存在");

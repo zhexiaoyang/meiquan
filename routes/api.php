@@ -168,6 +168,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::get("show", "OrderController@show");
             // 订单发货
             Route::post("deliver", "OrderController@deliver");
+            // 取消订单
+            Route::post("cancel", "OrderController@cancel");
         });
 
         // 订单列表

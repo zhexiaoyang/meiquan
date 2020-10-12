@@ -35,6 +35,7 @@ class OrderController extends Controller
                 $order_info['total_amount'] = $order->total_amount;
                 // $order_info['original_amount'] = $order->original_amount;
                 $order_info['payment_method'] = $order->payment_method;
+                $order_info['cancel_reason'] = $order->cancel_reason;
                 $order_info['status'] = $order->status;
                 $order_info['created_at'] = date("Y-m-d H:i:s", strtotime($order->created_at));
 
@@ -138,6 +139,26 @@ class OrderController extends Controller
         $order->status = 50;
         $order->ship_no = $request->get("ship_no");
         $order->ship_platform = $request->get("ship_platform");
+        $order->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 取消订单
+     * @param Request $request
+     * @return mixed
+     */
+    public function cancel(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$order = SupplierOrder::query()->where("shop_id", $user->id)->find($request->get("id", 0))) {
+            return $this->error("订单不存在");
+        }
+
+        $order->status = 90;
+        $order->cancel_reason = $request->get("cancel_reason") ?? '';
         $order->save();
 
         return $this->success();
