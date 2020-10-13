@@ -25,7 +25,7 @@ class Api extends Request
             "latitude" => $jwd['lat'],
             "longitude" => $jwd['lng'],
             "phone" => $shop->contact_phone,
-            "goodType" => 1
+            "goodType" => 13
         ];
 
         return $this->post('/openapi/merchants/v5/storeOperation', $data);
