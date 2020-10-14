@@ -233,6 +233,20 @@ Route::namespace('Api')->prefix('zg')->group(function () {
 });
 
 /**
+ * 顺丰回调接口
+ */
+Route::namespace('Api')->prefix('shunfeng')->group(function () {
+    // 结算订单
+    Route::post('order/status', "ShunfengController@status");
+    // 隐私号降级
+    Route::post('order/complete', "ShunfengController@complete");
+    // 创建订单
+    Route::post('order/cancel', "ShunfengController@cancel");
+    // 取消订单
+    Route::post('order/fail', "ShunfengController@fail");
+});
+
+/**
  * 蜂鸟测试接口
  */
 // Route::group(['namespace' => 'Test'], function () {

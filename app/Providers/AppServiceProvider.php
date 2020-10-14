@@ -6,6 +6,7 @@ use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\Fengniao\Fengniao;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
+use App\Libraries\Shunfeng\Shunfeng;
 use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
 use Yansongda\Pay\Pay;
@@ -51,6 +52,10 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('minkang', function () {
             $config = config('ps.minkang');
             return new MeiTuan($config);
+        });
+        $this->app->singleton('shunfeng', function () {
+            $config = config('ps.shunfeng');
+            return new Shunfeng($config);
         });
 
         // 钉钉通知
