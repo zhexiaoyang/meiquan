@@ -4,7 +4,7 @@
 namespace App\Http\Controllers\Api;
 
 
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
 class ShunfengController
