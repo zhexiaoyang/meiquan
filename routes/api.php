@@ -133,6 +133,8 @@ Route::middleware(['force-json'])->group(function() {
 /**
  * 供货商
  */
+// 验证码
+Route::post('supplier/code', 'CommonController@getVerifyCode')->name('supplier.code');
 Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->group(function() {
     // 登录
     Route::post('auth/login', 'AuthController@login');
@@ -172,8 +174,27 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::post("cancel", "OrderController@cancel");
         });
 
-        // 订单列表
-        Route::get("city/index", "ProvinceController@cities");
+        // 供货商
+        Route::prefix("user")->group(function () {
+            // 供货商信息
+            Route::get("", "UserController@show");
+            // 设置供货商信息
+            Route::post("", "UserController@store");
+        });
+
+        // 配送费
+        Route::prefix("freight")->group(function () {
+            // 城市列表
+            Route::get("/city", "ProvinceController@cities");
+            // 配送费列表
+            Route::get("", "FreightController@index");
+            // 配送费详情
+            Route::get("/info", "FreightController@show");
+            // 设置配送费
+            Route::post("", "FreightController@store");
+            // 删除配送费
+            Route::delete("", "FreightController@destroy");
+        });
     });
 });
 

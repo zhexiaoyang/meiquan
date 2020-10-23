@@ -13,6 +13,6 @@ class SupplierUser extends Authenticatable
 
     public function findForPassport($username)
     {
-        return self::where(['phone' => $username])->first();
+        return self::where(['username' => $username])->first();
     }
 }

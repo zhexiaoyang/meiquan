@@ -15,6 +15,9 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
+        if ($request->get("captcha")) {
+            return $this->loginByMobile($request);
+        }
         try {
             $token = app(Client::class)->post(url('/oauth/token'), [
                 'form_params' => [
@@ -34,6 +37,51 @@ class AuthController extends Controller
         } catch (\Exception $e) {
             return $this->error("用户名或密码错误", 400);
         }
+    }
+
+    public function loginByMobile(Request $request)
+    {
+
+        $request->validate([
+            'mobile' => 'required',
+            'captcha' => 'required',
+        ], [], [
+            'mobile' => '手机号',
+            'captcha' => '短信验证码',
+        ]);
+
+        $phone = $request->get('mobile', '');
+        $captcha = $request->get('captcha', '');
+
+        $verifyData = \Cache::get($phone);
+
+        if (!$verifyData) {
+            return $this->error('验证码已失效');
+        }
+
+        if (!hash_equals($verifyData['code'], $captcha)) {
+            return $this->error('验证码失效');
+        }
+
+        $user = SupplierUser::query()->where('phone', $phone)->first();
+
+        if (!$user) {
+            $password = round(111111, 999999);
+            $user = new SupplierUser();
+            $user->name = $request->get('mobile');
+            $user->username = $request->get('mobile');
+            $user->phone = $request->get('mobile');
+            $user->password = bcrypt($password);
+            $user->save();
+
+            \Log::info('验证码登录注册', compact($phone, $password));
+        }
+
+        $result = $this->getBearerTokenBySupplierUser($user, '1', false);
+
+        \Cache::forget($phone);
+
+        return $this->success($result);
     }
 
     public function me(Request $request)
@@ -68,6 +116,7 @@ class AuthController extends Controller
             "id"=> $user->phone,
             "name"=> $user->name,
             "phone"=> $user->phone,
+            "avatar"=> $user->avatar,
             "role"=> [
                 "id"=> "supplier",
                 "name"=> "供货商",

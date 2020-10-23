@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Models\SupplierUser;
 use App\Models\User;
 use  DateTimeImmutable;
 use GuzzleHttp\Psr7\Response;
@@ -84,6 +85,28 @@ trait PassportToken
         ];
     }
 
+    protected function createPassportTokenBySupplierUser(SupplierUser $user, $clientId)
+    {
+        $accessToken = new AccessToken($user->id,[],new Client($clientId, null, null));
+        $iii = $this->generateUniqueIdentifier();
+        $accessToken->setIdentifier($iii);
+        $accessToken->setExpiryDateTime((new DateTimeImmutable())->add(Passport::tokensExpireIn()) );
+
+        $accessTokenRepository = new AccessTokenRepository(new TokenRepository(), new Dispatcher());
+        $accessTokenRepository->persistNewAccessToken($accessToken);
+        $refreshToken = $this->issueRefreshToken($accessToken);
+
+        $provider = new Provider();
+        $provider->oauth_access_token_id = $iii;
+        $provider->provider = "supplier_users";
+        $provider->save();
+
+        return [
+            'access_token' => $accessToken,
+            'refresh_token' => $refreshToken,
+        ];
+    }
+
     protected function sendBearerTokenResponse(AccessTokenEntityInterface $accessToken, $refreshToken)
     {
         $response = new BearerTokenResponse();
@@ -102,6 +125,18 @@ trait PassportToken
     protected function getBearerTokenByUser(User $user, $clientId, $output = true)
     {
         $passportToken = $this->createPassportTokenByUser($user, $clientId);
+        $bearerToken = $this->sendBearerTokenResponse($passportToken['access_token'], $passportToken['refresh_token']);
+
+        if (! $output) {
+            $bearerToken = json_decode($bearerToken->getBody()->__toString(), true);
+        }
+
+        return $bearerToken;
+    }
+
+    protected function getBearerTokenBySupplierUser(SupplierUser $user, $clientId, $output = true)
+    {
+        $passportToken = $this->createPassportTokenBySupplierUser($user, $clientId);
         $bearerToken = $this->sendBearerTokenResponse($passportToken['access_token'], $passportToken['refresh_token']);
 
         if (! $output) {
