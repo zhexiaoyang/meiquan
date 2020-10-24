@@ -138,6 +138,8 @@ Route::post('supplier/code', 'CommonController@getVerifyCode')->name('supplier.c
 Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->group(function() {
     // 登录
     Route::post('auth/login', 'AuthController@login');
+    // 退出登录
+    Route::post('auth/logout', 'AuthController@logout');
     // 需要认证接口
     Route::middleware(["multiauth:supplier"])->group(function() {
         Route::post("auth/logout", "AuthController@logout");
