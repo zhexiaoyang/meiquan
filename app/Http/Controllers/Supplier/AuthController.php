@@ -74,7 +74,7 @@ class AuthController extends Controller
             $user->password = bcrypt($password);
             $user->save();
 
-            \Log::info('验证码登录注册', compact($phone, $password));
+            \Log::info('验证码登录注册', ['phone' => $phone]);
         }
 
         $result = $this->getBearerTokenBySupplierUser($user, '1', false);
