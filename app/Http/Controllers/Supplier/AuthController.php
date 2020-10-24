@@ -68,7 +68,7 @@ class AuthController extends Controller
         if (!$user) {
             $password = round(111111, 999999);
             $user = new SupplierUser();
-            $user->name = $request->get('mobile');
+            $user->name = '';
             $user->username = $request->get('mobile');
             $user->phone = $request->get('mobile');
             $user->password = bcrypt($password);
