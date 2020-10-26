@@ -71,7 +71,7 @@ class AuthController extends Controller
         $user = User::query()->where('phone', $phone)->first();
 
         if (!$user) {
-            $password = round(111111, 999999);
+            $password = str_pad(mt_rand(10, 999999), 6, "0", STR_PAD_BOTH);;
             $user = new User();
             $user->name = $phone;
             $user->phone = $phone;
