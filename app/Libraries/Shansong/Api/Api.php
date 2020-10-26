@@ -147,4 +147,18 @@ class Api extends Request
 
         return $this->post('/openapi/merchants/v5/courierInfo', $data);
     }
+
+    /**
+     * 确认物品送回
+     * @param $order_id
+     * @return mixed
+     */
+    public function confirmGoodsReturn($order_id)
+    {
+        $data = [
+            'issOrderNo' => $order_id
+        ];
+
+        return $this->post('/openapi/merchants/v5/confirmGoodsReturn', $data);
+    }
 }

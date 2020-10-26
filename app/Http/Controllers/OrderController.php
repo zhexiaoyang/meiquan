@@ -181,7 +181,49 @@ class OrderController extends Controller
     }
 
     /**
-     * 重新发送订单
+     * 重新发送订单-新
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/10/26 10:04 上午
+     */
+    public function resend(Request $request)
+    {
+        if (!$order = Order::find($request->get("order_id", 0))) {
+            return $this->error("订单不存在");
+        }
+
+        if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
+            return $this->error("该门店不能发单");
+        }
+
+        if ($request->get("mt", 0) === 0) {
+            $order->fail_mt = '重新发送订单-不选择';
+        } else {
+            $order->fail_mt = '';
+        }
+
+        if ($request->get("fn", 0) === 0) {
+            $order->fail_fn = '重新发送订单-不选择';
+        } else {
+            $order->fail_fn = '';
+        }
+
+        if ($request->get("ss", 0) === 0) {
+            $order->fail_ss = '重新发送订单-不选择';
+        } else {
+            $order->fail_ss = '';
+        }
+
+        $order->save();
+
+        // dispatch(new CreateMtOrder($order));
+
+        return $this->success("提交成功");
+    }
+
+    /**
+     * 重新发送订单-旧
      * @param Order $order
      * @return mixed
      */
@@ -837,6 +879,23 @@ class OrderController extends Controller
             'distance' => $distance,
             'total' => $total
         ]);
+    }
+
+    public function returned(Request $request)
+    {
+        if (!$order = Order::query()->find( $request->get('order_id', 0))) {
+            return $this->error("订单不存在");
+        }
+
+        $shansong = app("shansong");
+
+        $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
+
+        if ($res_ss['status'] === 200) {
+            return $this->success("成功");
+        }
+
+        return $this->error($res_ss['msg'] ?? "成功");
     }
 }
 

@@ -71,6 +71,10 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
         // 订单
         Route::post('order/send/{order}', 'OrderController@send')->name('order.send');
+        // 重新发送订单
+        Route::post('order/resend', 'OrderController@resend')->name('order.resend');
+        // 物品已送回
+        Route::post('order/returned', 'OrderController@returned')->name('order.returned');
         // Route::post('order2', 'OrderController@store2')->name('order.store2');
         // 取消订单
         Route::delete('order/cancel2/{order}', 'OrderController@cancel2')->name('api.order.cancel2');
@@ -116,6 +120,14 @@ Route::middleware(['force-json'])->group(function() {
             Route::post("order/pay", "PaymentController@payByWechat");
             // 收货
             Route::post("received/{supplier_order}", "SupplierOrderController@received")->name("supplier.order.received");
+            // 供货商审核列表
+            Route::get("supplier/authList", "SupplierUserController@user");
+            // 供货商审核
+            Route::post("supplier/setAuth", "SupplierUserController@example");
+            // 药品审核列表
+            Route::get("depot/authList", "ExampleProductController@index");
+            // 药品审核
+            Route::post("depot/setAuth", "ExampleProductController@setAuth");
         });
         // 我的门店
         Route::get("my_shop", "ShopController@myShops");

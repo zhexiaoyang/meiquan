@@ -43,6 +43,7 @@ class UserController extends Controller
 
         if ($yyzz = $request->get("yyzz")) {
             $user->yyzz = $yyzz;
+            $user->auth_at = date("Y-m-d H:i:s");
         }
 
         if ($ypjy = $request->get("ypjy")) {
