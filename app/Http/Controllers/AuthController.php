@@ -73,12 +73,14 @@ class AuthController extends Controller
         if (!$user) {
             $password = round(111111, 999999);
             $user = new User();
-            $user->name = $request->get('phone');
-            $user->phone = $request->get('phone');
+            $user->name = $phone;
+            $user->phone = $phone;
             $user->password = bcrypt($password);
             $user->save();
 
-            \Log::info('验证码登录注册', compact($phone, $password));
+            $user->assignRole('shop');
+
+            \Log::info('验证码登录注册', ['phone' => $phone, 'password' => $password]);
         }
 
         $result = $this->getBearerTokenByUser($user, '1', false);
