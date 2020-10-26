@@ -9,7 +9,8 @@ class SupplierUserController extends Controller
 {
     public function user()
     {
-        $data = SupplierUser::query()->select("id", "name", "phone", "avatar", "yyzz", "ypjy", "auth_at")->where("is_auth", 0)->get();
+        $data = SupplierUser::query()->select("id", "name", "phone", "avatar", "yyzz", "ypjy", "auth_at")
+            ->where("is_auth", 0)->where('yyzz', '<>', '')->get();
 
         return $this->success($data);
     }
