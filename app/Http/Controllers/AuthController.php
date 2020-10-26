@@ -168,22 +168,32 @@ class AuthController extends Controller
                         }
                     }
                 }
-                if (!empty($user_permissions)) {
-                    foreach ($user_permissions as $user_permission) {
+                // if (!empty($user_permissions)) {
+                //     foreach ($user_permissions as $user_permission) {
                         unset($tmp);
-                        $tmp['actionEntitySet'] = [
-                            [
-                                'action' => "supplier_index",
-                                'describe' => "index",
-                                'defaultCheck' => true
-                            ]
-                        ];
-                        $tmp['roleId'] = $user_permission->name;
-                        $tmp['permissionId'] = $user_permission->name;
-                        $tmp['permissionName'] = $user_permission->title;
+                        if (!$user_permissions->isEmpty()) {
+                            $tmp['actionEntitySet'] = [
+                                [
+                                    'action' => "supplier_index",
+                                    'describe' => "index",
+                                    'defaultCheck' => true
+                                ]
+                            ];
+                        } else {
+                            $tmp['actionEntitySet'] = [
+                                [
+                                    'action' => "supplier_auth",
+                                    'describe' => "index",
+                                    'defaultCheck' => true
+                                ]
+                            ];
+                        }
+                        $tmp['roleId'] = 'supplier';
+                        $tmp['permissionId'] = 'supplier';
+                        $tmp['permissionName'] = '采购';
                         $permissions[] = $tmp;
-                    }
-                }
+                    // }
+                // }
                 $data['permissions'] = array_values($permissions);
             }
         }
