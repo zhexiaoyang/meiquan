@@ -521,17 +521,13 @@ class OrderController extends Controller
             if ($order->save()) {
                 if ($status === 0) {
                     if ($order->order_type) {
-                        $qu = 3600;
-                        if ($order->distance <= 1) {
+                        $qu = 2400;
+                        if ($order->distance <= 2) {
                             $qu = 1800;
                         }
-                        if ($order->distance <= 2) {
-                            $qu = 2400;
-                        }
-                        if ($order->distance <= 3) {
-                            $qu = 3000;
-                        }
+
                         dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+
                         \Log::info('美团创建预约订单成功', $order->toArray());
 
                         $ding_notice = app("ding");
