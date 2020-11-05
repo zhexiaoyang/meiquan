@@ -29,7 +29,7 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('user/info', 'AuthController@user');
         // 个人中心-用户信息-ant框架返回
         Route::get('user/me', 'AuthController@me');
-        // 用户全部药店
+        // 用户全部可发单药店
         Route::get('shop/all', 'ShopController@all')->name('api.shop.all');
         // 订单状态
         Route::get('order/status/{order}', "OrderController@checkStatus");
@@ -64,6 +64,10 @@ Route::middleware(['force-json'])->group(function() {
         Route::post('storeShop', 'ShopController@storeShop')->name('shop.storeShop');
         // 审核门店
         Route::post('/shop/examine/{shop}', 'ShopController@examine')->name('shop.examine');
+        // 绑定门店-自动发单
+        Route::post('/shop/binding', 'ShopController@binding')->name('shop.binding');
+        // 可以看到的所有门店
+        Route::get('shopAll', 'ShopController@shopAll')->name('shop.shopAll');
         // 门店
         Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
         // 门店地址加配送范围信息
@@ -78,6 +82,8 @@ Route::middleware(['force-json'])->group(function() {
         // Route::post('order2', 'OrderController@store2')->name('order.store2');
         // 取消订单
         Route::delete('order/cancel2/{order}', 'OrderController@cancel2')->name('api.order.cancel2');
+        // 通过订单获取门店详情（配送平台）
+        Route::get('/order/getShopInfoByOrder', "OrderController@getShopInfoByOrder")->name('api.order.getShopInfoByOrder');
         Route::resource('order', "OrderController", ['only' => ['store', 'show', 'index', 'destroy']]);
         // 获取配送费
         Route::get('order/money/{shop}', "OrderController@money");
@@ -133,6 +139,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::get("my_shop", "ShopController@myShops");
         // 提交门店认证
         Route::post("shop_auth", "ShopController@shopAuth");
+        // 认证成功门店列表
+        Route::get("shop_auth_success_list", "ShopController@shopAuthSuccessList");
         // 提交认证门店列表
         Route::get("shop_auth_list", "ShopController@shopAuthList");
         // 管理员审核-提交认证门店列表

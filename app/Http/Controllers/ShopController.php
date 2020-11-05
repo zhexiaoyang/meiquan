@@ -54,6 +54,26 @@ class ShopController extends Controller
         return $this->success($res);
     }
 
+    /**
+     * 能看到的所有门店
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function shopAll(Request $request)
+    {
+        $query = Shop::query()->select("id", "shop_name");
+
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+
+        $shops = $query->orderBy('id', 'desc')->get();
+
+        return $this->success($shops);
+    }
+
     // 添加用户返回没有绑定的门店
     public function wei()
     {
@@ -529,6 +549,23 @@ class ShopController extends Controller
     }
 
     /**
+     * 认证成功的门店列表
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/11/4 12:52 上午
+     */
+    public function shopAuthSuccessList()
+    {
+
+        $user = Auth::user();
+
+        $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
+            ->where("auth", 10)->get();
+
+        return $this->success($shops);
+    }
+
+    /**
      * 管理员审核门店-列表
      * @param Request $request
      * @return mixed
@@ -565,5 +602,26 @@ class ShopController extends Controller
         }
 
         return $this->success($shops);
+    }
+
+    /**
+     * 绑定门店-自动发单
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/11/4 7:53 上午
+     */
+    public function binding(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+            return $this->error("门店不存在");
+        }
+
+        if ($mtwm = intval($request->get("mtwm", 0))) {
+            $shop->mtwm = intval($mtwm);
+            $shop->save();
+        }
+
+        return $this->success();
     }
 }

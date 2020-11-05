@@ -6,10 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierFreight extends Model
 {
-    protected $fillable = ['user_id','first_weight','continuation_weight','city_code'];
+    protected $fillable = ['user_id','first_weight','continuation_weight','weight1','weight2'];
 
-    public function city()
+    public function cities()
     {
-        return $this->belongsTo(AddressCity::class, 'city_code', 'id');
+        return $this->hasMany(SupplierFreightCity::class, 'freight_id');
     }
 }

@@ -11,9 +11,11 @@ class SupplierProductController extends Controller
     public function index(Request $request)
     {
         $page_size = $request->get("page_size", 20);
+        $shop_id = $request->get("shop_id", 0);
         $search_key = $request->get("search_key", "");
+        $sort = $request->get("sort", "default");
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
@@ -21,10 +23,16 @@ class SupplierProductController extends Controller
             $query->select("id","cover","name","spec","unit");
         },"user" => function ($query) {
             $query->select("id","name");
-        }]);
+        }])->where("status", 20);
+
+        if ($sort === "sale") {
+            $query->orderBy("sale_count", "desc");
+        } else if ($sort === "price") {
+            $query->orderBy("price");
+        }
 
 
-        $products = $query->where("status", 20)->paginate($page_size);
+        $products = $query->paginate($page_size);
 
         return $this->page($products);
     }

@@ -41,6 +41,10 @@ class UserController extends Controller
             $user->name = $name;
         }
 
+        if ($telephone = $request->get("telephone")) {
+            $user->telephone = $telephone;
+        }
+
         if ($yyzz = $request->get("yyzz")) {
             $user->yyzz = $yyzz;
             $user->auth_at = date("Y-m-d H:i:s");
@@ -50,8 +54,28 @@ class UserController extends Controller
             $user->ypjy = $ypjy;
         }
 
+        if ($yyzz_start_time = $request->get("yyzz_start_time")) {
+            $user->yyzz_start_time = $yyzz_start_time;
+        }
+
+        if ($yyzz_end_time = $request->get("yyzz_end_time")) {
+            $user->yyzz_end_time = $yyzz_end_time;
+        }
+
+        if ($ypjy_start_time = $request->get("ypjy_start_time")) {
+            $user->ypjy_start_time = $ypjy_start_time;
+        }
+
+        if ($ypjy_end_time = $request->get("ypjy_end_time")) {
+            $user->ypjy_end_time = $ypjy_end_time;
+        }
+
         if ($description = $request->get("description")) {
             $user->description = $description;
+        }
+
+        if ($notice = $request->get("notice")) {
+            $user->notice = $notice;
         }
 
         $user->save();

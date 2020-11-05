@@ -27,6 +27,7 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 10);
+        $shop_id = $request->get('shop_id', 0);
         $search_key = $request->get('search_key', '');
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
@@ -43,6 +44,10 @@ class OrderController extends Controller
                     ->orWhere('receiver_name', 'like', "%{$search_key}%")
                     ->orWhere('receiver_phone', 'like', "%{$search_key}%");
             });
+        }
+
+        if ($shop_id) {
+            $query->where("shop_id", $shop_id);
         }
 
         // 判断可以查询的药店
@@ -189,7 +194,9 @@ class OrderController extends Controller
      */
     public function resend(Request $request)
     {
-        if (!$order = Order::find($request->get("order_id", 0))) {
+        $order_id = $request->get("order_id", 0);
+
+        if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
         }
 
@@ -198,28 +205,47 @@ class OrderController extends Controller
         }
 
         if ($request->get("mt", 0) === 0) {
-            $order->fail_mt = '重新发送订单-不选择';
+            if (!$order->fail_mt) {
+                $order->fail_mt = '重新发送订单-不选择';
+            }
         } else {
             $order->fail_mt = '';
         }
 
         if ($request->get("fn", 0) === 0) {
-            $order->fail_fn = '重新发送订单-不选择';
+            if (!$order->fail_fn) {
+                $order->fail_fn = '重新发送订单-不选择';
+            }
         } else {
             $order->fail_fn = '';
         }
 
         if ($request->get("ss", 0) === 0) {
-            $order->fail_ss = '重新发送订单-不选择';
+            if (!$order->fail_ss) {
+                $order->fail_ss = '重新发送订单-不选择';
+            }
         } else {
             $order->fail_ss = '';
         }
 
+        if ($request->get("sf", 0) === 0) {
+            if (!$order->fail_sf) {
+                $order->fail_sf = '重新发送订单-不选择';
+            }
+        } else {
+            $order->fail_sf = '';
+        }
+
+        $order->status = 0;
+        $order->ps = 0;
+
         $order->save();
 
-        // dispatch(new CreateMtOrder($order));
+        $order = Order::find($order_id);
 
-        return $this->success("提交成功");
+        dispatch(new CreateMtOrder($order));
+
+        return $this->success("发送成功");
     }
 
     /**
@@ -892,6 +918,31 @@ class OrderController extends Controller
         }
 
         return $this->error($res_ss['msg'] ?? "成功");
+    }
+
+    /**
+     * 通过订单获取门店详情（配送平台）
+     * @param Request $request
+     * @author zhangzhen
+     * @data 2020/11/4 10:05 上午
+     */
+    public function getShopInfoByOrder(Request $request)
+    {
+        if (!$order = Order::query()->find($request->get("order_id", 0))) {
+            return $this->error("订单不存在");
+        }
+        if (!$shop = Shop::query()->find($order->shop_id)) {
+            return $this->error("门店不存在");
+        }
+
+        $result = [
+            'mt' => $shop->shop_id ?? 0,
+            'fn' => $shop->shop_id_fn ?? 0,
+            'ss' => $shop->shop_id_ss ?? 0,
+            'sf' => $shop->shop_id_sf ?? 0
+        ];
+
+        return $this->success($result);
     }
 }
 
