@@ -86,6 +86,10 @@ class DepositController extends Controller
 
             $auth = json_decode($auth_json, true);
 
+            if (!isset($auth['openid'])) {
+                return $this->error('微信未授权，无法使用支付');
+            }
+
             $order = [
                 'out_trade_no'  => $deposit->no,
                 'body'          => '美全配送充值',
