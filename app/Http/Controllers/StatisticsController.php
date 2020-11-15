@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\OrdersExport;
 use App\Exports\OrderStatisticsExport;
 use App\Models\Order;
 use Illuminate\Http\Request;

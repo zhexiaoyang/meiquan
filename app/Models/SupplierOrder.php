@@ -11,7 +11,7 @@ class SupplierOrder extends Model
         'no',
         'address',
         'shop_id',
-        'total_amount',
+        'total_fee',
         'remark',
         'paid_at',
         'payment_method',

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AddressCity;
 use App\Models\Shop;
+use App\Models\SupplierFreightCity;
 use Illuminate\Http\Request;
 use App\Models\SupplierCart;
 use App\Models\SupplierOrder;
@@ -28,7 +30,7 @@ class SupplierOrderController extends Controller
                 $order_info['no'] = $order->no;
                 $order_info['address'] = $order->address;
                 $order_info['shipping_fee'] = $order->shipping_fee;
-                $order_info['total_amount'] = $order->total_amount;
+                $order_info['total_fee'] = $order->total_fee;
                 $order_info['original_amount'] = $order->original_amount;
                 $order_info['payment_method'] = $order->payment_method;
                 $order_info['cancel_reason'] = $order->cancel_reason;
@@ -95,25 +97,33 @@ class SupplierOrderController extends Controller
         $order = \DB::transaction(function () use ($user, $data, $shop, $remark) {
 
             foreach ($data as $shop_id => $carts) {
+                // 运费
+                $postage = 0;
+                // 总重量
+                $product_weight = 0;
+                // 总金额
+                $total_fee = 0;
                 // 创建一个订单
                 $order   = new SupplierOrder([
                     'shop_id'       => $shop_id,
                     'address'       => [
                         'address'       => $shop->shop_address,
+                        'shop_id'       => $shop->receive_shop_id,
                         'shop_name'       => $shop->shop_name,
                         'meituan_id'       => $shop->mt_shop_id,
                         'contact_name'  => $shop->contact_name,
                         'contact_phone' => $shop->contact_phone,
                     ],
+                    'receive_shop_id'       => $shop->id,
+                    'receive_shop_name'       => $shop->shop_name,
                     'remark'        => $remark,
-                    'total_amount'  => 0,
+                    'total_fee'  => 0,
                 ]);
                 // 订单关联到当前用户
                 $order->user()->associate($user);
                 // 写入数据库
                 $order->save();
 
-                $totalAmount = 0;
                 // 遍历用户提交的 SKU
                 foreach ($carts as $cart) {
                     $cart->load('product.depot');
@@ -132,11 +142,33 @@ class SupplierOrderController extends Controller
                     ]);
                     $item->product()->associate($product->id);
                     $item->save();
-                    $totalAmount += $product->price * $cart['amount'];
+                    $total_fee += $product->price * $cart['amount'];
+                    $product_weight += $product->weight * $cart['amount'];
                 }
 
+                // 配送费计算
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
+                // if ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first()) {
+                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                        $first_weight = $freight->first_weight;
+                        $continuation_weight = $freight->continuation_weight;
+                        $weight1 = $freight->weight1;
+                        $weight2 = $freight->weight2;
 
-                if ($totalAmount <= 0) {
+                        if ($product_weight / 1000 <= $weight1) {
+                            $postage += $first_weight;
+                        } else {
+                            $postage += $first_weight;
+                            $postage += ceil((($product_weight / 1000) - $weight1) / $weight2) * $continuation_weight;
+                        }
+                    }
+                }
+                // 计算配送费
+                $total_fee += $postage;
+
+
+                // 如果订单金额小于0，变成已支付状态
+                if ($total_fee <= 0) {
                     // 更新支付状态
                     $order->update([
                         'status' => 30,
@@ -144,8 +176,12 @@ class SupplierOrderController extends Controller
                         'payment_method' => 3
                     ]);
                 } else {
+                    // 写入配送费
+                    $order->shipping_fee = $postage;
                     // 更新订单总金额
-                    $order->update(['total_amount' => $totalAmount]);
+                    $order->total_fee = $total_fee;
+                    // 保存信息
+                    $order->save();
                 }
 
                 // 将下单的商品从购物车中移除
@@ -169,7 +205,7 @@ class SupplierOrderController extends Controller
         $order_info['no'] = $order->no;
         $order_info['address'] = $order->address;
         $order_info['shipping_fee'] = $order->shipping_fee;
-        $order_info['total_amount'] = $order->total_amount;
+        $order_info['total_fee'] = $order->total_fee;
         $order_info['original_amount'] = $order->original_amount;
         $order_info['payment_method'] = $order->payment_method;
         $order_info['status'] = $order->status;

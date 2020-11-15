@@ -103,7 +103,7 @@ class Api extends Request
                 "transport_remark" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ],
             "order_add_time" => strtotime($order->created_at) * 1000,
-            "order_total_amount" => $order->goods_value,
+            "order_total_fee" => $order->goods_value,
             "order_actual_amount" => 0,
             "order_weight" => $order->goods_weight,
             "order_remark" => $order->note,

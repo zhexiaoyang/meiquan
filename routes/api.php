@@ -188,6 +188,10 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
         Route::prefix("order")->group(function () {
             // 订单列表
             Route::get("index", "OrderController@index");
+            // 导出订单
+            Route::get("export", "OrderController@export");
+            // 导出订单商品
+            Route::get("/product/export", "OrderController@exportProduct");
             // 订单详情
             Route::get("show", "OrderController@show");
             // 订单发货

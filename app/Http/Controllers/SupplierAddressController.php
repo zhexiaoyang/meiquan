@@ -11,7 +11,8 @@ class SupplierAddressController extends Controller
     {
         $user_id = $request->user()->id;
 
-        $shops = Shop::query()->select("id", "shop_address")->where("user_id", $user_id)->get();
+        $shops = Shop::query()->select("id", "shop_address")->where("own_id", $user_id)->where('auth', 10)
+            ->orderBy("id", "asc")->get();
 
         return $this->success($shops);
     }

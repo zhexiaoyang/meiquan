@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AddressCity;
+use App\Models\Shop;
 use App\Models\SupplierCart;
+use App\Models\SupplierFreightCity;
 use App\Models\SupplierProduct;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,15 +14,93 @@ class SupplierCartController extends Controller
 {
     public function index(Request $request)
     {
-        $page_size = $request->get("page_size");
-
         $user_id = $request->user()->id;
+
+        $address_id = $request->get("address_id");
+
+        if ($address_id) {
+            if (!$shop = Shop::query()->where('own_id', $user_id)->find($address_id)) {
+                return $this->error("收货门店不存在");
+            }
+
+            if ($shop->auth !== 10) {
+                return $this->error("收货门店未认证，不能下单");
+            }
+        } else {
+            $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
+        }
+
+        $result = [];
+        $data = [];
+        $postage = 0;
+        $total= 0;
+        $total_weight= 0;
+
 
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
-        }])->where("user_id", $user_id)->paginate($page_size);
+        }])->where("user_id", $user_id)->get();
 
-        return $this->page($carts);
+        if (!empty($carts)) {
+            $shop_cart_data = [];
+            foreach ($carts as $cart) {
+                $shop_cart_data[$cart->product->user_id][] = $cart;
+            }
+            foreach ($shop_cart_data as $shop_id => $shop_cart) {
+                $product_weight = 0;
+                foreach ($shop_cart as $item) {
+                    if ($item->product->depot->id) {
+                        $tmp['id'] = $item->id;
+                        $tmp['name'] = $item->product->depot->name;
+                        $tmp['cover'] = $item->product->depot->cover;
+                        $tmp['spec'] = $item->product->depot->spec;
+                        $tmp['unit'] = $item->product->depot->unit;
+                        $tmp['number'] = $item->product->number;
+                        $tmp['price'] = $item->product->price;
+                        $tmp['product_date'] = $item->product->product_date;
+                        $tmp['weight'] = $item->product->weight;
+                        $tmp['amount'] = $item->amount;
+                        $tmp['created_at'] = $item->product->created_at;
+                        $tmp['checked'] = $item->checked;
+                        $subtotal = $item->amount * ($item->product->price * 100) / 100;
+                        $tmp['subtotal'] = $subtotal;
+                        if ($item->checked) {
+                            $total += $subtotal;
+                            $product_weight += $item->product->weight * $item->amount;
+                            $total_weight += $item->product->weight * $item->amount;
+                        }
+                        $data[] = $tmp;
+                    }
+                }
+
+                // SupplierFreightCity::query()->where('')
+                // $product_weight
+
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
+                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                        $first_weight = $freight->first_weight;
+                        $continuation_weight = $freight->continuation_weight;
+                        $weight1 = $freight->weight1;
+                        $weight2 = $freight->weight2;
+
+                        if ($product_weight / 1000 <= $weight1) {
+                            $postage += $first_weight;
+                        } else {
+                            $postage += $first_weight;
+                            $postage += ceil((($product_weight / 1000) - $weight1) / $weight2) * $continuation_weight;
+                        }
+                    }
+                }
+            }
+        }
+
+        $result['total'] = $total;
+        $result['total_weight'] = $total_weight / 1000;
+        $result['postage'] = $postage;
+        $result['address_id'] = $shop->id;
+        $result['data'] = $data;
+
+        return $this->success($result);
     }
 
     public function store(Request $request)

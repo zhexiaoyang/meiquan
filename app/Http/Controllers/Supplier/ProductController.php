@@ -28,7 +28,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number","detail")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number","weight","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -81,6 +81,7 @@ class ProductController extends Controller
                 $tmp['number'] = $product->number;
                 $tmp['product_date'] = $product->product_date;
                 $tmp['detail'] = $product->detail;
+                $tmp['weight'] = $product->weight;
                 $tmp['cover'] = $product->depot->cover;
                 $tmp['upc'] = $product->depot->upc;
                 $tmp['name'] = $product->depot->name;
@@ -224,7 +225,7 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request)
     {
-        $data = $request->only("stock","price", "status","number","product_date","detail");
+        $data = $request->only("stock","price", "status","number","product_date","weight","detail");
 
         if (!$product = SupplierProduct::query()->find($request->get("id"))) {
             return $this->error("药品不存在");
@@ -291,7 +292,7 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'price' => 'bail|required|numeric|min:0.01',
+            'price' => 'bail|required|numeric|min:0',
             'stock' => 'bail|required|numeric',
             'number' => 'bail|required',
             'product_date' => 'bail|required|date',
@@ -312,6 +313,8 @@ class ProductController extends Controller
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
         $product_data['number'] = $request->get("number");
+        $product_data['weight'] = $request->get("weight", 0);
+        $product_data['detail'] = $request->get("detail", "");
         $product_data['product_date'] = $request->get("product_date");
         SupplierProduct::query()->create($product_data);
 
