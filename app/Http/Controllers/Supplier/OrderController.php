@@ -205,10 +205,11 @@ class OrderController extends Controller
         }
 
         if ($order->status <= 30) {
+            $status = $order->status;
             $order->status = 90;
             $order->cancel_reason = $request->get("cancel_reason") ?? '';
             $order->save();
-            if ($order->status === 30 && ($order->total_fee > 0)) {
+            if ($status === 30 && ($order->total_fee > 0)) {
                 if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
                     if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
                         if (!User::query()->where(["id" => $receive_shop_user->id, "money" => $receive_shop_user->money])->update(["money" => $receive_shop_user->money + $order->total_fee])) {
