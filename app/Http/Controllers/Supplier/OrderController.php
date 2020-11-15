@@ -206,9 +206,11 @@ class OrderController extends Controller
 
         if ($order->status <= 30) {
             $status = $order->status;
+            \Log::info("取消订单状态1", ['status=' . $status]);
             $order->status = 90;
             $order->cancel_reason = $request->get("cancel_reason") ?? '';
             $order->save();
+            \Log::info("取消订单状态2", ['status=' . $status]);
             if ($status === 30 && ($order->total_fee > 0)) {
                 if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
                     if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
