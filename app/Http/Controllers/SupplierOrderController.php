@@ -105,19 +105,19 @@ class SupplierOrderController extends Controller
                 $total_fee = 0;
                 // 创建一个订单
                 $order   = new SupplierOrder([
-                    'shop_id'       => $shop_id,
-                    'address'       => [
-                        'address'       => $shop->shop_address,
-                        'shop_id'       => $shop->receive_shop_id,
-                        'shop_name'       => $shop->shop_name,
-                        'meituan_id'       => $shop->mt_shop_id,
-                        'contact_name'  => $shop->contact_name,
+                    'shop_id' => $shop_id,
+                    'address' => [
+                        'address' => $shop->shop_address,
+                        'shop_id' => $shop->receive_shop_id,
+                        'shop_name' => $shop->shop_name,
+                        'meituan_id' => $shop->mt_shop_id,
+                        'contact_name' => $shop->contact_name,
                         'contact_phone' => $shop->contact_phone,
                     ],
-                    'receive_shop_id'       => $shop->id,
-                    'receive_shop_name'       => $shop->shop_name,
-                    'remark'        => $remark,
-                    'total_fee'  => 0,
+                    'receive_shop_id' => $shop->id,
+                    'receive_shop_name' => $shop->shop_name,
+                    'remark' => $remark,
+                    'total_fee' => 0,
                 ]);
                 // 订单关联到当前用户
                 $order->user()->associate($user);

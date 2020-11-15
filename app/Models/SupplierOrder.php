@@ -10,6 +10,8 @@ class SupplierOrder extends Model
     protected $fillable = [
         'no',
         'address',
+        'receive_shop_id',
+        'receive_shop_name',
         'shop_id',
         'total_fee',
         'remark',
