@@ -204,6 +204,10 @@ class OrderController extends Controller
             return $this->error("该门店不能发单");
         }
 
+        if (($order->status >= 20) && ($order->status <= 70)) {
+            return $this->error("订单状态不正确，请先取消订单在重新发送");
+        }
+
         if ($request->get("mt", 0) === 0) {
             if (!$order->fail_mt) {
                 $order->fail_mt = '重新发送订单-不选择';
