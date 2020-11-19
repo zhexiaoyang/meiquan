@@ -195,7 +195,7 @@ class SupplierOrderController extends Controller
                 $product_ids = collect($carts)->pluck('id');
                 $user->carts()->whereIn('id', $product_ids)->delete();
 
-                dispatch(new CloseOrder($order, 120));
+                dispatch(new CloseOrder($order, 600));
             }
 
             return $order;
