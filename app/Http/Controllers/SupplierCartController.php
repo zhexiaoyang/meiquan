@@ -7,12 +7,190 @@ use App\Models\Shop;
 use App\Models\SupplierCart;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProduct;
+use App\Models\SupplierUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SupplierCartController extends Controller
 {
     public function index(Request $request)
+    {
+        $user_id = $request->user()->id;
+
+        $result = [];
+        $data = [];
+        $total= 0;
+
+
+        $carts = SupplierCart::with(["product.depot" => function($query) {
+            $query->select("id","cover","name","spec","unit");
+        }])->where("user_id", $user_id)->get();
+
+        if (!empty($carts)) {
+            $shop_cart_data = [];
+            foreach ($carts as $cart) {
+                $shop_cart_data[$cart->product->user_id][] = $cart;
+            }
+            foreach ($shop_cart_data as $shop_id => $shop_cart) {
+
+                if (!$supplier = SupplierUser::query()->select("id", "name")->find($shop_id)) {
+                    continue;
+                }
+
+                $data[$shop_id]['shop'] = $supplier;
+
+                foreach ($shop_cart as $item) {
+                    if ($item->product->depot->id) {
+                        $tmp['id'] = $item->id;
+                        $tmp['name'] = $item->product->depot->name;
+                        $tmp['cover'] = $item->product->depot->cover;
+                        $tmp['spec'] = $item->product->depot->spec;
+                        $tmp['unit'] = $item->product->depot->unit;
+                        $tmp['number'] = $item->product->number;
+                        $tmp['price'] = $item->product->price;
+                        $tmp['product_date'] = $item->product->product_date;
+                        $tmp['weight'] = $item->product->weight;
+                        $tmp['amount'] = $item->amount;
+                        $tmp['created_at'] = $item->product->created_at;
+                        $tmp['checked'] = $item->checked;
+                        $subtotal = $item->amount * ($item->product->price * 100) / 100;
+                        $tmp['subtotal'] = $subtotal;
+                        if ($item->checked) {
+                            $total += $subtotal;
+                        }
+                        $data[$shop_id]['products'][] = $tmp;
+                    }
+                }
+            }
+        }
+
+        $result['total'] = $total;
+        $result['data'] = array_values($data);
+
+        return $this->success($result);
+    }
+
+    public function settlement(Request $request)
+    {
+        $user_id = $request->user()->id;
+
+        $address_id = $request->get("address_id");
+
+        $product_id = $request->get("product_id");
+
+        if ($product = SupplierProduct::query()->find($product_id)) {
+
+            SupplierCart::query()->where("user_id", $user_id)->update(['checked' => 0]);
+
+            if ($cart = SupplierCart::query()->where(["user_id" => $user_id, 'product_id' => $product_id])->first()) {
+                $cart->checked = 1;
+                $cart->save();
+            } else {
+                $cart = new SupplierCart();
+                $cart->user_id = $user_id;
+                $cart->product_id = $product_id;
+                $cart->amount = 1;
+                $cart->save();
+            }
+        }
+
+        if ($address_id) {
+            if (!$shop = Shop::query()->where('own_id', $user_id)->find($address_id)) {
+                return $this->error("收货门店不存在");
+            }
+
+            if ($shop->auth !== 10) {
+                return $this->error("收货门店未认证，不能下单");
+            }
+        } else {
+            $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
+        }
+
+        $result = [];
+        $data = [];
+        $postage = 0;
+        $total= 0;
+        $total_weight= 0;
+
+
+        $carts = SupplierCart::with(["product.depot" => function($query) {
+            $query->select("id","cover","name","spec","unit");
+        }])->where(["user_id" => $user_id, "checked" => 1])->get();
+
+        if (!empty($carts)) {
+            $shop_cart_data = [];
+            foreach ($carts as $cart) {
+                $shop_cart_data[$cart->product->user_id][] = $cart;
+            }
+            foreach ($shop_cart_data as $shop_id => $shop_cart) {
+
+                if (!$supplier = SupplierUser::query()->select("id", "name")->find($shop_id)) {
+                    continue;
+                }
+
+                $product_weight = 0;
+                $product_postage = 0;
+
+                foreach ($shop_cart as $item) {
+                    if ($item->product->depot->id) {
+                        $tmp['id'] = $item->id;
+                        $tmp['name'] = $item->product->depot->name;
+                        $tmp['cover'] = $item->product->depot->cover;
+                        $tmp['spec'] = $item->product->depot->spec;
+                        $tmp['unit'] = $item->product->depot->unit;
+                        $tmp['number'] = $item->product->number;
+                        $tmp['price'] = $item->product->price;
+                        $tmp['product_date'] = $item->product->product_date;
+                        $tmp['weight'] = $item->product->weight;
+                        $tmp['amount'] = $item->amount;
+                        $tmp['created_at'] = $item->product->created_at;
+                        $tmp['checked'] = $item->checked;
+                        $subtotal = $item->amount * ($item->product->price * 100) / 100;
+                        $tmp['subtotal'] = $subtotal;
+
+                        if ($item->checked) {
+                            $total += $subtotal;
+                            $product_weight += $item->product->weight * $item->amount;
+                            $total_weight += $item->product->weight * $item->amount;
+                        }
+
+                        $data[$shop_id]['products'][] = $tmp;
+                    }
+                }
+
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
+                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                        $first_weight = $freight->first_weight;
+                        $continuation_weight = $freight->continuation_weight;
+                        $weight1 = $freight->weight1;
+                        $weight2 = $freight->weight2;
+
+                        if ($product_weight / 1000 <= $weight1) {
+                            $product_postage += $first_weight;
+                        } else {
+                            $product_postage += $first_weight;
+                            $product_postage += ceil((($product_weight / 1000) - $weight1) / $weight2) * $continuation_weight;
+                        }
+                    }
+                }
+
+                $supplier->postage = $product_postage;
+                $supplier->weight = $product_weight;
+                $data[$shop_id]['shop'] = $supplier;
+                $postage += $product_postage;
+            }
+        }
+
+        $result['total'] = $total;
+        $result['total_weight'] = $total_weight / 1000;
+        $result['postage'] = $postage;
+        $result['address_id'] = $shop->id;
+        $result['data'] = $data;
+
+        return $this->success($result);
+    }
+
+    public function index2(Request $request)
     {
         $user_id = $request->user()->id;
 

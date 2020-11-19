@@ -184,7 +184,7 @@ class PaymentController
             DB::table('supplier_orders')->where("id", $order->id)->update([
                 'paid_at'           => date('Y-m-d H:i:s'),
                 'payment_no'        => $data->transaction_id,
-                'payment_method'    => 1,
+                'payment_method'    => 2,
                 'status'            => 30
             ]);
 

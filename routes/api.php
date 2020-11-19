@@ -118,6 +118,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::post("cart/change", "SupplierCartController@change");
             // 采购购物车-设置选中
             Route::post("cart/checked", "SupplierCartController@checked");
+            // 采购购物车-结算
+            Route::get("cart/settlement", "SupplierCartController@settlement");
             // 地址
             Route::get("address", "SupplierAddressController@index");
             // 订单

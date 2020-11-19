@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\InvalidRequestException;
+use App\Jobs\CloseOrder;
 use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierFreightCity;
@@ -124,7 +126,7 @@ class SupplierOrderController extends Controller
                 // 写入数据库
                 $order->save();
 
-                // 遍历用户提交的 SKU
+                // 遍历购物车选中的商品
                 foreach ($carts as $cart) {
                     $cart->load('product.depot');
                     // $product  = SupplierProduct::query()->find($data['product_id']);
@@ -144,6 +146,11 @@ class SupplierOrderController extends Controller
                     $item->save();
                     $total_fee += $product->price * $cart['amount'];
                     $product_weight += $product->weight * $cart['amount'];
+
+                    // 减库存
+                    if ($cart->product->decreaseStock($cart['amount']) <= 0) {
+                        throw new InvalidRequestException('该商品库存不足');
+                    }
                 }
 
                 // 配送费计算
@@ -187,12 +194,14 @@ class SupplierOrderController extends Controller
                 // 将下单的商品从购物车中移除
                 $product_ids = collect($carts)->pluck('id');
                 $user->carts()->whereIn('id', $product_ids)->delete();
+
+                dispatch(new CloseOrder($order, 120));
             }
 
-            return true;
+            return $order;
         });
 
-        return $this->success();
+        return $this->success(['order_id' => $order->id]);
     }
 
     public function show(SupplierOrder $order)

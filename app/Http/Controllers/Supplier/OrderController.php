@@ -29,7 +29,9 @@ class OrderController extends Controller
         $start_date = $request->get("start_date", '');
         $end_date = $request->get("end_date", '');
 
-        $query = SupplierOrder::with('items')->orderBy("id", "desc")->where("shop_id", $user->id);
+        $query = SupplierOrder::with('items')->orderBy("id", "desc")
+            ->where("shop_id", $user->id)
+            ->where("status", '>', 0);
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -219,6 +221,9 @@ class OrderController extends Controller
                         }
                     }
                 }
+            }
+            foreach ($order->items as $item) {
+                $item->product->addStock($item->amount);
             }
         }
 
