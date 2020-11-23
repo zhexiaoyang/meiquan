@@ -23,9 +23,9 @@ class ExampleProductController extends Controller
         }
 
         if ($depot->status === 0) {
-            $depot->status = 1;
+            $depot->status = 20;
             if ($depot->save()) {
-                SupplierProduct::query()->where('depot_id', $depot->id)->update(['status' => 1]);
+                SupplierProduct::query()->where('depot_id', $depot->id)->update(['status' => 20]);
             }
         }
 
