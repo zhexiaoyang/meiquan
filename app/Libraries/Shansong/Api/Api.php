@@ -68,7 +68,7 @@ class Api extends Request
                 "toReceiverName" => $order->receiver_name ?: "无名",
                 "toMobile" => str_replace('_', '#', $order->receiver_phone),
                 "goodType" => 1,
-                "weight" => ceil($order->goods_weight),
+                "weight" => 1,
                 "remarks" => $order->note ?? "",
                 // "additionFee" => 500,
                 // "insurance" => 200,

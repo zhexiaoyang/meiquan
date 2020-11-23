@@ -29,7 +29,7 @@ class Api extends Request
             'receiver_lat' => $order->receiver_lat * 1000000,
             'coordinate_type' => 0,
             'goods_value' => $order->goods_value,
-            'goods_weight' => $order->goods_weight,
+            'goods_weight' => 1,
             'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
         ];
 

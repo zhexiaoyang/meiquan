@@ -179,7 +179,7 @@ class PaymentController
 
         $status = DB::transaction(function () use ($data, $order) {
 
-            \Log::info('将订单标记为已支付');
+            \Log::info('将订单标记为已支付', [ $data, $order ]);
             // 将订单标记为已支付
             DB::table('supplier_orders')->where("id", $order->id)->update([
                 'paid_at'           => date('Y-m-d H:i:s'),

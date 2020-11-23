@@ -105,7 +105,7 @@ class Api extends Request
             "order_add_time" => strtotime($order->created_at) * 1000,
             "order_total_fee" => $order->goods_value,
             "order_actual_amount" => 0,
-            "order_weight" => $order->goods_weight,
+            "order_weight" => 1,
             "order_remark" => $order->note,
             "is_invoiced" => 0,
             // "invoice" => "xxx有限公司",
