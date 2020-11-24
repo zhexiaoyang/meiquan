@@ -16,7 +16,7 @@ class ProductUpdateRequest extends Request
                 Rule::exists('supplier_products', 'id')->where('user_id', $this->user()->id),
             ],
             'status' => 'nullable|in:0,10,20',
-            'price' => 'bail|required|numeric|min:0.01',
+            // 'price' => 'bail|required|numeric|min:0.01',
             'stock' => 'bail|required|numeric'
         ];
     }
@@ -28,9 +28,9 @@ class ProductUpdateRequest extends Request
             'id.numeric' => '药品格式不正确',
             'id.exists' => '药品不存在',
             'status.in' => '药品状态格式不正确',
-            'price.required' => '药品价格不能为空',
-            'price.numeric' => '药品价格格式不正确',
-            'price.min' => '药品价格不能小于等于0',
+            // 'price.required' => '药品价格不能为空',
+            // 'price.numeric' => '药品价格格式不正确',
+            // 'price.min' => '药品价格不能小于等于0',
             'stock.required' => '药品库存不能为空',
             'stock.numeric' => '药品库存格式不正确'
         ];

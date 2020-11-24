@@ -292,14 +292,14 @@ class ProductController extends Controller
         }
 
         $request->validate([
-            'price' => 'bail|required|numeric|min:0',
+            // 'price' => 'bail|required|numeric|min:0',
             'stock' => 'bail|required|numeric',
             'number' => 'bail|required',
             'product_date' => 'bail|required|date',
         ],[
             'price.required' => '药品价格不能为空',
             'price.numeric' => '药品价格格式不正确',
-            'price.min' => '药品价格不能小于等于0',
+            // 'price.min' => '药品价格不能小于等于0',
             'stock.required' => '药品库存不能为空',
             'stock.numeric' => '药品库存格式不正确',
             'spec.required' => '药品规格不能为空',
