@@ -11,6 +11,7 @@ class PaymentController extends Controller
 {
     public function pay(Request $request)
     {
+        \Log::info("调用支付", [$request->all()]);
         $user = Auth::user();
         $pay_method = $request->get("method", 0);
         $id = $request->get("id", 0);
