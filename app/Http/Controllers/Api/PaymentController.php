@@ -160,33 +160,49 @@ class PaymentController
         // 校验回调参数是否正确
         $data  = Pay::wechat()->verify($request->getContent());
         // 找到对应的订单
-        $order = SupplierOrder::where('no', $data->out_trade_no)->first();
+        $orders = SupplierOrder::query()->where('no', $data->out_trade_no)->get();
 
         // 订单不存在
-        if (!$order) {
-            return $this->wechat();
+        if ($orders->isEmpty()) {
+            \Log::info('支付-订单号为空', [ $data ]);
+            $orders = SupplierOrder::query()->where('pay_no', $data->out_trade_no)->get();
+            if ($orders->isEmpty()) {
+                \Log::info('支付-交易单号为空', [ $data ]);
+                return $this->wechat();
+            }
         }
 
         // 订单已支付
-        if ($order->status > 0) {
-            return $this->wechat();
+        // if ($orders->status > 0) {
+        //     return $this->wechat();
+        // }
+
+        $amount = 0;
+
+        foreach ($orders as $order) {
+            $amount += $order->total_fee * 100;
         }
 
         // 订单金额判断
-        if ($order->total_fee != $data->total_fee/100) {
+        if ($amount != $data->total_fee) {
+            \Log::info('支付订单金额不符', [ $data, $orders ]);
             return $this->wechat();
         }
 
-        $status = DB::transaction(function () use ($data, $order) {
+        $status = DB::transaction(function () use ($data, $orders) {
 
-            \Log::info('将订单标记为已支付', [ $data, $order ]);
-            // 将订单标记为已支付
-            DB::table('supplier_orders')->where("id", $order->id)->update([
-                'paid_at'           => date('Y-m-d H:i:s'),
-                'payment_no'        => $data->transaction_id,
-                'payment_method'    => 2,
-                'status'            => 30
-            ]);
+            foreach ($orders as $order) {
+                if ($order->status == 0) {
+                    \Log::info('将订单标记为已支付', [ $data, $order ]);
+                    // 将订单标记为已支付
+                    DB::table('supplier_orders')->where("id", $order->id)->update([
+                        'paid_at'           => date('Y-m-d H:i:s'),
+                        'payment_no'        => $data->transaction_id,
+                        'payment_method'    => 2,
+                        'status'            => 30
+                    ]);
+                }
+            }
 
             return true;
 

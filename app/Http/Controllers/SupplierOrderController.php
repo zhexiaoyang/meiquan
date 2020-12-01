@@ -10,6 +10,7 @@ use App\Models\SupplierFreightCity;
 use Illuminate\Http\Request;
 use App\Models\SupplierCart;
 use App\Models\SupplierOrder;
+use Illuminate\Support\Facades\Auth;
 
 class SupplierOrderController extends Controller
 {
@@ -98,6 +99,8 @@ class SupplierOrderController extends Controller
         // 开启一个数据库事务
         $order = \DB::transaction(function () use ($user, $data, $shop, $remark) {
 
+            $pay_no = SupplierOrder::findAvailablePayNo();
+
             foreach ($data as $shop_id => $carts) {
                 // 运费
                 $postage = 0;
@@ -108,6 +111,7 @@ class SupplierOrderController extends Controller
                 // 创建一个订单
                 $order   = new SupplierOrder([
                     'shop_id' => $shop_id,
+                    'pay_no' => $pay_no,
                     'address' => [
                         'address' => $shop->shop_address,
                         'shop_id' => $shop->receive_shop_id,
@@ -177,19 +181,26 @@ class SupplierOrderController extends Controller
                 // 如果订单金额小于0，变成已支付状态
                 if ($total_fee <= 0) {
                     // 更新支付状态
-                    $order->update([
-                        'status' => 30,
-                        'paid_at' => date("Y-m-d"),
-                        'payment_method' => 3
-                    ]);
+                    $order->status = 30;
+                    $order->paid_at = date("Y-m-d");
+                    $order->payment_method = 30;
+                    // $order->update([
+                    //     'status' => 30,
+                    //     'paid_at' => date("Y-m-d"),
+                    //     'payment_method' => 3
+                    // ]);
                 } else {
                     // 写入配送费
                     $order->shipping_fee = $postage;
                     // 更新订单总金额
                     $order->total_fee = $total_fee;
-                    // 保存信息
-                    $order->save();
                 }
+
+                if (count($data) <= 1) {
+                    $order->pay_no = $order->no;
+                }
+                // 保存信息
+                $order->save();
 
                 // 将下单的商品从购物车中移除
                 $product_ids = collect($carts)->pluck('id');
@@ -201,7 +212,7 @@ class SupplierOrderController extends Controller
             return $order;
         });
 
-        return $this->success(['order_id' => $order->id]);
+        return $this->success(['id' => $order->id, 'no' => $order->pay_no]);
     }
 
     public function show(SupplierOrder $order)
@@ -246,6 +257,49 @@ class SupplierOrderController extends Controller
         $order->status = 70;
         $order->save();
         return $this->success();
+    }
+
+    public function payOrders(Request $request)
+    {
+        $user = Auth::user();
+        $id = $request->get("id", 0);
+        $no = $request->get("no", 0);
+        $amount = 0;
+        $created_at = '';
+        $orders = [];
+
+        if ($id) {
+            $orders = SupplierOrder::query()
+                ->select("id", "no", "total_fee", "created_at")
+                ->where('id', $id)
+                ->where('user_id', $user->id)
+                ->where('status', 0)
+                ->get();
+        } elseif ($no) {
+            $orders = SupplierOrder::query()
+                ->select("id", "no", "total_fee", "created_at")
+                ->where('pay_no', $no)
+                ->where('user_id', $user->id)
+                ->where('status', 0)
+                ->get();
+        }
+
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                $created_at = date("Y-m-d H:i:s", strtotime($order->created_at));
+                $amount += $order->total_fee * 100;
+            }
+
+            $amount = $amount / 100;
+        }
+
+        $result = [
+            "amount" => $amount,
+            "created_at" => $created_at,
+            "orders" => $orders
+        ];
+
+        return $this->success($result);
     }
 
 

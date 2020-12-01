@@ -124,8 +124,10 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("address", "SupplierAddressController@index");
             // 订单
             Route::resource("order", "SupplierOrderController");
-            // 订单
-            Route::post("order/pay", "PaymentController@payByWechat");
+            // 支付订单
+            Route::post("order/pay", "PaymentController@pay");
+            // 支付订单页面调用-订单详情
+            Route::get("payOrders", "SupplierOrderController@payOrders");
             // 收货
             Route::post("received/{supplier_order}", "SupplierOrderController@received")->name("supplier.order.received");
             // 供货商审核列表

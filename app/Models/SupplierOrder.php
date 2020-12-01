@@ -9,6 +9,7 @@ class SupplierOrder extends Model
 {
     protected $fillable = [
         'no',
+        'pay_no',
         'address',
         'receive_shop_id',
         'receive_shop_name',
@@ -72,13 +73,42 @@ class SupplierOrder extends Model
         return $this->belongsTo(SupplierUser::class, "shop_id");
     }
 
+    /**
+     * 订单号生成
+     * @author zhangzhen
+     * @data dateTime
+     */
     public static function findAvailableNo()
     {
         // 订单流水号前缀
         $prefix = date('YmdHis');
-        for ($i = 0; $i < 10; $i++) {
+        $prefix = substr($prefix, 2);
+        for ($i = 0; $i < 20; $i++) {
             // 随机生成 6 位的数字
-            $no = $prefix.str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            $no = $prefix.str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+            // 判断是否已经存在
+            if (!static::query()->where('no', $no)->exists()) {
+                return $no;
+            }
+        }
+        Log::warning('find order no failed');
+
+        return false;
+    }
+
+    /**
+     * 支付订单号生成
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public static function findAvailablePayNo()
+    {
+        // 订单流水号前缀
+        $prefix = date('YmdHis');
+        $prefix = '8' . substr($prefix, 2);
+        for ($i = 0; $i < 20; $i++) {
+            // 随机生成 6 位的数字
+            $no = $prefix.str_pad(random_int(0, 9999), 4, '0', STR_PAD_LEFT);
             // 判断是否已经存在
             if (!static::query()->where('no', $no)->exists()) {
                 return $no;

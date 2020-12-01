@@ -463,14 +463,72 @@ class ShopController extends Controller
             $shop_auth = new ShopAuthentication();
         }
 
+        $chang = $request->get("chang", 0);
+
+        if (!$yyzz = $request->get('yyzz')) {
+            return $this->error("请上传营业执照");
+        }
+        if (!$ypjy = $request->get('ypjy')) {
+            return $this->error("请上传药品经营许可证");
+        }
+        if (!$spjy = $request->get('spjy')) {
+            return $this->error("请上传食品经营许可证");
+        }
+        if (!$ylqx = $request->get('ylqx')) {
+            return $this->error("请上传器械证");
+        }
+        if (!$sfz = $request->get('sfz')) {
+            return $this->error("请上传身份证");
+        }
+        if (!$wts = $request->get('wts')) {
+            return $this->error("请上传委托书");
+        }
+        if (!$yyzz_start_time = $request->get('yyzz_start_time')) {
+            return $this->error("请选择营业执照开始时间");
+        }
+        if (!$chang && (!$yyzz_end_time = $request->get('yyzz_end_time'))) {
+            return $this->error("请选择营业执照结束时间");
+        }
+        if (!$ypjy_start_time = $request->get('ypjy_start_time')) {
+            return $this->error("请选择药品经营许可证开始时间");
+        }
+        if (!$ypjy_end_time = $request->get('ypjy_end_time')) {
+            return $this->error("请选择药品经营许可证结束时间");
+        }
+        if (!$spjy_start_time = $request->get('spjy_start_time')) {
+            return $this->error("请选择食品经营许可证开始时间");
+        }
+        if (!$spjy_end_time = $request->get('spjy_end_time')) {
+            return $this->error("请选择食品经营许可证结束时间");
+        }
+        if (!$ylqx_start_time = $request->get('ylqx_start_time')) {
+            return $this->error("请选择器械证开始时间");
+        }
+        if (!$ylqx_end_time = $request->get('ylqx_end_time')) {
+            return $this->error("请选择器械证结束时间");
+        }
+
         $shop_auth->shop_id = $shop->id;
-        $shop_auth->yyzz = $request->yyzz;
-        $shop_auth->sfz = $request->sfz;
-        $shop_auth->xkz = $request->xkz;
-        $shop_auth->wts = $request->wts;
+        $shop_auth->chang = $chang;
+        $shop_auth->yyzz = $yyzz;
+        $shop_auth->xkz = $ypjy;
+        $shop_auth->spjy = $spjy;
+        $shop_auth->ylqx = $ylqx;
+        $shop_auth->sfz = $sfz;
+        $shop_auth->wts = $wts;
+        $shop_auth->yyzz_start_time = $yyzz_start_time;
+        $shop_auth->yyzz_end_time = $yyzz_end_time ?? null;
+        $shop_auth->ypjy_start_time = $ypjy_start_time;
+        $shop_auth->ypjy_end_time = $ypjy_end_time;
+        $shop_auth->spjy_start_time = $spjy_start_time;
+        $shop_auth->spjy_end_time = $spjy_end_time;
+        $shop_auth->ylqx_start_time = $ylqx_start_time;
+        $shop_auth->ylqx_end_time = $ylqx_end_time;
+
 
         if ($shop_auth->save()) {
             $shop->auth = 1;
+            $shop->apply_auth_time = date("Y-m-d H:i:s");
             $shop->save();
         }
 
