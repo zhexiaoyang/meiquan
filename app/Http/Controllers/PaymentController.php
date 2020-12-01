@@ -18,7 +18,7 @@ class PaymentController extends Controller
         $no = $request->get("no", 0);
 
         // if ($pay_method != 1 && $pay_method != 2 && $pay_method != 3) {
-        if ($pay_method != 2) {
+        if ($pay_method != 2 && $pay_method != 3) {
             return $this->error("支付方式不正确");
         }
 
