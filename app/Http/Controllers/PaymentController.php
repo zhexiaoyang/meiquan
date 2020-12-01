@@ -66,7 +66,7 @@ class PaymentController extends Controller
                 'total_fee'     => $total_fee * 100,
             ];
 
-            $wechatOrder = Pay::wechat()->scan($order);
+            $wechatOrder = Pay::wechat("pay.wechat_supplier")->scan($order);
 
             $data = [
                 'code_url' => $wechatOrder->code_url,
@@ -101,7 +101,7 @@ class PaymentController extends Controller
                 'openid'        => $auth['openid']
             ];
 
-            $wechatOrder = Pay::wechat()->mp($order);
+            $wechatOrder = Pay::wechat("pay.wechat_supplier")->mp($order);
 
             \Log::info("公众号支付获取参数", [$wechatOrder]);
 
