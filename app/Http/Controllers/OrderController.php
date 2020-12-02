@@ -536,7 +536,8 @@ class OrderController extends Controller
                 'receiver_lat' => $data['latitude'],
                 'coordinate_type' => 0,
                 'goods_value' => $data['total'],
-                'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
+                // 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
+                'goods_weight' => 3,
                 'type' => $type,
                 'status' => $status,
                 'order_type' => 0
