@@ -32,18 +32,20 @@ class MtLogisticsSync implements ShouldQueue
      */
     public function handle()
     {
-        if (in_array($this->order->type, [1,2,3,4])) {
+        if (in_array($this->order->type, [1,2,3,4,5])) {
 
             $type = $this->order->type;
 
             if ($type === 1) {
                 $meituan = app("yaojite");
-            } elseif($type === 2) {
+            } elseif ($type === 2) {
                 $meituan = app("mrx");
-            } elseif($type === 3) {
+            } elseif ($type === 3) {
                 $meituan = app("jay");
-            } else {
+            } elseif ($type === 4) {
                 $meituan = app("minkang");
+            } elseif ($type === 5) {
+                $meituan = app("qinqu");
             }
 
             $status = 5;

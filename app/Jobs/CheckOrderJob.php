@@ -30,12 +30,14 @@ class CheckOrderJob extends CronJob
 
                 if ($order->type === 1) {
                     $meituan = app("yaojite");
-                } elseif($order->type === 2) {
+                } elseif ($order->type === 2) {
                     $meituan = app("mrx");
-                } elseif($order->type === 3) {
+                } elseif ($order->type === 3) {
                     $meituan = app("jay");
-                } else {
+                } elseif ($order->type === 4) {
                     $meituan = app("minkang");
+                } elseif ($order->type === 5) {
+                    $meituan = app("qinqu");
                 }
 
                 $res = $meituan->getOrderViewStatus(['order_id' => $order->order_id]);

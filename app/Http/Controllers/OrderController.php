@@ -369,18 +369,22 @@ class OrderController extends Controller
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
 
-        if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
-            return $this->error('参数错误');
-        }
+        // if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
+        //     return $this->error('参数错误');
+        // }
 
         if ($type === 1) {
             $meituan = app("yaojite");
-        } elseif($type === 2) {
+        } elseif ($type === 2) {
             $meituan = app("mrx");
-        } elseif($type === 3) {
+        } elseif ($type === 3) {
             $meituan = app("jay");
-        } else {
+        } elseif ($type === 4) {
             $meituan = app("minkang");
+        } elseif ($type === 5) {
+            $meituan = app("qinqu");
+        } else {
+            return $this->error('参数错误');
         }
 
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
@@ -459,9 +463,9 @@ class OrderController extends Controller
 
         \Log::info('同步订单参数', ['type' => $type, 'order_id' => $order_id]);
 
-        if (!$type || !in_array($type, [1,2,3,4]) || !$order_id) {
-            return $this->error('参数错误');
-        }
+        // if (!$type || !in_array($type, [1,2,3,4]) || !$order_id) {
+        //     return $this->error('参数错误');
+        // }
 
         if ($type === 1) {
             $meituan = app("yaojite");
@@ -469,8 +473,12 @@ class OrderController extends Controller
             $meituan = app("mrx");
         } elseif($type === 3) {
             $meituan = app("jay");
-        } else {
+        } elseif($type === 4) {
             $meituan = app("minkang");
+        } elseif($type === 5) {
+            $meituan = app("qinqu");
+        } else {
+            return $this->error('参数错误');
         }
 
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);

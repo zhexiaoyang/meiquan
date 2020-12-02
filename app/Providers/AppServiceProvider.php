@@ -20,39 +20,52 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // 美团跑腿
         $this->app->singleton('meituan', function () {
             $config = config('ps.meituan');
             return new MeiTuan($config);
         });
+        // 蜂鸟配送
         $this->app->singleton('fengniao', function () {
             $config = config('ps.fengniao');
             return new Fengniao($config);
         });
+        // 闪送配送
         $this->app->singleton('shansong', function () {
             $config = config('ps.shansong');
             return new Shansong($config);
         });
+        // 药柜
         $this->app->singleton('yaogui', function () {
             $config = config('ps.yaogui');
             return new Yaogui($config);
         });
-
+        // 药及特
         $this->app->singleton('yaojite', function () {
             $config = config('ps.yaojite');
             return new MeiTuan($config);
         });
+        // 毛绒熊
         $this->app->singleton('mrx', function () {
             $config = config('ps.mrx');
             return new MeiTuan($config);
         });
+        // 洁爱眼
         $this->app->singleton('jay', function () {
             $config = config('ps.jay');
             return new MeiTuan($config);
         });
+        // 民康
         $this->app->singleton('minkang', function () {
             $config = config('ps.minkang');
             return new MeiTuan($config);
         });
+        // 寝趣
+        $this->app->singleton('qinqu', function () {
+            $config = config('ps.qinqu');
+            return new MeiTuan($config);
+        });
+        // 顺丰
         $this->app->singleton('shunfeng', function () {
             $config = config('ps.shunfeng');
             return new Shunfeng($config);
