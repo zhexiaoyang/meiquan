@@ -228,6 +228,12 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
     });
 });
 
+Route::middleware(['force-json'])->prefix("erp")->namespace("Erp")->group(function() {
+    Route::prefix("v1")->namespace("V1")->group(function() {
+        Route::post("product/stock", "ProductController@stock");
+    });
+});
+
 /**
  * 支付回调接口
  */

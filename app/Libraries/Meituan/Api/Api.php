@@ -217,9 +217,28 @@ class Api extends Request
         return $this->request_get('v1/order/viewstatus', $params);
     }
 
+    /**
+     * 同步订单状态
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/12/5 7:36 上午
+     */
     public function logisticsSync(array $params)
     {
         return $this->request_post('v1/ecommerce/order/logistics/sync', $params);
+    }
+
+    /**
+     * 同步库存
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/12/5 7:36 上午
+     */
+    public function medicineStock(array $params)
+    {
+        return $this->request_post('v1/medicine/stock', $params);
     }
 
     /**
