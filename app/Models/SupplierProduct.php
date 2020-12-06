@@ -7,11 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierProduct extends Model
 {
-    protected $fillable = ["user_id","depot_id","price","amount","stock","status","number","weight","product_date","detail"];
+    protected $fillable = ["user_id","depot_id","price","amount","stock","status","number","weight","product_date","detail","sale_type"];
 
     public function depot()
     {
         return $this->hasOne(SupplierDepot::class, "id", "depot_id");
+    }
+
+    public function city_price()
+    {
+        return $this->belongsTo(SupplierProductCityPriceItem::class, "id", "product_id");
     }
 
     public function user()

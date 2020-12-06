@@ -187,6 +187,12 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::post("destroy", "ProductController@destroy");
             // 商品上下架
             Route::post("online", "ProductController@online");
+            // 城市价格获取
+            Route::get("city", "ProductController@getCityPrice");
+            // 城市价格设置
+            Route::post("city", "ProductController@setCityPrice");
+            // 城市价格删除
+            Route::delete("city", "ProductController@deleteCityPrice");
         });
 
         Route::prefix("order")->group(function () {

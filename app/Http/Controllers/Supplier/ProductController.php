@@ -7,6 +7,8 @@ use App\Http\Requests\Supplier\ProductUpdateRequest;
 use App\Models\SupplierCategory;
 use App\Models\SupplierDepot;
 use App\Models\SupplierProduct;
+use App\Models\SupplierProductCityPrice;
+use App\Models\SupplierProductCityPriceItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -28,7 +30,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","product_date","number","weight","detail")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","sale_type","product_date","number","weight","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -76,6 +78,7 @@ class ProductController extends Controller
                 $tmp['id'] = $product->id;
                 $tmp['price'] = $product->price;
                 $tmp['stock'] = $product->stock;
+                $tmp['sale_type'] = $product->sale_type;
                 $tmp['sale_count'] = $product->sale_count;
                 $tmp['status'] = $product->status;
                 $tmp['number'] = $product->number;
@@ -149,8 +152,9 @@ class ProductController extends Controller
             "status" => $product->status,
             "depot_id" => $product->depot_id,
             "stock" => $product->stock,
-            "price" => $product->price,
+            "price" => (float) $product->price,
             "detail" => $product->detail,
+            "sale_type" => $product->sale_type,
             "category_id" => $product->depot->category_id,
             "name" => $product->depot->name,
             "spec" => $product->depot->spec,
@@ -342,5 +346,129 @@ class ProductController extends Controller
         }
 
         return $this->success(array_values($result));
+    }
+
+    /**
+     * 设置商品城市销售价格
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function setCityPrice(Request $request)
+    {
+        $user = Auth::user();
+        if (!$product_id = $request->get('id', 0)) {
+            return $this->error("商品不存在，请重新操作.");
+        }
+
+        $price = $request->get('price', null);
+
+        if (is_null($price) || ($price < 0)) {
+            return $this->error("价格有误，请重新操作.");
+        }
+
+        if (!$product = SupplierProduct::query()->where(['id' => $product_id, 'user_id' => $user->id])->first()) {
+            return $this->error("商品不存在，请重新操作。");
+        }
+
+        $cities = $request->get("cities");
+
+        if (!empty($cities)) {
+            DB::transaction(function () use ($product_id, $price, $cities) {
+                $insert_price = [
+                    'product_id' => $product_id,
+                    'price' => $price,
+                ];
+                if ($city_price = SupplierProductCityPrice::query()->create($insert_price)) {
+                    SupplierProductCityPriceItem::query()->where('product_id', $product_id)->whereIn("city_code", $cities)->delete();
+                    $data = [];
+                    foreach ($cities as $city) {
+                        $tmp['price_id'] = $city_price->id;
+                        $tmp['product_id'] = $product_id;
+                        $tmp['city_code'] = $city;
+                        $tmp['price'] = $price;
+                        $data[] = $tmp;
+                    }
+                    SupplierProductCityPriceItem::query()->insert($data);
+                }
+            });
+        }
+
+        return $this->success();
+    }
+
+    /**
+     * 获取商品城市销售价格
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function getCityPrice(Request $request)
+    {
+        $user = Auth::user();
+
+        $result = [];
+
+        if (!$product_id = $request->get('id', 0)) {
+            return $this->error("商品不存在，请重新操作.");
+        }
+
+        if (!$product = SupplierProduct::query()->where(['id' => $product_id, 'user_id' => $user->id])->first()) {
+            return $this->error("商品不存在，请重新操作。");
+        }
+
+        $data = SupplierProductCityPrice::with('items.city')->where('product_id', $product_id)->get();
+
+
+        if (!empty($data)) {
+            foreach ($data as $k => $v) {
+                $title = [];
+                if (!empty($v->items)) {
+                    foreach ($v->items as $item) {
+                        if (isset($item->city->title)) {
+                            $title[] = $item->city->title;
+                        }
+                    }
+                }
+                if (!empty($title)) {
+                    $tmp['id'] = $v['id'];
+                    $tmp['price'] = $v['price'];
+                    $tmp['city'] = implode(",", $title);
+                    $result[] = $tmp;
+                    unset($tmp);
+                }
+            }
+        }
+
+        return $this->success($result);
+    }
+
+    public function deleteCityPrice(Request $request)
+    {
+        if (!$id = $request->get("id")) {
+            return $this->error("参数错误.");
+        }
+
+        $user = Auth::user();
+
+        if (!$city_price = SupplierProductCityPrice::query()->find($id)) {
+            return $this->error("参数错误!");
+        }
+
+        if (!$product = SupplierProduct::query()->find($city_price->product_id)) {
+            return $this->error("参数错误!");
+        }
+
+        if ($user->id != $product->user_id) {
+            return $this->error("参数错误!");
+        }
+
+        SupplierProductCityPriceItem::query()->where('price_id', $city_price->id)->delete();
+
+        $city_price->delete();
+
+        return $this->success();
     }
 }
