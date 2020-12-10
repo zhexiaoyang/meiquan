@@ -612,6 +612,7 @@ class OrderController extends Controller
 
         if (!$order) {
             \Log::info('美团外卖接口取消订单-订单未找到', ['请求参数' => $request->all()]);
+            return $this->error("订单不存在");
         }
 
         \Log::info('美团外卖接口取消订单-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
