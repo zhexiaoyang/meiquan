@@ -493,6 +493,16 @@ class OrderController extends Controller
                 return $this->error('到店自取订单');
             }
 
+            if ($data['recipient_address'] == "到店自取@#到店自取") {
+                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                return $this->error('到店自取订单');
+            }
+
+            if ($data['pick_type'] === 1) {
+                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                return $this->error('到店自取订单');
+            }
+
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
                 \Log::info('订单已存在', compact("type", "order_id"));
                 return $this->error('订单已存在');
