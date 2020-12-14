@@ -8,6 +8,7 @@ use App\Models\SupplierCart;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProduct;
 use App\Models\SupplierUser;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -15,16 +16,33 @@ class SupplierCartController extends Controller
 {
     public function index(Request $request)
     {
-        $user_id = $request->user()->id;
+        $user = $request->user();
+        $user_id = $user->id;
+        $shop_id = $user->shop_id;
+
+        if (!$shop = Shop::query()->find($shop_id)) {
+            return $this->error("没有认证的门店");
+        }
+
+        // 查询门店城市编码
+        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
 
         $result = [];
         $data = [];
         $total= 0;
 
-
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
-        }])->where("user_id", $user_id)->get();
+        },"product.city_price" => function($query) use ($city_code) {
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+        }])
+            ->where("user_id", $user_id)
+            ->whereHas("product", function ($query) use ($city_code) {
+                $query->select("id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
+                    $query->where("city_code", $city_code->id);
+                });
+            })
+            ->get();
 
         if (!empty($carts)) {
             $shop_cart_data = [];
@@ -41,22 +59,25 @@ class SupplierCartController extends Controller
 
                 foreach ($shop_cart as $item) {
                     if ($item->product->depot->id) {
+                        $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
                         $tmp['name'] = $item->product->depot->name;
                         $tmp['cover'] = $item->product->depot->cover;
                         $tmp['spec'] = $item->product->depot->spec;
                         $tmp['unit'] = $item->product->depot->unit;
                         $tmp['number'] = $item->product->number;
-                        $tmp['price'] = $item->product->price;
+                        $tmp['price'] = $price;
+                        $tmp['price1'] = $item->product->price ?? 0;
+                        $tmp['price0'] = $item->product->city_price ?? 0;
                         $tmp['product_date'] = $item->product->product_date;
                         $tmp['weight'] = $item->product->weight;
                         $tmp['amount'] = $item->amount;
                         $tmp['created_at'] = $item->product->created_at;
                         $tmp['checked'] = $item->checked;
-                        $subtotal = $item->amount * ($item->product->price * 100) / 100;
+                        $subtotal = $item->amount * ($price * 100) / 100;
                         $tmp['subtotal'] = $subtotal;
                         if ($item->checked) {
-                            $total += $subtotal;
+                            $total += $subtotal * 100;
                         }
                         $data[$shop_id]['products'][] = $tmp;
                     }
@@ -64,7 +85,7 @@ class SupplierCartController extends Controller
             }
         }
 
-        $result['total'] = $total;
+        $result['total'] = $total / 100;
         $result['data'] = array_values($data);
 
         return $this->success($result);
@@ -72,11 +93,19 @@ class SupplierCartController extends Controller
 
     public function settlement(Request $request)
     {
-        $user_id = $request->user()->id;
+        $user = $request->user();
+        $user_id = $user->id;
+        $shop_id = $user->shop_id;
 
-        $address_id = $request->get("address_id");
+        // 判断是否有收货门店
+        if (!$shop = Shop::query()->find($shop_id)) {
+            return $this->error("没有认证的门店");
+        }
+        // 城市编码
+        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
 
-        $product_id = $request->get("product_id");
+        // 判断是否直接购买流程
+        $product_id = $request->get("product_id", 0);
 
         if ($product = SupplierProduct::query()->find($product_id)) {
 
@@ -94,28 +123,38 @@ class SupplierCartController extends Controller
             }
         }
 
-        if ($address_id) {
-            if (!$shop = Shop::query()->where('own_id', $user_id)->find($address_id)) {
-                return $this->error("收货门店不存在");
-            }
+        // if ($shop_id) {
+        //     if (!$shop = Shop::query()->where('own_id', $user_id)->find($shop_id)) {
+        //         return $this->error("收货门店不存在");
+        //     }
+        //
+        //     if ($shop->auth !== 10) {
+        //         return $this->error("收货门店未认证，不能下单");
+        //     }
+        // } else {
+        //     $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
+        // }
 
-            if ($shop->auth !== 10) {
-                return $this->error("收货门店未认证，不能下单");
-            }
-        } else {
-            $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
-        }
-
+        // 返回数据
         $result = [];
         $data = [];
         $postage = 0;
         $total= 0;
         $total_weight= 0;
 
-
+        // 购物车商品
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
-        }])->where(["user_id" => $user_id, "checked" => 1])->get();
+        },"product.city_price" => function($query) use ($city_code) {
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+        }])
+            ->where(["user_id" => $user_id, "checked" => 1])
+            ->whereHas("product", function ($query) use ($city_code) {
+                $query->select("product_id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
+                    $query->where("city_code", $city_code->id);
+                });
+            })
+            ->get();
 
         if (!empty($carts)) {
             $shop_cart_data = [];
@@ -133,20 +172,21 @@ class SupplierCartController extends Controller
 
                 foreach ($shop_cart as $item) {
                     if ($item->product->depot->id) {
+                        $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
                         $tmp['name'] = $item->product->depot->name;
                         $tmp['cover'] = $item->product->depot->cover;
                         $tmp['spec'] = $item->product->depot->spec;
                         $tmp['unit'] = $item->product->depot->unit;
                         $tmp['number'] = $item->product->number;
-                        $tmp['price'] = $item->product->price;
+                        $tmp['price'] = (float) $price;
                         $tmp['product_date'] = $item->product->product_date;
                         $tmp['weight'] = $item->product->weight;
                         $tmp['amount'] = $item->amount;
                         $tmp['created_at'] = $item->product->created_at;
                         $tmp['checked'] = $item->checked;
-                        $subtotal = $item->amount * ($item->product->price * 100) / 100;
-                        $tmp['subtotal'] = $subtotal;
+                        $subtotal = $item->amount * ($price * 100);
+                        $tmp['subtotal'] = $subtotal / 100;
 
                         if ($item->checked) {
                             $total += $subtotal;
@@ -160,10 +200,10 @@ class SupplierCartController extends Controller
 
                 if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
                     if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
-                        $first_weight = $freight->first_weight;
-                        $continuation_weight = $freight->continuation_weight;
-                        $weight1 = $freight->weight1;
-                        $weight2 = $freight->weight2;
+                        $first_weight = $freight->first_weight * 100;
+                        $continuation_weight = $freight->continuation_weight * 100;
+                        $weight1 = $freight->weight1 * 1;
+                        $weight2 = $freight->weight2 * 1;
 
                         if ($product_weight / 1000 <= $weight1) {
                             $product_postage += $first_weight;
@@ -174,16 +214,16 @@ class SupplierCartController extends Controller
                     }
                 }
 
-                $supplier->postage = $product_postage;
+                $supplier->postage = $product_postage / 100;
                 $supplier->weight = $product_weight;
                 $data[$shop_id]['shop'] = $supplier;
                 $postage += $product_postage;
             }
         }
 
-        $result['total'] = $total;
+        $result['total'] = $total / 100;
         $result['total_weight'] = $total_weight / 1000;
-        $result['postage'] = $postage;
+        $result['postage'] = $postage / 100;
         $result['address_id'] = $shop->id;
         $result['data'] = $data;
 

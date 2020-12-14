@@ -612,15 +612,51 @@ class ShopController extends Controller
      * @author zhangzhen
      * @data 2020/11/4 12:52 上午
      */
-    public function shopAuthSuccessList()
+    public function shopAuthSuccessList(Request $request)
     {
+        $receive_shop_id = $request->user()->receive_shop_id;
 
         $user = Auth::user();
 
         $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
             ->where("auth", 10)->get();
 
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if ($shop->id === $receive_shop_id) {
+                    $shop->is_select = 1;
+                } else {
+                    $shop->is_select = 0;
+                }
+            }
+        }
+
         return $this->success($shops);
+    }
+
+    /**
+     * 设置默认收货门店
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/12/9 2:36 下午
+     */
+    public function setUserShop(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$shop_id = $request->get("shop_id")) {
+            return $this->error("参数错误");
+        }
+
+        if (!$shop = Shop::query()->where(['id' => $shop_id, 'user_id' => $user->id])->first()) {
+            return $this->error("门店不存在");
+        }
+
+        $user->shop_id = $shop_id;
+        $user->save();
+
+        return $this->success();
     }
 
     /**

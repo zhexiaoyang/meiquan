@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierProduct extends Model
 {
-    protected $fillable = ["user_id","depot_id","price","amount","stock","status","number","weight","product_date","detail","sale_type"];
+    protected $fillable = ["user_id","depot_id","price","is_control","control_price","amount","stock","status","number",
+        "weight","product_date","product_end_date","detail","sale_type"];
 
     public function depot()
     {

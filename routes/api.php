@@ -99,7 +99,7 @@ Route::middleware(['force-json'])->group(function() {
         Route::resource('role', "RoleController", ['only' => ['store', 'show', 'index', 'update']]);
 
         /**
-         * 采购系统
+         * 采购商城
          */
         Route::prefix("/purchase")->group(function () {
             // 采购购物车
@@ -147,10 +147,32 @@ Route::middleware(['force-json'])->group(function() {
         Route::get("shop_auth_success_list", "ShopController@shopAuthSuccessList");
         // 提交认证门店列表
         Route::get("shop_auth_list", "ShopController@shopAuthList");
+        // 设置默认收货门店
+        Route::post("shop/userShop", "ShopController@setUserShop");
         // 管理员审核-提交认证门店列表
         Route::get("shop_examine_auth_list", "ShopController@shopExamineAuthList");
         // 管理员审核-通过
         Route::post("shop_examine_success", "ShopController@shopExamineSuccess");
+
+        /**
+         * 门店上线
+         */
+        Route::prefix("/online")->group(function () {
+            // 保存上线门店
+            Route::post("shop", "OnlineController@store");
+            // 更新上线门店
+            Route::put("shop", "OnlineController@update");
+            // 上线门店列表
+            Route::get("shop", "OnlineController@index");
+            // 上线门店详情
+            Route::get("shop/info", "OnlineController@show");
+            // 审核接口-管理员-审核列表
+            Route::get("shop/examine", "OnlineController@examineList");
+            // 审核接口-管理员-详情
+            Route::get("shop/examine/show", "OnlineController@examineShow");
+            // 审核接口-管理员-审核
+            Route::post("shop/examine", "OnlineController@examine");
+        });
     });
 });
 

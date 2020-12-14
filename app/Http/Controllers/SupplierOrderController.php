@@ -7,6 +7,8 @@ use App\Jobs\CloseOrder;
 use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierFreightCity;
+use App\Models\SupplierProductCityPriceItem;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\SupplierCart;
 use App\Models\SupplierOrder;
@@ -72,22 +74,41 @@ class SupplierOrderController extends Controller
 
     public function store(Request $request)
     {
-        $user  = $request->user();
-        $shop_id = $request->get("shop_id", 0);
+        $user = $request->user();
+        $user_id = $user->id;
+        $shop_id = $user->shop_id;
         $remark = $request->get("remark", "");
 
-        if (!$shop = Shop::query()->where(["user_id" => $user->id, "id" => $shop_id])->first()) {
-            return $this->error("请选择收货地址");
+        // 判断是否有收货门店
+        if (!$shop = Shop::query()->find($shop_id)) {
+            return $this->error("没有认证的门店");
         }
+        // 城市编码
+        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
 
-        $carts = SupplierCart::with("product")->where([
-            "user_id" => $user->id,
-            "checked" => 1
-        ])->get();
+        // $carts = SupplierCart::with("product")->where([
+        //     "user_id" => $user->id,
+        //     "checked" => 1
+        // ])->get();
+        //
+        // if (empty($carts)) {
+        //     return $this->error("请选择结算商品");
+        // }
 
-        if (empty($carts)) {
-            return $this->error("请选择结算商品");
-        }
+
+        // 购物车商品
+        $carts = SupplierCart::with(["product.depot" => function($query) {
+            $query->select("id","cover","name","spec","unit");
+        },"product.city_price" => function($query) use ($city_code) {
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+        }])
+            ->where(["user_id" => $user_id, "checked" => 1])
+            ->whereHas("product", function ($query) use ($city_code) {
+                $query->select("product_id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
+                    $query->where("city_code", $city_code->id);
+                });
+            })
+            ->get();
 
         $data = [];
 
@@ -95,6 +116,7 @@ class SupplierOrderController extends Controller
             $data[$cart->product->user_id][] = $cart;
         }
 
+        unset($carts);
 
         // 开启一个数据库事务
         $order = \DB::transaction(function () use ($user, $data, $shop, $remark) {
@@ -132,14 +154,17 @@ class SupplierOrderController extends Controller
 
                 // 遍历购物车选中的商品
                 foreach ($carts as $cart) {
-                    $cart->load('product.depot');
-                    // $product  = SupplierProduct::query()->find($data['product_id']);
+                    // 商品价格
+                    $price = $cart->product->city_price ? $cart->product->city_price->price : $cart->product->price;
+                    // 商品信息
                     $product = $cart->product;
+                    // 品库信息
                     $depot = $product->depot;
+
                     // 创建一个 OrderItem 并直接与当前订单关联
                     $item = $order->items()->make([
                         'amount' => $cart['amount'],
-                        'price'  => $product->price,
+                        'price'  => $price,
                         'name'  => $depot->name,
                         'cover'  => $depot->cover,
                         'spec'  => $depot->spec,
@@ -148,7 +173,7 @@ class SupplierOrderController extends Controller
                     ]);
                     $item->product()->associate($product->id);
                     $item->save();
-                    $total_fee += $product->price * $cart['amount'];
+                    $total_fee += ($price * 100) * $cart['amount'];
                     $product_weight += $product->weight * $cart['amount'];
 
                     // 减库存
@@ -161,10 +186,10 @@ class SupplierOrderController extends Controller
                 if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
                 // if ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first()) {
                     if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
-                        $first_weight = $freight->first_weight;
-                        $continuation_weight = $freight->continuation_weight;
-                        $weight1 = $freight->weight1;
-                        $weight2 = $freight->weight2;
+                        $first_weight = $freight->first_weight * 100;
+                        $continuation_weight = $freight->continuation_weight * 100;
+                        $weight1 = $freight->weight1 * 1;
+                        $weight2 = $freight->weight2 * 1;
 
                         if ($product_weight / 1000 <= $weight1) {
                             $postage += $first_weight;
@@ -191,9 +216,9 @@ class SupplierOrderController extends Controller
                     // ]);
                 } else {
                     // 写入配送费
-                    $order->shipping_fee = $postage;
+                    $order->shipping_fee = $postage / 100;
                     // 更新订单总金额
-                    $order->total_fee = $total_fee;
+                    $order->total_fee = $total_fee / 100;
                 }
 
                 if (count($data) <= 1) {

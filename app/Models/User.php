@@ -6,12 +6,11 @@ use Laravel\Passport\HasApiTokens;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasPermissions;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
-    use HasApiTokens, Notifiable, HasRoles, HasPermissions;
+    use HasApiTokens, Notifiable, HasRoles;
 
     protected $guard_name = 'api';
 
@@ -21,7 +20,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password', 'phone','money'
+        'name', 'email', 'password', 'phone','money','shop_id'
     ];
 
     /**
@@ -70,5 +69,25 @@ class User extends Authenticatable
     public function carts()
     {
         return $this->hasMany(SupplierCart::class);
+    }
+
+    public function getReceiveShopIdAttribute()
+    {
+        $shop_id = $this->shop_id ?? 0;
+        \Log::info("getReceiveShopIdAttribute", [$shop_id]);
+
+        if (!$shop = Shop::query()->where(['own_id' => $this->id, 'id' => $shop_id, 'auth' => 10])->first()) {
+            $shop_id = 0;
+        }
+
+        if (!$shop_id) {
+            if ($shop = Shop::query()->where(['own_id' => $this->id, 'auth' => 10])->orderBy('id')->first()) {
+                $shop_id = $shop->id;
+                $this->shop_id = $shop->id;
+                $this->save();
+            }
+        }
+
+        return $shop_id;
     }
 }

@@ -30,7 +30,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","status","stock","sale_type","product_date","number","weight","detail")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","is_control","control_price","sale_count","status","stock","sale_type","product_date","product_end_date","number","weight","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -77,12 +77,15 @@ class ProductController extends Controller
             foreach ($products as $product) {
                 $tmp['id'] = $product->id;
                 $tmp['price'] = $product->price;
+                $tmp['is_control'] = $product->is_control;
+                $tmp['control_price'] = $product->control_price;
                 $tmp['stock'] = $product->stock;
                 $tmp['sale_type'] = $product->sale_type;
                 $tmp['sale_count'] = $product->sale_count;
                 $tmp['status'] = $product->status;
                 $tmp['number'] = $product->number;
                 $tmp['product_date'] = $product->product_date;
+                $tmp['product_end_date'] = $product->product_end_date;
                 $tmp['detail'] = $product->detail;
                 $tmp['weight'] = $product->weight;
                 $tmp['cover'] = $product->depot->cover;
@@ -202,6 +205,8 @@ class ProductController extends Controller
 
         $product_data['user_id'] = $user->id;
         $product_data['price'] = $request->get("price");
+        $product_data['is_control'] = $request->get("is_control", 0);
+        $product_data['control_price'] = $request->get("control_price", 0);
         $product_data['stock'] = $request->get("stock");
         $product_data['number'] = $request->get("number") ?? "";
         $product_data['detail'] = $request->get("detail") ?? "";
@@ -229,7 +234,9 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request)
     {
-        $data = $request->only("stock","price", "status","number","product_date","weight","detail");
+        $data = $request->only("stock","price", "status","number","product_date","product_end_date","weight","detail");
+        $data['is_control'] = $request->get("is_control", 0);
+        $data['control_price'] = $request->get("control_price", 0);
 
         if (!$product = SupplierProduct::query()->find($request->get("id"))) {
             return $this->error("药品不存在");
@@ -241,7 +248,7 @@ class ProductController extends Controller
     }
 
     /**
-     * 上传商品
+     * 删除商品
      * @param Request $request
      * @return mixed
      * @throws \Exception
@@ -300,6 +307,7 @@ class ProductController extends Controller
             'stock' => 'bail|required|numeric',
             'number' => 'bail|required',
             'product_date' => 'bail|required|date',
+            'product_end_date' => 'bail|required|date',
         ],[
             'price.required' => '药品价格不能为空',
             'price.numeric' => '药品价格格式不正确',
@@ -309,6 +317,7 @@ class ProductController extends Controller
             'spec.required' => '药品规格不能为空',
             'number.required' => '批号不能为空',
             'product_date.required' => '生产日期不能为空',
+            'product_end_date.required' => '有效日期不能为空',
         ]);
 
         $product_data['user_id'] = $user->id;
@@ -320,6 +329,9 @@ class ProductController extends Controller
         $product_data['weight'] = $request->get("weight", 0);
         $product_data['detail'] = $request->get("detail", "");
         $product_data['product_date'] = $request->get("product_date");
+        $product_data['product_end_date'] = $request->get("product_date");
+        $product_data['is_control'] = $request->get("is_control", 0);
+        $product_data['control_price'] = $request->get("control_price", 0);
         SupplierProduct::query()->create($product_data);
 
         return $this->success();
