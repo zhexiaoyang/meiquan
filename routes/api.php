@@ -209,6 +209,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::post("destroy", "ProductController@destroy");
             // 商品上下架
             Route::post("online", "ProductController@online");
+            // 商品销售类型修改
+            Route::post("saleType", "ProductController@saleType");
             // 城市价格获取
             Route::get("city", "ProductController@getCityPrice");
             // 城市价格设置

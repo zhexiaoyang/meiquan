@@ -282,6 +282,27 @@ class ProductController extends Controller
     }
 
     /**
+     * 上下架修改
+     * @param Request $request
+     * @return mixed
+     */
+    public function saleType(Request $request)
+    {
+        $user = Auth::user();
+        $id = $request->get("id", 0);
+
+        if (!$product = SupplierProduct::query()->where(['user_id' => $user->id, 'id' => $id])->first()) {
+            return $this->error("数据不存在");
+        }
+
+        \Log::info("aaa", [$product]);
+        $product->sale_type = $product->sale_type === 2 ? 1 : 2;
+        $product->save();
+
+        return $this->success();
+    }
+
+    /**
      * 品库中添加商品
      * @param Request $request
      * @return mixed
