@@ -133,6 +133,11 @@ class OnlineController extends Controller
             $data["remark"] = $remark;
         }
 
+        if (!$sqwts = $request->get("sqwts")) {
+            return $this->error("授权委托书不能为空");
+        }
+        $data["sqwts"] = $sqwts;
+
         if (!$yyzz = $request->get("yyzz")) {
             return $this->error("营业执照不能为空");
         }
@@ -319,6 +324,11 @@ class OnlineController extends Controller
         if ($remark = $request->get("remark")) {
             $data["remark"] = $remark;
         }
+
+        if (!$sqwts = $request->get("sqwts")) {
+            return $this->error("授权委托书不能为空");
+        }
+        $data["sqwts"] = $sqwts;
 
         if (!$yyzz = $request->get("yyzz")) {
             return $this->error("营业执照不能为空");
