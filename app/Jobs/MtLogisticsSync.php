@@ -53,7 +53,7 @@ class MtLogisticsSync implements ShouldQueue
             if ($this->order->status == 40) {
                 $status = 10;
             }elseif ($this->order->status == 50) {
-                $status = 15;
+                $status = 10;
             }elseif ($this->order->status == 60) {
                 $status = 20;
             }elseif ($this->order->status == 70) {
