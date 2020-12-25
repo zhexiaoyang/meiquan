@@ -164,7 +164,7 @@ class Api extends Request
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
             'coordinate_type' => 0,
-            'delivery_service_codes' => "4011",
+            'delivery_service_codes' => 4011,
             'business_hours' => json_encode($time),
         ];
 
