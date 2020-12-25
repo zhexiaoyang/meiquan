@@ -7,9 +7,37 @@ use App\Models\Shop;
 use App\Models\ShopAuthentication;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OnlineController extends Controller
 {
+    /**
+     * 根据用户提交资料状态获取门店
+     * @param Request $request
+     * @return mixed
+     */
+    public function material(Request $request)
+    {
+        $user = Auth::user();
+
+        $status = $request->get("material", 0);
+
+        $my_shops = $user->my_shops()->where('material', $status)->get();
+
+        $request = [];
+
+        if (!empty($my_shops)) {
+            foreach ($my_shops as $my_shop) {
+                $tmp['id'] = $my_shop->id;
+                $tmp['shop_name'] = $my_shop->shop_name;
+                $tmp['shop_address'] = $my_shop->shop_address;
+                $request[] = $tmp;
+            }
+        }
+
+        return $this->success($request);
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -23,7 +51,7 @@ class OnlineController extends Controller
             $query->where("name", "like", "%{$name}%");
         }
 
-        $shops = $query->paginate($page_size);
+        $shops = $query->orderBy("id","desc")->paginate($page_size);
 
         return $this->page($shops);
     }
@@ -45,41 +73,47 @@ class OnlineController extends Controller
 
     public function store(Request $request)
     {
+        $shop_id = $request->get("shop_id", 0);
+        if (!$shop_id) {
+            return $this->error("请选择门店");
+        }
+        // 当前用户
         $user = $request->user();
         $data = [];
         $data['user_id'] = $user->id;
+        $data['shop_id'] = $shop_id;
 
-        if (!$name = $request->get("name")) {
-            return $this->error("门店名称不能为空");
-        }
-        $data["name"] = $name;
-
-        if (!$category = $request->get("category")) {
-            return $this->error("门店一级分类不能为空");
-        }
-        $data["category"] = $category;
-
-        if (!$category_second = $request->get("category_second")) {
-            return $this->error("门店二级分类不能为空");
-        }
-        $data["category_second"] = $category_second;
-
-        if (!$shop_lng = $request->get("shop_lng")) {
-            return $this->error("门店经度不能为空");
-        }
-        $data["shop_lng"] = $shop_lng;
-
-        if (!$shop_lat = $request->get("shop_lat")) {
-            return $this->error("门店纬度不能为空");
-        }
-        $data["shop_lat"] = $shop_lat;
-        $data["city"] = $request->get("city", "");
-        $data["citycode"] = $request->get("citycode", "");
-
-        if (!$address = $request->get("address")) {
-            return $this->error("门店地址不能为空");
-        }
-        $data["address"] = $address;
+        // if (!$name = $request->get("name")) {
+        //     return $this->error("门店名称不能为空");
+        // }
+        // $data["name"] = $name;
+        //
+        // if (!$category = $request->get("category")) {
+        //     return $this->error("门店一级分类不能为空");
+        // }
+        // $data["category"] = $category;
+        //
+        // if (!$category_second = $request->get("category_second")) {
+        //     return $this->error("门店二级分类不能为空");
+        // }
+        // $data["category_second"] = $category_second;
+        //
+        // if (!$shop_lng = $request->get("shop_lng")) {
+        //     return $this->error("门店经度不能为空");
+        // }
+        // $data["shop_lng"] = $shop_lng;
+        //
+        // if (!$shop_lat = $request->get("shop_lat")) {
+        //     return $this->error("门店纬度不能为空");
+        // }
+        // $data["shop_lat"] = $shop_lat;
+        // $data["city"] = $request->get("city", "");
+        // $data["citycode"] = $request->get("citycode", "");
+        //
+        // if (!$address = $request->get("address")) {
+        //     return $this->error("门店地址不能为空");
+        // }
+        // $data["address"] = $address;
 
         if (!$phone = $request->get("phone")) {
             return $this->error("客服电话不能为空");
@@ -223,7 +257,30 @@ class OnlineController extends Controller
         }
         $data["ylqx_end_time"] = $ylqx_end_time;
 
-        $shop = OnlineShop::query()->create($data);
+        if (!$shop = Shop::query()->where(['id' => $shop_id, 'own_id' => $user->id])->first()) {
+            return $this->error("选择门店不存在，稍后再试");
+        }
+
+        $data["name"] = $shop->shop_name;
+        $data["category"] = $shop->category;
+        $data["category_second"] = $shop->second_category;
+        $data["shop_lng"] = $shop->shop_lng;
+        $data["shop_lat"] = $shop->shop_lat;
+        $data["city"] = $shop->city;
+        $data["citycode"] = $shop->citycode;
+        $data["address"] = $shop->shop_address;
+
+        \DB::beginTransaction();
+        try {
+            OnlineShop::query()->create($data);
+            $shop->material = 1;
+            $shop->save();
+            \DB::commit();
+        }
+        catch(\Exception $ex) {
+            \DB::rollback();
+            return $this->error("提交失败，请稍后再试", 422);
+        }
 
         return $this->success();
     }
@@ -418,6 +475,10 @@ class OnlineController extends Controller
         $data['status'] = 10;
         $shop->update($data);
 
+        $p_shop = Shop::query()->find($shop->shop_id);
+        $p_shop->material = 1;
+        $p_shop->save();
+
         return $this->success();
     }
 
@@ -473,80 +534,91 @@ class OnlineController extends Controller
             return $this->error("驳回原因不能为空");
         }
 
-        if (!$shop = OnlineShop::query()->find($request->get("id"))) {
-            return $this->error("门店不存在");
+        if (!$onlineShop = OnlineShop::query()->find($request->get("id"))) {
+            return $this->error("资料不存在");
         }
 
-        if ($shop->status > 10) {
-            return $this->error("门店状态错误，不能审核");
+        $shop = Shop::query()->find($onlineShop->shop_id);
+
+        if ($onlineShop->status > 10) {
+            return $this->error("资料状态错误，不能审核");
         }
 
-        $shop->status = $status;
         if ($status == 20) {
-            $shop->reason = $reason;
+            $onlineShop->status = 20;
+            $onlineShop->reason = $reason;
+            $onlineShop->save();
+            $shop->material = 3;
+            $shop->material_error = $reason;
             $shop->save();
         }
 
         if ($status == 40) {
 
             try {
-                \DB::transaction(function () use ($shop) {
+                \DB::transaction(function () use ($onlineShop, $shop) {
 
                     // 保存审核状态
+                    $onlineShop->status = 40;
+                    $onlineShop->save();
+                    $shop->material = 10;
                     $shop->save();
 
                     // 保存跑腿门店
-                    $paotui = new Shop([
-                        'user_id' => $shop->user_id,
-                        'own_id' => $shop->user_id,
-                        'shop_name' => $shop->name,
-                        'category' => $shop->category,
-                        'second_category' => $shop->category_second,
-                        'contact_name' => $shop->contact_name,
-                        'contact_phone' => $shop->contact_phone,
-                        'shop_address' => $shop->address,
-                        'shop_lng' => $shop->shop_lng,
-                        'shop_lat' => $shop->shop_lat,
-                        'city' => $shop->city,
-                        'citycode' => $shop->citycode,
-                        'coordinate_type' => 0,
-                        'apply_auth_time' => date("Y-m-d H:i:s"),
-                        'auth' => 10
-                    ]);
-                    $paotui->save();
+                    // $paotui = new Shop([
+                    //     'user_id' => $shop->user_id,
+                    //     'own_id' => $shop->user_id,
+                    //     'shop_name' => $shop->name,
+                    //     'category' => $shop->category,
+                    //     'second_category' => $shop->category_second,
+                    //     'contact_name' => $shop->contact_name,
+                    //     'contact_phone' => $shop->contact_phone,
+                    //     'shop_address' => $shop->address,
+                    //     'shop_lng' => $shop->shop_lng,
+                    //     'shop_lat' => $shop->shop_lat,
+                    //     'city' => $shop->city,
+                    //     'citycode' => $shop->citycode,
+                    //     'coordinate_type' => 0,
+                    //     'apply_auth_time' => date("Y-m-d H:i:s"),
+                    //     'auth' => 10
+                    // ]);
+                    // $paotui->save();
 
-                    // 保存跑腿门店资质
-                    $shop_auth = new ShopAuthentication([
-                        'shop_id' => $paotui->id,
-                        'chang' => $shop->chang,
-                        'yyzz' => $shop->yyzz,
-                        'xkz' => $shop->ypjy,
-                        'spjy' => $shop->spjy,
-                        'ylqx' => $shop->ylqx,
-                        'sfz' => $shop->sfz,
-                        'wts' => $shop->wts,
-                        'yyzz_start_time' => $shop->yyzz_start_time,
-                        'yyzz_end_time' => $shop->yyzz_end_time,
-                        'ypjy_start_time' => $shop->ypjy_start_time,
-                        'ypjy_end_time' => $shop->ypjy_end_time,
-                        'spjy_start_time' => $shop->spjy_start_time,
-                        'spjy_end_time' => $shop->spjy_end_time,
-                        'ylqx_start_time' => $shop->ylqx_start_time,
-                        'ylqx_end_time' => $shop->ylqx_end_time,
-                        'examine_at' => date("Y-m-d H:i:s")
-                    ]);
-                    $shop_auth->save();
+                    if (!$res = ShopAuthentication::query()->where(['shop_id' => $shop->id])->first() ) {
+                        // 保存跑腿门店资质
+                        $shop_auth = new ShopAuthentication([
+                            'shop_id' => $onlineShop->shop_id,
+                            'chang' => $onlineShop->chang,
+                            'yyzz' => $onlineShop->yyzz,
+                            'xkz' => $onlineShop->ypjy,
+                            'spjy' => $onlineShop->spjy,
+                            'ylqx' => $onlineShop->ylqx,
+                            'sfz' => $onlineShop->sfz,
+                            'wts' => $onlineShop->wts,
+                            'yyzz_start_time' => $onlineShop->yyzz_start_time,
+                            'yyzz_end_time' => $onlineShop->yyzz_end_time,
+                            'ypjy_start_time' => $onlineShop->ypjy_start_time,
+                            'ypjy_end_time' => $onlineShop->ypjy_end_time,
+                            'spjy_start_time' => $onlineShop->spjy_start_time,
+                            'spjy_end_time' => $onlineShop->spjy_end_time,
+                            'ylqx_start_time' => $onlineShop->ylqx_start_time,
+                            'ylqx_end_time' => $onlineShop->ylqx_end_time,
+                            'examine_at' => date("Y-m-d H:i:s")
+                        ]);
+                        $shop_auth->save();
 
-                    // 查找门店用户
-                    $user = User::find($shop->user_id);
+                        // 门店信息认证状态设置已认证
+                        $shop->auth = 10;
+                        $shop->save();
 
-                    // 赋予商城权限
-                    if ($user && !$user->can("supplier")) {
-                        $user->givePermissionTo("supplier");
+                        // 查找门店用户
+                        $user = User::find($onlineShop->user_id);
+
+                        // 赋予商城权限
+                        if ($user && !$user->can("supplier")) {
+                            $user->givePermissionTo("supplier");
+                        }
                     }
-
-                    // 将跑腿门店加入用户
-                    $user->shops()->attach($paotui->id);
                 });
             } catch (\Exception $exception) {
                 return $this->error("审核失败");

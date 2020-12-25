@@ -58,7 +58,7 @@ class ExceptionReport
         PermissionAlreadyExists::class => ['权限已存在', 422],
         RoleAlreadyExists::class => ['角色已存在', 422],
         MethodNotAllowedHttpException::class => ['请求方法错误', 405],
-        QueryException::class => ['查询失败', 600],
+        QueryException::class => ['系统错误', 600],
     ];
 
     /**

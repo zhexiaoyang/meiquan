@@ -42,16 +42,39 @@ class ShopController extends Controller
         }
         $shops = $query->orderBy('id', 'desc')->paginate($page_size);
 
-        $res = [];
+        $result = [];
+        $data = [];
 
-        $res['page'] = $shops->currentPage();
-        $res['current_page'] = $shops->currentPage();
-        $res['total'] = $shops->total();
-        $res['page_total'] = $shops->lastPage();
-        $res['last_page'] = $shops->lastPage();
-        $res['data'] = $shops->items();
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                $tmp['id'] = $shop->id;
+                $tmp['shop_name'] = $shop->shop_name;
+                $tmp['contact_name'] = $shop->contact_name;
+                $tmp['contact_phone'] = $shop->contact_phone;
+                $tmp['status'] = $shop->status;
+                $tmp['shop_id'] = $shop->shop_id;
+                $tmp['shop_id_fn'] = $shop->shop_id_fn;
+                $tmp['shop_id_sf'] = $shop->shop_id_sf;
+                $tmp['shop_id_ss'] = $shop->shop_id_ss;
+                // $tmp['mt_shop_id'] = $shop->mt_shop_id;
+                $tmp['city'] = $shop->city;
 
-        return $this->success($res);
+                // 外卖资料
+                $tmp['material'] = $shop->material;
+                // 商城
+                $tmp['shopping'] = $shop->auth;
+                // 自动接单
+                $tmp['mtwm'] = (bool) $shop->mtwm;
+                $tmp['auto'] = (bool) $shop->mt_shop_id;
+                $data[] = $tmp;
+            }
+        }
+
+        $result['page'] = $shops->currentPage();
+        $result['total'] = $shops->total();
+        $result['list'] = $data;
+
+        return $this->success($result);
     }
 
     /**
@@ -127,35 +150,6 @@ class ShopController extends Controller
         return $this->error("创建失败");
     }
 
-    // /**
-    //  * 保存待审核门店
-    //  * @param Request $request
-    //  * @param Shop $shop
-    //  * @return mixed
-    //  */
-    // public function storeShop(Request $request, Shop $shop)
-    // {
-    //     $shop->fill($request->all());
-    //
-    //     if (!$shop->shop_id) {
-    //         unset($shop->shop_id);
-    //     }
-    //
-    //     $shop->status = 100;
-    //     $shop->user_id = auth()->user()->id;
-    //
-    //     if ($shop->save()) {
-    //         if (!$shop->shop_id) {
-    //             $shop->shop_id = $shop->id;
-    //             $shop->save();
-    //         }
-    //         // dispatch(new CreateMtShop($shop));
-    //         return $this->success([]);
-    //     }
-    //
-    //     return $this->error("创建失败");
-    // }
-
     /**
      * 门店详情
      * @param Shop $shop
@@ -163,20 +157,34 @@ class ShopController extends Controller
      */
     public function show(Shop $shop)
     {
-        // $meituan = app("meituan");
+        $res = [
+            "id" => $shop->id,
+            "shop_name" => $shop->shop_name,
+            "category" => $shop->category,
+            "second_category" => $shop->second_category,
+            "contact_name" => $shop->contact_name,
+            "contact_phone" => $shop->contact_phone,
+            "shop_lng" => $shop->shop_lng,
+            "shop_lat" => $shop->shop_lat,
+            "shop_address" => $shop->shop_address,
+            "shop_id" => $shop->shop_id,
+            "shop_id_fn" => $shop->shop_id_fn,
+            "shop_id_sf" => $shop->shop_id_sf,
+            "shop_id_ss" => $shop->shop_id_ss,
+            "city" => $shop->city,
+            "material" => $shop->material,
+            "shopping" => $shop->auth,
+            "mtwm" => (bool) $shop->mtwm,
+            "auto" => (bool) $shop->mt_shop_id,
+            "status" => $shop->status,
+            "created_at" => date("Y-m-d H:i:s", strtotime($shop->created_at)),
+        ];
 
-        // return $meituan->shopInfo(['shop_id' => $shop->shop_id]);
-
-        // [{"beginTime":"11:29","endTime":"12:29"}]
-
-        $shop->beginTime = $shop->business_hours[0]['beginTime'] ?? '-';
-        $shop->endTime = $shop->business_hours[0]['endTime'] ?? '-';
-
-        return $this->success($shop);
+        return $this->success($res);
     }
 
     /**
-     * 配送范围获取
+     * 门店配送范围
      */
     public function range(Shop $shop)
     {
@@ -245,8 +253,8 @@ class ShopController extends Controller
 
         $data = [
             'id' => $shop->id,
-            // 'lng' => $shop->shop_lng,
-            // 'lat' => $shop->shop_lat,
+            'lng' => $shop->shop_lng,
+            'lat' => $shop->shop_lat,
             'shop' => [$shop->shop_lng, $shop->shop_lat],
             'range' => $resrange,
         ];
@@ -371,6 +379,13 @@ class ShopController extends Controller
         return $this->error('未获取到门店');
     }
 
+    /**
+     * 审核门店
+     * @param Shop $shop
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
     public function examine(Shop $shop)
     {
         $shop->status = 1;
@@ -379,259 +394,6 @@ class ShopController extends Controller
         dispatch(new CreateMtShop($shop));
 
         return $this->success('审核成功');
-    }
-
-    // public function examine(Request $request, Shop $shop, EasySms $easySms)
-    // {
-    //     $meituan = app("meituan");
-    //     $params = [
-    //         'shop_id' => $shop->shop_id,
-    //         'shop_name' => $shop->shop_name,
-    //         'category' => $shop->category,
-    //         'second_category' => $shop->second_category,
-    //         'contact_name' => (string) $shop->contact_name,
-    //         'contact_phone' => $shop->contact_phone,
-    //         'shop_address' => $shop->shop_address,
-    //         'shop_lng' => ceil($shop->shop_lng * 1000000),
-    //         'shop_lat' => ceil($shop->shop_lat * 1000000),
-    //         'coordinate_type' => $shop->coordinate_type,
-    //         'delivery_service_codes' => "4011",
-    //         'business_hours' => json_encode($shop->business_hours),
-    //     ];
-    //     $result = $meituan->shopCreate($params);
-    //     if (!isset($result['code']) || $result['code'] != 0) {
-    //         $shop->status = 0;
-    //         $shop->save();
-    //
-    //         $shop->load(['user']);
-    //         $phone =  $shop->user->phone ?? 0;
-    //
-    //         if ($phone) {
-    //             try {
-    //                 $easySms->send($phone, [
-    //                     'content'  =>  "您的验证码是{$code}。如非本人操作，请忽略本短信"
-    //                 ]);
-    //             } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-    //                 \Log::info('审核通过发送短信异常', [$phone]);
-    //             }
-    //         }
-    //         return $this->success('审核成功');
-    //     }
-    //
-    //     return $this->error('审核失败');
-    // }
-
-    /**
-     * 用户所属门店列表
-     * @param Request $request
-     * @return mixed
-     */
-    public function myShops(Request $request)
-    {
-        $user = Auth::user();
-
-        $status = $request->get("auth", 0);
-
-        $my_shops = $user->my_shops()->where('auth', $status)->get();
-
-        $request = [];
-
-        if (!empty($my_shops)) {
-            foreach ($my_shops as $my_shop) {
-                $tmp['id'] = $my_shop->id;
-                $tmp['shop_name'] = $my_shop->shop_name;
-                $tmp['shop_address'] = $my_shop->shop_address;
-                $request[] = $tmp;
-            }
-        }
-
-        return $this->success($request);
-    }
-
-    /**
-     * 提交认证门店
-     * @param Request $request
-     * @return mixed
-     */
-    public function shopAuth(Request $request)
-    {
-        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
-            return $this->error("门店不存在");
-        }
-
-        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
-            $shop_auth = new ShopAuthentication();
-        }
-
-        $chang = $request->get("chang", 0);
-
-        if (!$yyzz = $request->get('yyzz')) {
-            return $this->error("请上传营业执照");
-        }
-        if (!$ypjy = $request->get('ypjy')) {
-            return $this->error("请上传药品经营许可证");
-        }
-        if (!$spjy = $request->get('spjy')) {
-            return $this->error("请上传食品经营许可证");
-        }
-        if (!$ylqx = $request->get('ylqx')) {
-            return $this->error("请上传器械证");
-        }
-        if (!$sfz = $request->get('sfz')) {
-            return $this->error("请上传身份证");
-        }
-        if (!$wts = $request->get('wts')) {
-            return $this->error("请上传委托书");
-        }
-        if (!$yyzz_start_time = $request->get('yyzz_start_time')) {
-            return $this->error("请选择营业执照开始时间");
-        }
-        if (!$chang && (!$yyzz_end_time = $request->get('yyzz_end_time'))) {
-            return $this->error("请选择营业执照结束时间");
-        }
-        if (!$ypjy_start_time = $request->get('ypjy_start_time')) {
-            return $this->error("请选择药品经营许可证开始时间");
-        }
-        if (!$ypjy_end_time = $request->get('ypjy_end_time')) {
-            return $this->error("请选择药品经营许可证结束时间");
-        }
-        if (!$spjy_start_time = $request->get('spjy_start_time')) {
-            return $this->error("请选择食品经营许可证开始时间");
-        }
-        if (!$spjy_end_time = $request->get('spjy_end_time')) {
-            return $this->error("请选择食品经营许可证结束时间");
-        }
-        if (!$ylqx_start_time = $request->get('ylqx_start_time')) {
-            return $this->error("请选择器械证开始时间");
-        }
-        if (!$ylqx_end_time = $request->get('ylqx_end_time')) {
-            return $this->error("请选择器械证结束时间");
-        }
-
-        $shop_auth->shop_id = $shop->id;
-        $shop_auth->chang = $chang;
-        $shop_auth->yyzz = $yyzz;
-        $shop_auth->xkz = $ypjy;
-        $shop_auth->spjy = $spjy;
-        $shop_auth->ylqx = $ylqx;
-        $shop_auth->sfz = $sfz;
-        $shop_auth->wts = $wts;
-        $shop_auth->yyzz_start_time = $yyzz_start_time;
-        $shop_auth->yyzz_end_time = $yyzz_end_time ?? null;
-        $shop_auth->ypjy_start_time = $ypjy_start_time;
-        $shop_auth->ypjy_end_time = $ypjy_end_time;
-        $shop_auth->spjy_start_time = $spjy_start_time;
-        $shop_auth->spjy_end_time = $spjy_end_time;
-        $shop_auth->ylqx_start_time = $ylqx_start_time;
-        $shop_auth->ylqx_end_time = $ylqx_end_time;
-
-
-        if ($shop_auth->save()) {
-            $shop->auth = 1;
-            $shop->apply_auth_time = date("Y-m-d H:i:s");
-            $shop->save();
-        }
-
-        return $this->success();
-    }
-
-    /**
-     * 管理员审核门店
-     * @param Request $request
-     * @return mixed
-     */
-    public function shopExamineSuccess(Request $request)
-    {
-        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
-            return $this->error("门店不存在");
-        }
-
-        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
-            return $this->error("门店未提交资质");
-        }
-
-        $shop->update(['auth' => 10]);
-        $shop_auth->update(['examine_user_id' => Auth::user()->id, 'examine_at' => date("Y-m-d H:i:s")]);
-
-        $user = User::find($shop->own_id);
-
-        if ($user && !$user->can("supplier")) {
-            $user->givePermissionTo("supplier");
-        }
-
-        // $user->
-        $user->assignRole('shop');
-
-        return $this->success();
-    }
-
-    /**
-     * 提交认证列表
-     * @param Request $request
-     * @return mixed
-     */
-    public function shopAuthList(Request $request)
-    {
-        $search_key = $request->get('search_key', '');
-
-        $shops = [];
-
-        $user = Auth::user();
-
-        $query = Shop::with("auth_shop")->where("own_id", $user->id)->where("auth", ">", 0);
-
-        if ($search_key) {
-            $query->where("shop_name", "like", "{$search_key}");
-        }
-
-        $data = $query->get();
-
-        if (!empty($data)) {
-            foreach ($data as $v) {
-                if ($v->auth_shop) {
-                    $tmp['id'] = $v->id;
-                    $tmp['shop_name'] = $v->shop_name;
-                    $tmp['auth'] = $v->auth;
-                    $tmp['yyzz'] = $v->auth_shop->yyzz;
-                    $tmp['xkz'] = $v->auth_shop->xkz;
-                    $tmp['sfz'] = $v->auth_shop->sfz;
-                    $tmp['wts'] = $v->auth_shop->wts;
-                    $tmp['examine_at'] = $v->auth_shop->examine_at ? date("Y-m-d H:i:s", strtotime($v->auth_shop->examine_at)) : "";
-                    $tmp['created_at'] = date("Y-m-d H:i:s", strtotime($v->auth_shop->created_at));
-                    $shops[] = $tmp;
-                }
-            }
-        }
-
-        return $this->success($shops);
-    }
-
-    /**
-     * 认证成功的门店列表
-     * @return mixed
-     * @author zhangzhen
-     * @data 2020/11/4 12:52 上午
-     */
-    public function shopAuthSuccessList(Request $request)
-    {
-        $receive_shop_id = $request->user()->receive_shop_id;
-
-        $user = Auth::user();
-
-        $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
-            ->where("auth", 10)->get();
-
-        if (!empty($shops)) {
-            foreach ($shops as $shop) {
-                if ($shop->id === $receive_shop_id) {
-                    $shop->is_select = 1;
-                } else {
-                    $shop->is_select = 0;
-                }
-            }
-        }
-
-        return $this->success($shops);
     }
 
     /**
@@ -660,45 +422,6 @@ class ShopController extends Controller
     }
 
     /**
-     * 管理员审核门店-列表
-     * @param Request $request
-     * @return mixed
-     */
-    public function shopExamineAuthList(Request $request)
-    {
-        $search_key = $request->get('search_key', '');
-
-        $shops = [];
-
-        $query = Shop::with("auth_shop")->where("auth", 1);
-
-        if ($search_key) {
-            $query->where("shop_name", "like", "{$search_key}");
-        }
-
-        $data = $query->get();
-
-        if (!empty($data)) {
-            foreach ($data as $v) {
-                if ($v->auth_shop) {
-                    $tmp['id'] = $v->id;
-                    $tmp['shop_name'] = $v->shop_name;
-                    $tmp['auth'] = $v->auth;
-                    $tmp['yyzz'] = $v->auth_shop->yyzz;
-                    $tmp['xkz'] = $v->auth_shop->xkz;
-                    $tmp['sfz'] = $v->auth_shop->sfz;
-                    $tmp['wts'] = $v->auth_shop->wts;
-                    $tmp['examine_at'] = $v->auth_shop->examine_at ? date("Y-m-d H:i:s", strtotime($v->auth_shop->examine_at)) : "";
-                    $tmp['created_at'] = date("Y-m-d H:i:s", strtotime($v->auth_shop->created_at));
-                    $shops[] = $tmp;
-                }
-            }
-        }
-
-        return $this->success($shops);
-    }
-
-    /**
      * 绑定门店-自动发单
      * @param Request $request
      * @return mixed
@@ -715,6 +438,26 @@ class ShopController extends Controller
             $shop->mtwm = intval($mtwm);
             $shop->save();
         }
+
+        return $this->success();
+    }
+
+    /**
+     * 关闭门店自动发单
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function closeAuto(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+            return $this->error("门店不存在");
+        }
+
+        $shop->mtwm = 0;
+        $shop->mt_shop_id = 0;
+        $shop->save();
 
         return $this->success();
     }

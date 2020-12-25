@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Agreement;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
-use Overtrue\EasySms\EasySms;
 
 class CommonController extends Controller
 {
@@ -27,13 +26,29 @@ class CommonController extends Controller
         ]);
 
         $phone = $request->phone;
+        $type = $request->type;
+
+        // 登录确认验证码
+        $template = 'SMS_186405050';
+
+        if ($type === 2) {
+            // 用户注册验证码
+            $template = 'SMS_186405048';
+        } elseif ($type === 3) {
+            // 修改密码验证码
+            $template = 'SMS_186405047';
+        }
+
+        if (empty($phone) || strlen($phone) != 11) {
+            return $this->error("手机号格式不正确");
+        }
 
         // 生成4位随机数，左侧补0
         $code = str_pad(random_int(1, 9999), 4, 0, STR_PAD_LEFT);
 
         try {
             app('easysms')->send($phone, [
-                'template' => 'SMS_186405048',
+                'template' => $template,
                 'data' => [
                     'code' => $code
                 ],

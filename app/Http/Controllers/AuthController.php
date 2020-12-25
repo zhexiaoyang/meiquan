@@ -40,7 +40,7 @@ class AuthController extends Controller
 
             return $this->success($data);
         } catch (\Exception $e) {
-            return $this->error("用户名或密码错误", 400);
+            return $this->error("用户名或密码错误", 422);
         }
     }
 
@@ -104,11 +104,11 @@ class AuthController extends Controller
         $verifyData = \Cache::get($phone);
 
         if (!$verifyData) {
-            return $this->error('验证码已失效');
+            return $this->error('验证码已失效', 422);
         }
 
         if (!hash_equals($verifyData['code'], $verifyCode)) {
-            return $this->error('验证码失效');
+            return $this->error('验证码失效', 422);
         }
 
         $user->name = $request->get('phone');

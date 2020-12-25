@@ -3,9 +3,13 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['force-json'])->group(function() {
-
-    // 登录
+    // *注册、登录验证码
+    Route::post('code', 'CommonController@getVerifyCode')->name('code');
+    // *中台注册
+    Route::post('auth/register', 'AuthController@register');
+    // *中台登录
     Route::post('auth/login', 'AuthController@login');
+
     // 模拟接单建店
     Route::post('arrange/{order}', 'TestController@arrange');
     Route::post('shopStatus/{shop}', 'TestController@shopStatus');
@@ -13,18 +17,12 @@ Route::middleware(['force-json'])->group(function() {
     Route::get('order/sync', 'OrderController@sync2')->name('api.order.sync');
     // 取消订单
     Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
-
-    // 注册验证码
-    Route::post('code', 'CommonController@getVerifyCode')->name('code');
     // 服务协议
     Route::get('getAgreementList', 'CommonController@agreement')->name('agreement');
-    Route::post('auth/register', 'AuthController@register');
 
     Route::middleware('multiauth:api')->group(function () {
         // 退出
         Route::post('auth/logout', 'AuthController@logout');
-        // 注册
-        // Route::post('auth/register', 'AuthController@register');
         // 个人中心-用户信息
         Route::get('user/info', 'AuthController@user');
         // 个人中心-用户信息-ant框架返回
@@ -41,6 +39,81 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('statistics/export', 'StatisticsController@export');
         // 统计导出-统计-明细
         // Route::get('statistics/export/detail', 'StatisticsController@detail');
+
+        /**
+         * 门店管理
+         */
+        // *门店地址加配送范围信息
+        Route::get('shop/range/{shop}', "ShopController@range")->name('shop.range');
+        // 根据门店ID获取门店地址加配送范围信息
+        Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
+        // *绑定门店-自动发单
+        Route::post('/shop/binding', 'ShopController@binding')->name('shop.binding');
+        // *关闭自动发单
+        Route::post('/shop/closeAuto', 'ShopController@closeAuto')->name('shop.closeAuto');
+        // *资源路由-门店
+        Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
+
+        /**
+         * 商城门店认证
+         */
+        // *所属用户门店-根据认证结果筛选
+        Route::get("shopping", "ShoppingController@index");
+        // *提交门店认证
+        Route::post("shopping", "ShoppingController@store");
+        // *修改门店认证
+        Route::put("shopping", "ShoppingController@update");
+        // *提交认证门店列表-多状态
+        Route::get("shopping/list", "ShoppingController@shopAuthList");
+        // *提交认证门店详情
+        Route::get("shopping/info", "ShoppingController@show");
+        // 认证成功门店列表-待优化（根据状态查询）
+        Route::get("shop_auth_success_list", "ShoppingController@shopAuthSuccessList");
+
+        /**
+         * 外卖资料上线
+         */
+        Route::prefix("/online")->group(function () {
+            // *上线门店列表
+            Route::get("material", "OnlineController@material");
+            // *保存上线门店
+            Route::post("shop", "OnlineController@store");
+            // *更新上线门店
+            Route::put("shop", "OnlineController@update");
+            // *上线门店列表
+            Route::get("shop", "OnlineController@index");
+            // *上线门店详情
+            Route::get("shop/info", "OnlineController@show");
+        });
+
+        /**
+         * 审核管理
+         */
+        Route::middleware(['role:super_man'])->group(function () {
+            // *商城认证-审核列表
+            Route::get("examine/shopping", "ExamineShoppingController@index");
+            // *商城认证-审核
+            Route::post("examine/shopping", "ExamineShoppingController@store");
+
+            // *审核接口-管理员-审核列表
+            Route::get("online/shop/examine", "OnlineController@examineList");
+            // *审核接口-管理员-详情
+            Route::get("online/shop/examine/show", "OnlineController@examineShow");
+            // *审核接口-管理员-审核
+            Route::post("online/shop/examine", "OnlineController@examine");
+            // *审核接口-管理员-审核
+            Route::post("online/shop/examine", "OnlineController@examine");
+
+            // *跑腿审核-门店列表
+            Route::get("examine/shop", "ExamineShopController@index");
+            // *跑腿审核-审核操作
+            Route::post("examine/shop", "ExamineShopController@store");
+
+            // *自动接单-门店列表
+            Route::get("examine/auto", "ExamineShopController@autoList");
+            // *自动接单-审核操作
+            Route::post("examine/auto", "ExamineShopController@AutoStore");
+        });
 
         /**
          * 管理员操作
@@ -64,15 +137,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::post('storeShop', 'ShopController@storeShop')->name('shop.storeShop');
         // 审核门店
         Route::post('/shop/examine/{shop}', 'ShopController@examine')->name('shop.examine');
-        // 绑定门店-自动发单
-        Route::post('/shop/binding', 'ShopController@binding')->name('shop.binding');
         // 可以看到的所有门店
         Route::get('shopAll', 'ShopController@shopAll')->name('shop.shopAll');
-        // 门店
-        Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
-        // 门店地址加配送范围信息
-        Route::get('shop/range/{shop}', "ShopController@range")->name('shop.range');
-        Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
         // 订单
         Route::post('order/send/{order}', 'OrderController@send')->name('order.send');
         // 重新发送订单
@@ -139,40 +205,8 @@ Route::middleware(['force-json'])->group(function() {
             // 药品审核
             Route::post("depot/setAuth", "ExampleProductController@setAuth");
         });
-        // 我的门店
-        Route::get("my_shop", "ShopController@myShops");
-        // 提交门店认证
-        Route::post("shop_auth", "ShopController@shopAuth");
-        // 认证成功门店列表
-        Route::get("shop_auth_success_list", "ShopController@shopAuthSuccessList");
-        // 提交认证门店列表
-        Route::get("shop_auth_list", "ShopController@shopAuthList");
         // 设置默认收货门店
         Route::post("shop/userShop", "ShopController@setUserShop");
-        // 管理员审核-提交认证门店列表
-        Route::get("shop_examine_auth_list", "ShopController@shopExamineAuthList");
-        // 管理员审核-通过
-        Route::post("shop_examine_success", "ShopController@shopExamineSuccess");
-
-        /**
-         * 门店上线
-         */
-        Route::prefix("/online")->group(function () {
-            // 保存上线门店
-            Route::post("shop", "OnlineController@store");
-            // 更新上线门店
-            Route::put("shop", "OnlineController@update");
-            // 上线门店列表
-            Route::get("shop", "OnlineController@index");
-            // 上线门店详情
-            Route::get("shop/info", "OnlineController@show");
-            // 审核接口-管理员-审核列表
-            Route::get("shop/examine", "OnlineController@examineList");
-            // 审核接口-管理员-详情
-            Route::get("shop/examine/show", "OnlineController@examineShow");
-            // 审核接口-管理员-审核
-            Route::post("shop/examine", "OnlineController@examine");
-        });
     });
 });
 
