@@ -39,7 +39,7 @@ class CreateMtShop implements ShouldQueue
             $result = $meituan->shopCreate($this->shop);
             if (isset($result['code']) && $result['code'] == 0) {
                 if ($this->shop->status < 10) {
-                    $this->shop->status = 10;
+                    // $this->shop->status = 20;
                     $this->shop->save();
                 }
             }
@@ -50,7 +50,7 @@ class CreateMtShop implements ShouldQueue
             $result = $fengniao->createShop($this->shop);
             if (isset($result['code']) && $result['code'] == 200) {
                 if ($this->shop->status < 10) {
-                    $this->shop->status = 10;
+                    // $this->shop->status = 20;
                     $this->shop->save();
                 }
             }
