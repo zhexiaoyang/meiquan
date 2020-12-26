@@ -164,21 +164,15 @@ function getShopDistance($shop, $lng, $lat)
 
 function getShopDistanceV4($shop, $lng, $lat)
 {
-    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
+    $url = "https://restapi.amap.com/v3/direction/walking?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
 
     $str = file_get_contents($url);
 
     $data = json_decode($str, true);
 
-    $distance = $data['data']['paths'][0]['distance'] / 1000 ?? 0;
+    $distance = $data['route']['paths'][0]['distance'] / 1000;
 
-    if ($distance === 0) {
-        \Log::error('获取距离结果-出错-默认 1 ：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
-        $distance = 1;
-    } else {
-        \Log::info('获取距离结果：', ["shop_id" => $shop->id, "shop_name" => $shop->shop_name, "lng" => $lng, "lat" => $lat, "distance" => $distance]);
-    }
-
+    \Log::info('Walking 获取距离结果：', [ $distance ]);
 
     return $distance;
 }
@@ -243,7 +237,7 @@ function distanceMoneyFn($juli) {
         if ($juli < 5) {
             $money += ceil($juli - 2) * 2;
         } else {
-            $money += ceil($juli - 2) * 2;
+            $money += 2 * 2;
         }
     }
 
