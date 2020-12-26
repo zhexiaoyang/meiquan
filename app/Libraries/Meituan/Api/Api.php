@@ -21,7 +21,7 @@ class Api extends Request
             'delivery_id' => $order->delivery_id,
             'order_id' => $order->order_id,
             'shop_id' => $shop->shop_id,
-            'delivery_service_code' => 4011,
+            'delivery_service_code' => 100004,
             'receiver_name' => $order->receiver_name,
             'receiver_address' => $order->receiver_address,
             'receiver_phone' => $order->receiver_phone,
@@ -120,7 +120,7 @@ class Api extends Request
     {
         $params = [
             'shop_id' => (string) $shop->shop_id,
-            'delivery_service_code' => 4011,
+            'delivery_service_code' => 100004,
             'receiver_address' => $order->receiver_address,
             'receiver_lng' => $order->receiver_lng * 1000000,
             'receiver_lat' => $order->receiver_lat * 1000000,
@@ -164,7 +164,7 @@ class Api extends Request
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
             'coordinate_type' => 0,
-            'delivery_service_codes' => 4011,
+            'delivery_service_codes' => 100004,
             'business_hours' => json_encode($time),
         ];
 
