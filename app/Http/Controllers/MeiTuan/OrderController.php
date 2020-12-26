@@ -15,7 +15,14 @@ class OrderController
         $status = $request->get('status', '');
         $delivery_id = $request->get('delivery_id', 0);
         $data = $request->only(['courier_name', 'courier_phone', 'cancel_reason_id', 'cancel_reason','status']);
+        \Log::info('美团跑腿订单状态回调-全部参数', [$data]);
         if (($order = Order::where('delivery_id', $delivery_id)->first()) && in_array($status, [0, 20, 30, 50, 99])) {
+
+            if ($order->status == 99) {
+                \Log::info('美团跑腿订单状态回调-订单已是取消状态', ['order_id' => $order->id, 'shop_id' => $order->shop_id]);
+                return json_encode($res);
+            }
+
             $tui = false;
             if ($status == 0) {
                 $order->status = 30;
@@ -66,7 +73,7 @@ class OrderController
                 }
             }
         }
-        \Log::info('订单状态回调', ['request' => $request, 'response' => $res]);
+        \Log::info('美团跑腿订单状态回调', ['request' => $request, 'response' => $res]);
 
         if (in_array($order->status, [40, 50, 60, 70])) {
             dispatch(new MtLogisticsSync($order));

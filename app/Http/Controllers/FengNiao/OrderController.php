@@ -12,7 +12,6 @@ class OrderController
 {
     public function status(Request $request)
     {
-
         \Log::info('蜂鸟订单状态回调-全部参数', [$request->all()]);
 
         if (!$data_str = $request->get('data', '')) {
@@ -24,6 +23,8 @@ class OrderController
         if (empty($data)) {
             return [];
         }
+
+        $res = ['status' => 200, 'msg' => '', 'data' => ''];
 
         // 商家订单号
         $order_id = $data['partner_order_code'] ?? '';
@@ -41,6 +42,12 @@ class OrderController
         $order = Order::where('order_id', $order_id)->first();
 
         if ($order) {
+
+            if ($order->status == 99) {
+                \Log::info('蜂鸟订单状态回调-订单已是取消状态', ['order_id' => $order->id, 'shop_id' => $order->shop_id]);
+                return json_encode($res);
+            }
+
             $order->courier_name = $name;
             $order->courier_phone = $phone;
             $order->exception_descr = $description;
@@ -76,14 +83,13 @@ class OrderController
 
             $order->save();
         }
-        
+
         \Log::info('蜂鸟订单状态回调-部分参数', compact('order_id', 'status', 'name', 'phone', 'description', 'detail_description'));
 
         if (in_array($order->status, [40, 50, 60, 70])) {
             dispatch(new MtLogisticsSync($order));
         }
 
-
-        return [];
+        return json_encode($res);
     }
 }

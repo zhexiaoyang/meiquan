@@ -23,6 +23,8 @@ class ShopController
             return [];
         }
 
+        $res = ['status' => 200, 'msg' => '', 'data' => ''];
+
         // 商家门店ID
         $shop_id = $data['chain_store_code'] ?? '';
         // 变更类型：0-开关店,1-配送范围
@@ -39,10 +41,9 @@ class ShopController
                 // 发送短信操作
             }
         }
-        
+
         \Log::info('蜂鸟门店状态回调-部分参数', compact('shop_id', 'type'));
 
-
-        return [];
+        return json_encode($res);
     }
 }
