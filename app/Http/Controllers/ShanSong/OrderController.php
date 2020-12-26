@@ -39,6 +39,11 @@ class OrderController
 
         $order = Order::where('order_id', $order_id)->first();
 
+        if ($order->status == 99) {
+            \Log::info('闪送订单状态回调-订单已是取消状态', ['order_id' => $order->id, 'shop_id' => $order->shop_id]);
+            return json_encode($res);
+        }
+
         if ($order) {
             $order->courier_name = $name;
             $order->courier_phone = $phone;
@@ -116,7 +121,7 @@ class OrderController
                 return json_encode($res);
             }
         }
-        
+
         \Log::info('闪送订单状态回调-部分参数', compact('ss_order_id','order_id', 'status', 'name', 'phone', 'longitude', 'latitude'));
 
         if (in_array($order->status, [40, 50, 60, 70])) {
