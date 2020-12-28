@@ -67,7 +67,7 @@ class Api extends Request
                 "toLongitude" => $jwd2['lng'],
                 "toReceiverName" => $order->receiver_name ?: "无名",
                 "toMobile" => str_replace('_', '#', $order->receiver_phone),
-                "goodType" => 1,
+                "goodType" => 13,
                 "weight" => 1,
                 "remarks" => $order->note ?? "",
                 // "additionFee" => 500,

@@ -113,4 +113,23 @@ class ExamineShopController extends Controller
 
         return $this->success('审核成功');
     }
+
+    public function update(Request $request)
+    {
+        $id = $request->get("id", 0);
+        $name = $request->get("name", '');
+
+        if (empty($name)) {
+            return $this->error("门店名称不能为空");
+        }
+
+        if (!$shop = Shop::query()->find($id)) {
+            return $this->error("门店不存在");
+        }
+
+        $shop->shop_name = $name;
+        $shop->save();
+
+        return $this->success();
+    }
 }

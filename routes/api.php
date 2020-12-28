@@ -108,6 +108,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("examine/shop", "ExamineShopController@index");
             // *跑腿审核-审核操作
             Route::post("examine/shop", "ExamineShopController@store");
+            // *跑腿审核-更改门店名称
+            Route::post("examine/shop/update", "ExamineShopController@update");
 
             // *自动接单-门店列表
             Route::get("examine/auto", "ExamineShopController@autoList");
