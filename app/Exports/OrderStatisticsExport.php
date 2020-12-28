@@ -107,8 +107,8 @@ class OrderStatisticsExport implements WithStrictNullComparison, Responsable, Fr
     public function sheets(): array
     {
         return [
-            (new self())->withRequest($this->request),
             (new OrdersExport())->withRequest($this->request),
+            (new self())->withRequest($this->request),
         ];
     }
 }

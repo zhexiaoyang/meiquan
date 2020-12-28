@@ -61,8 +61,10 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
         return [
             "`".$order->order_id,
             $order->money,
-            $order->created_at,
+            $order->shop->shop_name ?? '',
+            $order->shop->city ?? '',
             $ps[$order->ps],
+            $order->created_at,
         ];
     }
 
@@ -71,8 +73,10 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
         return [
             '订单号',
             '金额',
-            '创建时间',
+            '门店名称',
+            '城市',
             '配送平台',
+            '创建时间',
         ];
     }
 
