@@ -52,6 +52,8 @@ class SupplierProductController extends Controller
             $query->orderBy("price");
         }
 
+        $query->orderBy("sort_admin")->orderBy("sort_supplier");
+
         $products = $query->paginate($page_size);
 
         $items = [];
