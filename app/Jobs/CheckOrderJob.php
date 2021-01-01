@@ -79,7 +79,11 @@ class CheckOrderJob extends CronJob
 
                                 $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                             } else {
-                                dispatch(new CreateMtOrder($order));
+                                // dispatch(new CreateMtOrder($order));
+                                $order->send_at = date("Y-m-d H:i:s");
+                                $order->status = 8;
+                                $order->save();
+                                dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
                             }
                         }
                     }
