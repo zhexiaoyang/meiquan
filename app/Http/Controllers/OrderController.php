@@ -33,7 +33,7 @@ class OrderController extends Controller
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps',
-            'receiver_lng','expected_delivery_time','receiver_lat','status','created_at');
+            'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
         if ($search_key) {
@@ -65,7 +65,7 @@ class OrderController extends Controller
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                if (in_array($order->status, [20 ,30 ,40 ,50 ,60])) {
+                if (in_array($order->status, [8,20 ,30 ,40 ,50 ,60])) {
                     $order->is_cancel = 1;
                 } else {
                     $order->is_cancel = 0;
@@ -78,6 +78,15 @@ class OrderController extends Controller
                     $order->shop_name = "";
                 }
                 $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
+                $number = 0;
+                if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
+                    $ttl = config("ps.order_delay_ttl");
+                    $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
+                }
+                if ($order->status == 8 && $number == 0 ) {
+                    $order->status = 0;
+                }
+                $order->number = $number;
                 unset($order->shop);
             }
         }
@@ -90,23 +99,6 @@ class OrderController extends Controller
      * @param Order $order
      * @return mixed
      */
-    // public function store(Request $request, Order $order)
-    // {
-    //     $shop_id = $request->get('shop_id', 0);
-    //     if (!$shop = Shop::query()->find($shop_id)) {
-    //         $shop = Shop::query()->where('shop_id', $shop_id)->first();
-    //     }
-    //     if (!$shop) {
-    //         return $this->error('门店不存在');
-    //     }
-    //     $order->fill($request->all());
-    //     $order->shop_id = $shop->shop_id;
-    //     if ($order->save()) {
-    //         dispatch(new CreateMtOrder($order));
-    //         return $this->success([]);
-    //     }
-    //     return $this->error("创建失败");
-    // }
 
     public function store(Request $request, Order $order)
     {
@@ -127,59 +119,15 @@ class OrderController extends Controller
         if ($order->save()) {
 
             \Log::info('手动创建订单-发送订单');
-            // $dingding = new DingTalkRobot();
-            // $dingding->accessToken = "98d212d8ab60c3b48d17e28d4812db1179e8fba03c55b7cf546e250087d6dac2";
-            // $res = $dingding->sendMarkdownMsg("用户手动创建订单了", "用户手动创建订单了-订单号：" . $order->order_id);
-            // \Log::info('钉钉日志发送状态', [$res]);
             $ding_notice = app("ding");
             $res = $ding_notice->sendMarkdownMsgArray("用户手动创建订单了", ["datetime" => date("Y-m-d H:i:s"), "order_id" => $order->order_id]);
             \Log::info('钉钉日志发送状态-用户手动创建订单了', [$res]);
 
-            dispatch(new CreateMtOrder($order));
+            $order->send_at = date("Y-m-d H:i:s");
+            $order->status = 8;
+            $order->save();
+            dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
 
-            // $user = User::query()->find($shop->user_id);
-
-            // if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
-            //     MoneyLog::query()->create([
-            //        'order_id' => $order->id,
-            //        'amount' => $order->money,
-            //     ]);
-            //     dispatch(new CreateMtOrder($order));
-            //     $user = User::query()->find($shop->user_id);
-            //     if ($user->money < 20) {
-
-                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-
-                    // try {
-                    //     app('easysms')->send($user->phone, [
-                    //         'template' => 'SMS_186380293',
-                    //         'data' => [
-                    //             'name' => $user->phone ?? '',
-                    //             'number' => 20
-                    //         ],
-                    //     ]);
-                    // } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                    //     $message = $exception->getException('aliyun')->getMessage();
-                    //     \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-                    // }
-                // }
-            // } else {
-
-                // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-
-                // try {
-                //     app('easysms')->send($user->phone, [
-                //         'template' => 'SMS_186380293',
-                //         'data' => [
-                //             'name' => $user->phone ?? '',
-                //             'number' => 20
-                //         ],
-                //     ]);
-                // } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                //     $message = $exception->getException('aliyun')->getMessage();
-                //     \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-                // }
-            // }
             return $this->success([]);
         }
         return $this->error("创建失败");
@@ -263,57 +211,8 @@ class OrderController extends Controller
             return $this->error("该门店不能发单");
         }
 
-        // $time = timeMoney();
-        // $date_money = dateMoney();
-        //
-        // $order->time_money = $time;
-        // $order->date_money = $date_money;
-        // $order->money = $order->base_money + $time + $date_money + $order->distance_money + $order->weight_money;
-        // $order->save();
-
-        // \Log::info('message', [$order->money]);
-
         dispatch(new CreateMtOrder($order));
-        //
-        // $user = User::query()->find($shop->user_id);
-        //
-        // if ($user->money > $order->money && User::query()->where('id', $user->id)->where('money', '>', $order->money)->update(['money' => $user->money - $order->money])) {
-        //     MoneyLog::query()->create([
-        //         'order_id' => $order->id,
-        //         'amount' => $order->money,
-        //     ]);
-        //     dispatch(new CreateMtOrder($order));
-        //     $user = User::query()->find($shop->user_id);
-        //     if ($user->money < 20) {
-        //         try {
-        //             app('easysms')->send($user->phone, [
-        //                 'template' => 'SMS_186380293',
-        //                 'data' => [
-        //                     'name' => $user->phone ?? '',
-        //                     'number' => 20
-        //                 ],
-        //             ]);
-        //         } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-        //             $message = $exception->getException('aliyun')->getMessage();
-        //             \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-        //         }
-        //     }
-        //     return $this->success([]);
-        // } else {
-        //     try {
-        //         app('easysms')->send($user->phone, [
-        //             'template' => 'SMS_186380293',
-        //             'data' => [
-        //                 'name' => $user->phone ?? '',
-        //                 'number' => 20
-        //             ],
-        //         ]);
-        //     } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-        //         $message = $exception->getException('aliyun')->getMessage();
-        //         \Log::info('余额不足发送短信失败', [$user->phone, $message]);
-        //     }
-        // }
-        // return $this->error("余额不足，请充值后再发送");
+
         return $this->success("提交成功");
     }
 
@@ -364,14 +263,18 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
+    /**
+     * 同步订单-旧
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
     public function sync(Request $request)
     {
+        \Log::info('同步订单-旧sync');
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
-
-        // if (!$type || !in_array($type, [1,2,3]) || !$order_id) {
-        //     return $this->error('参数错误');
-        // }
 
         if ($type === 1) {
             $meituan = app("yaojite");
@@ -458,6 +361,7 @@ class OrderController extends Controller
      */
     public function sync2(Request $request)
     {
+        \Log::info('同步订单-新sync2');
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
 
@@ -591,9 +495,12 @@ class OrderController extends Controller
 
                         $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                     } else {
-                        dispatch(new CreateMtOrder($order));
+                        $order->send_at = date("Y-m-d H:i:s");
+                        $order->status = 8;
+                        $order->save();
+                        dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
+                        // dispatch(new CreateMtOrder($order));
                     }
-
                 }
             }
             return $this->success([]);
@@ -726,6 +633,16 @@ class OrderController extends Controller
         $ps = $order->ps;
         $shop = Shop::query()->find($order->shop_id);
 
+        if ($order->status < 3) {
+            \Log::info("订单未发送-不用取消", [$order->id, $order->order_id]);
+            return $this->error("订单状态不正确");
+        }
+
+        if ($order->status >= 70) {
+            \Log::info("订单完成或取消-不用取消", [$order->id, $order->order_id]);
+            return $this->error("订单状态不正确");
+        }
+
         if ($ps == 1) {
             $meituan = app("meituan");
 
@@ -810,6 +727,11 @@ class OrderController extends Controller
                 \Log::info('闪送取消订单成功-已经是取消状态了', ['order_id' => $order->id, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
                 return $this->success([]);
             }
+        } else {
+            $order->status = 99;
+            \Log::info('后台取消订单-未配送');
+            $order->save();
+            return $this->success();
         }
 
         return $this->error("取消失败");

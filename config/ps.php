@@ -68,5 +68,6 @@ return [
         '2020-02-16',
         '2020-02-17',
     ],
-    'order_ttl' => 300,
+    'order_ttl' => 480,
+    'order_delay_ttl' => 60,
 ];

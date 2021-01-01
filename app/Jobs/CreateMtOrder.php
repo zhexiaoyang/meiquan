@@ -30,8 +30,9 @@ class CreateMtOrder implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Order $order)
+    public function __construct(Order $order, $ttl = 0)
     {
+        $this->delay = $ttl;
         $this->order = $order;
         $this->dingding = app("ding");
     }
@@ -43,6 +44,13 @@ class CreateMtOrder implements ShouldQueue
      */
     public function handle()
     {
+        if ($this->order->status > 10) {
+            \Log::info("(CreateMtOrder)订单状态不正确-不能发单", [$this->order->id,$this->order->order_id]);
+            return;
+        }
+
+        // \Log::info("(CreateMtOrder)订单信息", [$this->order->status]);
+        // return;
 
         $this->dingTalk("发送订单", "开始");
         $shop = Shop::query()->find($this->order->shop_id);
@@ -102,8 +110,6 @@ class CreateMtOrder implements ShouldQueue
                     }
                 }
             }
-
-
         }
 
         // 判断闪送是否可以接单、并加入数组

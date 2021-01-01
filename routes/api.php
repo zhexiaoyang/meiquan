@@ -370,6 +370,14 @@ Route::namespace('Api')->prefix('shunfeng')->group(function () {
 });
 
 /**
+ * 美团外卖民康回调接口
+ */
+Route::namespace('Api')->prefix('waimai')->group(function () {
+    // 结算订单
+    Route::post('minkang/confirm', "MinKangController@confirm");
+});
+
+/**
  * 蜂鸟测试接口
  */
 // Route::group(['namespace' => 'Test'], function () {
@@ -405,3 +413,11 @@ Route::namespace('Api')->prefix('shunfeng')->group(function () {
 //     Route::post('carrier', 'ShanSongTestController@carrier');
 //     Route::post('route', 'ShanSongTestController@route');
 // });
+
+
+/**
+ * 美团测试接口
+ */
+Route::namespace('Test')->prefix("test/mt")->group(function () {
+    Route::get('shopIdList', 'MeiTuanTestController@shopIdList');
+});

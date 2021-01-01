@@ -144,6 +144,28 @@ class Api extends Request
         return $this->request('order/rider/location', $params);
     }
 
+    /**
+     * 获取美团外卖绑定开发者平台的所有美团ID
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function getShopIds()
+    {
+        return $this->request_get('v1/poi/getids', []);
+    }
+
+    /**
+     * 获取美团外卖绑定开发者平台的所有美团ID
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function getShopInfoByIds($params)
+    {
+        return $this->request_get('v1/poi/mget', $params);
+    }
+
     public function shopCreate(Shop $shop)
     {
         $time = [
