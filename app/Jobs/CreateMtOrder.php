@@ -44,7 +44,7 @@ class CreateMtOrder implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->order->status > 10) {
+        if ($this->order->status > 70) {
             \Log::info("(CreateMtOrder)订单状态不正确-不能发单", [$this->order->id,$this->order->order_id]);
             return;
         }
