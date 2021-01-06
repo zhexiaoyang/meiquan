@@ -53,7 +53,7 @@ class Api extends Request
             "cityName" => $shop->city,
             "sender" => [
                 "fromAddress" => $shop->shop_address,
-                "fromAddressDetail" => $shop->shop_address,
+                "fromAddressDetail" => $shop->shop_name,
                 "fromSenderName" => $shop->contact_name,
                 "fromMobile" => $shop->contact_phone,
                 "fromLatitude" => $jwd1['lat'],
