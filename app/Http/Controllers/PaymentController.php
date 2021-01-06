@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Cache;
 use Pay;
 use App\Models\SupplierOrder;
 use Illuminate\Http\Request;
@@ -84,17 +85,25 @@ class PaymentController extends Controller
                 return $this->error('微信未授权，无法使用支付');
             }
 
-            $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=1d3436d84cc39862aff5ef7f46f41e2e&code={$code}&grant_type=authorization_code";
+            $auth = Cache::get($code);
 
-            $auth_json = file_get_contents($url);
+            if (!$auth) {
+                $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=1d3436d84cc39862aff5ef7f46f41e2e&code={$code}&grant_type=authorization_code";
 
-            \Log::info("auth", [$auth_json]);
+                $auth_json = file_get_contents($url);
 
-            $auth = json_decode($auth_json, true);
+                \Log::info("auth", [$auth_json]);
 
-            if (!isset($auth['openid'])) {
-                \Log::info("[商城订单支付-微信]-[method: {$pay_method}, code: {$code}]-[openid不存在]-[微信未授权，无法使用支付]");
-                return $this->error('微信未授权，无法使用支付');
+                $auth = json_decode($auth_json, true);
+
+                if (!isset($auth['openid'])) {
+                    \Log::info("[商城订单支付-微信]-[method: {$pay_method}, code: {$code}]-[openid不存在]-[微信未授权，无法使用支付]");
+                    return $this->error('微信未授权，无法使用支付');
+                }
+
+                // 将获取到的 auth 缓存1个小时
+                $expiredAt = now()->addHours(1);
+                Cache::put($code, $auth, $expiredAt);
             }
 
             $order = [
