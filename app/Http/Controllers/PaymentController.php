@@ -80,6 +80,7 @@ class PaymentController extends Controller
         } else if ($pay_method == 3) {
 
             if (!$code = $request->get('code')) {
+                \Log::info("[商城订单支付-微信]-[method: {$pay_method}, code: {$code}]-[code不存在]-[微信未授权，无法使用支付]");
                 return $this->error('微信未授权，无法使用支付');
             }
 
@@ -92,6 +93,7 @@ class PaymentController extends Controller
             $auth = json_decode($auth_json, true);
 
             if (!isset($auth['openid'])) {
+                \Log::info("[商城订单支付-微信]-[method: {$pay_method}, code: {$code}]-[openid不存在]-[微信未授权，无法使用支付]");
                 return $this->error('微信未授权，无法使用支付');
             }
 
