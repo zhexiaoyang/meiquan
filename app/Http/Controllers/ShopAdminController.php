@@ -137,7 +137,7 @@ class ShopAdminController extends Controller
         // $start_date = $request->get("start_date", '');
         // $end_date = $request->get("end_date", '');
 
-        $query = SupplierOrder::with(["user", "items"])->orderBy("id", "desc")
+        $query = SupplierOrder::with(["shop", "items"])->orderBy("id", "desc")
             ->where("status", '>', 0);
 
         if ($search_key) {
@@ -175,6 +175,7 @@ class ShopAdminController extends Controller
                 $order_info['payment_method'] = $order->payment_method;
                 $order_info['cancel_reason'] = $order->cancel_reason;
                 $order_info['status'] = $order->status;
+                $order_info['shop_name'] = $order->shop->name ?? "";
                 $order_info['paid_at'] = $order->paid_at ? date("Y-m-d H:i:s", strtotime($order->paid_at)) : '-';
                 $order_info['created_at'] = date("Y-m-d H:i:s", strtotime($order->created_at));
 
