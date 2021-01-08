@@ -118,10 +118,10 @@ class OrderController extends Controller
 
         if ($order->save()) {
 
-            \Log::info('手动创建订单-发送订单');
+            \Log::info("[跑腿订单-手动创建订单]-[订单ID: {$order->id}]-[订单号: {$order->order_id}]");
             $ding_notice = app("ding");
             $res = $ding_notice->sendMarkdownMsgArray("用户手动创建订单了", ["datetime" => date("Y-m-d H:i:s"), "order_id" => $order->order_id]);
-            \Log::info('钉钉日志发送状态-用户手动创建订单了', [$res]);
+            // \Log::info('钉钉日志发送状态-用户手动创建订单了', [$res]);
 
             $order->send_at = date("Y-m-d H:i:s");
             $order->status = 8;
@@ -147,6 +147,8 @@ class OrderController extends Controller
         if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
         }
+
+        \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]-[订单号: {$order->order_id}]");
 
         if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
             return $this->error("该门店不能发单");
@@ -361,11 +363,11 @@ class OrderController extends Controller
      */
     public function sync2(Request $request)
     {
-        \Log::info('同步订单-新sync2');
         $type = intval($request->get('type', 0));
         $order_id = $request->get('order_id', 0);
 
-        \Log::info('同步订单参数', ['type' => $type, 'order_id' => $order_id]);
+        \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]");
+        // \Log::info('同步订单参数', ['type' => $type, 'order_id' => $order_id]);
 
         // if (!$type || !in_array($type, [1,2,3,4]) || !$order_id) {
         //     return $this->error('参数错误');
@@ -387,35 +389,41 @@ class OrderController extends Controller
 
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
 
-        \Log::info('获取订单信息', [$res]);
+        // \Log::info('获取订单信息', [$res]);
+        \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-获取订单信息");
 
         if (!empty($res) && is_array($res['data']) && !empty($res['data'])) {
             $data = $res['data'];
 
             if ($data['recipient_address'] == "到店自取") {
-                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-到店自取订单不创建订单");
+                // \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
                 return $this->error('到店自取订单');
             }
 
             if ($data['recipient_address'] == "到店自取@#到店自取") {
-                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-到店自取订单不创建订单");
+                // \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
                 return $this->error('到店自取订单');
             }
 
             if ($data['pick_type'] === 1) {
-                \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
+                \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-到店自取订单不创建订单");
+                // \Log::info('到店自取订单-不创建订单', ['order_id' => $order_id]);
                 return $this->error('到店自取订单');
             }
 
             if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
-                \Log::info('订单已存在', compact("type", "order_id"));
+                \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-订单已存在");
+                // \Log::info('订单已存在', compact("type", "order_id"));
                 return $this->error('订单已存在');
             }
 
             $shop_id = isset($data['app_poi_code']) ? $data['app_poi_code'] : 0;
 
             if (!$shop = Shop::where('mt_shop_id', $shop_id)->first()) {
-                \Log::info('药店不存在', compact("type", "order_id"));
+                \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-药店不存在");
+                // \Log::info('药店不存在', compact("type", "order_id"));
                 return $this->error('药店不存在');
             }
 
@@ -481,7 +489,8 @@ class OrderController extends Controller
 
                         dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
 
-                        \Log::info('美团创建预约订单成功', $order->toArray());
+                        // \Log::info('美团创建预约订单成功', $order->toArray());
+                        \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-美团创建预约订单成功");
 
                         $ding_notice = app("ding");
 
@@ -515,14 +524,16 @@ class OrderController extends Controller
      */
     public function cancel(Request $request)
     {
-        $order = Order::query()->where('order_id', $request->get('order_id', 0))->first();
+        $order_id = $request->get('order_id', 0);
+        $order = Order::query()->where('order_id', $order_id)->first();
+        \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-开始");
 
         if (!$order) {
-            \Log::info('美团外卖接口取消订单-订单未找到', ['请求参数' => $request->all()]);
+            \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-订单不存在");
+            // \Log::info('[订单-接口取消订单]-订单未找到', ['请求参数' => $request->all()]);
             return $this->error("订单不存在");
         }
-
-        \Log::info('美团外卖接口取消订单-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
+        // \Log::info('[订单-接口取消订单]-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
 
         $ps = $order->ps;
         $shop = Shop::query()->find($order->shop_id);

@@ -6,6 +6,7 @@ use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierProduct;
 use App\Models\SupplierProductCityPriceItem;
+use App\Models\SupplierUser;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -113,6 +114,7 @@ class SupplierProductController extends Controller
             "status" => $supplierProduct->status,
             "depot_id" => $supplierProduct->depot_id,
             "stock" => $supplierProduct->stock,
+            "sale_count" => $supplierProduct->sale_count,
             "price" => $city_price ? $city_price->price : $supplierProduct->price,
             "detail" => $supplierProduct->detail,
             "category_id" => $supplierProduct->depot->category_id,
@@ -143,6 +145,10 @@ class SupplierProductController extends Controller
             $result['jx'] = $supplierProduct->depot->jx;
             $result['zc'] = $supplierProduct->depot->zc;
         }
+
+        $shop = SupplierUser::select("id","avatar","name","telephone","description","notice")->find($supplierProduct->user_id);
+
+        $result['shop'] = $shop;
 
         return $this->success($result);
     }

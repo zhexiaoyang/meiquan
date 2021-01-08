@@ -57,6 +57,11 @@ class Shop extends Model
         return $this->hasOne(ShopAuthentication::class, "shop_id", "id");
     }
 
+    public function change_shop()
+    {
+        return $this->hasOne(ShopAuthenticationChange::class, "shop_id", "id");
+    }
+
     public function getStatusLabelAttribute()
     {
         return $this->status_data[$this->status] ?? '状态错误';

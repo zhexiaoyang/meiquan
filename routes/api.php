@@ -69,6 +69,10 @@ Route::middleware(['force-json'])->group(function() {
         Route::get("shopping/info", "ShoppingController@show");
         // 认证成功门店列表-待优化（根据状态查询）
         Route::get("shop_auth_success_list", "ShoppingController@shopAuthSuccessList");
+        // *已认证门店修改-详情
+        Route::get("shopping/change/info", "ShoppingChangeController@show");
+        // *已认证门店修改-提交修改
+        Route::post("shopping/change", "ShoppingChangeController@store");
 
         /**
          * 外卖资料上线
@@ -87,13 +91,17 @@ Route::middleware(['force-json'])->group(function() {
         });
 
         /**
-         * 审核管理
+         * 管理员操作
          */
         Route::middleware(['role:super_man'])->group(function () {
             // *商城认证-审核列表
             Route::get("examine/shopping", "ExamineShoppingController@index");
             // *商城认证-审核
             Route::post("examine/shopping", "ExamineShoppingController@store");
+            // *商城认证-资料修改申请-审核列表
+            Route::get("examine/shopping/change", "ExamineShoppingController@changeIndex");
+            // *商城认证-资料修改申请-审核列表
+            Route::post("examine/shopping/change", "ExamineShoppingController@changeStore");
 
             // *审核接口-管理员-审核列表
             Route::get("online/shop/examine", "OnlineController@examineList");
@@ -115,6 +123,16 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("examine/auto", "ExamineShopController@autoList");
             // *自动接单-审核操作
             Route::post("examine/auto", "ExamineShopController@AutoStore");
+
+            // *商城后台-商品列表
+            Route::get("/shopAdmin/product", "ShopAdminController@productList");
+            // *商城后台-商品排序
+            Route::post("/shopAdmin/product/sort", "ShopAdminController@productSort");
+            // *商城后台-订单列表
+            Route::get("/shopAdmin/order", "ShopAdminController@orderList");
+            // *商城后台-取消订单
+            Route::post("/shopAdmin/order/cancel", "ShopAdminController@cancelOrder");
+
         });
 
         /**

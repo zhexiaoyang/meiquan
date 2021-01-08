@@ -58,6 +58,11 @@ class SupplierOrder extends Model
         });
     }
 
+    protected function asJson($value)
+    {
+        return json_encode($value, JSON_UNESCAPED_UNICODE);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

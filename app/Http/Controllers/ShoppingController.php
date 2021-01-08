@@ -226,7 +226,7 @@ class ShoppingController extends Controller
 
         $user = Auth::user();
 
-        $query = Shop::with("auth_shop")->where("own_id", $user->id)->where("auth", ">", 0);
+        $query = Shop::with(["auth_shop", "change_shop"])->where("own_id", $user->id)->where("auth", ">", 0);
 
         if ($search_key) {
             $query->where("shop_name", "like", "{$search_key}");
@@ -244,6 +244,7 @@ class ShoppingController extends Controller
                     $tmp['xkz'] = $v->auth_shop->xkz;
                     $tmp['sfz'] = $v->auth_shop->sfz;
                     $tmp['wts'] = $v->auth_shop->wts;
+                    $tmp['change_status'] = $v->change_shop->status ?? -1;
                     $tmp['examine_at'] = $v->auth_shop->examine_at ? date("Y-m-d H:i:s", strtotime($v->auth_shop->examine_at)) : "";
                     $tmp['created_at'] = date("Y-m-d H:i:s", strtotime($v->auth_shop->created_at));
                     $shops[] = $tmp;

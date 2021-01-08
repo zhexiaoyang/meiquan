@@ -173,6 +173,8 @@ class SupplierOrderController extends Controller
                     ]);
                     $item->product()->associate($product->id);
                     $item->save();
+                    $product->sale_count += $cart['amount'];
+                    $product->save();
                     $total_fee += ($price * 100) * $cart['amount'];
                     $product_weight += $product->weight * $cart['amount'];
 
