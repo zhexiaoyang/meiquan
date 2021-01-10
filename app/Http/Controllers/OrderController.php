@@ -625,9 +625,15 @@ class OrderController extends Controller
                 return $this->success([]);
             }
         } else {
-            $order->status = 99;
+            if ($order->status < 0) {
+                \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-[订单状态：{$order->status}]");
+                $order->status = -10;
+            } else {
+                $order->status = 99;
+            }
             $order->save();
-            \Log::info('美团外卖取消订单-未配送');
+            \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-未配送");
+            // \Log::info('美团外卖取消订单-未配送');
             return $this->success([]);
         }
 
