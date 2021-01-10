@@ -626,7 +626,7 @@ class OrderController extends Controller
             }
         } else {
             if ($order->status < 0) {
-                \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-[订单状态：{$order->status}]");
+                \Log::info("[跑腿订单-接口取消订单]-[订单号: {$order_id}]-[订单状态：{$order->status}]-订单状态小于0");
                 $order->status = -10;
             } else {
                 $order->status = 99;
