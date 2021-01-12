@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Supplier;
 use App\Exports\SupplierOrderProductsExport;
 use App\Exports\SupplierOrdersExport;
 use App\Models\Shop;
+use App\Models\ShopAuthentication;
 use App\Models\SupplierOrder;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -151,6 +152,38 @@ class OrderController extends Controller
         }
 
         return $this->success($order_info);
+    }
+
+    /**
+     * 资质列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function qualifications(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$order = SupplierOrder::query()->where("shop_id", $user->id)->find($request->get("id", 0))) {
+            return $this->error("订单不存在");
+        }
+
+        $qualifications = ShopAuthentication::select("yyzz","chang","yyzz_start_time","yyzz_end_time","xkz","ypjy_start_time","ypjy_end_time","spjy","spjy_start_time","spjy_end_time","ylqx","ylqx_start_time","ylqx_end_time","elqx","sfz","wts")
+            ->where("shop_id", $order->receive_shop_id)->first();
+
+        return $this->success($qualifications);
+    }
+
+    public function receiveQualification(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$order = SupplierOrder::query()->where("shop_id", $user->id)->find($request->get("id", 0))) {
+            return $this->error("订单不存在");
+        }
+
+        return $this->success();
     }
 
     /**

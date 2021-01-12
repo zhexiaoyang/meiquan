@@ -12,6 +12,38 @@ use Illuminate\Support\Facades\Auth;
 
 class ShopAdminController extends Controller
 {
+
+    /**
+     * 设置活动商品
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function productActive(Request $request)
+    {
+        $id = intval($request->get("id", 0));
+        $status = intval($request->get("status", 0));
+        $commission = intval($request->get("commission", 0));
+
+        if (!in_array($status, [1, 2])) {
+            return $this->error("状态不正确");
+        }
+
+        if ($commission < 0 || $commission > 100) {
+            return $this->error("扣率不正确");
+        }
+
+        if (!$product = SupplierProduct::query()->find($id)) {
+            return $this->error("商品不存在");
+        }
+        $product->is_active = $status === 1 ? 1 : 0;
+        $product->commission = $commission;
+        $product->save();
+
+        return $this->success();
+    }
+
     /**
      * 商城后台-商品列表
      * @param Request $request
@@ -27,8 +59,8 @@ class ShopAdminController extends Controller
         // $stock = intval($request->get("stock", 0));
 
         $query = SupplierProduct::query()->select(
-            "id","depot_id","user_id","price","is_control","control_price","sale_count","status","stock",
-            "sale_type","product_date","product_end_date","number","weight","detail","sort_admin")
+            "id","depot_id","user_id","price","is_control","is_active","control_price","sale_count","status","stock",
+            "sale_type","product_date","product_end_date","number","weight","detail","sort_admin","commission")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
                 if ($search_key) {
                     $query->where("name", "like", "%{$search_key}%");
@@ -77,6 +109,8 @@ class ShopAdminController extends Controller
                 $tmp['id'] = $product->id;
                 $tmp['price'] = $product->price;
                 $tmp['is_control'] = $product->is_control;
+                $tmp['commission'] = $product->commission;
+                $tmp['is_active'] = $product->is_active;
                 $tmp['control_price'] = $product->control_price;
                 $tmp['stock'] = $product->stock;
                 $tmp['sale_type'] = $product->sale_type;
@@ -129,6 +163,13 @@ class ShopAdminController extends Controller
         return $this->success();
     }
 
+    /**
+     * 商城后台-订单列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/1/11 9:55 上午
+     */
     public function orderList(Request $request)
     {
         $page_size = $request->get("page_size", 10);
@@ -204,6 +245,13 @@ class ShopAdminController extends Controller
         return $this->page($orders, $_res);
     }
 
+    /**
+     * 商城后台-取消订单
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/1/11 9:55 上午
+     */
     public function cancelOrder(Request $request)
     {
         $id = $request->get("id", 0);

@@ -128,6 +128,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/product", "ShopAdminController@productList");
             // *商城后台-商品排序
             Route::post("/shopAdmin/product/sort", "ShopAdminController@productSort");
+            // *商城后台-商品活动设置
+            Route::post("/shopAdmin/product/active", "ShopAdminController@productActive");
             // *商城后台-订单列表
             Route::get("/shopAdmin/order", "ShopAdminController@orderList");
             // *商城后台-取消订单
@@ -192,8 +194,14 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("category", "SupplierCategoryController@index");
             // 采购商品列表
             Route::get("product", "SupplierProductController@index");
+            // 采购活动商品列表
+            Route::get("active/product", "SupplierProductController@activeList");
             // 采购商品详情
             Route::get("product/{supplier_product}", "SupplierProductController@show");
+            // 供货商信息
+            Route::get("shop/info", "SupplierShopController@show");
+            // 供货商商品列表
+            Route::get("shop/product", "SupplierShopController@productList");
             // 采购购物车列表
             Route::get("cart", "SupplierCartController@index");
             // 采购购物车添加
@@ -282,6 +290,10 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::get("/product/export", "OrderController@exportProduct");
             // 订单详情
             Route::get("show", "OrderController@show");
+            // 订单资质
+            Route::get("qualifications", "OrderController@qualifications");
+            // 收到纸质
+            Route::post("receiveQualification", "OrderController@receiveQualification");
             // 订单发货
             Route::post("deliver", "OrderController@deliver");
             // 取消订单
