@@ -324,9 +324,15 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
     });
 });
 
+/**
+ * ERP接口
+ */
 Route::middleware(['force-json'])->prefix("erp")->namespace("Erp")->group(function() {
     Route::prefix("v1")->namespace("V1")->group(function() {
         Route::post("product/stock", "ProductController@stock");
+        Route::post("product/add", "ProductController@add");
+        Route::post("test/product/stock", "ProductController@testStock");
+        Route::post("test/product/add", "ProductController@testAdd");
     });
 });
 
