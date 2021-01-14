@@ -158,4 +158,10 @@ class UserController extends Controller
 
         return $this->success();
     }
+
+    public function update(Request $request)
+    {
+        \Log::info("[采购端]-[采购用户]-[修改资质]-全部参数", $request->all());
+        return $this->success();
+    }
 }

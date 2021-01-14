@@ -262,4 +262,22 @@ class OrderController extends Controller
 
         return $this->success();
     }
+
+    public function express()
+    {
+        $data = [
+            [ 'id' => 1, 'name' => '极兔速递'],
+            [ 'id' => 2, 'name' => '顺丰快递'],
+            [ 'id' => 3, 'name' => '申通快递'],
+            [ 'id' => 4, 'name' => '中通快递'],
+            [ 'id' => 5, 'name' => '圆通快递'],
+            [ 'id' => 6, 'name' => '韵达快递'],
+            [ 'id' => 7, 'name' => '百世快递'],
+            [ 'id' => 8, 'name' => '德邦快递'],
+            [ 'id' => 9, 'name' => '天天快递'],
+            [ 'id' => 10, 'name' => 'EMS快递'],
+        ];
+
+        return $this->success($data);
+    }
 }

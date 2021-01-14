@@ -294,6 +294,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::get("qualifications", "OrderController@qualifications");
             // 收到纸质
             Route::post("receiveQualification", "OrderController@receiveQualification");
+            // 快递列表
+            Route::get("express", "OrderController@express");
             // 订单发货
             Route::post("deliver", "OrderController@deliver");
             // 取消订单
@@ -306,6 +308,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::get("", "UserController@show");
             // 设置供货商信息
             Route::post("", "UserController@store");
+            // 修改供货商信息
+            Route::post("update", "UserController@update");
         });
 
         // 配送费
@@ -333,6 +337,12 @@ Route::middleware(['force-json'])->prefix("erp")->namespace("Erp")->group(functi
         Route::post("product/add", "ProductController@add");
         Route::post("test/product/stock", "ProductController@testStock");
         Route::post("test/product/add", "ProductController@testAdd");
+    });
+});
+Route::middleware(['force-json'])->prefix("test/erp")->namespace("Erp")->group(function() {
+    Route::prefix("v1")->namespace("V1")->group(function() {
+        Route::post("product/stock", "ProductController@testStock");
+        Route::post("product/add", "ProductController@testAdd");
     });
 });
 
