@@ -328,37 +328,40 @@ class ProductController extends Controller
 
         $receive_params = $request->get("params");
 
-        if (!isset($receive_params['shop_id'])) {
-            return $this->error("参数错误：shop_id不存在", 701);
+        $params = [];
+
+        if (!empty($receive_params)) {
+            foreach ($receive_params as $receive_param) {
+
+                if (!isset($receive_param['shop_id'])) {
+                    return $this->error("参数错误：shop_id不存在", 701);
+                }
+
+                if (!isset($receive_param['app_medicine_code'])) {
+                    return $this->error("参数错误：app_medicine_code不存在", 701);
+                }
+
+                if (!isset($receive_param['upc'])) {
+                    return $this->error("参数错误：upc不存在", 701);
+                }
+
+                if (!isset($receive_param['price'])) {
+                    return $this->error("参数错误：price不存在", 701);
+                }
+
+                if (!isset($receive_param['stock'])) {
+                    return $this->error("参数错误：stock不存在", 701);
+                }
+
+                $params[] = [
+                    'app_poi_code' => $receive_param['shop_id'],
+                    'app_medicine_code' => $receive_param['app_medicine_code'],
+                    'upc' => $receive_param['upc'],
+                    'price' => $receive_param['price'],
+                    'stock' => $receive_param['stock'],
+                ];
+            }
         }
-
-        if (!isset($receive_params['app_medicine_code'])) {
-            return $this->error("参数错误：app_medicine_code不存在", 701);
-        }
-
-        if (!isset($receive_params['upc'])) {
-            return $this->error("参数错误：upc不存在", 701);
-        }
-
-        if (!isset($receive_params['price'])) {
-            return $this->error("参数错误：price不存在", 701);
-        }
-
-        if (!isset($receive_params['stock'])) {
-            return $this->error("参数错误：stock不存在", 701);
-        }
-
-        // if (!isset($receive_params['category'])) {
-        //     return $this->error("参数错误：category不存在", 701);
-        // }
-
-        $params = [
-            'app_poi_code' => $receive_params['shop_id'],
-            'app_medicine_code' => $receive_params['app_medicine_code'],
-            'upc' => $receive_params['upc'],
-            'price' => $receive_params['price'],
-            'stock' => $receive_params['stock'],
-        ];
 
         \Log::info("[ERP接口]-[测试添加商品]-请求参数", $params);
 
