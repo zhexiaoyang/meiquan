@@ -348,9 +348,9 @@ class ProductController extends Controller
             return $this->error("参数错误：stock不存在", 701);
         }
 
-        if (!isset($receive_params['category'])) {
-            return $this->error("参数错误：category不存在", 701);
-        }
+        // if (!isset($receive_params['category'])) {
+        //     return $this->error("参数错误：category不存在", 701);
+        // }
 
         $params = [
             'app_poi_code' => $receive_params['shop_id'],
