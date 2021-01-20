@@ -358,7 +358,7 @@ class ProductController extends Controller
             'upc' => $receive_params['upc'],
             'price' => $receive_params['price'],
             'stock' => $receive_params['stock'],
-            'category' => $receive_params['category'],
+            // 'category' => $receive_params['category'],
         ];
 
         \Log::info("[ERP接口]-[测试添加商品]-请求参数", $params);
