@@ -60,7 +60,7 @@ class SupplierProductController extends Controller
             $query->orderBy("price");
         }
 
-        $query->orderBy("sort_admin")->orderBy("sort_supplier");
+        $query->orderBy("sort_admin")->orderBy("sort_supplier")->orderBy("id");
 
         $products = $query->paginate($page_size);
 
@@ -141,7 +141,7 @@ class SupplierProductController extends Controller
             $query->orderBy("price");
         }
 
-        $query->orderBy("sort_admin")->orderBy("sort_supplier");
+        $query->orderBy("sort_admin")->orderBy("sort_supplier")->orderBy("id");
 
         $products = $query->paginate($page_size);
 

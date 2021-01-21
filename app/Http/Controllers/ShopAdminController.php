@@ -54,9 +54,7 @@ class ShopAdminController extends Controller
     public function productList(Request $request)
     {
         $page_size = $request->get("page_size", 10);
-        $search_key = $request->get("search_key", "");
-        // $status = $request->get("status", "");
-        // $stock = intval($request->get("stock", 0));
+        $search_key = $request->get("name", "");
 
         $query = SupplierProduct::query()->select(
             "id","depot_id","user_id","price","is_control","is_active","control_price","sale_count","status","stock",
@@ -70,35 +68,6 @@ class ShopAdminController extends Controller
             }, "user" => function ($query) {
                 $query->select("id", "name");
             }]);
-
-        // if ($status !== "") {
-        //     $query->where("status", $status);
-        // }
-        //
-        // if ($stock === 1) {
-        //     $query->where("stock", 0);
-        // }
-        // if ($stock === 2) {
-        //     $query->where([
-        //         ["stock", ">", 0],
-        //         ["stock", "<=", 100]
-        //     ]);
-        // }
-        // if ($stock === 3) {
-        //     $query->where([
-        //         ["stock", ">", 100],
-        //         ["stock", "<=", 500]
-        //     ]);
-        // }
-        // if ($stock === 4) {
-        //     $query->where([
-        //         ["stock", ">", 500],
-        //         ["stock", "<=", 1000]
-        //     ]);
-        // }
-        // if ($stock === 5) {
-        //     $query->where("stock", ">",1000);
-        // }
 
         $products = $query->orderBy("sort_admin")->orderBy("sort_supplier")->paginate($page_size);
 
