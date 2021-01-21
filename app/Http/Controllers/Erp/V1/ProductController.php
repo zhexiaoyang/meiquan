@@ -141,84 +141,85 @@ class ProductController extends Controller
             return $this->error("参数错误：timestamp有误", 701);
         }
 
-        $receive_params = $request->get("params");
+        $receive_params = $request->get("data");
 
-        if (!isset($receive_params['shop_id'])) {
-            return $this->error("参数错误：shop_id不存在", 701);
+        if (empty($receive_params)) {
+            return $this->error("参数错误：data不能为空", 701);
         }
 
-        if (!isset($receive_params['app_medicine_code'])) {
-            return $this->error("参数错误：app_medicine_code不存在", 701);
+        // 接收参数
+        $shop_id = null;
+        $data = [];
+
+        foreach ($receive_params as $receive_param) {
+
+            if (!isset($receive_param['shop_id'])) {
+                return $this->error("参数错误：shop_id不存在", 701);
+            }
+
+            if ($shop_id === null) {
+                $shop_id = $receive_param['shop_id'];
+            }
+
+            if (!isset($receive_param['app_medicine_code'])) {
+                return $this->error("参数错误：app_medicine_code不存在", 701);
+            }
+
+            if (!isset($receive_param['upc'])) {
+                return $this->error("参数错误：upc不存在", 701);
+            }
+
+            if (!isset($receive_param['price'])) {
+                return $this->error("参数错误：price不存在", 701);
+            }
+
+            if (!isset($receive_param['stock'])) {
+                return $this->error("参数错误：stock不存在", 701);
+            }
+
+            $data[] = [
+                'app_poi_code' => $receive_param['shop_id'],
+                'app_medicine_code' => $receive_param['app_medicine_code'],
+                'upc' => $receive_param['upc'],
+                'price' => $receive_param['price'],
+                'stock' => $receive_param['stock'],
+            ];
         }
 
-        if (!isset($receive_params['upc'])) {
-            return $this->error("参数错误：upc不存在", 701);
-        }
-
-        if (!isset($receive_params['price'])) {
-            return $this->error("参数错误：price不存在", 701);
-        }
-
-        if (!isset($receive_params['stock'])) {
-            return $this->error("参数错误：stock不存在", 701);
-        }
-
-        if (!isset($receive_params['category'])) {
-            return $this->error("参数错误：category不存在", 701);
-        }
-
-        $params = [
-            'app_poi_code' => $receive_params['shop_id'],
-            'app_medicine_code' => $receive_params['app_medicine_code'],
-            'upc' => $receive_params['upc'],
-            'price' => $receive_params['price'],
-            'stock' => $receive_params['stock'],
-            'category' => $receive_params['category'],
-        ];
-
-        $shop_id = $receive_params['shop_id'];
 
         if (!$access = ErpAccessKey::query()->where("access_key", $access_key)->first()) {
             return $this->error("参数错误：access_key错误", 701);
         }
 
-        if (!$access_shop = ErpAccessShop::query()->where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
-            return $this->error("参数错误：shop_id错误", 701);
-        }
+        // if (!$access_shop = ErpAccessShop::query()->where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
+        //     return $this->error("参数错误：shop_id错误", 701);
+        // }
+        //
+        // if (!$mt_shop_id = $access_shop->mt_shop_id) {
+        //     return $this->error("系统错误", 701);
+        // }
 
-        if (!$mt_shop_id = $access_shop->mt_shop_id) {
-            return $this->error("系统错误", 701);
-        }
-
-        if (!$this->checkSing($request->only("access_key", "timestamp", "params", "signature"), $access->access_secret)) {
+        if (!$this->checkSing($request->only("access_key", "timestamp", "data", "signature"), $access->access_secret)) {
             return $this->error("签名错误", 703);
         }
 
-        $type = $access_shop->type;
-
-        if ($type === 1) {
-            $meituan = app("yaojite");
-        } elseif ($type === 2) {
-            $meituan = app("mrx");
-        } elseif ($type === 3) {
-            $meituan = app("jay");
-        } elseif ($type === 4) {
-            $meituan = app("minkang");
-        } elseif ($type === 5) {
-            $meituan = app("qinqu");
-        } else {
-            return $this->error("系统错误", 701);
-        }
-
-        // $params['app_poi_code'] = $mt_shop_id;
-        // $params['medicine_data'] = json_encode($medicine_data);
-
-        // $res = $meituan->medicineStock($params);
+        // $type = $access_shop->type;
         //
-        // if ($res['data'] != 'ok') {
-        //     return $this->error($res['error']['msg'] ?? "", 3004);
+        // if ($type === 1) {
+        //     $meituan = app("yaojite");
+        // } elseif ($type === 2) {
+        //     $meituan = app("mrx");
+        // } elseif ($type === 3) {
+        //     $meituan = app("jay");
+        // } elseif ($type === 4) {
+        //     $meituan = app("minkang");
+        // } elseif ($type === 5) {
+        //     $meituan = app("qinqu");
+        // } else {
+        //     return $this->error("系统错误", 701);
         // }
 
+        \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
         return $this->success();
     }
 
@@ -236,7 +237,7 @@ class ProductController extends Controller
 
         unset($data["signature"]);
 
-        $seed = 'access_key=' . $data['access_key'] . '&params=' . json_encode($data['params'], JSON_UNESCAPED_UNICODE) . '&timestamp=' . $data['timestamp'] . $secret;
+        $seed = 'access_key=' . $data['access_key'] . '&params=' . json_encode($data['data'], JSON_UNESCAPED_UNICODE) . '&timestamp=' . $data['timestamp'] . $secret;
         \Log::info($seed);
 
         return $signature === md5($seed);
@@ -326,9 +327,9 @@ class ProductController extends Controller
             return $this->error("参数错误：timestamp有误", 701);
         }
 
-        $receive_params = $request->get("params");
+        $receive_params = $request->get("data");
 
-        $params = [];
+        $data = [];
 
         if (!empty($receive_params)) {
             foreach ($receive_params as $receive_param) {
@@ -353,7 +354,7 @@ class ProductController extends Controller
                     return $this->error("参数错误：stock不存在", 701);
                 }
 
-                $params[] = [
+                $data[] = [
                     'app_poi_code' => $receive_param['shop_id'],
                     'app_medicine_code' => $receive_param['app_medicine_code'],
                     'upc' => $receive_param['upc'],
@@ -363,7 +364,7 @@ class ProductController extends Controller
             }
         }
 
-        \Log::info("[ERP接口]-[测试添加商品]-请求参数", $params);
+        \Log::info("[ERP接口]-[测试添加商品]-组合参数", $data);
 
         return $this->success();
     }
