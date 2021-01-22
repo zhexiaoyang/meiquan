@@ -40,9 +40,21 @@ class YaoguiController
 
     public function create(Request $request)
     {
-        Log::info('药柜-创建订单', $request->all());
+        Log::info('[药柜接口]-[创建订单]-所有参数', $request->all());
 
         $data = $request->get("params");
+
+        $receiveAddress = $data['deliveryAddress']['receiverAddress'] ?? "";
+
+        if (!$receiveAddress) {
+            Log::info('[药柜接口]-[创建订单]-收货信息不存在，不能创建跑腿订单');
+            return json_encode(["code" => 0, "message" => "收货信息不存在，不能创建跑腿订单"]);
+        }
+
+        if (stristr($receiveAddress, "到店自取")) {
+            Log::info('[药柜接口]-[创建订单]-到店自取订单，不能创建跑腿订单');
+            return json_encode(["code" => 0, "message" => "到店自取订单，不能创建跑腿订单"]);
+        }
 
         if (!empty($data) && count($data) > 20) {
             // 创建订单信息
