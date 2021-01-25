@@ -9,6 +9,25 @@ use Illuminate\Support\Facades\Auth;
 class UserController extends Controller
 {
     /**
+     * 当前用户账号余额
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/1/22 5:53 下午
+     */
+    public function money(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = [
+            // "id" => $user->id,
+            "money" => $user->money
+        ];
+
+        return $this->success($data);
+    }
+
+    /**
      * 获取当前登录供货商用户信息
      * @return mixed
      */
