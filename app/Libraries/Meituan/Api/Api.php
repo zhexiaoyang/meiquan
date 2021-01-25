@@ -264,6 +264,18 @@ class Api extends Request
     }
 
     /**
+     * 同步库存
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/12/5 7:36 上午
+     */
+    public function medicineCodeUpdate(array $params)
+    {
+        return $this->request_post('v1/medicine/code/update', $params);
+    }
+
+    /**
      * 获取门店配送范围
      * @param array $params
      * @return mixed
