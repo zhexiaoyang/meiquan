@@ -252,6 +252,8 @@ class SupplierOrderController extends Controller
         $order_info['no'] = $order->no;
         $order_info['address'] = $order->address;
         $order_info['shipping_fee'] = $order->shipping_fee;
+        $order_info['ship_no'] = $order->ship_no;
+        $order_info['ship_platform'] = $order->ship_platform;
         $order_info['total_fee'] = $order->total_fee;
         $order_info['original_amount'] = $order->original_amount;
         $order_info['payment_method'] = $order->payment_method;
