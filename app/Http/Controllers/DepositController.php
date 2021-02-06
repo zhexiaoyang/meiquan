@@ -25,6 +25,7 @@ class DepositController extends Controller
         $user  = $request->user();
         $amount = $request->get("amount", 0);
         $pay_method = $request->get("pay_method", 0);
+        $type = $request->get("type", 1);
 
         if ($amount < 1) {
             return $this->error("金额不正确");
@@ -36,6 +37,7 @@ class DepositController extends Controller
 
         $deposit = new Deposit([
             'pay_method' => $pay_method,
+            'type' => $type,
             'amount' => $amount,
         ]);
         $deposit->user()->associate($user);

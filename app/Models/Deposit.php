@@ -12,6 +12,7 @@ class Deposit extends Model
         'amount',
         'paid_at',
         'pay_method',
+        'type',
         'pay_no',
         'refund_at',
         'refund_no',

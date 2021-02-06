@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Deposit;
 use App\Models\SupplierOrder;
+use App\Models\User;
+use App\Models\UserFrozenBalance;
 use Illuminate\Http\Request;
 use Pay;
 use DB;
@@ -38,7 +40,23 @@ class PaymentController
                 'amount'        => $data->total_fee / 100,
             ]);
 
-            DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+            if ($order->type === 2) {
+                $user = User::query()->find($order->user_id);
+                DB::table('users')->where("id", $order->user_id)->increment('frozen_money', $order->amount);
+                $logs = new UserFrozenBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->frozen_money,
+                    "after_money" => ($user->frozen_money * 100 - $order->amount * 100) / 100,
+                    "description" => "微信充值：{$order->pay_no}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+            } else {
+                DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+            }
+
 
             try {
                 $user = DB::table('users')->where('id', $order->user_id)->first();
