@@ -48,7 +48,7 @@ class PaymentController
                     "money" => $order->amount,
                     "type" => 1,
                     "before_money" => $user->frozen_money,
-                    "after_money" => ($user->frozen_money * 100 - $order->amount * 100) / 100,
+                    "after_money" => ($user->frozen_money * 100 + $order->amount * 100) / 100,
                     "description" => "微信充值：{$order->pay_no}",
                     "tid" => $order->id
                 ]);
