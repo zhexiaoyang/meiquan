@@ -61,6 +61,7 @@ class SupplierCartController extends Controller
                     if ($item->product->depot->id) {
                         $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
+                        $tmp['is_active'] = $item->product->is_active ?? 0;
                         $tmp['name'] = $item->product->depot->name;
                         $tmp['cover'] = $item->product->depot->cover;
                         $tmp['spec'] = $item->product->depot->spec;
@@ -96,6 +97,7 @@ class SupplierCartController extends Controller
         $user = $request->user();
         $user_id = $user->id;
         $shop_id = $user->shop_id;
+        $user_frozen_money = $user->frozen_money ?? 0;
 
         // 判断是否有收货门店
         if (!$shop = Shop::query()->find($shop_id)) {
@@ -140,6 +142,7 @@ class SupplierCartController extends Controller
         $data = [];
         $postage = 0;
         $total= 0;
+        $frozen_money = 0;
         $total_weight= 0;
 
         // 购物车商品
@@ -174,6 +177,7 @@ class SupplierCartController extends Controller
                     if ($item->product->depot->id) {
                         $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
+                        $tmp['is_active'] = $item->product->is_active ?? 0;
                         $tmp['name'] = $item->product->depot->name;
                         $tmp['cover'] = $item->product->depot->cover;
                         $tmp['spec'] = $item->product->depot->spec;
@@ -192,6 +196,10 @@ class SupplierCartController extends Controller
                             $total += $subtotal;
                             $product_weight += $item->product->weight * $item->amount;
                             $total_weight += $item->product->weight * $item->amount;
+                        }
+
+                        if ($tmp['is_active'] === 1) {
+                            $frozen_money += $subtotal;
                         }
 
                         $data[$shop_id]['products'][] = $tmp;
@@ -222,6 +230,7 @@ class SupplierCartController extends Controller
         }
 
         $result['total'] = $total / 100;
+        $result['frozen_money'] = (min($user_frozen_money * 100 , ($frozen_money + $postage))) / 100;
         $result['total_weight'] = $total_weight / 1000;
         $result['postage'] = $postage / 100;
         $result['address_id'] = $shop->id;

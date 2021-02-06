@@ -8,6 +8,8 @@ use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProductCityPriceItem;
+use App\Models\User;
+use App\Models\UserFrozenBalance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\SupplierCart;
@@ -78,23 +80,17 @@ class SupplierOrderController extends Controller
         $user_id = $user->id;
         $shop_id = $user->shop_id;
         $remark = $request->get("remark", "");
+        $frozen_status = $request->get("frozen_status", 0);
+
+        \Log::info("[商城订单-创建订单]-[用户ID：{$user->id}]-全部参数", $request->all());
 
         // 判断是否有收货门店
         if (!$shop = Shop::query()->find($shop_id)) {
+            \Log::info("[商城订单-创建订单]-没有认证的门店");
             return $this->error("没有认证的门店");
         }
         // 城市编码
         $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
-
-        // $carts = SupplierCart::with("product")->where([
-        //     "user_id" => $user->id,
-        //     "checked" => 1
-        // ])->get();
-        //
-        // if (empty($carts)) {
-        //     return $this->error("请选择结算商品");
-        // }
-
 
         // 购物车商品
         $carts = SupplierCart::with(["product.depot" => function($query) {
@@ -119,11 +115,18 @@ class SupplierOrderController extends Controller
         unset($carts);
 
         // 开启一个数据库事务
-        $order = \DB::transaction(function () use ($user, $data, $shop, $remark) {
+        $res = \DB::transaction(function () use ($user, $data, $shop, $remark, $frozen_status) {
+            \Log::info("[商城订单-创建订单]-开启一个数据库事务");
 
             $pay_no = SupplierOrder::findAvailablePayNo();
 
+            // 是否需要支付
+            $pay_status = 0;
             foreach ($data as $shop_id => $carts) {
+                // 活动商品金额（冻结金额）
+                $frozen_money = 0;
+                // 订单使用冻结金额
+                $use_frozen_money = 0;
                 // 运费
                 $postage = 0;
                 // 总重量
@@ -178,6 +181,10 @@ class SupplierOrderController extends Controller
                     $total_fee += ($price * 100) * $cart['amount'];
                     $product_weight += $product->weight * $cart['amount'];
 
+                    if ($product->is_active === 1) {
+                        $frozen_money += ($price * 100) * $cart['amount'];
+                    }
+
                     // 减库存
                     if ($cart->product->decreaseStock($cart['amount']) <= 0) {
                         throw new InvalidRequestException('该商品库存不足');
@@ -203,29 +210,59 @@ class SupplierOrderController extends Controller
                 }
                 // 计算配送费
                 $total_fee += $postage;
+                \Log::info("[商城订单-创建订单]-配送费：{$postage}");
 
+                // 配送费算冻结金额
+                $frozen_money += $postage;
+
+                // 是否使用冻结余额
+                if ($frozen_status > 0 && $frozen_money > 0) {
+                    \Log::info("[商城订单-创建订单]-商品冻结余额：{$frozen_money}(分)-使用冻结余额");
+                    $orderUser = User::find($user->id);
+                    \Log::info("[商城订单-创建订单]-用户冻结余额：{$user->frozen_money}(元)-使用冻结余额");
+                    $use_frozen_money = min($frozen_money, $user->frozen_money * 100);
+                    \Log::info("[商城订单-创建订单]-使用冻结余额：{$use_frozen_money}(分)-使用冻结余额");
+
+                    if ($use_frozen_money > 0) {
+                        User::where([
+                            "id" => $user->id,
+                            "frozen_money" => $orderUser->frozen_money
+                        ])->update(["frozen_money" => (($orderUser->frozen_money * 100 - $use_frozen_money) / 100)]);
+                        $logs = new UserFrozenBalance([
+                            "user_id" => $user->id,
+                            "money" => $use_frozen_money / 100,
+                            "type" => 2,
+                            "before_money" => $orderUser->frozen_money,
+                            "after_money" => ($orderUser->frozen_money * 100 - $use_frozen_money) / 100,
+                            "description" => "商城订单：{$order->no}",
+                            "tid" => $order->id
+                        ]);
+                        $logs->save();
+                    }
+                }
 
                 // 如果订单金额小于0，变成已支付状态
-                if ($total_fee <= 0) {
+                $order->status = 0;
+                if (($total_fee - $use_frozen_money) <= 0) {
+                    \Log::info("[商城订单-创建订单]-使用冻结余额：{$total_fee}(分)-使用冻结余额：{$use_frozen_money}(分)-总金额减冻结金额大于小于等于0");
                     // 更新支付状态
                     $order->status = 30;
                     $order->paid_at = date("Y-m-d");
                     $order->payment_method = 30;
-                    // $order->update([
-                    //     'status' => 30,
-                    //     'paid_at' => date("Y-m-d"),
-                    //     'payment_method' => 3
-                    // ]);
-                } else {
-                    // 写入配送费
-                    $order->shipping_fee = $postage / 100;
-                    // 更新订单总金额
-                    $order->total_fee = $total_fee / 100;
+                } else  {
+                    $pay_status = 1;
                 }
+
+                // 写入配送费
+                $order->shipping_fee = $postage / 100;
+                // 更新订单总金额
+                $order->total_fee = $total_fee / 100;
 
                 if (count($data) <= 1) {
                     $order->pay_no = $order->no;
                 }
+                // 余额支付金额
+                $order->frozen_fee = $use_frozen_money / 100;
                 // 保存信息
                 $order->save();
 
@@ -236,10 +273,13 @@ class SupplierOrderController extends Controller
                 dispatch(new CloseOrder($order, 600));
             }
 
-            return $order;
+            // $order->status = $pay_status;
+            // return $order;
+            return ['id' => $order->id, 'no' => $order->pay_no, 'status' => $pay_status];
         });
 
-        return $this->success(['id' => $order->id, 'no' => $order->pay_no]);
+        // return $this->success(['id' => $order->id, 'no' => $order->pay_no, 'status' => $order->status]);
+        return $this->success($res);
     }
 
     public function show(SupplierOrder $order)
@@ -299,14 +339,14 @@ class SupplierOrderController extends Controller
 
         if ($id) {
             $orders = SupplierOrder::query()
-                ->select("id", "no", "total_fee", "created_at")
+                ->select("id", "no", "total_fee", "frozen_fee", "created_at")
                 ->where('id', $id)
                 ->where('user_id', $user->id)
                 ->where('status', 0)
                 ->get();
         } elseif ($no) {
             $orders = SupplierOrder::query()
-                ->select("id", "no", "total_fee", "created_at")
+                ->select("id", "no", "total_fee", "frozen_fee", "created_at")
                 ->where('pay_no', $no)
                 ->where('user_id', $user->id)
                 ->where('status', 0)
@@ -316,7 +356,7 @@ class SupplierOrderController extends Controller
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $created_at = date("Y-m-d H:i:s", strtotime($order->created_at));
-                $amount += $order->total_fee * 100;
+                $amount += $order->total_fee * 100 - $order->frozen_fee * 100;
             }
 
             $amount = $amount / 100;
@@ -324,6 +364,7 @@ class SupplierOrderController extends Controller
 
         $result = [
             "amount" => $amount,
+            "money" => $user->money,
             "created_at" => $created_at,
             "orders" => $orders
         ];

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use App\Models\UserMoneyBalance;
 use Illuminate\Support\Facades\Cache;
 use Pay;
 use App\Models\SupplierOrder;
@@ -10,6 +12,13 @@ use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
+    /**
+     * 商城订单微信支付
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/2/6 6:11 下午
+     */
     public function pay(Request $request)
     {
         \Log::info("调用支付", [$request->all()]);
@@ -19,12 +28,13 @@ class PaymentController extends Controller
         $no = $request->get("no", 0);
 
         // if ($pay_method != 1 && $pay_method != 2 && $pay_method != 3) {
-        if ($pay_method != 2 && $pay_method != 3) {
+        if ($pay_method != 2 && $pay_method != 3 && $pay_method != 8) {
             return $this->error("支付方式不正确");
         }
 
         $pay_no = '';
         $total_fee = 0;
+        $pay_orders = [];
 
         if ($id) {
             $supplier_order = SupplierOrder::query()
@@ -32,12 +42,13 @@ class PaymentController extends Controller
                 ->where('status', 0)
                 ->find($id);
             if (!$supplier_order) {
-                return $this->error("订单不存在");
+                return $this->error("订单不存在或已支付");
             }
             $supplier_order->pay_no = $supplier_order->no;
             $supplier_order->save();
             $pay_no = $supplier_order->pay_no;
-            $total_fee = $supplier_order->total_fee;
+            $total_fee = (($supplier_order->total_fee * 100) - ($supplier_order->frozen_fee * 100)) / 100;
+            $pay_orders[] = $supplier_order;
         } elseif ($no) {
             $supplier_orders = SupplierOrder::query()
                 ->where('pay_no', $no)
@@ -51,16 +62,18 @@ class PaymentController extends Controller
             $pay_no = $no;
 
             foreach ($supplier_orders as $v) {
-                $total_fee += $v->total_fee * 100;
+                $total_fee += $v->total_fee * 100 - $v->frozen_fee * 100;
             }
 
             $total_fee = $total_fee / 100;
+            $pay_orders = $supplier_orders;
         }
 
         if ($pay_method == 1) {
             // 支付宝支付
         } else if ($pay_method == 2) {
             // 微信支付
+            \Log::info("微信支付：{$total_fee}");
 
             $order = [
                 'out_trade_no'  => $pay_no,
@@ -119,6 +132,44 @@ class PaymentController extends Controller
 
             return $this->success($wechatOrder);
 
+        } else if ($pay_method == 8) {
+            // 余额支付
+            $current_user = User::query()->find($user->id);
+
+            if ($current_user->money < $total_fee) {
+                return $this->error("余额不足");
+            }
+
+            try {
+                \DB::transaction(function () use ($current_user, $total_fee, $pay_orders) {
+                    \DB::table('users')->where(["id" => $current_user->id, "money" => $current_user->money])
+                        ->update(["money" => ($current_user->money - $total_fee)]);
+                    $order_ids = [];
+                    $order_nos = [];
+                    foreach ($pay_orders as $pay_order) {
+                        $order_ids[] = $pay_order->id;
+                        $order_nos[] = $pay_order->no;
+                        $pay_order->status = 30;
+                        $pay_order->paid_at = date("Y-m-d");
+                        $pay_order->payment_method = 30;
+                        $pay_order->save();
+                    }
+                    $logs = new UserMoneyBalance([
+                        "user_id" => $current_user->id,
+                        "money" => $total_fee,
+                        "type" => 2,
+                        "before_money" => $current_user->money,
+                        "after_money" => ($current_user->money - $total_fee),
+                        "description" => "商城订单：" . implode(",", $order_nos),
+                        "tid" => 0
+                    ]);
+                    $logs->save();
+                });
+            } catch (\Exception $exception) {
+                return $this->error("支付失败，请稍后再试");
+            }
+
+            return $this->success();
         }
 
     }

@@ -197,6 +197,7 @@ class AuthController extends Controller
             'name' => $request->user()->phone ?? '',
             'phone' => $request->user()->phone ?? '',
             'money' => $request->user()->money ?? '',
+            'frozen_money' => $request->user()->frozen_money ?? '',
             'role' => $data,
         ];
         return $this->success($user);
