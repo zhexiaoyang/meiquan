@@ -14,6 +14,7 @@ class PaymentController
 {
     public function wechatNotify(Request $request)
     {
+        \Log::info("微信支付回调全部参数", $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat()->verify($request->getContent());
         // 找到对应的订单
@@ -32,6 +33,7 @@ class PaymentController
         $status = DB::transaction(function () use ($data, $order) {
 
             // 将订单标记为已支付
+            \Log::info("将订单标记为已支付开始");
             DB::table('deposits')->where("id", $order->id)->update([
                 'paid_at'       => date('Y-m-d H:i:s'),
                 'pay_method'    => 2,
@@ -39,22 +41,29 @@ class PaymentController
                 'pay_no'        => $data->transaction_id,
                 'amount'        => $data->total_fee / 100,
             ]);
+            \Log::info("将订单标记为已支付结束");
 
             if ($order->type === 2) {
+                \Log::info("冻结余额充值");
                 $user = User::query()->find($order->user_id);
+                \Log::info("增加冻结余额");
                 DB::table('users')->where("id", $order->user_id)->increment('frozen_money', $order->amount);
+                \Log::info("记录冻结余额日志");
                 $logs = new UserFrozenBalance([
                     "user_id" => $user->id,
                     "money" => $order->amount,
                     "type" => 1,
                     "before_money" => $user->frozen_money,
                     "after_money" => ($user->frozen_money * 100 + $order->amount * 100) / 100,
-                    "description" => "微信充值：{$order->pay_no}",
+                    "description" => "微信充值：{$data->transaction_id}",
                     "tid" => $order->id
                 ]);
                 $logs->save();
+                \Log::info("日志保存结束");
             } else {
+                \Log::info("余额充值");
                 DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+                \Log::info("余额充值结束");
             }
 
 
@@ -105,6 +114,7 @@ class PaymentController
 
     public function alipayNotify(Request $request)
     {
+        \Log::info("支付宝支付回调全部参数", $request->all());
         // 校验输入参数
         $data  = Pay::alipay()->verify($request->all());
         // 如果订单状态不是成功或者结束，则不走后续的逻辑
@@ -127,6 +137,7 @@ class PaymentController
         $status = DB::transaction(function () use ($data, $order) {
 
             // 将订单标记为已支付
+            \Log::info("将订单标记为已支付开始");
             DB::table('deposits')->where("id", $order->id)->update([
                 'paid_at'       => date('Y-m-d H:i:s'),
                 'pay_method'    => 1,
@@ -134,8 +145,30 @@ class PaymentController
                 'pay_no'        => $data->trade_no,
                 'amount'        => $data->total_amount,
             ]);
+            \Log::info("将订单标记为已支付结束");
 
-            DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+            if ($order->type === 2) {
+                \Log::info("冻结余额充值");
+                $user = User::query()->find($order->user_id);
+                \Log::info("增加冻结余额");
+                DB::table('users')->where("id", $order->user_id)->increment('frozen_money', $order->amount);
+                \Log::info("记录冻结余额日志");
+                $logs = new UserFrozenBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->frozen_money,
+                    "after_money" => ($user->frozen_money * 100 + $order->amount * 100) / 100,
+                    "description" => "微信充值：{$data->trade_no}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+                \Log::info("记录冻结余额日志结束");
+            } else {
+                \Log::info("余额充值");
+                DB::table('users')->where("id", $order->user_id)->increment('money', $order->amount);
+                \Log::info("余额充值结束");
+            }
 
             try {
                 $user = DB::table('users')->where('id', $order->user_id)->first();
