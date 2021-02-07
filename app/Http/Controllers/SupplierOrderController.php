@@ -213,7 +213,7 @@ class SupplierOrderController extends Controller
                 \Log::info("[商城订单-创建订单]-配送费：{$postage}");
 
                 // 配送费算冻结金额
-                $frozen_money += $postage;
+                // $frozen_money += $postage;
 
                 // 是否使用冻结余额
                 if ($frozen_status > 0 && $frozen_money > 0) {

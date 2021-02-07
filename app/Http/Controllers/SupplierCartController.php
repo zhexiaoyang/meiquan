@@ -230,7 +230,8 @@ class SupplierCartController extends Controller
         }
 
         $result['total'] = $total / 100;
-        $result['frozen_money'] = (min($user_frozen_money * 100 , ($frozen_money + $postage))) / 100;
+        // $result['frozen_money'] = (min($user_frozen_money * 100 , $frozen_money) + $postage) / 100;
+        $result['frozen_money'] = (min($user_frozen_money * 100 , $frozen_money)) / 100;
         $result['total_weight'] = $total_weight / 1000;
         $result['postage'] = $postage / 100;
         $result['address_id'] = $shop->id;
