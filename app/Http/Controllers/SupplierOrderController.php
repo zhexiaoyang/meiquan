@@ -187,7 +187,7 @@ class SupplierOrderController extends Controller
 
                     // 减库存
                     if ($cart->product->decreaseStock($cart['amount']) <= 0) {
-                        throw new InvalidRequestException('该商品库存不足');
+                        throw new InvalidRequestException($depot->name . '，商品库存不足', 200);
                     }
                 }
 
