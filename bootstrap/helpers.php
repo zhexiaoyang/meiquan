@@ -281,7 +281,10 @@ function baseMoneyFn($shop_live) {
 
     $start_arr = [ 'S' => 9.3, 'A' => 8.8, 'B' => 8.3, 'C' => 7.8, 'D' => 7.3, 'E' => 6.8 ];
 
-    return $start_arr[$shop_live] ?? 7.3;
+    $b = $start_arr[$shop_live] ?? 7.3;
+    $b = $b + 5;
+
+    return $b;
 }
 
 function getMoney($shop, $receiver_lng, $receiver_lat) {
