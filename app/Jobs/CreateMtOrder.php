@@ -131,7 +131,7 @@ class CreateMtOrder implements ShouldQueue
                         }
                     }
 
-                    $money_ss = ($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100;
+                    $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + 1;
                     $money_log = ($check_ss['data']['totalAmount'] ?? 0) / 100;
                     if ($money_log <= 26) {
                         $money_log = $money_log * 0.8;
