@@ -266,7 +266,10 @@ function baseMoney($shop_live) {
     // $start_arr = [ 3 => 6.7, 4 => 6.5, 5 => 6, 6 => 5.5, 7 => 5.2, 11 => 7, 12 => 7, 13 => 6.7 ];
     $start_arr = [ 3 => 6.8, 4 => 6.6, 5 => 6.3, 6 => 5.8, 7 => 5.5, 11 => 7.5, 12 => 7.5, 13 => 6.8 ];
 
-    return $start_arr[$shop_live] ?? 7;
+    $b = $start_arr[$shop_live] ?? 7;
+    $b = $b + 2;
+
+    return $b;
 }
 
 /**
