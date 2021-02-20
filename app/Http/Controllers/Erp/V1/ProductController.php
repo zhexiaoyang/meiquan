@@ -354,7 +354,7 @@ class ProductController extends Controller
                                 'price' => $item['price'],
                                 'stock' => $item['stock'],
                                 'category_code' => $upc_pluck[$item['upc']],
-                                'is_sold_out' => 1,
+                                'is_sold_out' => 0,
                                 'sequence' => 100
                             ];
                         } else {
