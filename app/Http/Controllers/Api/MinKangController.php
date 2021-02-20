@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Jobs\SendOrderToErp;
+use App\Models\ErpAccessShop;
 use App\Models\MkOrder;
 use App\Models\MkOrderItem;
 use App\Models\Order;
@@ -204,6 +206,15 @@ class MinKangController
                 Log::info("【民康-推送已确认订单】（{$mt_order_id}）：未开通自动接单");
                 // Log::info('民康-推送已确认订单-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
             }
+
+            // 推送ERP
+            if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)) {
+                if ($erp_shop->access_id === 4) {
+                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
+                    distanceMoney(new SendOrderToErp($erp_shop->id, $order));
+                }
+            }
+
 
             return json_encode(['data' => 'ok']);
         }
