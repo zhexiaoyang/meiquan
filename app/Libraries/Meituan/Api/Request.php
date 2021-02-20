@@ -97,7 +97,6 @@ class Request
     }
 
     private function concatParams($params) {
-        \Log::info("aaa", [$params]);
         ksort($params);
         $pairs = array();
         foreach($params as $key=>$val) {
