@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Erp\V1;
 use App\Http\Controllers\Controller;
 use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
+use App\Models\ErpDepot;
+use App\Models\ErpShopCategory;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -233,9 +235,9 @@ class ProductController extends Controller
             return $this->error("参数错误：timestamp必传", 701);
         }
 
-        if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
-            return $this->error("参数错误：timestamp有误", 701);
-        }
+        // if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
+        //     return $this->error("参数错误：timestamp有误", 701);
+        // }
 
         $receive_params = $request->get("data");
 
@@ -246,6 +248,7 @@ class ProductController extends Controller
         // 接收参数
         $shop_id = null;
         $data = [];
+        $upcs = [];
 
         foreach ($receive_params as $receive_param) {
 
@@ -273,13 +276,14 @@ class ProductController extends Controller
                 return $this->error("参数错误：stock不存在", 701);
             }
 
-            $data[] = [
+            $data[$receive_param['shop_id']][] = [
                 'app_poi_code' => $receive_param['shop_id'],
                 'app_medicine_code' => $receive_param['app_medicine_code'],
                 'upc' => $receive_param['upc'],
                 'price' => $receive_param['price'],
                 'stock' => $receive_param['stock'],
             ];
+            $upcs[] = $receive_param['upc'];
         }
 
 
@@ -287,33 +291,87 @@ class ProductController extends Controller
             return $this->error("参数错误：access_key错误", 701);
         }
 
-        // if (!$access_shop = ErpAccessShop::query()->where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
-        //     return $this->error("参数错误：shop_id错误", 701);
-        // }
-        //
-        // if (!$mt_shop_id = $access_shop->mt_shop_id) {
-        //     return $this->error("系统错误", 701);
-        // }
-
         if (!$this->checkSing($request->only("access_key", "timestamp", "data", "signature"), $access->access_secret)) {
             return $this->error("签名错误", 703);
         }
 
-        // $type = $access_shop->type;
-        //
-        // if ($type === 1) {
-        //     $meituan = app("yaojite");
-        // } elseif ($type === 2) {
-        //     $meituan = app("mrx");
-        // } elseif ($type === 3) {
-        //     $meituan = app("jay");
-        // } elseif ($type === 4) {
-        //     $meituan = app("minkang");
-        // } elseif ($type === 5) {
-        //     $meituan = app("qinqu");
-        // } else {
-        //     return $this->error("系统错误", 701);
-        // }
+        if (!empty($data)) {
+            $upc_pluck = ErpDepot::whereIn("upc", $upcs)->pluck("second_code", "upc");
+            foreach ($data as $shop_id => $v) {
+                if (!$access_shop = ErpAccessShop::where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
+                    \Log::info("[ERP接口]-[添加商品]-shop_id错误: {$shop_id}");
+                    continue;
+                }
+
+                $type = $access_shop->type;
+                $meituan = null;
+
+                if ($type === 1) {
+                    $meituan = app("yaojite");
+                } elseif ($type === 2) {
+                    $meituan = app("mrx");
+                } elseif ($type === 3) {
+                    $meituan = app("jay");
+                } elseif ($type === 4) {
+                    $meituan = app("minkang");
+                } elseif ($type === 5) {
+                    $meituan = app("qinqu");
+                } else {
+                    \Log::info("[ERP接口]-[添加商品]-门店 type 错误: {$type}");
+                    continue;
+                }
+
+                if (!$category = ErpShopCategory::where("shop_id", $access_shop->id)->first()) {
+                    \Log::info("[ERP接口]-[添加商品]-没有分类");
+
+                    $erp_category_data = config("erp.categories");
+
+                    foreach ($erp_category_data as $c_code => $c_name) {
+                        $category_params = [
+                            "app_poi_code" => $access_shop->mt_shop_id,
+                            "category_code" => $c_code,
+                            "category_name" => $c_name,
+                            "sequence" => 100,
+                        ];
+                        $log = $meituan->medicineCatSave($category_params);
+                        \Log::info("[ERP接口]-[添加商品]-[创建门店分类返回]: " . json_encode($log, JSON_UNESCAPED_UNICODE));
+                    }
+
+                    $c = new ErpShopCategory(
+                        ['shop_id' => $access_shop->id]
+                    );
+                    $c->save();
+                }
+
+                $params_data = [];
+
+                if (!is_null($meituan)) {
+                    foreach ($v as $item) {
+                        if (isset($upc_pluck[$item['upc']])) {
+                            $params_data[] = [
+                                'app_medicine_code' => $item['app_medicine_code'],
+                                'upc' => $item['upc'],
+                                'price' => $item['price'],
+                                'stock' => $item['stock'],
+                                'category_code' => $upc_pluck[$item['upc']],
+                                'sequence' => 100
+                            ];
+                        } else {
+                            \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
+                        }
+                    }
+                    $params = [
+                        "app_poi_code" => $access_shop->mt_shop_id,
+                        "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
+                    ];
+                    \Log::info("[ERP接口]-[添加商品]-组合参数1", $params);
+                    $update_log = $meituan->medicineBatchUpdate($params);
+                    \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
+                    $create_log = $meituan->medicineBatchSave($params);
+                    \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
+                }
+            }
+        }
 
         \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
         return $this->success();

@@ -264,7 +264,7 @@ class Api extends Request
     }
 
     /**
-     * 同步库存
+     * 同步商家编码
      * @param array $params
      * @return mixed
      * @author zhangzhen
@@ -273,6 +273,34 @@ class Api extends Request
     public function medicineCodeUpdate(array $params)
     {
         return $this->request_post('v1/medicine/code/update', $params);
+    }
+
+    /**
+     * 批量创建药品
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/2/19 7:40 上午
+     */
+    public function medicineBatchSave(array $params)
+    {
+        return $this->request_post('v1/medicine/batchsave', $params);
+    }
+    public function medicineBatchUpdate(array $params)
+    {
+        return $this->request_post('v1/medicine/batchupdate', $params);
+    }
+
+    /**
+     * 创建药品分类
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/2/19 9:39 上午
+     */
+    public function medicineCatSave(array $params)
+    {
+        return $this->request_post('v1/medicineCat/save', $params);
     }
 
     /**
