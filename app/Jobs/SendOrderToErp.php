@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\MkOrder;
 use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -35,7 +36,7 @@ class SendOrderToErp implements ShouldQueue
      */
     public function handle()
     {
-        $http = new Client(['headers' => [ 'Content-Type' => 'application/json' ]]);
+        $http = new Client();
         $detail = [];
         $items = $this->order->items;
         if (!empty($items)) {
@@ -74,7 +75,7 @@ class SendOrderToErp implements ShouldQueue
             "hx_parama" => $data
         ];
         \Log::info("海协ERP推送订单", $params);
-        $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", $params);
+        $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $params]);
         $result = json_decode($response->getBody(), true);
         \Log::info("海协ERP推送订单-返回", [$result]);
     }

@@ -46,6 +46,7 @@ class MinKangController
                 "pick_type" => $request->get("pick_type", 0) ?? 0,
                 "latitude" => $request->get("latitude", 0),
                 "longitude" => $request->get("longitude", 0),
+                "invoice_title" => $request->get("invoice_title", "") ?? "",
                 "day_seq" => $request->get("day_seq", 0) ?? 0,
                 "logistics_code" => $request->get("logistics_code", "") ?? "",
                 "package_bag_money" => $request->get("package_bag_money", 0) ?? 0,
