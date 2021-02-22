@@ -30,6 +30,7 @@ class SupplierCartController extends Controller
         $result = [];
         $data = [];
         $total= 0;
+        $status= false;
 
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
@@ -51,13 +52,15 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name")->find($shop_id)) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
                     continue;
                 }
+                $starting = $supplier->starting;
 
                 $data[$shop_id]['shop'] = $supplier;
 
                 foreach ($shop_cart as $item) {
+                    $_total = 0;
                     if ($item->product->depot->id) {
                         $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
@@ -78,14 +81,20 @@ class SupplierCartController extends Controller
                         $subtotal = $item->amount * ($price * 100) / 100;
                         $tmp['subtotal'] = $subtotal;
                         if ($item->checked) {
-                            $total += $subtotal * 100;
+                            $_total += $subtotal * 100;
                         }
                         $data[$shop_id]['products'][] = $tmp;
+                        if ($subtotal > $starting) {
+                            $status = true;
+                        }
                     }
                 }
+                $supplier->total = $_total / 100;
+                $total += $_total;
             }
         }
 
+        $result['status'] = $status;
         $result['total'] = $total / 100;
         $result['data'] = array_values($data);
 
@@ -166,12 +175,16 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name")->find($shop_id)) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
                     continue;
                 }
 
+                $starting = $supplier->starting;
                 $product_weight = 0;
                 $product_postage = 0;
+                $_total_weight = 0;
+                $_frozen_money = 0;
+                $_total = 0;
 
                 foreach ($shop_cart as $item) {
                     if ($item->product->depot->id) {
@@ -193,18 +206,27 @@ class SupplierCartController extends Controller
                         $tmp['subtotal'] = $subtotal / 100;
 
                         if ($item->checked) {
-                            $total += $subtotal;
+                            $_total += $subtotal;
                             $product_weight += $item->product->weight * $item->amount;
-                            $total_weight += $item->product->weight * $item->amount;
+                            // $_total_weight += $item->product->weight * $item->amount;
                         }
 
                         if ($tmp['is_active'] === 1) {
-                            $frozen_money += $subtotal;
+                            $_frozen_money += $subtotal;
                         }
 
                         $data[$shop_id]['products'][] = $tmp;
                     }
                 }
+
+                if ($_total < $starting) {
+                    unset($data[$shop_id]);
+                    continue;
+                }
+
+                $total_weight = $total_weight * 100 + $_total_weight;
+                $frozen_money += $_frozen_money;
+                $total += $_total;
 
                 if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
                     if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {

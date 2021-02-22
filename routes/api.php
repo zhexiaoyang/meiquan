@@ -124,6 +124,7 @@ Route::middleware(['force-json'])->group(function() {
             // *自动接单-审核操作
             Route::post("examine/auto", "ExamineShopController@AutoStore");
 
+            // 商城后台
             // *商城后台-商品列表
             Route::get("/shopAdmin/product", "ShopAdminController@productList");
             // *商城后台-商品排序
@@ -134,6 +135,26 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/order", "ShopAdminController@orderList");
             // *商城后台-取消订单
             Route::post("/shopAdmin/order/cancel", "ShopAdminController@cancelOrder");
+
+            // ERP管理
+            // ERP管理-key列表
+            Route::get("/erpAdmin/access_key/info", "ErpAdminAccessKeyController@info");
+            // ERP管理-key列表
+            Route::get("/erpAdmin/access_key", "ErpAdminAccessKeyController@index");
+            // ERP管理-key添加
+            Route::post("/erpAdmin/access_key", "ErpAdminAccessKeyController@store");
+            // ERP管理-key修改
+            Route::put("/erpAdmin/access_key", "ErpAdminAccessKeyController@update");
+            // ERP管理-key删除
+            Route::delete("/erpAdmin/access_key", "ErpAdminAccessKeyController@destroy");
+            // ERP管理-key门店列表
+            Route::get("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@index");
+            // ERP管理-key门店添加
+            Route::post("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@store");
+            // ERP管理-key门店修改
+            Route::put("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@update");
+            // ERP管理-key门店删除
+            Route::delete("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@destroy");
 
         });
 

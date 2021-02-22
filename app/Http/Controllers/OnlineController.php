@@ -193,9 +193,19 @@ class OnlineController extends Controller
         $data["ylqx"] = $ylqx;
 
         if (!$sfz = $request->get("sfz")) {
-            return $this->error("负责人身份证不能为空");
+            return $this->error("负责人身份证正面不能为空");
         }
         $data["sfz"] = $sfz;
+
+        if (!$sfzbm = $request->get("sfzbm")) {
+            return $this->error("负责人身份证背面不能为空");
+        }
+        $data["sfzbm"] = $sfzbm;
+
+        if (!$sfzsc = $request->get("sfzsc")) {
+            return $this->error("负责人手持身份证不能为空");
+        }
+        $data["sfzsc"] = $sfzsc;
 
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");

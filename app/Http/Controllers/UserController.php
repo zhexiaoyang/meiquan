@@ -26,8 +26,9 @@ class UserController extends Controller
         $page_size = $request->get('page_size', 15);
 
         $search_key = $request->get('search_key', '');
+        $search_key_shop = $request->get('search_key_shop', '');
 
-        $query = User::with(['roles']);
+        $query = User::with(['roles', 'my_shops']);
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -36,7 +37,14 @@ class UserController extends Controller
             });
         }
 
+        if ($search_key_shop) {
+            $query->whereHas("my_shops", function ($query) use ($search_key_shop) {
+                $query->where('shop_name', 'like', "%{$search_key_shop}%");
+            });
+        }
+
         $users = $query->orderBy('id', 'desc')->paginate($page_size);
+
 
         if (!empty($users)) {
             foreach ($users as $user) {
@@ -47,9 +55,25 @@ class UserController extends Controller
                 }
                 $user->role_name = $user->roles[0]->title ?? '';
                 unset($user->roles);
+
+                $shops = [];
+                if (!empty($user->my_shops)) {
+                    foreach ($user->my_shops as $shop) {
+                        $shops[] = [
+                            "id" => $shop->id,
+                            "mt_shop_id" => $shop->mt_shop_id,
+                            "shop_name" => $shop->shop_name,
+                            "contact_name" => $shop->contact_name,
+                            "contact_phone" => $shop->contact_phone,
+                            "shop_address" => $shop->shop_address,
+                        ];
+                    }
+                }
+                $user->my_shops = $shops;
             }
         }
-        return $this->success($users);
+
+        return $this->page($users);
     }
 
     /**
