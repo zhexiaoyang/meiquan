@@ -45,6 +45,7 @@ class SendOrderToErp implements ShouldQueue
                     "app_food_code" => $item->app_food_code,
                     "food_name" => $item->food_name,
                     "upc" => $item->upc,
+                    "price" => (float) $item->price,
                     "quantity" => $item->quantity,
                     "unit" => $item->unit,
                     "spec" => $item->spec,
