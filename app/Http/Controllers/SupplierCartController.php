@@ -84,10 +84,10 @@ class SupplierCartController extends Controller
                             $_total += $subtotal * 100;
                         }
                         $data[$shop_id]['products'][] = $tmp;
-                        if ($subtotal > $starting) {
-                            $status = true;
-                        }
                     }
+                }
+                if ($_total / 100 >= $starting) {
+                    $status = true;
                 }
                 $supplier->total = $_total / 100;
                 $total += $_total;
