@@ -74,7 +74,8 @@ class ExamineShopController extends Controller
         $query = Shop::query()->select("id","mtwm","shop_name","shop_address","category","second_category","contact_name",
             "contact_phone","shop_lng","shop_lat","status","created_at")
             ->whereIn("mt_shop_id", [0, ""])
-            ->where("mtwm", "<>","");
+            ->where("mtwm", "<>","")
+            ->where("mtwm", "<>",0);
 
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");
