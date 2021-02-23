@@ -8,6 +8,7 @@ use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProductCityPriceItem;
+use App\Models\SupplierUser;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
 use Illuminate\Database\Eloquent\Builder;
@@ -15,6 +16,7 @@ use Illuminate\Http\Request;
 use App\Models\SupplierCart;
 use App\Models\SupplierOrder;
 use Illuminate\Support\Facades\Auth;
+use function Matrix\trace;
 
 class SupplierOrderController extends Controller
 {
@@ -110,6 +112,30 @@ class SupplierOrderController extends Controller
 
         foreach ($carts as $cart) {
             $data[$cart->product->user_id][] = $cart;
+        }
+
+        if (!empty($data)) {
+            foreach ($data as $shop_id => $v) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
+                    unset($data[$shop_id]);
+                    continue;
+                }
+                $_total = 0;
+                $starting = $supplier->starting;
+                foreach ($v as $_v) {
+                    $price = $_v->product->city_price ? $_v->product->city_price->price : $_v->product->price;
+                    $_total += $_v->amount * ($price * 100);
+                }
+
+                if ($_total / 100 < $starting) {
+                    unset($data[$shop_id]);
+                    continue;
+                }
+            }
+        }
+
+        if (empty($data)) {
+            return $this->error("暂无结算商品");
         }
 
         unset($carts);
