@@ -219,6 +219,7 @@ class SupplierCartController extends Controller
                     }
                 }
 
+                \Log::info("aaaaaaa:总价：{$_total},起送价：{$starting}");
                 if ($_total < $starting) {
                     unset($data[$shop_id]);
                     continue;
