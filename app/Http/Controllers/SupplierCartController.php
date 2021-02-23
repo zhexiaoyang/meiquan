@@ -89,7 +89,7 @@ class SupplierCartController extends Controller
                 if ($_total / 100 >= $starting) {
                     $status = true;
                 }
-                $supplier->total = $_total / 100;
+                $supplier->total += $_total / 100;
                 $total += $_total;
             }
         }
