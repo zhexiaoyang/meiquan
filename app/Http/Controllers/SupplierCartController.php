@@ -59,8 +59,8 @@ class SupplierCartController extends Controller
 
                 $data[$shop_id]['shop'] = $supplier;
 
+                $_total = 0;
                 foreach ($shop_cart as $item) {
-                    $_total = 0;
                     if ($item->product->depot->id) {
                         $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
                         $tmp['id'] = $item->id;
@@ -89,7 +89,7 @@ class SupplierCartController extends Controller
                 if ($_total / 100 >= $starting) {
                     $status = true;
                 }
-                $supplier->total += $_total / 100;
+                $supplier->total = $_total / 100;
                 $total += $_total;
             }
         }
