@@ -60,6 +60,7 @@ class SupplierCartController extends Controller
                 $data[$shop_id]['shop'] = $supplier;
 
                 $_total = 0;
+                $_selected = false;
                 foreach ($shop_cart as $item) {
                     if ($item->product->depot->id) {
                         $price = $item->product->city_price ? $item->product->city_price->price : $item->product->price;
@@ -81,12 +82,13 @@ class SupplierCartController extends Controller
                         $subtotal = $item->amount * ($price * 100) / 100;
                         $tmp['subtotal'] = $subtotal;
                         if ($item->checked) {
+                            $_selected = true;
                             $_total += $subtotal * 100;
                         }
                         $data[$shop_id]['products'][] = $tmp;
                     }
                 }
-                if ($_total / 100 >= $starting) {
+                if (($_total / 100 >= $starting) && $_selected) {
                     $status = true;
                 }
                 $supplier->total = $_total / 100;
