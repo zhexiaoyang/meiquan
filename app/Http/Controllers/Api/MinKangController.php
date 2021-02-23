@@ -212,7 +212,7 @@ class MinKangController
             if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
                 if ($erp_shop->access_id === 4) {
                     Log::info("【民康-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
-                    distanceMoney(new SendOrderToErp($erp_shop->id, $order));
+                    dispatch(new SendOrderToErp($erp_shop->id, $order));
                 }
             }
 
