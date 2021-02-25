@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Supplier;
 
 use App\Http\Requests\Supplier\ProductRequest;
 use App\Http\Requests\Supplier\ProductUpdateRequest;
+use App\Models\Category;
 use App\Models\SupplierCategory;
 use App\Models\SupplierDepot;
 use App\Models\SupplierProduct;
@@ -30,7 +31,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","is_control","control_price","sale_count","status","stock","sale_type","product_date","product_end_date","number","weight","detail")
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","is_control","is_meituan","is_ele","control_price","sale_count","status","stock","sale_type","product_date","product_end_date","number","weight","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -78,6 +79,8 @@ class ProductController extends Controller
                 $tmp['id'] = $product->id;
                 $tmp['price'] = $product->price;
                 $tmp['is_control'] = $product->is_control;
+                $tmp['is_meituan'] = $product->is_meituan;
+                $tmp['is_ele'] = $product->is_ele;
                 $tmp['control_price'] = $product->control_price;
                 $tmp['stock'] = $product->stock;
                 $tmp['sale_type'] = $product->sale_type;
@@ -199,7 +202,7 @@ class ProductController extends Controller
     {
         $user = Auth::user();
 
-        $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","category_id","price","term_of_validity","manufacturer","generi_name");
+        $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","first_category","second_category","price","term_of_validity","manufacturer","generi_name");
 
         $depot_data['images'] = implode(",", $request->get("images"));
 
@@ -237,6 +240,8 @@ class ProductController extends Controller
     {
         $data = $request->only("stock","price", "status","number","product_date","product_end_date","weight","detail");
         $data['is_control'] = $request->get("is_control", 0);
+        $data['is_meituan'] = $request->get("is_meituan", 0);
+        $data['is_ele'] = $request->get("is_ele", 0);
         $data['control_price'] = $request->get("control_price", 0);
 
         if (!$product = SupplierProduct::query()->find($request->get("id"))) {
@@ -353,6 +358,8 @@ class ProductController extends Controller
         $product_data['product_date'] = $request->get("product_date");
         // $product_data['product_end_date'] = $request->get("product_date");
         $product_data['is_control'] = $request->get("is_control", 0);
+        $product_data['is_meituan'] = $request->get("is_meituan", 0);
+        $product_data['is_ele'] = $request->get("is_ele", 0);
         $product_data['control_price'] = $request->get("control_price", 0);
 
         if (!empty($depot->term_of_validity) && intval($depot->term_of_validity) > 0) {
@@ -370,7 +377,23 @@ class ProductController extends Controller
     {
         $result = [];
 
-        $categories = SupplierCategory::query()->select("id","parent_id","title")->where("status", 1)
+        // $categories = SupplierCategory::query()->select("id","parent_id","title")->where("status", 1)
+        //     ->orderBy("parent_id")->get()->toArray();
+        //
+        // if (!empty($categories)) {
+        //     foreach ($categories as $category) {
+        //         if ($category['parent_id'] === 0) {
+        //             $category['children'] = [];
+        //             $result[$category['id']] = $category;
+        //         } else {
+        //             if (isset($result[$category['parent_id']])) {
+        //                 $result[$category['parent_id']]['children'][] = $category;
+        //             }
+        //         }
+        //     }
+        // }
+
+        $categories = Category::query()->select("id","pid as parent_id","title")->orderBy("sort", "desc")
             ->orderBy("parent_id")->get()->toArray();
 
         if (!empty($categories)) {

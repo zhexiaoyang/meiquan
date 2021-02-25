@@ -64,6 +64,10 @@ class UserController extends Controller
             $user->telephone = $telephone;
         }
 
+        if ($starting = intval($request->get("starting"))) {
+            $user->starting = $starting;
+        }
+
         if ($yyzz = $request->get("yyzz")) {
             $user->yyzz = $yyzz;
             $user->auth_at = date("Y-m-d H:i:s");

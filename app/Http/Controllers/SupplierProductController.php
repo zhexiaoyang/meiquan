@@ -22,9 +22,12 @@ class SupplierProductController extends Controller
     public function index(Request $request)
     {
         $shop_id = $request->user()->receive_shop_id;
+        $supplier_id = intval($request->get("supplier_id", 0));
         $page_size = $request->get("page_size", 20);
         $search_key = $request->get("search_key", "");
         $sort = $request->get("sort", "default");
+        $first = intval($request->get("first", 0));
+        $second = intval($request->get("second", 0));
 
         // 判断是否有收货门店
         if (!$shop = Shop::query()->find($shop_id)) {
@@ -34,7 +37,7 @@ class SupplierProductController extends Controller
         // 查询门店城市编码
         $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_meituan","is_ele","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
@@ -45,6 +48,19 @@ class SupplierProductController extends Controller
         },"city_price" => function ($query) use ($city_code) {
             $query->select("product_id", "price")->where("city_code", $city_code->id);
         }])->where("status", 20);
+
+        if ($supplier_id) {
+            $query->where("user_id", $supplier_id);
+        }
+
+        if ($first) {
+            $query->whereHas("depot", function ($query) use ($first, $second) {
+                $query->where("first_category", $first);
+                if ($second) {
+                    $query->where("second_category", $first);
+                }
+            });
+        }
 
         // 筛选城市是否可买
         $query->where(function ($query) use ($city_code) {
@@ -71,6 +87,8 @@ class SupplierProductController extends Controller
                 $tmp['id'] = $product->id;
                 $tmp['is_active'] = $product->is_active;
                 $tmp['is_control'] = $product->is_control;
+                $tmp['is_meituan'] = $product->is_meituan;
+                $tmp['is_ele'] = $product->is_ele;
                 $tmp['control_price'] = $product->control_price;
                 $tmp['depot_id'] = $product->depot->id;
                 $tmp['name'] = $product->depot->name;

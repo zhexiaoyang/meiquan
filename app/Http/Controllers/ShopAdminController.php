@@ -147,8 +147,7 @@ class ShopAdminController extends Controller
         // $start_date = $request->get("start_date", '');
         // $end_date = $request->get("end_date", '');
 
-        $query = SupplierOrder::with(["shop", "items"])->orderBy("id", "desc")
-            ->where("status", '>', 0);
+        $query = SupplierOrder::with(["shop", "items"])->orderBy("id", "desc");
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -180,6 +179,7 @@ class ShopAdminController extends Controller
                 $order_info['address'] = $order->address;
                 $order_info['shipping_fee'] = $order->shipping_fee;
                 $order_info['total_fee'] = $order->total_fee;
+                $order_info['frozen_fee'] = $order->frozen_fee;
                 $order_info['product_fee'] = $order->product_fee;
                 $order_info['payment_no'] = $order->payment_no;
                 $order_info['payment_method'] = $order->payment_method;

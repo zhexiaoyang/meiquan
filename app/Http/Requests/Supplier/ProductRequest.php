@@ -9,7 +9,8 @@ class ProductRequest extends Request
     public function rules()
     {
         return [
-            'category_id' => 'bail|required|numeric|exists:supplier_categories,id',
+            'first_category' => 'bail|required|numeric|exists:categories,id',
+            'second_category' => 'bail|required|numeric|exists:categories,id',
             'name' => 'bail|required|min:2|max:100',
             // 'price' => 'bail|required|numeric|min:0.01',
             // 'stock' => 'bail|required|numeric',
@@ -26,9 +27,12 @@ class ProductRequest extends Request
     public function messages()
     {
         return [
-            'category_id.required' => '药品分类不能为空',
-            'category_id.numeric' => '药品分类格式不正确',
-            'category_id.exists' => '药品分类不存在',
+            'first_category.required' => '药品分类不能为空',
+            'first_category.numeric' => '药品分类格式不正确',
+            'first_category.exists' => '药品分类不存在',
+            'second_category.required' => '药品分类不能为空',
+            'second_category.numeric' => '药品分类格式不正确',
+            'second_category.exists' => '药品分类不存在',
             'name.required' => '药品名称不能为空',
             'name.min' => '药品名称不能小于2个文字',
             'name.max' => '药品名称不能大于100个文字',

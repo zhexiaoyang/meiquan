@@ -39,6 +39,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('statistics/export', 'StatisticsController@export');
         // 统计导出-统计-明细
         // Route::get('statistics/export/detail', 'StatisticsController@detail');
+        // 分类 2021-02-23 新分类
+        Route::get('meiquan/category', 'CategoryController@index');
 
         /**
          * 门店管理

@@ -64,6 +64,10 @@ class OrderController extends Controller
                 $order_info['address'] = $order->address;
                 $order_info['shipping_fee'] = $order->shipping_fee;
                 $order_info['total_fee'] = $order->total_fee;
+                $order_info['pay_charge_fee'] = $order->pay_charge_fee;
+                $order_info['mq_charge_fee'] = $order->mq_charge_fee;
+                $order_info['profit_fee'] = $order->profit_fee;
+                $order_info['invoice'] = $order->invoice;
                 // $order_info['original_amount'] = $order->original_amount;
                 $order_info['payment_method'] = $order->payment_method;
                 $order_info['cancel_reason'] = $order->cancel_reason;
@@ -95,11 +99,27 @@ class OrderController extends Controller
         return $this->page($orders, $_res);
     }
 
+    /**
+     * 导出订单
+     * @param Request $request
+     * @param SupplierOrdersExport $supplierOrdersExport
+     * @return SupplierOrdersExport
+     * @author zhangzhen
+     * @data dateTime
+     */
     public function export(Request $request, SupplierOrdersExport $supplierOrdersExport)
     {
         return $supplierOrdersExport->withRequest($request);
     }
 
+    /**
+     * 导出订单商品
+     * @param Request $request
+     * @param SupplierOrderProductsExport $supplierOrderProductsExport
+     * @return SupplierOrderProductsExport
+     * @author zhangzhen
+     * @data dateTime
+     */
     public function exportProduct(Request $request, SupplierOrderProductsExport $supplierOrderProductsExport)
     {
         return $supplierOrderProductsExport->withRequest($request);
@@ -159,7 +179,7 @@ class OrderController extends Controller
      * @param Request $request
      * @return mixed
      * @author zhangzhen
-     * @data dateTime
+     * @data 2021/1/27 6:21 下午
      */
     public function qualifications(Request $request)
     {
@@ -279,5 +299,22 @@ class OrderController extends Controller
         ];
 
         return $this->success($data);
+    }
+
+    /**
+     * 可开发票订单
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/1/27 6:28 下午
+     */
+    public function invoice()
+    {
+        $user = Auth::user();
+        $orders = SupplierOrder::query()->select("id", "no", "pay_charge_fee", "mq_charge_fee")
+            ->where("shop_id", $user->id)
+            ->where("status", 70)->orderBy("id", "desc")->get();
+
+        return $this->success($orders);
     }
 }

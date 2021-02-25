@@ -12,7 +12,7 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
     Route::post('auth/login', 'AuthController@login');
     // 退出登录
     Route::post('auth/logout', 'AuthController@logout');
-    // 需要认证接口
+    // 需要登录接口
     Route::middleware(["multiauth:supplier"])->group(function() {
         Route::post("auth/logout", "AuthController@logout");
         Route::get("auth/me", "AuthController@me");
@@ -64,6 +64,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::post("deliver", "OrderController@deliver");
             // 取消订单
             Route::post("cancel", "OrderController@cancel");
+            // 可以开发票的订单
+            Route::post("invoice", "OrderController@invoice");
         });
 
         // 供货商
@@ -104,6 +106,24 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
         Route::prefix("balance")->group(function () {
             // 列表
             Route::get("", "UserBalanceController@index");
+        });
+
+        // 发票信息
+        Route::prefix("invoice")->group(function () {
+            // 列表
+            Route::get("info", "InvoiceTitleController@show");
+            // 列表
+            Route::post("", "InvoiceTitleController@save");
+        });
+
+        // 发票记录
+        Route::prefix("invoice")->group(function () {
+            // 信息
+            Route::get("info", "InvoiceTitleController@show");
+            // 设置信息
+            Route::post("info", "InvoiceTitleController@save");
+            // 列表
+            Route::get("", "InvoiceController@index");
         });
     });
 });
