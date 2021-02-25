@@ -231,7 +231,7 @@ class PaymentController
         $amount = 0;
 
         foreach ($orders as $order) {
-            $amount += $order->total_fee * 100;
+            $amount += ($order->total_fee * 100 - $order->frozen_fee * 100);
         }
 
         // 订单金额判断
