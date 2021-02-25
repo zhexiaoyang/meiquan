@@ -393,8 +393,8 @@ class ProductController extends Controller
         //     }
         // }
 
-        $categories = Category::query()->select("id","pid as parent_id","title")->orderBy("sort", "desc")
-            ->orderBy("parent_id")->get()->toArray();
+        $categories = Category::query()->select("id","pid as parent_id","title")
+            ->orderBy("parent_id")->orderBy("sort")->get()->toArray();
 
         if (!empty($categories)) {
             foreach ($categories as $category) {
