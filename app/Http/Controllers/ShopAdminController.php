@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Shop;
 use App\Models\SupplierOrder;
 use App\Models\SupplierProduct;
+use App\Models\SupplierUser;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -268,5 +269,28 @@ class ShopAdminController extends Controller
         }
 
         return $this->success();
+    }
+
+    /**
+     * 管理后台-供货商列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/2/27 7:49 下午
+     */
+    public function supplierList(Request $request)
+    {
+        $page_size = intval($request->get("page_size", 10));
+        $search_key = trim($request->get("search_key", ""));
+
+        $query = SupplierUser::where("is_auth", 1);
+
+        if ($search_key) {
+            $query->where("name","like", "%{$search_key}%");
+        }
+
+        $data = $query->paginate($page_size);
+
+        return $this->page($data);
     }
 }

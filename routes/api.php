@@ -137,6 +137,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/order", "ShopAdminController@orderList");
             // *商城后台-取消订单
             Route::post("/shopAdmin/order/cancel", "ShopAdminController@cancelOrder");
+            // *商城后台-供货商列表
+            Route::get("/shopAdmin/supplier", "ShopAdminController@supplierList");
 
             // ERP管理
             // ERP管理-key列表

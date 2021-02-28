@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\OnlineShop;
+use App\Models\OnlineShopReason;
 use App\Models\Shop;
 use App\Models\ShopAuthentication;
 use App\Models\User;
@@ -114,6 +115,10 @@ class OnlineController extends Controller
         //     return $this->error("门店地址不能为空");
         // }
         // $data["address"] = $address;
+
+        $data["is_meituan"] = intval($request->get("is_meituan", 0));
+        $data["is_ele"] = intval($request->get("is_ele", 0));
+        $data["is_jddj"] = intval($request->get("is_jddj", 0));
 
         if (!$phone = $request->get("phone")) {
             return $this->error("客服电话不能为空");
@@ -301,6 +306,10 @@ class OnlineController extends Controller
         $data = [];
         $data['user_id'] = $user->id;
         $id = (int) $request->get('id', 0);
+
+        $data["is_meituan"] = intval($request->get("is_meituan", 0));
+        $data["is_ele"] = intval($request->get("is_ele", 0));
+        $data["is_jddj"] = intval($request->get("is_jddj", 0));
 
         if (!$shop = OnlineShop::query()->where(['id' => $id, 'user_id' => $user->id])->first()) {
             return $this->error("门店不存在");
@@ -503,7 +512,7 @@ class OnlineController extends Controller
             return $this->error("状态错误");
         }
 
-        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name","contact_phone");
+        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name","contact_phone","is_meituan","is_ele","is_jddj");
 
         if ($name = $request->get("name")) {
             $query->where("name", "like", "%{$name}%");
@@ -524,13 +533,20 @@ class OnlineController extends Controller
     {
         $id = $request->get("id", 0);
 
-        if (!$shop = OnlineShop::query()->find($id)) {
+        if (!$shop = OnlineShop::with("reasons")->find($id)) {
             return $this->error("门店不存在");
         }
 
         return $this->success($shop);
     }
 
+    /**
+     * 管理员审核
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/2/27 5:18 下午
+     */
     public function examine(Request $request)
     {
         $status = $request->get("status", 0);
@@ -561,6 +577,7 @@ class OnlineController extends Controller
             $shop->material = 3;
             $shop->material_error = $reason;
             $shop->save();
+            OnlineShopReason::create(["oid" => $onlineShop->id, "reason" => $reason]);
         }
 
         if ($status == 40) {

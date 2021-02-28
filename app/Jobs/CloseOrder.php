@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\SupplierOrder;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -36,6 +37,13 @@ class CloseOrder implements ShouldQueue
         \DB::transaction(function() {
             // 将订单的 closed 字段标记为 true，即关闭订单
             $this->order->update(['status' => 90]);
+            if ($this->order->frozen_fee > 0) {
+                if ($user = User::query()->find($this->order->user_id)) {
+                    // 订单未支付-自动取消-冻结余额返回
+                    \Log::info("订单未支付-自动取消-冻结余额返回-[id:{$this->order->id},id:{$this->order->no}]");
+                    User::query()->where(['frozen_money' => $user->frozen_money])->update(['frozen_money' => $user->frozen_money + $this->order->frozen_fee]);
+                }
+            }
             // 循环遍历订单中的商品 SKU，将订单中的数量加回到 SKU 的库存中去
             foreach ($this->order->items as $item) {
                 $item->product->addStock($item->amount);
