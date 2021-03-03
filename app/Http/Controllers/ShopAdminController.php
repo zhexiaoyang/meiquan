@@ -144,9 +144,9 @@ class ShopAdminController extends Controller
     {
         $page_size = $request->get("page_size", 10);
         $search_key = $request->get("search_key", '');
-        // $status = $request->get("status", null);
-        // $start_date = $request->get("start_date", '');
-        // $end_date = $request->get("end_date", '');
+        $status = $request->get("status", null);
+        $start_date = $request->get("start_date", '');
+        $end_date = $request->get("end_date", '');
 
         $query = SupplierOrder::with(["shop", "items"])->orderBy("id", "desc");
 
@@ -157,17 +157,17 @@ class ShopAdminController extends Controller
             });
         }
 
-        // if (!is_null($status)) {
-        //     $query->where("status", $status);
-        // }
-        //
-        // if ($start_date) {
-        //     $query->where("created_at", ">=", $start_date);
-        // }
-        //
-        // if ($end_date) {
-        //     $query->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
-        // }
+        if (!is_null($status)) {
+            $query->where("status", $status);
+        }
+
+        if ($start_date) {
+            $query->where("created_at", ">=", $start_date);
+        }
+
+        if ($end_date) {
+            $query->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
+        }
 
         $orders = $query->paginate($page_size);
 
