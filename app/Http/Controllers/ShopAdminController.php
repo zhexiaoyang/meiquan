@@ -157,7 +157,7 @@ class ShopAdminController extends Controller
             });
         }
 
-        if (!is_null($status)) {
+        if (!is_null($status) && $status != "") {
             $query->where("status", $status);
         }
 
