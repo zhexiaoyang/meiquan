@@ -388,8 +388,8 @@ class ShopController extends Controller
      */
     public function examine(Shop $shop)
     {
-        $shop->status = 20;
-        $shop->save();
+        // $shop->status = 20;
+        // $shop->save();
 
         dispatch(new CreateMtShop($shop));
 
