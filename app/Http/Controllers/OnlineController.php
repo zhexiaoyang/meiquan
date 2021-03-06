@@ -294,6 +294,7 @@ class OnlineController extends Controller
         }
         catch(\Exception $ex) {
             \DB::rollback();
+            \Log::error("外卖上线提交失败", [$ex->getMessage()]);
             return $this->error("提交失败，请稍后再试", 422);
         }
 
