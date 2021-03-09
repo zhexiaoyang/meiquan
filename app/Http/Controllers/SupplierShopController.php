@@ -15,7 +15,9 @@ class SupplierShopController extends Controller
     {
         $shop_id = $request->get("shop_id", 0);
 
-        $shop = SupplierUser::select("id","avatar","name","telephone","description","notice")->find($shop_id);
+        $shop = SupplierUser::select("id","avatar","name","telephone","description","notice","shtxd","yzymbab",
+        "yyzz","ypjy","spjy","ylqx","ndbg","elqx","khxk","nsrdj","hggh","qygl","kpxx","ypgxht","zlbzxys","xssqwts")
+            ->find($shop_id);
 
         if (!$shop) {
             return $this->error("供货商不存在");

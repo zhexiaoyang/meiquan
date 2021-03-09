@@ -139,11 +139,14 @@ class ShopController extends Controller
             unset($shop->shop_id);
         }
 
+        $shop->status = 20;
         $shop->user_id = $user->id;
         $shop->own_id = $user->id;
 
         if ($shop->save()) {
             $user->shops()->attach($shop->id);
+            \Log::info("创建门店-自动审核");
+            dispatch(new CreateMtShop($shop));
             return $this->success([]);
         }
 

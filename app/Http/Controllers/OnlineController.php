@@ -119,6 +119,7 @@ class OnlineController extends Controller
         $data["is_meituan"] = intval($request->get("is_meituan", 0));
         $data["is_ele"] = intval($request->get("is_ele", 0));
         $data["is_jddj"] = intval($request->get("is_jddj", 0));
+        $data["is_btoc"] = intval($request->get("is_btoc", 0));
 
         if (!$phone = $request->get("phone")) {
             return $this->error("客服电话不能为空");
@@ -311,6 +312,7 @@ class OnlineController extends Controller
         $data["is_meituan"] = intval($request->get("is_meituan", 0));
         $data["is_ele"] = intval($request->get("is_ele", 0));
         $data["is_jddj"] = intval($request->get("is_jddj", 0));
+        $data["is_btoc"] = intval($request->get("is_btoc", 0));
 
         if (!$shop = OnlineShop::query()->where(['id' => $id, 'user_id' => $user->id])->first()) {
             return $this->error("门店不存在");
@@ -428,9 +430,19 @@ class OnlineController extends Controller
         $data["ylqx"] = $ylqx;
 
         if (!$sfz = $request->get("sfz")) {
-            return $this->error("负责人身份证不能为空");
+            return $this->error("负责人身份证正面不能为空");
         }
         $data["sfz"] = $sfz;
+
+        if (!$sfzbm = $request->get("sfzbm")) {
+            return $this->error("负责人身份证背面不能为空");
+        }
+        $data["sfzbm"] = $sfzbm;
+
+        if (!$sfzsc = $request->get("sfzsc")) {
+            return $this->error("负责人手持身份证不能为空");
+        }
+        $data["sfzsc"] = $sfzsc;
 
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");
@@ -513,7 +525,8 @@ class OnlineController extends Controller
             return $this->error("状态错误");
         }
 
-        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name","contact_phone","is_meituan","is_ele","is_jddj");
+        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name",
+            "contact_phone","is_meituan","is_ele","is_jddj","is_btoc");
 
         if ($name = $request->get("name")) {
             $query->where("name", "like", "%{$name}%");

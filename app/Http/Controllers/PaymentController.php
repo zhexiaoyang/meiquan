@@ -92,7 +92,7 @@ class PaymentController extends Controller
             return $this->success($data);
 
         } else if ($pay_method == 3) {
-
+            // 公众号支付
             if (!$code = $request->get('code')) {
                 \Log::info("[商城订单支付-微信]-[method: {$pay_method}, code: {$code}]-[code不存在]-[微信未授权，无法使用支付]");
                 return $this->error('微信未授权，无法使用支付');
