@@ -292,6 +292,7 @@ class ProductController extends Controller
         }
 
         if (!$this->checkSing($request->only("access_key", "timestamp", "data", "signature"), $access->access_secret)) {
+            \Log::info("[ERP接口]-[添加商品]-签名错误");
             return $this->error("签名错误", 703);
         }
 
