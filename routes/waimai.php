@@ -13,11 +13,11 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     // 推送已确认订单回调
     Route::post('create', "MeiTuanMeiquanController@create");
     // 推送用户或客服取消订单回调
-    Route::post('cancel', "MeiTuanMeiquanController@cancel");
+    Route::get('cancel', "MeiTuanMeiquanController@cancel");
     // 推送全额退款信息回调
-    Route::post('refund', "MeiTuanMeiquanController@refund");
+    Route::get('refund', "MeiTuanMeiquanController@refund");
     // 推送部分退款信息回调
-    Route::post('refund/part', "MeiTuanMeiquanController@refundPart");
+    Route::get('refund/part', "MeiTuanMeiquanController@refundPart");
     // 推送美配订单配送状态回调
     Route::post('logistics', "MeiTuanMeiquanController@logistics");
 });
