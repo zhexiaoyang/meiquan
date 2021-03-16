@@ -9,6 +9,8 @@ Route::middleware(['force-json'])->group(function() {
     Route::post('auth/register', 'AuthController@register');
     // *中台登录
     Route::post('auth/login', 'AuthController@login');
+    // *中台登录[移动端]
+    Route::post('m/auth/login', 'AuthController@loginFromMobile');
 
     // 模拟接单建店
     Route::post('arrange/{order}', 'TestController@arrange');
@@ -135,8 +137,14 @@ Route::middleware(['force-json'])->group(function() {
             Route::post("/shopAdmin/product/active", "ShopAdminController@productActive");
             // *商城后台-订单列表
             Route::get("/shopAdmin/order", "ShopAdminController@orderList");
+            // *商城后台-订单列表-导出
+            Route::get("/shopAdmin/order/export", "ShopAdminController@export");
             // *商城后台-取消订单
             Route::post("/shopAdmin/order/cancel", "ShopAdminController@cancelOrder");
+            // *商城后台-重置结算信息
+            Route::post("/shopAdmin/order/reset", "ShopAdminController@resetOrder");
+            // *商城后台-操作收货
+            Route::post("/shopAdmin/order/cancel", "ShopAdminController@receiveOrder");
             // *商城后台-供货商列表
             Route::get("/shopAdmin/supplier", "ShopAdminController@supplierList");
 
@@ -245,6 +253,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::resource("order", "SupplierOrderController");
             // 支付订单
             Route::post("order/pay", "PaymentController@pay");
+            // 支付订单
+            Route::post("order/receive", "SupplierOrderController@receiveOrder");
             // 支付订单页面调用-订单详情
             Route::get("payOrders", "SupplierOrderController@payOrders");
             // 收货

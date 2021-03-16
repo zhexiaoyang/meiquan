@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ShopAdminOrdersExport;
 use App\Models\Shop;
 use App\Models\SupplierOrder;
 use App\Models\SupplierProduct;
@@ -182,6 +183,8 @@ class ShopAdminController extends Controller
                 $order_info['total_fee'] = $order->total_fee;
                 $order_info['frozen_fee'] = $order->frozen_fee;
                 $order_info['product_fee'] = $order->product_fee;
+                $order_info['pay_charge_fee'] = $order->pay_charge_fee;
+                $order_info['mq_charge_fee'] = $order->mq_charge_fee;
                 $order_info['payment_no'] = $order->payment_no;
                 $order_info['payment_method'] = $order->payment_method;
                 $order_info['cancel_reason'] = $order->cancel_reason;
@@ -189,6 +192,15 @@ class ShopAdminController extends Controller
                 $order_info['shop_name'] = $order->shop->name ?? "";
                 $order_info['paid_at'] = $order->paid_at ? date("Y-m-d H:i:s", strtotime($order->paid_at)) : '-';
                 $order_info['created_at'] = date("Y-m-d H:i:s", strtotime($order->created_at));
+
+                // 结算金额（js有精度问题，放到程序里面做）
+                $profit_fee = $order->total_fee - $order->mq_charge_fee;
+                if ($order->payment_method !==0 && $order->payment_method !== 30) {
+                    $profit_fee -= $order->pay_charge_fee * 100;
+                }
+                $order_info['profit_fee'] = (float) sprintf("%.2f",$profit_fee);
+                // 支付金额
+                // $order_info['pay_fee'] = (float) sprintf("%.2f", ($order->total_fee - $order->frozen_fee));
 
                 $item_info = [];
                 if (!empty($order->items)) {
@@ -203,6 +215,8 @@ class ShopAdminController extends Controller
                             $item_info['unit'] = $item->unit;
                             $item_info['amount'] = $item->amount;
                             $item_info['price'] = $item->price;
+                            $item_info['commission'] = $item->commission;
+                            $item_info['mq_charge_fee'] = $item->mq_charge_fee;
                             $order_info['items'][] = $item_info;
                         }
                     }
@@ -213,6 +227,11 @@ class ShopAdminController extends Controller
         }
 
         return $this->page($orders, $_res);
+    }
+
+    public function export(Request $request, ShopAdminOrdersExport $adminOrdersExport)
+    {
+        return $adminOrdersExport->withRequest($request);
     }
 
     /**
@@ -267,6 +286,46 @@ class ShopAdminController extends Controller
                 $item->product->addStock($item->amount);
             }
         }
+
+        return $this->success();
+    }
+
+    /**
+     * 重置订单-对账信息
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/16 12:41 下午
+     */
+    public function resetOrder(Request $request)
+    {
+        $id = $request->get("id", 0);
+        \Log::info("[采购后台-对账信息]-[订单ID: {$id}]");
+
+        if (!$order = SupplierOrder::query()->find($id)) {
+            return $this->error("订单不存在");
+        }
+        \Log::info("[采购后台-对账信息]-[订单号: {$order->no}]");
+
+        return $this->success();
+    }
+
+    /**
+     * 采购后台-操作收货
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/16 12:41 下午
+     */
+    public function receiveOrder(Request $request)
+    {
+        $id = $request->get("id", 0);
+        \Log::info("[采购后台-操作收货]-[订单ID: {$id}]");
+
+        if (!$order = SupplierOrder::query()->find($id)) {
+            return $this->error("订单不存在");
+        }
+        \Log::info("[采购后台-操作收货]-[订单号: {$order->no}]");
 
         return $this->success();
     }

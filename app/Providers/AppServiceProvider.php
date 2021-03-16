@@ -65,6 +65,11 @@ class AppServiceProvider extends ServiceProvider
             $config = config('ps.qinqu');
             return new MeiTuan($config);
         });
+        // 美全服务商
+        $this->app->singleton('meiquan', function () {
+            $config = config('ps.meiquan');
+            return new MeiTuan($config);
+        });
         // 顺丰
         $this->app->singleton('shunfeng', function () {
             $config = config('ps.shunfeng');

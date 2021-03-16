@@ -159,6 +159,14 @@ class SupplierOrderController extends Controller
                 $product_weight = 0;
                 // 总金额
                 $total_fee = 0;
+                // 商品金额
+                $product_fee = 0;
+                // 实际支付金额
+                // $pay_fee = 0;
+                // 支付手续费
+                // $pay_charge_fee = 0;
+                // 美全手续费
+                $mq_charge_fee = 0;
                 // 创建一个订单
                 $order   = new SupplierOrder([
                     'shop_id' => $shop_id,
@@ -190,6 +198,11 @@ class SupplierOrderController extends Controller
                     // 品库信息
                     $depot = $product->depot;
 
+                    // 单个商品-总金额
+                    $item_fee = ($price * 100) * $cart['amount'];
+                    // 单个商品-美全服务费
+                    $item_charge_fee = $item_fee * $product->commission * 0.01 * 0.01;
+
                     // 创建一个 OrderItem 并直接与当前订单关联
                     $item = $order->items()->make([
                         'amount' => $cart['amount'],
@@ -199,14 +212,24 @@ class SupplierOrderController extends Controller
                         'spec'  => $depot->spec,
                         'unit'  => $depot->unit,
                         'upc'  => $depot->upc,
+                        'commission'  => $product->commission,
+                        'mq_charge_fee'  => $item_charge_fee,
                     ]);
                     $item->product()->associate($product->id);
                     $item->save();
+                    // 更新销售数量
                     $product->sale_count += $cart['amount'];
                     $product->save();
-                    $total_fee += ($price * 100) * $cart['amount'];
+                    // 计算订单总价
+                    $total_fee += $item_fee;
+                    // 商品金额总计
+                    $product_fee += $item_fee;
+                    // 计算订单美全服务费
+                    $mq_charge_fee += $item_charge_fee * 100;
+                    // 计算订单总重量
                     $product_weight += $product->weight * $cart['amount'];
 
+                    // 如果是活动品，计算可用冻结余额金额
                     if ($product->is_active === 1) {
                         $frozen_money += ($price * 100) * $cart['amount'];
                     }
@@ -283,10 +306,23 @@ class SupplierOrderController extends Controller
                 $order->shipping_fee = $postage / 100;
                 // 更新订单总金额
                 $order->total_fee = $total_fee / 100;
+                // 更新订单商品总金额
+                $order->product_fee = $product_fee / 100;
+                // 更新订单实际支付金额
+                $order->pay_fee = ($total_fee / 100) - ($use_frozen_money / 100);
+                // 更新订单支付手续费
+                $order->pay_charge_fee = ($total_fee - $use_frozen_money) * 0.006 * 0.01;
+                // 美全手续费
+                $order->mq_charge_fee = $mq_charge_fee / 100;
+                // 更新订单结算金额(结算金额 = 总金额 - 美全服务费 - 支付手续费)
+                // if ($order->status === 30) {
+                //     $order->profit_fee = ($total_fee - $mq_charge_fee - ($total_fee - $use_frozen_money) * 0.006) * 0.01;
+                // }
 
                 if (count($data) <= 1) {
                     $order->pay_no = $order->no;
                 }
+
                 // 余额支付金额
                 $order->frozen_fee = $use_frozen_money / 100;
                 // 保存信息
@@ -351,6 +387,19 @@ class SupplierOrderController extends Controller
     {
         $order->status = 70;
         $order->save();
+        return $this->success();
+    }
+
+    /**
+     * 用户操作确认无误收货
+     * @param Request $request
+     * @author zhangzhen
+     * @data dateTime
+     */
+    public function receiveOrder(Request $request)
+    {
+        $user = Auth::user();
+        \Log::info("用户操作确认无误收货");
         return $this->success();
     }
 

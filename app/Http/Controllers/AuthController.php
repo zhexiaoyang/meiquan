@@ -15,7 +15,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api')->except(['login', 'register']);
+        $this->middleware('auth:api')->except(['login', 'register', 'loginFromMobile']);
     }
 
     public function login(Request $request)
@@ -44,6 +44,13 @@ class AuthController extends Controller
         }
     }
 
+    /**
+     * PC端验证码登录
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/1 3:51 下午
+     */
     public function loginByMobile(Request $request)
     {
 
@@ -90,6 +97,65 @@ class AuthController extends Controller
         return $this->success($result);
     }
 
+    /**
+     * 移动端（小程序）手机验证码登录
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/1 3:52 下午
+     */
+    public function loginFromMobile(Request $request)
+    {
+
+        $request->validate([
+            'mobile' => 'required',
+            'code' => 'required',
+        ], [], [
+            'mobile' => '手机号',
+            'code' => '短信验证码',
+        ]);
+
+        $phone = $request->get('mobile', '');
+        $captcha = $request->get('code', '');
+
+        $verifyData = \Cache::get($phone);
+
+        if (!$verifyData) {
+            return $this->error('验证码已失效');
+        }
+
+        if (!hash_equals($verifyData['code'], $captcha)) {
+            return $this->error('验证码失效');
+        }
+
+        $user = User::query()->where('phone', $phone)->first();
+
+        if (!$user) {
+            $password = str_pad(mt_rand(10, 999999), 6, "0", STR_PAD_BOTH);;
+            $user = new User();
+            $user->name = $phone;
+            $user->phone = $phone;
+            $user->password = bcrypt($password);
+            $user->save();
+
+            $user->assignRole('shop');
+
+            \Log::info('验证码登录注册', ['phone' => $phone, 'password' => $password]);
+        }
+
+        $result = $this->getBearerTokenByUser($user, '1', false);
+
+        \Cache::forget($phone);
+
+        $data = [
+            'user_id' => $user->id,
+            'user_name' => $user->name,
+            'token' => $result['access_token']
+        ];
+
+        return $this->success($data);
+    }
+
 
     public function register(Request $request, User $user)
     {
@@ -132,6 +198,7 @@ class AuthController extends Controller
             'name' => $request->user()->phone ?? '',
             'phone' => $request->user()->phone ?? '',
             'money' => $request->user()->money ?? '',
+            'frozen_money' => $request->user()->frozen_money ?? '',
             'roles' => $request->user()->hasRole('super_man') ? ['super_man'] : ['index'],
         ];
         return $this->success($user);

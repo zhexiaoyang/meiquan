@@ -51,6 +51,12 @@ return [
         'secret' => env('QINQU_SECRET', ''),
         'url' => 'https://waimaiopen.meituan.com/api/'
     ],
+    // 美团外卖-美全服务商
+    "meiquan" => [
+        'app_key' => env('MEIQUAN_APP_KEY', ''),
+        'secret' => env('MEIQUAN_SECRET', ''),
+        'url' => 'https://waimaiopen.meituan.com/api/'
+    ],
     // 药柜
     "yaogui" => [
         'app_key' => env('YAOGUI_APP_KEY', ''),

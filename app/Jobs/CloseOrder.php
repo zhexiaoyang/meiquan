@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\SupplierOrder;
 use App\Models\User;
+use App\Models\UserFrozenBalance;
 use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -41,7 +42,19 @@ class CloseOrder implements ShouldQueue
                 if ($user = User::query()->find($this->order->user_id)) {
                     // 订单未支付-自动取消-冻结余额返回
                     \Log::info("订单未支付-自动取消-冻结余额返回-[id:{$this->order->id},id:{$this->order->no}]");
+                    $before_money = $user->frozen_money;
                     User::query()->where(['frozen_money' => $user->frozen_money])->update(['frozen_money' => $user->frozen_money + $this->order->frozen_fee]);
+                    $user = User::query()->find($this->order->user_id);
+                    $logs = new UserFrozenBalance([
+                        "user_id" => $this->order->user_id,
+                        "money" => $this->order->frozen_fee,
+                        "type" => 1,
+                        "before_money" => $before_money,
+                        "after_money" => $user,
+                        "description" => "商城订单取消退款：{$this->order->no}",
+                        "tid" => $this->order->id
+                    ]);
+                    $logs->save();
                 }
             }
             // 循环遍历订单中的商品 SKU，将订单中的数量加回到 SKU 的库存中去

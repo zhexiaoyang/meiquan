@@ -151,7 +151,7 @@ class PaymentController extends Controller
                         $order_nos[] = $pay_order->no;
                         $pay_order->status = 30;
                         $pay_order->paid_at = date("Y-m-d");
-                        $pay_order->payment_method = 8;
+                        $pay_order->payment_method = 30;
                         $pay_order->save();
                     }
                     $logs = new UserMoneyBalance([

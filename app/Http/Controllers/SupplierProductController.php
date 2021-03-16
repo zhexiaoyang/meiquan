@@ -124,6 +124,8 @@ class SupplierProductController extends Controller
         $page_size = $request->get("page_size", 20);
         $search_key = $request->get("search_key", "");
         $sort = $request->get("sort", "default");
+        $first = intval($request->get("first", 0));
+        $second = intval($request->get("second", 0));
 
         // 判断是否有收货门店
         if (!$shop = Shop::query()->find($shop_id)) {
@@ -144,6 +146,15 @@ class SupplierProductController extends Controller
         },"city_price" => function ($query) use ($city_code) {
             $query->select("product_id", "price")->where("city_code", $city_code->id);
         }])->where(["status" => 20, "is_active" => 1]);
+
+        if ($first) {
+            $query->whereHas("depot", function ($query) use ($first, $second) {
+                $query->where("first_category", $first);
+                if ($second) {
+                    $query->where("second_category", $first);
+                }
+            });
+        }
 
         // 筛选城市是否可买
         $query->where(function ($query) use ($city_code) {

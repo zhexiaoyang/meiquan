@@ -20,4 +20,6 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     Route::get('refund/part', "MeiTuanMeiquanController@refundPart");
     // 推送美配订单配送状态回调
     Route::post('logistics', "MeiTuanMeiquanController@logistics");
+    // 推送美配订单配送状态回调
+    Route::post('test', "MeiTuanMeiquanController@test");
 });

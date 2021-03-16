@@ -313,4 +313,39 @@ class Api extends Request
         return $this->request('shop/area/query', $params);
     }
 
+    public function waimaiOrderConfirm(array $params)
+    {
+        return $this->request_get('v1/order/confirm', $params);
+    }
+
+    public function waimaiOrderCancel(array $params)
+    {
+        return $this->request_get('v1/order/cancel', $params);
+    }
+
+    public function waimaiOrderRefundAgree(array $params)
+    {
+        return $this->request_get('v1/order/refund/agree', $params);
+    }
+
+    public function waimaiOrderRefundReject(array $params)
+    {
+        return $this->request_get('v1/order/refund/reject', $params);
+    }
+
+    public function waimaiOrderBatchPullPhoneNumber(array $params)
+    {
+        return $this->request_post('v1/order/batchPullPhoneNumber', $params);
+    }
+
+    public function waimaiOrderReviewAfterSales(array $params)
+    {
+        return $this->request_get('v1/ecommerce/order/reviewAfterSales', $params);
+    }
+
+    public function waimaiAuthorize(array $params)
+    {
+        return $this->request_get('v1/oauth/authorize', $params);
+    }
+
 }
