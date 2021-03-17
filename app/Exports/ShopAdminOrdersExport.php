@@ -115,6 +115,7 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
             $order['contact_phone'] ?? '',
             $order['total_fee'] ?? '',
             $order['frozen_fee'] ?? '',
+            $order['product_fee'] ?? '',
             $order['shipping_fee'] ?? '',
             isset($order['payment_method']) ? $pay_status[$order['payment_method']] : '',
             $order['payment_no'] ?? '',
