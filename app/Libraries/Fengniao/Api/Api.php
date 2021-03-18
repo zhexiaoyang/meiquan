@@ -144,7 +144,14 @@ class Api extends Request
 
         if ($order->goods_pickup_info) {
             $data['serial_number'] = $order->goods_pickup_info;
+        } elseif ($order->day_seq) {
+            $data['serial_number'] = $order->day_seq;
+            if ($order->platform === 1) {
+                $data['order_source'] = 2;
+                $data['order_source_order_id'] = $order->order_id;
+            }
         }
+
         return $this->post('v2/order', $data);
     }
 
