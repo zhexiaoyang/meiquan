@@ -35,9 +35,9 @@ class Api extends Request
 
         if ($order->day_seq) {
             $params['poi_seq'] = $order->day_seq;
-            if ($order->platform) {
-                $params['platform'] = 101;
-                $params['outer_order_source_desc'] = $order->order_id;
+            if ($order->platform === 1) {
+                $params['outer_order_source_desc'] = 101;
+                $params['outer_order_source_no'] = $order->order_id;
             }
         }
 
