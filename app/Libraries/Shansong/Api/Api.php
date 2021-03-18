@@ -87,6 +87,11 @@ class Api extends Request
         if ($order->goods_pickup_info) {
             $data['receiverList'][0]['orderingSourceType'] = 4;
             $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
+        } elseif ($order->day_seq) {
+            if ($order->platform === 1) {
+                $data['receiverList'][0]['orderingSourceType'] = 4;
+                $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
+            }
         }
 
         // if ($order->type === 11) {
