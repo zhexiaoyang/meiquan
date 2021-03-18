@@ -154,7 +154,7 @@ class MinKangController
                     'goods_value' => $request->get("total", 0),
                     // 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
                     'goods_weight' => 3,
-                    'poi_seq' => $request->get("poi_seq", 0),
+                    'day_seq' => $request->get("day_seq", 0),
                     'platform' => 1,
                     'type' => 4,
                     'status' => $status,
