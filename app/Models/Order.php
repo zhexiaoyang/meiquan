@@ -26,7 +26,7 @@ class Order extends Model
     protected $fillable = ['delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
         'receiver_address','receiver_phone','receiver_lng','receiver_lat','coordinate_type','goods_value',
         'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info','goods_delivery_info',
-        'expected_pickup_time','expected_delivery_time','order_type','poi_seq','note','type','status','failed',
+        'expected_pickup_time','expected_delivery_time','order_type','poi_seq','platform','note','type','status','failed',
         'courier_name','courier_phone','cancel_reason_id','cancel_reason','exception_id','exception_code',
         'exception_descr','exception_time','distance','money','base_money','distance_money','weight_money',
         'time_money','date_money','money_mt','money_fn','money_ss','ss_order_id','fail_mt','fail_fn','fail_ss','ps',

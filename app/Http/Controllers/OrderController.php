@@ -460,6 +460,8 @@ class OrderController extends Controller
                 'goods_value' => $data['total'],
                 // 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
                 'goods_weight' => 3,
+                'poi_seq' => $data['day_seq'] ?? 0,
+                'platform' => 1,
                 'type' => $type,
                 'status' => $status,
                 'order_type' => 0
