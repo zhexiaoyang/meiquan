@@ -231,7 +231,7 @@ class SupplierCartController extends Controller
                 $total += $_total;
 
                 if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
-                    \Log::info("配送费计算1：{$product_weight}-{$shop->citycode}", [$shop]);
+                    \Log::info("配送费计算1：{$product_weight}-{$shop->citycode}", [$shop_city_id]);
                     if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
                         \Log::info("配送费计算2", [$freight]);
                         $first_weight = $freight->first_weight * 100;
