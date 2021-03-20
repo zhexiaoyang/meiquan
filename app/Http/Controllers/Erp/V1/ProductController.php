@@ -345,6 +345,7 @@ class ProductController extends Controller
                 }
 
                 $params_data = [];
+                $params_update_data = [];
 
                 if (!is_null($meituan)) {
                     foreach ($v as $item) {
@@ -358,6 +359,15 @@ class ProductController extends Controller
                                 'is_sold_out' => 0,
                                 'sequence' => 100
                             ];
+                            $params_update_data[] = [
+                                'app_medicine_code' => $item['app_medicine_code'],
+                                'upc' => $item['upc'],
+                                'price' => $item['price'],
+                                'stock' => $item['stock'],
+                                'category_code' => $upc_pluck[$item['upc']],
+                                // 'is_sold_out' => 0,
+                                // 'sequence' => 100
+                            ];
                         } else {
                             \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
                         }
@@ -366,9 +376,14 @@ class ProductController extends Controller
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
                     ];
-                    \Log::info("[ERP接口]-[添加商品]-组合参数1", $params);
-                    $update_log = $meituan->medicineBatchUpdate($params);
+                    $params_update = [
+                        "app_poi_code" => $access_shop->mt_shop_id,
+                        "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
+                    ];
+                    \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
+                    $update_log = $meituan->medicineBatchUpdate($params_update);
                     \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
+                    \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
                     \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
                 }
