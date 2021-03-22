@@ -196,7 +196,7 @@ class ShopAdminController extends Controller
                 // 结算金额（js有精度问题，放到程序里面做）
                 $profit_fee = $order->total_fee - $order->mq_charge_fee;
                 if ($order->payment_method !==0 && $order->payment_method !== 30) {
-                    $profit_fee -= $order->pay_charge_fee * 100;
+                    $profit_fee -= $order->pay_charge_fee;
                 }
                 $order_info['profit_fee'] = (float) sprintf("%.2f",$profit_fee);
                 // 支付金额
@@ -351,5 +351,28 @@ class ShopAdminController extends Controller
         $data = $query->paginate($page_size);
 
         return $this->page($data);
+    }
+
+    /**
+     * 商家上下架
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/22 11:49 下午
+     */
+    public function supplierOnline(Request $request)
+    {
+        if (!$id = intval($request->get("id"))) {
+            return $this->error("参数错误");
+        }
+
+        if (!$supplier = SupplierUser::find($id)) {
+            return $this->error("参数错误");
+        }
+
+        $supplier->online = $supplier->online === 1 ? 0 : 1;
+        $supplier->save();
+
+        return $this->success();
     }
 }

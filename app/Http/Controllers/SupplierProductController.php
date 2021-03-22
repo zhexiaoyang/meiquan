@@ -41,6 +41,8 @@ class SupplierProductController extends Controller
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
+        })->whereHas("user", function($query) {
+            $query->where("online", 1);
         })->with(["depot" => function ($query) {
             $query->select("id","cover","name","spec","unit");
         },"user" => function ($query) {
