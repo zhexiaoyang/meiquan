@@ -246,7 +246,8 @@ class CreateMtOrder implements ShouldQueue
                     'date_money' => $date_money,
                     'peisong_id' => $result_mt['data']['mt_peisong_id'],
                     'status' => 20,
-                    'ps' => 1
+                    'ps' => 1,
+                    'push_at' => date("Y-m-d H:i:s")
                 ];
                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
                 Log::info('美团订单-更新创建订单状态成功');
@@ -322,7 +323,8 @@ class CreateMtOrder implements ShouldQueue
                     'date_money' => $date_money,
                     'peisong_id' => $result_fn['data']['peisong_id'] ?? $this->order->order_id,
                     'status' => 20,
-                    'ps' => 2
+                    'ps' => 2,
+                    'push_at' => date("Y-m-d H:i:s")
                 ];
                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
                 Log::info('蜂鸟订单-更新创建订单状态成功');
@@ -398,7 +400,8 @@ class CreateMtOrder implements ShouldQueue
                     'date_money' => $date_money,
                     'peisong_id' => $order->ss_order_id,
                     'status' => 20,
-                    'ps' => 3
+                    'ps' => 3,
+                    'push_at' => date("Y-m-d H:i:s")
                 ];
                 DB::table('orders')->where('id', $this->order->id)->update($update_info);
                 Log::info('闪送订单-更新创建订单状态成功');
