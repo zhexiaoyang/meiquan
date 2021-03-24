@@ -384,6 +384,7 @@ class ProductController extends Controller
                             $_tmp['msg'] = "条码在品库中不存在";
                             \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
                         }
+                        $res_data_items[] = $_tmp;
                     }
                     $res_data = [
                         "service_key" => "HXFW_365",
