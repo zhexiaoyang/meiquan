@@ -7,6 +7,8 @@ use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
 use App\Models\ErpDepot;
 use App\Models\ErpShopCategory;
+use GuzzleHttp\Client;
+use GuzzleHttp\RequestOptions;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -249,6 +251,9 @@ class ProductController extends Controller
         $shop_id = null;
         $data = [];
         $upcs = [];
+        $http = new Client();
+        $res_data = [];
+        $res_data_items = [];
 
         foreach ($receive_params as $receive_param) {
 
@@ -349,6 +354,12 @@ class ProductController extends Controller
 
                 if (!is_null($meituan)) {
                     foreach ($v as $item) {
+                        $_tmp = [
+                            "shop_id" => $shop_id,
+                            'app_medicine_code' => $item['app_medicine_code'],
+                            "status" => 1,
+                            "msg" => "成功"
+                        ];
                         if (isset($upc_pluck[$item['upc']])) {
                             $params_data[] = [
                                 'app_medicine_code' => $item['app_medicine_code'],
@@ -369,9 +380,19 @@ class ProductController extends Controller
                                 // 'sequence' => 100
                             ];
                         } else {
+                            $_tmp['status'] = 2;
+                            $_tmp['msg'] = "条码在品库中不存在";
                             \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
                         }
                     }
+                    $res_data = [
+                        "service_key" => "HXFW_365",
+                        "hx_parama" => $res_data_items
+                    ];
+                    \Log::info("海协ERP推送商品状态", $res_data);
+                    // $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
+                    // $result = json_decode($response->getBody(), true);
+                    // \Log::info("海协ERP推送商品状态-返回", [$result]);
                     $params = [
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
@@ -380,12 +401,12 @@ class ProductController extends Controller
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
                     ];
-                    \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
-                    $update_log = $meituan->medicineBatchUpdate($params_update);
-                    \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
                     \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
                     \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
+                    \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
+                    $update_log = $meituan->medicineBatchUpdate($params_update);
+                    \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
                 }
             }
         }
