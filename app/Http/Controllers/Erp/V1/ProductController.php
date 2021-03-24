@@ -391,9 +391,9 @@ class ProductController extends Controller
                         "hx_parama" => $res_data_items
                     ];
                     \Log::info("海协ERP推送商品状态", $res_data);
-                    // $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
-                    // $result = json_decode($response->getBody(), true);
-                    // \Log::info("海协ERP推送商品状态-返回", [$result]);
+                    $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
+                    $result = json_decode($response->getBody(), true);
+                    \Log::info("海协ERP推送商品状态-返回", [$result]);
                     $params = [
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
