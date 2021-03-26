@@ -236,6 +236,11 @@ class ShopAdminController extends Controller
 
     public function export(Request $request, ShopAdminOrdersExport $adminOrdersExport)
     {
+        $start_date = $request->get("start_date", '');
+        $end_date = $request->get("end_date", '');
+        if (!$start_date || !$end_date) {
+            return $this->error("请选择时间范围，时间范围不能超过31天");
+        }
         return $adminOrdersExport->withRequest($request);
     }
 
