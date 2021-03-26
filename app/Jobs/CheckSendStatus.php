@@ -56,7 +56,7 @@ class CheckSendStatus implements ShouldQueue
             $res = $ding_notice->sendMarkdownMsgArray("重新发送订单", $logs);
             $shop = Shop::query()->find($this->order->shop_id);
             \Log::info('钉钉日志发送状态-重新发送订单', [$res]);
-            \Log::info("[检查发单]-订单ID：{$this->order->id}-订单号：{$this->order->no}");
+            \Log::info("[检查发单]-订单ID：{$this->order->id}-订单号：{$this->order->order_id}");
 
             if ($this->order->push_at) {
                 // 订单发送时间
@@ -64,7 +64,7 @@ class CheckSendStatus implements ShouldQueue
                 // 检查订单状态时间
                 $ttl_time = config("ps.order_ttl");
                 if (time() <= ($push_time + $ttl_time - 90)) {
-                    \Log::info("[检查发单]-[时间不满足]-订单ID：{$this->order->id}-订单号：{$this->order->no}");
+                    \Log::info("[检查发单]-[时间不满足]-订单ID：{$this->order->id}-订单号：{$this->order->order_id}");
                     return;
                 }
             }

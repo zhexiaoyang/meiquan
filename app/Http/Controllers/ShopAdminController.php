@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Exports\ShopAdminOrdersExport;
 use App\Models\Shop;
+use App\Models\SupplierInvoice;
 use App\Models\SupplierOrder;
 use App\Models\SupplierProduct;
 use App\Models\SupplierUser;
+use App\Models\SupplierUserBalance;
+use App\Models\SupplierWithdrawal;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -197,6 +200,8 @@ class ShopAdminController extends Controller
                 $profit_fee = $order->total_fee - $order->mq_charge_fee;
                 if ($order->payment_method !==0 && $order->payment_method !== 30) {
                     $profit_fee -= $order->pay_charge_fee;
+                } else {
+                    $order_info['pay_charge_fee'] = 0;
                 }
                 $order_info['profit_fee'] = (float) sprintf("%.2f",$profit_fee);
                 // 支付金额
@@ -215,7 +220,7 @@ class ShopAdminController extends Controller
                             $item_info['unit'] = $item->unit;
                             $item_info['amount'] = $item->amount;
                             $item_info['price'] = $item->price;
-                            $item_info['commission'] = $item->commission;
+                            $item_info['commission'] = $item->commission . "%";
                             $item_info['mq_charge_fee'] = $item->mq_charge_fee;
                             $order_info['items'][] = $item_info;
                         }
@@ -302,8 +307,24 @@ class ShopAdminController extends Controller
         $id = $request->get("id", 0);
         \Log::info("[采购后台-对账信息]-[订单ID: {$id}]");
 
-        if (!$order = SupplierOrder::query()->find($id)) {
+        if (!$order = SupplierOrder::with("items.product")->find($id)) {
             return $this->error("订单不存在");
+        }
+
+        if (!empty($order->items)) {
+            $mq_charge_fee = 0;
+            foreach ($order->items as $item) {
+                if (isset($item->product->commission)) {
+                    $commission = $item->product->commission;
+                    $item_charge_fee = ($item->price * 100) * $item->amount * $commission * 0.01 * 0.01;
+                    $item->commission = $commission;
+                    $item->mq_charge_fee = $item_charge_fee;
+                    $item->save();
+                }
+                $mq_charge_fee += $item_charge_fee * 100;
+            }
+            $order->mq_charge_fee = $mq_charge_fee / 100;
+            $order->save();
         }
         \Log::info("[采购后台-对账信息]-[订单号: {$order->no}]");
 
@@ -322,10 +343,71 @@ class ShopAdminController extends Controller
         $id = $request->get("id", 0);
         \Log::info("[采购后台-操作收货]-[订单ID: {$id}]");
 
-        if (!$order = SupplierOrder::query()->find($id)) {
+        if (!$order = SupplierOrder::find($id)) {
+            \Log::info("[采购后台-操作收货]-[订单ID: {$id}]-订单不存在");
             return $this->error("订单不存在");
         }
-        \Log::info("[采购后台-操作收货]-[订单号: {$order->no}]");
+        \Log::info("[采购后台-操作收货-订单ID: {$id}-订单号: {$order->no}]-订单存在");
+
+        if ($order->status !== 50) {
+            \Log::info("[采购后台-操作收货-订单ID: {$order->id}-订单号: {$order->no}]-订单未发货");
+            return $this->error("订单未发货，不能收货");
+        }
+
+        if ($order->shop_id > 8) {
+            return $this->error("该供货商订单不能操作收货");
+        }
+
+        if (!$supplier = SupplierUser::find($order->shop_id)) {
+            \Log::info("[采购后台-操作收货-订单ID: {$order->id}-订单号: {$order->no}]-供货商异常");
+            return $this->error("供货商异常，不能收货");
+        }
+
+        // 结算金额
+        $money = $order->total_fee - $order->mq_charge_fee;
+        if ($order->payment_method !==0 && $order->payment_method !== 30) {
+            $money -= $order->pay_charge_fee;
+        }
+        // $money = (float) sprintf("%.2f",$money);
+
+        try {
+            \DB::transaction(function () use ($order, $supplier, $money) {
+                $before_money = $supplier->money;
+                $after_money = $supplier->money + $money;
+                // 减记录
+                $supplier->where("money", $supplier->money)->update(["money" => $after_money]);
+
+                // 余额记录
+                $yu = [
+                    "user_id" => $supplier->id,
+                    "type" => 1,
+                    "money" => $money,
+                    "before_money" => $before_money,
+                    "after_money" => $after_money,
+                    "description" => "订单({$order->no})结算",
+                    "tid" => $order->id
+                ];
+                SupplierUserBalance::query()->create($yu);
+
+                $order->completion_at = date("Y-m-d H:i:s");
+                $order->receive_user_id = Auth::id();
+                $order->status = 70;
+                $order->save();
+
+                \Log::info("[采购后台-操作收货-订单ID: {$order->id}-订单号: {$order->no}]--事务提交成功");
+            });
+        } catch (\Exception $e) {
+            $message = [
+                $e->getCode(),
+                $e->getFile(),
+                $e->getLine(),
+                $e->getMessage()
+            ];
+            \Log::info("[采购后台-操作收货-订单ID: {$order->id}-订单号: {$order->no}]-事务提交失败", $message);
+            return $this->error("操作失败，请稍后再试");
+        }
+
+        \Log::info("[采购后台-操作收货-订单ID: {$order->id}-订单号: {$order->no}]-成功");
 
         return $this->success();
     }
@@ -372,6 +454,40 @@ class ShopAdminController extends Controller
 
         $supplier->online = $supplier->online === 1 ? 0 : 1;
         $supplier->save();
+
+        return $this->success();
+    }
+
+    public function supplierInvoiceList(Request $request)
+    {
+        $page_size = intval($request->get("page_size", 10));
+        $search_key = trim($request->get("search_key", ""));
+        $status = intval($request->get("status", 0));
+
+        $query = SupplierInvoice::query();
+
+        if ($search_key) {
+            $query->where("name","like", "%{$search_key}%");
+        }
+
+        if ($status) {
+            $query->where("status",$status);
+        }
+
+        $data = $query->paginate($page_size);
+
+        return $this->page($data);
+    }
+
+    public function supplierInvoice(Request $request)
+    {
+        if (!$invoice = SupplierInvoice::find(intval($request->get("id", 0)))) {
+            return $this->error("发票信息不存在");
+        }
+
+        $invoice->status = 2;
+        $invoice->over_at = date("Y-m-d H:i:s");
+        $invoice->save();
 
         return $this->success();
     }

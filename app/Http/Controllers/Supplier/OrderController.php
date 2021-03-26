@@ -66,13 +66,21 @@ class OrderController extends Controller
                 $order_info['total_fee'] = $order->total_fee;
                 $order_info['pay_charge_fee'] = $order->pay_charge_fee;
                 $order_info['mq_charge_fee'] = $order->mq_charge_fee;
-                $order_info['profit_fee'] = $order->profit_fee;
+                // $order_info['profit_fee'] = $order->profit_fee;
                 $order_info['invoice'] = $order->invoice;
                 // $order_info['original_amount'] = $order->original_amount;
                 $order_info['payment_method'] = $order->payment_method;
                 $order_info['cancel_reason'] = $order->cancel_reason;
                 $order_info['status'] = $order->status;
                 $order_info['created_at'] = date("Y-m-d H:i:s", strtotime($order->created_at));
+                // 结算金额（js有精度问题，放到程序里面做）
+                $profit_fee = $order->total_fee - $order->mq_charge_fee;
+                if ($order->payment_method !==0 && $order->payment_method !== 30) {
+                    $profit_fee -= $order->pay_charge_fee;
+                } else {
+                    $order_info['pay_charge_fee'] = 0;
+                }
+                $order_info['profit_fee'] = (float) sprintf("%.2f",$profit_fee);
 
                 $item_info = [];
                 if (!empty($order->items)) {
@@ -87,6 +95,8 @@ class OrderController extends Controller
                             $item_info['unit'] = $item->unit;
                             $item_info['amount'] = $item->amount;
                             $item_info['price'] = $item->price;
+                            $item_info['commission'] = $item->commission . "%";
+                            $item_info['mq_charge_fee'] = $item->mq_charge_fee;
                             $order_info['items'][] = $item_info;
                         }
                     }

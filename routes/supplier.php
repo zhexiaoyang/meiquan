@@ -110,20 +110,16 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
 
         // 发票信息
         Route::prefix("invoice")->group(function () {
-            // 列表
-            Route::get("info", "InvoiceTitleController@show");
-            // 列表
-            Route::post("", "InvoiceTitleController@save");
-        });
-
-        // 发票记录
-        Route::prefix("invoice")->group(function () {
-            // 信息
-            Route::get("info", "InvoiceTitleController@show");
-            // 设置信息
-            Route::post("info", "InvoiceTitleController@save");
-            // 列表
+            // 发票抬头信息
+            Route::get("title", "InvoiceTitleController@show");
+            // 设置发票抬头信息
+            Route::post("title", "InvoiceTitleController@save");
+            // 可以开发票订单列表
+            Route::get("order", "InvoiceController@order");
+            // 申请开发票列表
             Route::get("", "InvoiceController@index");
+            // 开发票
+            Route::post("", "InvoiceController@store");
         });
     });
 });

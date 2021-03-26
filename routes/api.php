@@ -141,6 +141,8 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/order/export", "ShopAdminController@export");
             // *商城后台-取消订单
             Route::post("/shopAdmin/order/cancel", "ShopAdminController@cancelOrder");
+            // *商城后台-订单收货
+            Route::post("/shopAdmin/order/receive", "ShopAdminController@receiveOrder");
             // *商城后台-重置结算信息
             Route::post("/shopAdmin/order/reset", "ShopAdminController@resetOrder");
             // *商城后台-操作收货
@@ -149,6 +151,10 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/supplier", "ShopAdminController@supplierList");
             // *商城后台-供货商列表-上下架
             Route::post("/shopAdmin/supplier/online", "ShopAdminController@supplierOnline");
+            // *商城后台-供货商开发票列表
+            Route::get("/shopAdmin/supplier/invoice", "ShopAdminController@supplierInvoiceList");
+            // *商城后台-供货商开发票-已开
+            Route::post("/shopAdmin/supplier/invoice", "ShopAdminController@supplierInvoice");
 
             // ERP管理
             // ERP管理-key列表
