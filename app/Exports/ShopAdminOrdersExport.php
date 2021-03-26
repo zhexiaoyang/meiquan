@@ -85,7 +85,7 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
                 // 结算金额（js有精度问题，放到程序里面做）
                 $profit_fee = $order->total_fee - $order->mq_charge_fee;
                 if ($order->payment_method !==0 && $order->payment_method !== 30) {
-                    $profit_fee -= $order->pay_charge_fee * 100;
+                    $profit_fee -= $order->pay_charge_fee;
                 }
                 $order_info['profit_fee'] = (float) sprintf("%.2f",$profit_fee);
 
@@ -108,14 +108,6 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
         $pay_status = [0 => '', 1 => "支付宝", 2 => "微信", 8 => "余额", 30 => "余额"];
         $order_status = [0 => "未付款", 30 => "待发货", 50 => "已发货", 70 => "已收货", 90 => "已取消", 99 => "已取消"];
 
-        $money = $order['total_fee'] - $order['mq_charge_fee'];
-        $pay_charge_fee = $order['pay_charge_fee'];
-        if ($order['payment_method'] !==0 && $order['payment_method'] !== 30) {
-            $money -= $order['pay_charge_fee'];
-        } else {
-            $pay_charge_fee = 0;
-        }
-
         return [
             isset($order['no']) ? "`".$order['no'] : '',
             $order['shop_name'] ?? '',
@@ -128,9 +120,9 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
             isset($order['payment_method']) ? $pay_status[$order['payment_method']] : '',
             $order['payment_no'] ?? '',
             isset($order['status']) ? $order_status[$order['status']] : '',
-            $pay_charge_fee,
+            $order['pay_charge_fee'] ?? '',
             $order['mq_charge_fee'] ?? '',
-            $money,
+            $order['profit_fee'] ?? '',
             $order['created_at'] ?? '',
             $order['paid_at'] ?? '',
         ];
