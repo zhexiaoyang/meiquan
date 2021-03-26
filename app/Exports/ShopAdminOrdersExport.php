@@ -72,7 +72,7 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
                 $order_info['total_fee'] = $order->total_fee;
                 $order_info['frozen_fee'] = $order->frozen_fee;
                 $order_info['product_fee'] = $order->product_fee;
-                $order_info['pay_charge_fee'] = $order->pay_charge_fee;
+                // $order_info['pay_charge_fee'] = $order->pay_charge_fee;
                 $order_info['mq_charge_fee'] = $order->mq_charge_fee;
                 $order_info['payment_no'] = $order->payment_no;
                 $order_info['payment_method'] = $order->payment_method;
