@@ -109,8 +109,11 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
         $order_status = [0 => "未付款", 30 => "待发货", 50 => "已发货", 70 => "已收货", 90 => "已取消", 99 => "已取消"];
 
         $money = $order['total_fee'] - $order['mq_charge_fee'];
+        $pay_charge_fee = $order['pay_charge_fee'];
         if ($order['payment_method'] !==0 && $order['payment_method'] !== 30) {
             $money -= $order['pay_charge_fee'];
+        } else {
+            $pay_charge_fee = 0;
         }
 
         return [
@@ -125,7 +128,7 @@ class ShopAdminOrdersExport implements WithStrictNullComparison, Responsable, Fr
             isset($order['payment_method']) ? $pay_status[$order['payment_method']] : '',
             $order['payment_no'] ?? '',
             isset($order['status']) ? $order_status[$order['status']] : '',
-            $order['pay_charge_fee'] ?? '',
+            $pay_charge_fee,
             $order['mq_charge_fee'] ?? '',
             $money,
             $order['created_at'] ?? '',
