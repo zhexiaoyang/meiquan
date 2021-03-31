@@ -142,7 +142,7 @@ function weightMoneyFn($weight) {
         }
     }
 
-    if ($weight >= 20) {
+    if ($weight >= 15) {
         $money += ($weight - 19) * 3;
     }
 
@@ -233,14 +233,34 @@ function distanceMoneyFn($juli) {
         \Log::info('超出10公里', []);
     }
 
-    if ($juli >=3) {
-        if ($juli < 5) {
-            $money += ceil($juli - 2) * 2;
+    // [1-3)KM 1元/km/单
+    if ($juli >=1) {
+        if ($juli < 3) {
+            $money += ceil($juli) * 1;
         } else {
-            $money += 2 * 2;
+            $money += 2 * 1;
         }
     }
 
+    // [3-4)KM 2元/km/单
+    if ($juli >=3) {
+        if ($juli < 4) {
+            $money += ceil($juli - 2) * 2;
+        } else {
+            $money += 1 * 2;
+        }
+    }
+
+    // [4-5)KM 2元/km/单
+    if ($juli >=4) {
+        if ($juli < 5) {
+            $money += ceil($juli - 3) * 2;
+        } else {
+            $money += 1 * 2;
+        }
+    }
+
+    // [5-6)KM 2元/km/单
     if ($juli >=5) {
         if ($juli < 6) {
             $money += ceil($juli - 4) * 3;
@@ -279,7 +299,8 @@ function baseMoney($shop_live) {
  */
 function baseMoneyFn($shop_live) {
 
-    $start_arr = [ 'S' => 9.3, 'A' => 8.8, 'B' => 8.3, 'C' => 7.8, 'D' => 7.3, 'E' => 6.8 ];
+    // $start_arr = [ 'S' => 9.3, 'A' => 8.8, 'B' => 8.3, 'C' => 7.8, 'D' => 7.3, 'E' => 6.8 ];
+    $start_arr = [ 'S' => 7.3, 'A' => 7.1, 'B' => 6.9, 'C' => 6.5, 'D' => 6.0, 'E' => 5.7 ];
 
     $b = $start_arr[$shop_live] ?? 7.3;
     // $b = $b + 5;
