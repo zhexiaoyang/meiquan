@@ -234,6 +234,14 @@ class ShopAdminController extends Controller
         return $this->page($orders, $_res);
     }
 
+    /**
+     * 订单导出
+     * @param Request $request
+     * @param ShopAdminOrdersExport $adminOrdersExport
+     * @return ShopAdminOrdersExport|mixed
+     * @author zhangzhen
+     * @data 2021/3/31 12:27 上午
+     */
     public function export(Request $request, ShopAdminOrdersExport $adminOrdersExport)
     {
         $start_date = $request->get("start_date", '');
@@ -463,6 +471,13 @@ class ShopAdminController extends Controller
         return $this->success();
     }
 
+    /**
+     * 供货商开发票列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/31 12:22 上午
+     */
     public function supplierInvoiceList(Request $request)
     {
         $page_size = intval($request->get("page_size", 10));
@@ -484,6 +499,13 @@ class ShopAdminController extends Controller
         return $this->page($data);
     }
 
+    /**
+     * 修改开发票状态
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/31 12:22 上午
+     */
     public function supplierInvoice(Request $request)
     {
         if (!$invoice = SupplierInvoice::find(intval($request->get("id", 0)))) {
@@ -492,6 +514,56 @@ class ShopAdminController extends Controller
 
         $invoice->status = 2;
         $invoice->over_at = date("Y-m-d H:i:s");
+        $invoice->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 供货商提现列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/31 12:21 上午
+     */
+    public function supplierWithdrawalList(Request $request)
+    {
+        $page_size = intval($request->get("page_size", 10));
+        $search_key = trim($request->get("search_key", ""));
+        $status = intval($request->get("status", 0));
+
+        $query = SupplierWithdrawal::with(["supplier" => function ($query) {
+            $query->select("id", "name");
+        }]);
+
+        if ($search_key) {
+            $query->where("name","like", "%{$search_key}%");
+        }
+
+        if ($status) {
+            $query->where("status",$status);
+        }
+
+        $data = $query->paginate($page_size);
+
+        return $this->page($data);
+    }
+
+    /**
+     * 修改提现状态
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/3/31 12:22 上午
+     */
+    public function supplierWithdrawal(Request $request)
+    {
+        if (!$invoice = SupplierWithdrawal::find(intval($request->get("id", 0)))) {
+            return $this->error("提现信息不存在");
+        }
+
+        $invoice->status = 5;
+        $invoice->withdrawal_at = date("Y-m-d H:i:s");
         $invoice->save();
 
         return $this->success();

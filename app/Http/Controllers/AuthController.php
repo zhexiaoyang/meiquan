@@ -204,6 +204,20 @@ class AuthController extends Controller
         return $this->success($user);
     }
 
+    public function contract(Request $request)
+    {
+        $user = [
+            'id' => $request->user()->id ?? '',
+            'contract' => $request->user()->contract ?? '',
+            'applicant_name' => $request->user()->applicant_name ?? '',
+            'applicant_phone' => $request->user()->applicant_phone ?? '',
+            'company_name' => $request->user()->company_name ?? '',
+            'register_no' => $request->user()->register_no ?? '',
+            'legal_person' => $request->user()->legal_person ?? '',
+        ];
+        return $this->success($user);
+    }
+
     public function me(Request $request)
     {
         $user = $request->user();

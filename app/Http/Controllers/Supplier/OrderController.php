@@ -64,6 +64,7 @@ class OrderController extends Controller
                 $order_info['address'] = $order->address;
                 $order_info['shipping_fee'] = $order->shipping_fee;
                 $order_info['total_fee'] = $order->total_fee;
+                $order_info['product_fee'] = $order->product_fee;
                 $order_info['pay_charge_fee'] = $order->pay_charge_fee;
                 $order_info['mq_charge_fee'] = $order->mq_charge_fee;
                 // $order_info['profit_fee'] = $order->profit_fee;

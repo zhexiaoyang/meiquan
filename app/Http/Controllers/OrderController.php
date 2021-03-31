@@ -238,6 +238,7 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         // $order->status = $order->status_label;
+        $order->load("deduction");
         return $this->success($order);
     }
 

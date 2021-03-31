@@ -29,6 +29,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('user/info', 'AuthController@user');
         // 个人中心-用户信息-ant框架返回
         Route::get('user/me', 'AuthController@me');
+        // 个人中心-用户信息-合同
+        Route::get('user/contract', 'AuthController@contract');
         // 用户全部可发单药店
         Route::get('shop/all', 'ShopController@all')->name('api.shop.all');
         // 订单状态
@@ -43,6 +45,10 @@ Route::middleware(['force-json'])->group(function() {
         // Route::get('statistics/export/detail', 'StatisticsController@detail');
         // 分类 2021-02-23 新分类
         Route::get('meiquan/category', 'CategoryController@index');
+        // 合同管理
+        Route::prefix("/contract")->group(function () {
+            Route::post('auth', 'ContractController@auth');
+        });
 
         /**
          * 门店管理
@@ -155,6 +161,10 @@ Route::middleware(['force-json'])->group(function() {
             Route::get("/shopAdmin/supplier/invoice", "ShopAdminController@supplierInvoiceList");
             // *商城后台-供货商开发票-已开
             Route::post("/shopAdmin/supplier/invoice", "ShopAdminController@supplierInvoice");
+            // *商城后台-供货商开发票列表
+            Route::get("/shopAdmin/supplier/withdrawal", "ShopAdminController@supplierWithdrawalList");
+            // *商城后台-供货商开发票-已开
+            Route::post("/shopAdmin/supplier/withdrawal", "ShopAdminController@supplierWithdrawal");
 
             // ERP管理
             // ERP管理-key列表

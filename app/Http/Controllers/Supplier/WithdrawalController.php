@@ -66,7 +66,8 @@ class WithdrawalController extends Controller
                 $ti = [
                     "user_id" => $user->id,
                     "money" => $money,
-                    "description" => "余额提现"
+                    "description" => "余额提现",
+                    "status" => 1
                 ];
                 $withdrawal = SupplierWithdrawal::query()->create($ti);
 
