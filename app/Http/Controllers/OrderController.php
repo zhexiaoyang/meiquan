@@ -652,6 +652,7 @@ class OrderController extends Controller
     {
         $ps = $order->ps;
         $shop = Shop::query()->find($order->shop_id);
+        \Log::info("[跑腿订单]-[后台取消订单]-[订单ID：{$order->id}]-[订单号：{$order->order_id}]");
 
         if ($order->status < 3) {
             \Log::info("订单未发送-不用取消", [$order->id, $order->order_id]);
