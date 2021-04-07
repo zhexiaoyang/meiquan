@@ -157,7 +157,7 @@ Route::middleware(['force-json'])->group(function() {
             // *商城后台-重置结算信息
             Route::post("/shopAdmin/order/reset", "ShopAdminController@resetOrder");
             // *商城后台-操作收货
-            // Route::post("/shopAdmin/order/cancel", "ShopAdminController@receiveOrder");
+            Route::post("/shopAdmin/order/cancel", "ShopAdminController@receiveOrder");
             // *商城后台-供货商列表
             Route::get("/shopAdmin/supplier", "ShopAdminController@supplierList");
             // *商城后台-供货商列表-上下架
