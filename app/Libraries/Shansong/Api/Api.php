@@ -30,6 +30,25 @@ class Api extends Request
 
         return $this->post('/openapi/merchants/v5/storeOperation', $data);
     }
+    public function updateShop(Shop $shop)
+    {
+        $jwd = gd2bd($shop->shop_lng, $shop->shop_lat);
+
+        $data = [
+            "storeId" => $shop->shop_id_ss,
+            "storeName" => $shop->shop_name,
+            "cityName" => $shop->city,
+            "address" => $shop->shop_address,
+            "addressDetail" => "-",
+            "latitude" => $jwd['lat'],
+            "longitude" => $jwd['lng'],
+            "phone" => $shop->contact_phone,
+            "goodType" => 13,
+            "operationType" => 2
+        ];
+
+        return $this->post('/openapi/merchants/v5/storeOperation', $data);
+    }
 
     /**
      * 获取门店信息

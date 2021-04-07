@@ -201,6 +201,20 @@ class Api extends Request
         return $this->request('shop/create', $params);
     }
 
+    public function shopUpdate(Shop $shop)
+    {
+        $params = [
+            'shop_id' => $shop->shop_id,
+            'contact_name' => (string) $shop->contact_name,
+            'contact_phone' => $shop->contact_phone,
+            'shop_address' => $shop->shop_address,
+            'shop_lng' => ceil($shop->shop_lng * 1000000),
+            'shop_lat' => ceil($shop->shop_lat * 1000000),
+        ];
+
+        return $this->request('shop/update', $params);
+    }
+
     public function shopInfo(array $params)
     {
         return $this->request('shop/query', $params);

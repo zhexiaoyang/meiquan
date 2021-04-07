@@ -28,7 +28,8 @@ class UserController extends Controller
         $search_key = $request->get('search_key', '');
         $search_key_shop = $request->get('search_key_shop', '');
 
-        $query = User::with(['roles', 'my_shops']);
+        $query = User::with(['roles', 'my_shops'])
+            ->select("id","name","phone","money","frozen_money","created_at","is_chain","chain_name");
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -69,11 +70,34 @@ class UserController extends Controller
                         ];
                     }
                 }
+                unset($user->my_shops);
                 $user->my_shops = $shops;
             }
         }
 
         return $this->page($users);
+    }
+
+    public function chain(Request $request)
+    {
+        if (!$user = User::query()->find(intval($request->get("id", 0)))) {
+            return $this->error("用户不存在");
+        }
+
+        if ($user->is_chain === 1) {
+            $user->is_chain = 0;
+            $user->chain_name = "";
+            $user->save();
+        } else {
+            if (!$chain_name = $request->get("chain_name", "")) {
+                return $this->error("连锁店名称错误");
+            }
+            $user->is_chain = 1;
+            $user->chain_name = $chain_name;
+            $user->save();
+        }
+
+        return $this->success();
     }
 
     /**

@@ -49,6 +49,9 @@ class ShopController extends Controller
             foreach ($shops as $shop) {
                 $tmp['id'] = $shop->id;
                 $tmp['shop_name'] = $shop->shop_name;
+                $tmp['shop_address'] = $shop->shop_address;
+                $tmp['shop_lng'] = $shop->shop_lng;
+                $tmp['shop_lat'] = $shop->shop_lat;
                 $tmp['contact_name'] = $shop->contact_name;
                 $tmp['contact_phone'] = $shop->contact_phone;
                 $tmp['status'] = $shop->status;
@@ -75,6 +78,55 @@ class ShopController extends Controller
         $result['list'] = $data;
 
         return $this->success($result);
+    }
+
+    public function update(Shop $shop, Request $request)
+    {
+        if (!$id = intval($request->get("id"))) {
+            return $this->error("门店不存在");
+        }
+        if ($id != $shop->id) {
+            return $this->error("参数错误");
+        }
+        if (!$contact_name = trim($request->get("contact_name", ""))){
+            return $this->error("联系人不能为空");
+        }
+        $shop->contact_name = $contact_name;
+        if (!$contact_phone = trim($request->get("contact_phone", ""))){
+            return $this->error("联系人电话不能为空");
+        }
+        $shop->contact_phone = $contact_phone;
+        if (!$shop_address = trim($request->get("shop_address", ""))){
+            return $this->error("门店地址不能为空");
+        }
+        $shop->shop_address = $shop_address;
+        if (!$shop_lng = trim($request->get("shop_lng", ""))){
+            return $this->error("经度不能为空");
+        }
+        $shop->shop_lng = $shop_lng;
+        if (!$shop_lat = trim($request->get("shop_lat", ""))){
+            return $this->error("纬度不能为空");
+        }
+        $shop->shop_lat = $shop_lat;
+
+        if ($shop->save()) {
+            if ($shop->shop_id_fn) {
+                $fengniao = app("fengniao");
+                $fengniao->updateShop($shop);
+            }
+            if ($shop->shop_id) {
+                $meituan = app("meituan");
+                $meituan->shopUpdate($shop);
+            }
+            if ($shop->shop_id_ss) {
+                $shansong = app("shansong");
+                $shansong->updateShop($shop);
+            }
+
+            return $this->success();
+        }
+
+        return $this->error("修改失败，请稍后再试");
     }
 
     /**

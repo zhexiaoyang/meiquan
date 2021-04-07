@@ -12,7 +12,7 @@ class ContractController extends Controller
         if (!$company_name = $request->get("company_name")) {
             return $this->error("公司名称不能为空");
         }
-        if (!$applicant_name = $request->get("applicant_name")) {
+        if (!$applicant = $request->get("applicant")) {
             return $this->error("认证人不能为空");
         }
         if (!$applicant_phone = $request->get("applicant_phone")) {
@@ -20,29 +20,52 @@ class ContractController extends Controller
         }
 
         $user = $request->user();
-        if ($user->contract === 0) {
+        if ($user->contract_auth === 0) {
             $user->company_name = $company_name;
-            $user->applicant_name = $applicant_name;
+            $user->applicant = $applicant;
             $user->applicant_phone = $applicant_phone;
+            $user->contract_auth = 1;
             $user->save();
         }
 
         $config = config('qiyuesuo');
         $q = new QiYue($config);
-        $data = [
-            "companyName" => $user->company_name,
-            "applicant" => [
-                "name" => $user->applicant_name,
-                "contact" => $user->applicant_phone,
-                "contactType" => "MOBILE"
-            ]
-        ];
-        $res = $q->companyauth($data);
+        $res = $q->companyauth($user);
 
         if (!isset($res['code']) || ($res['code'] !== 0)) {
             return $this->error("认证失败，请稍后再试");
         }
 
+        $user->contract_auth_id = $res['result']['requestId'];
+        $user->save();
+
         return $this->success($res);
+    }
+
+    public function userSign(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->contract_auth != 2) {
+            return $this->error("未通过认证，不能签署合同");
+        }
+
+        $config = config('qiyuesuo');
+        $q = new QiYue($config);
+
+        if (!$user->contract_id) {
+            $res = $q->draft($user);
+            if (isset($res['code']) && $res['code'] === 0) {
+                $user->contract_id = $res['result']['id'];
+                $user->save();
+            } else {
+                return $this->error("系统错误，请稍后再试");
+            }
+        }
+
+        $res = $q->contract($user);
+
+        return $this->success(['url' => $res['result']['pageUrl']]);
+
     }
 }

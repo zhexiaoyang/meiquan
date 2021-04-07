@@ -29,8 +29,10 @@ Route::middleware(['force-json'])->group(function() {
         Route::get('user/info', 'AuthController@user');
         // 个人中心-用户信息-ant框架返回
         Route::get('user/me', 'AuthController@me');
-        // 个人中心-用户信息-合同
-        Route::get('user/contract', 'AuthController@contract');
+        // 首页-合同信息（认证状态、签署信息）
+        Route::get('user/contract', 'AuthController@contractInfo');
+        // 首页-合同信息（认证状态、签署信息）
+        Route::get('user/contract/sign', 'ContractController@userSign');
         // 用户全部可发单药店
         Route::get('shop/all', 'ShopController@all')->name('api.shop.all');
         // 订单状态
@@ -62,7 +64,7 @@ Route::middleware(['force-json'])->group(function() {
         // *关闭自动发单
         Route::post('/shop/closeAuto', 'ShopController@closeAuto')->name('shop.closeAuto');
         // *资源路由-门店
-        Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index']]);
+        Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index','update']]);
 
         /**
          * 商城门店认证
@@ -104,6 +106,9 @@ Route::middleware(['force-json'])->group(function() {
          * 管理员操作
          */
         Route::middleware(['role:super_man'])->group(function () {
+            // 用户管理
+            Route::post("admin/user/chain", "UserController@chain");
+
             // *商城认证-审核列表
             Route::get("examine/shopping", "ExamineShoppingController@index");
             // *商城认证-审核
@@ -185,6 +190,14 @@ Route::middleware(['force-json'])->group(function() {
             Route::put("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@update");
             // ERP管理-key门店删除
             Route::delete("/erpAdmin/access_key/shop", "ErpAdminAccessKeyShopController@destroy");
+            // ERP管理-品库列表
+            Route::get("/erpAdmin/depot", "ErpDepotController@index");
+            // ERP管理-品库添加
+            Route::post("/erpAdmin/depot", "ErpDepotController@store");
+            // ERP管理-品库修改
+            Route::put("/erpAdmin/depot", "ErpDepotController@update");
+            // ERP管理-品库分类
+            Route::get("/erpAdmin/depot/category", "ErpDepotController@category");
 
         });
 

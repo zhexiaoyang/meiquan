@@ -81,5 +81,9 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware('api')
             ->namespace($this->namespace)
             ->group(base_path('routes/waimai.php'));
+        Route::prefix('api/callback')
+            ->middleware('api')
+            ->namespace($this->namespace)
+            ->group(base_path('routes/callback.php'));
     }
 }
