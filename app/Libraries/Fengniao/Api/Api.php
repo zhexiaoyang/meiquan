@@ -43,12 +43,21 @@ class Api extends Request
 
     /**
      * 更新门店
-     * @param $data
+     * @param Shop $shop
      * @return mixed
      */
-    public function updateShop($data)
+    public function updateShop(Shop $shop)
     {
-        // return $this->post('v2/chain_store/update', $data);
+        $data = [
+            "chain_store_code" => $shop->shop_id_fn,
+            // "chain_store_name" => $shop->shop_name,
+            "contact_phone" => $shop->contact_phone,
+            "address" => $shop->shop_address,
+            "position_source" => 3,
+            "longitude" => $shop->shop_lng,
+            "latitude" => $shop->shop_lat,
+        ];
+        return $this->post('v2/chain_store/update', $data);
     }
 
     /**
