@@ -289,12 +289,11 @@ class ShopAdminController extends Controller
                         'status' => 90,
                         'cancel_reason' => '管理员取消'
                     ]);
-                    $receive_shop = Shop::query()->find($order->receive_shop_id);
                     if ($order->frozen_fee) {
-                        DB::table('users')->where('id', $receive_shop->own_id)->increment('frozen_money', $order->frozen_fee);
+                        DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
                     }
                     if ($order->pay_fee) {
-                        DB::table('users')->where('id', $receive_shop->own_id)->increment('money', $order->pay_fee);
+                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->pay_fee);
                     }
                 });
             } catch (\Exception $e) {
