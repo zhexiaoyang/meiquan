@@ -14,6 +14,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ShopAdminController extends Controller
 {
@@ -281,25 +282,50 @@ class ShopAdminController extends Controller
         }
 
         if ($order->status === 30) {
-            $status = $order->status;
-            \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[订单状态1: {$status}]");
-            // \Log::info("取消订单状态1", ['status=' . $status]);
-            $order->status = 90;
-            $order->cancel_reason = $request->get("cancel_reason") ?? '';
-            $order->save();
-            // \Log::info("取消订单状态2", ['status=' . $status]);
-            \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[订单状态2: {$status}]");
-            if ($status === 30 && ($order->total_fee > 0)) {
-                if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
-                    if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
-                        // \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-                        if (!User::query()->where(["id" => $receive_shop_user->id, "money" => $receive_shop_user->money])->update(["money" => $receive_shop_user->money + $order->total_fee])) {
-                            // \Log::info("取消订单返款失败", ['order_id' => $order->id, 'money' => $order->total_fee]);
-                            \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[支付金额: {$order->total_fee}]-取消订单返款失败");
-                        }
+
+            try {
+                DB::transaction(function () use ($order) {
+                    DB::table('supplier_orders')->where("id", $order->id)->update([
+                        'status' => 90,
+                        'cancel_reason' => '管理员取消'
+                    ]);
+                    $receive_shop = Shop::query()->find($order->receive_shop_id);
+                    if ($order->frozen_fee) {
+                        DB::table('users')->where('id', $receive_shop->own_id)->increment('frozen_money', $order->frozen_fee);
                     }
-                }
+                    if ($order->pay_fee) {
+                        DB::table('users')->where('id', $receive_shop->own_id)->increment('money', $order->pay_fee);
+                    }
+                });
+            } catch (\Exception $e) {
+                $message = [
+                    $e->getCode(),
+                    $e->getFile(),
+                    $e->getLine(),
+                    $e->getMessage()
+                ];
+                \Log::info("[采购后台-取消订单-事务提交失败]-[订单ID: {$id}]", $message);
+                return $this->error("操作失败，请稍后再试");
             }
+            // $status = $order->status;
+            // \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[订单状态1: {$status}]");
+            // \Log::info("取消订单状态1", ['status=' . $status]);
+            // $order->status = 90;
+            // $order->cancel_reason = $request->get("cancel_reason") ?? '';
+            // $order->save();
+            // \Log::info("取消订单状态2", ['status=' . $status]);
+            // \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[订单状态2: {$status}]");
+            // if ($status === 30 && ($order->total_fee > 0)) {
+            //     if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
+            //         if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
+            //             // \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
+            //             if (!User::query()->where(["id" => $receive_shop_user->id, "money" => $receive_shop_user->money])->update(["money" => $receive_shop_user->money + $order->total_fee])) {
+            //                 // \Log::info("取消订单返款失败", ['order_id' => $order->id, 'money' => $order->total_fee]);
+            //                 \Log::info("[采购后台-取消订单]-[订单ID: {$id}]-[订单号: {$order->no}]-[支付金额: {$order->total_fee}]-取消订单返款失败");
+            //             }
+            //         }
+            //     }
+            // }
             foreach ($order->items as $item) {
                 $item->product->addStock($item->amount);
             }
