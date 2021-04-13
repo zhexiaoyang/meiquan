@@ -10,8 +10,7 @@ class ExampleProductController extends Controller
 {
     public function index()
     {
-        $data = SupplierDepot::query()->select('id', 'name', 'generi_name', 'cover', 'spec', 'unit', 'is_otc','type', 'created_at')
-            ->where('status', 0)->get();
+        $data = SupplierDepot::with(['first','second'])->where('status', 0)->get();
 
         return $this->success($data);
     }
@@ -22,12 +21,20 @@ class ExampleProductController extends Controller
             return $this->error("药品不存在");
         }
 
-        if ($depot->status === 0) {
+        $status = intval($request->get("status", 1));
+
+        if ($status === 1 && $depot->status === 0) {
             $depot->status = 20;
             $depot->save();
             // if ($depot->save()) {
                 // SupplierProduct::query()->where('depot_id', $depot->id)->update(['status' => 20]);
             // }
+        }
+
+        if ($status === 2) {
+            $depot->status = 5;
+            $depot->reason = $request->get("reason", "");
+            $depot->save();
         }
 
         return $this->success();

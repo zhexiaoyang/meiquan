@@ -14,4 +14,14 @@ class SupplierDepot extends Model
     {
         return $this->belongsTo(SupplierCategory::class, "category_id", "id");
     }
+
+    public function first()
+    {
+        return $this->belongsTo(Category::class, 'first_category', 'id');
+    }
+
+    public function second()
+    {
+        return $this->belongsTo(Category::class, 'second_category', 'id');
+    }
 }
