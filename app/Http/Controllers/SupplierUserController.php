@@ -9,8 +9,7 @@ class SupplierUserController extends Controller
 {
     public function user()
     {
-        $data = SupplierUser::query()->select("id", "name", "phone", "avatar", "yyzz", "ypjy", "auth_at")
-            ->where("is_auth", 0)->where('yyzz', '<>', '')->get();
+        $data = SupplierUser::where("is_auth", 0)->where('yyzz', '<>', '')->get();
 
         return $this->success($data);
     }
@@ -21,8 +20,16 @@ class SupplierUserController extends Controller
             return $this->error("供货商不存在");
         }
 
-        if ($supplier->is_auth === 0) {
+        $status = intval($request->get("status", 1));
+
+        if ($status === 1 && $supplier->is_auth === 0) {
             $supplier->is_auth = 1;
+            $supplier->save();
+        }
+
+        if ($status === 2) {
+            $supplier->is_auth = 2;
+            $supplier->reason = $request->get("reason", "");
             $supplier->save();
         }
 

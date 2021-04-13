@@ -132,6 +132,13 @@ class UserController extends Controller
         if ($shtxd = $request->get("shtxd")) {
             $user->shtxd = $shtxd;
         }
+        if ($zzdxba = $request->get("zzdxba")) {
+            $user->zzdxba = $zzdxba;
+        }
+
+        if ($wlqxba = $request->get("wlqxba")) {
+            $user->wlqxba = $wlqxba;
+        }
 
         if ($yyzz_start_time = $request->get("yyzz_start_time")) {
             $user->yyzz_start_time = $yyzz_start_time;
@@ -268,6 +275,14 @@ class UserController extends Controller
             $user->shtxd = $shtxd;
         }
 
+        if ($zzdxba = $request->get("zzdxba")) {
+            $user->zzdxba = $zzdxba;
+        }
+
+        if ($wlqxba = $request->get("wlqxba")) {
+            $user->wlqxba = $wlqxba;
+        }
+
         if ($yyzz_start_time = $request->get("yyzz_start_time")) {
             $user->yyzz_start_time = $yyzz_start_time;
         }
@@ -311,6 +326,9 @@ class UserController extends Controller
         if ($chang = $request->get("chang")) {
             $user->chang = $chang;
         }
+
+        $user->is_auth = 0;
+        $user->reason = '';
 
         $user->save();
         return $this->success();
