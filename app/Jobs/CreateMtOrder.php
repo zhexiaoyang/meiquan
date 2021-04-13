@@ -409,7 +409,8 @@ class CreateMtOrder implements ShouldQueue
             } else {
                 $fail_ss = $result_ss['msg'] ?? "闪送创建订单失败";
                 DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $fail_ss]);
-                DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
+                DB::table('users')->where('id', $user->id)->increment('money', $money);
+                // DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
                 Log::info('闪送发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
                 if (count($this->services) > 1) {
                     dispatch(new CreateMtOrder($this->order));

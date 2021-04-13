@@ -51,6 +51,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::prefix("/contract")->group(function () {
             Route::post('auth', 'ContractController@auth');
         });
+        // 前台-质量公告
+        Route::resource('notice', "SupplierNoticeController", ['only' => ['show', 'index']]);
 
         /**
          * 门店管理
@@ -105,6 +107,9 @@ Route::middleware(['force-json'])->group(function() {
         /**
          * 管理员操作
          */
+        Route::middleware(['role:super_man'])->prefix("admin")->namespace("Admin")->group(function () {
+            Route::resource('notice', "SupplierNoticeController", ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
+        });
         Route::middleware(['role:super_man'])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
