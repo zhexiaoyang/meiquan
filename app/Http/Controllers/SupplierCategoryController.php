@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\SupplierCategory;
 use Illuminate\Http\Request;
 
@@ -17,5 +18,25 @@ class SupplierCategoryController extends Controller
         )->get();
 
         return $this->success($categories);
+    }
+
+    public function all()
+    {
+        $categories = [];
+
+        $data = Category::select("id","pid", "title", "picture")
+            ->orderBy("pid")->orderBy("sort", "desc")->get()->toArray();
+
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if ($v['pid'] === 0) {
+                    $categories[$v['id']] = $v;
+                } else {
+                    $categories[$v['pid']]['children'][] = $v;
+                }
+            }
+        }
+
+        return $this->success(array_values($categories));
     }
 }

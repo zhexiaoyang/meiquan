@@ -28,6 +28,7 @@ class SupplierProductController extends Controller
         $sort = $request->get("sort", "default");
         $first = intval($request->get("first", 0));
         $second = intval($request->get("second", 0));
+        $price_order = intval($request->get("price_order", 1));
 
         // 判断是否有收货门店
         if (!$shop = Shop::query()->find($shop_id)) {
@@ -75,7 +76,11 @@ class SupplierProductController extends Controller
         if ($sort === "sale") {
             $query->orderBy("sale_count", "desc");
         } else if ($sort === "price") {
-            $query->orderBy("price");
+            if ($price_order === 2) {
+                $query->orderBy("price", "desc");
+            } else {
+                $query->orderBy("price");
+            }
         }
 
         $query->orderBy("sort_admin")->orderBy("sort_supplier")->orderBy("id");

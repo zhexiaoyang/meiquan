@@ -2,71 +2,71 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['force-json'])->group(function() {
+Route::middleware(["force-json"])->group(function() {
     // *注册、登录验证码
-    Route::post('code', 'CommonController@getVerifyCode')->name('code');
+    Route::post("code", "CommonController@getVerifyCode")->name("code");
     // *中台注册
-    Route::post('auth/register', 'AuthController@register');
+    Route::post("auth/register", "AuthController@register");
     // *中台登录
-    Route::post('auth/login', 'AuthController@login');
+    Route::post("auth/login", "AuthController@login");
     // *中台登录[移动端]
-    Route::post('m/auth/login', 'AuthController@loginFromMobile');
+    Route::post("m/auth/login", "AuthController@loginFromMobile");
 
     // 模拟接单建店
-    Route::post('arrange/{order}', 'TestController@arrange');
-    Route::post('shopStatus/{shop}', 'TestController@shopStatus');
+    Route::post("arrange/{order}", "TestController@arrange");
+    Route::post("shopStatus/{shop}", "TestController@shopStatus");
     // 同步订单
-    Route::get('order/sync', 'OrderController@sync2')->name('api.order.sync');
+    Route::get("order/sync", "OrderController@sync2")->name("api.order.sync");
     // 取消订单
-    Route::get('order/cancel', 'OrderController@cancel')->name('api.order.cancel');
+    Route::get("order/cancel", "OrderController@cancel")->name("api.order.cancel");
     // 服务协议
-    Route::get('getAgreementList', 'CommonController@agreement')->name('agreement');
+    Route::get("getAgreementList", "CommonController@agreement")->name("agreement");
 
-    Route::middleware('multiauth:api')->group(function () {
+    Route::middleware("multiauth:api")->group(function () {
         // 退出
-        Route::post('auth/logout', 'AuthController@logout');
+        Route::post("auth/logout", "AuthController@logout");
         // 个人中心-用户信息
-        Route::get('user/info', 'AuthController@user');
+        Route::get("user/info", "AuthController@user");
         // 个人中心-用户信息-ant框架返回
-        Route::get('user/me', 'AuthController@me');
+        Route::get("user/me", "AuthController@me");
         // 首页-合同信息（认证状态、签署信息）
-        Route::get('user/contract', 'AuthController@contractInfo');
+        Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）
-        Route::get('user/contract/sign', 'ContractController@userSign');
+        Route::get("user/contract/sign", "ContractController@userSign");
         // 用户全部可发单药店
-        Route::get('shop/all', 'ShopController@all')->name('api.shop.all');
+        Route::get("shop/all", "ShopController@all")->name("api.shop.all");
         // 订单状态
-        Route::get('order/status/{order}', "OrderController@checkStatus");
+        Route::get("order/status/{order}", "OrderController@checkStatus");
         // 修改密码
-        Route::post('user/reset_password', 'AuthController@resetPassword');
+        Route::post("user/reset_password", "AuthController@resetPassword");
         // 统计页面
-        Route::get('statistics', 'StatisticsController@index');
+        Route::get("statistics", "StatisticsController@index");
         // 统计导出-统计
-        Route::get('statistics/export', 'StatisticsController@export');
+        Route::get("statistics/export", "StatisticsController@export");
         // 统计导出-统计-明细
-        // Route::get('statistics/export/detail', 'StatisticsController@detail');
+        // Route::get("statistics/export/detail", "StatisticsController@detail");
         // 分类 2021-02-23 新分类
-        Route::get('meiquan/category', 'CategoryController@index');
+        Route::get("meiquan/category", "CategoryController@index");
         // 合同管理
         Route::prefix("/contract")->group(function () {
-            Route::post('auth', 'ContractController@auth');
+            Route::post("auth", "ContractController@auth");
         });
         // 前台-质量公告
-        Route::resource('notice', "SupplierNoticeController", ['only' => ['show', 'index']]);
+        Route::resource("notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
 
         /**
          * 门店管理
          */
         // *门店地址加配送范围信息
-        Route::get('shop/range/{shop}', "ShopController@range")->name('shop.range');
+        Route::get("shop/range/{shop}", "ShopController@range")->name("shop.range");
         // 根据门店ID获取门店地址加配送范围信息
-        Route::get('rangeByShopId', "ShopController@rangeByShopId")->name('shop.rangeByShopId');
+        Route::get("rangeByShopId", "ShopController@rangeByShopId")->name("shop.rangeByShopId");
         // *绑定门店-自动发单
-        Route::post('/shop/binding', 'ShopController@binding')->name('shop.binding');
+        Route::post("/shop/binding", "ShopController@binding")->name("shop.binding");
         // *关闭自动发单
-        Route::post('/shop/closeAuto', 'ShopController@closeAuto')->name('shop.closeAuto');
+        Route::post("/shop/closeAuto", "ShopController@closeAuto")->name("shop.closeAuto");
         // *资源路由-门店
-        Route::resource('shop', "ShopController", ['only' => ['store', 'show', 'index','update']]);
+        Route::resource("shop", "ShopController", ["only" => ["store", "show", "index","update"]]);
 
         /**
          * 商城门店认证
@@ -107,10 +107,15 @@ Route::middleware(['force-json'])->group(function() {
         /**
          * 管理员操作
          */
-        Route::middleware(['role:super_man'])->prefix("admin")->namespace("Admin")->group(function () {
-            Route::resource('notice', "SupplierNoticeController", ['only' => ['index', 'show', 'store', 'update', 'destroy']]);
+        Route::middleware(["role:super_man"])->prefix("admin")->namespace("Admin")->group(function () {
+            // 质量公告
+            Route::resource("notice", "SupplierNoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 外卖资料-导出
+            Route::get("online_shop/export", "OnlineShopController@export")->name("admin.online_shop.export");
+            // 外卖资料
+            Route::resource("online_shop", "OnlineShopController", ["only" => ["index", "show"]]);
         });
-        Route::middleware(['role:super_man'])->group(function () {
+        Route::middleware(["role:super_man"])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
 
@@ -209,51 +214,51 @@ Route::middleware(['force-json'])->group(function() {
         /**
          * 管理员操作
          */
-        Route::get('order/location/{order}', "OrderController@location");
+        Route::get("order/location/{order}", "OrderController@location");
         // 未绑定全部药店
-        Route::get('shop/wei', 'ShopController@wei')->name('api.shop.wei')->middleware('role:super_man');
+        Route::get("shop/wei", "ShopController@wei")->name("api.shop.wei")->middleware("role:super_man");
         // 同步门店
-        Route::post('shop/sync', 'ShopController@sync')->name('api.shop.sync')->middleware('role:super_man');
+        Route::post("shop/sync", "ShopController@sync")->name("api.shop.sync")->middleware("role:super_man");
         // 管理员手动充值
-        Route::post('user/recharge', 'UserController@recharge')->name('api.shop.recharge')->middleware('role:super_man');
+        Route::post("user/recharge", "UserController@recharge")->name("api.shop.recharge")->middleware("role:super_man");
         // 管理员查看充值列表
-        Route::get('user/recharge', 'UserController@rechargeList')->middleware('role:super_man');
+        Route::get("user/recharge", "UserController@rechargeList")->middleware("role:super_man");
         // 用户
-        Route::resource('user', "UserController", ['only' => ['store', 'show', 'index', 'update']])->middleware('role:super_man');
+        Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man");
 
         /**
          * 资源路由
          */
         // 创建待审核门店
-        Route::post('storeShop', 'ShopController@storeShop')->name('shop.storeShop');
+        Route::post("storeShop", "ShopController@storeShop")->name("shop.storeShop");
         // 审核门店
-        Route::post('/shop/examine/{shop}', 'ShopController@examine')->name('shop.examine');
+        Route::post("/shop/examine/{shop}", "ShopController@examine")->name("shop.examine");
         // 可以看到的所有门店
-        Route::get('shopAll', 'ShopController@shopAll')->name('shop.shopAll');
+        Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
         // 订单
-        Route::post('order/send/{order}', 'OrderController@send')->name('order.send');
+        Route::post("order/send/{order}", "OrderController@send")->name("order.send");
         // 重新发送订单
-        Route::post('order/resend', 'OrderController@resend')->name('order.resend');
+        Route::post("order/resend", "OrderController@resend")->name("order.resend");
         // 物品已送回
-        Route::post('order/returned', 'OrderController@returned')->name('order.returned');
-        // Route::post('order2', 'OrderController@store2')->name('order.store2');
+        Route::post("order/returned", "OrderController@returned")->name("order.returned");
+        // Route::post("order2", "OrderController@store2")->name("order.store2");
         // 取消订单
-        Route::delete('order/cancel2/{order}', 'OrderController@cancel2')->name('api.order.cancel2');
+        Route::delete("order/cancel2/{order}", "OrderController@cancel2")->name("api.order.cancel2");
         // 通过订单获取门店详情（配送平台）
-        Route::get('/order/getShopInfoByOrder', "OrderController@getShopInfoByOrder")->name('api.order.getShopInfoByOrder');
-        Route::resource('order', "OrderController", ['only' => ['store', 'show', 'index', 'destroy']]);
+        Route::get("/order/getShopInfoByOrder", "OrderController@getShopInfoByOrder")->name("api.order.getShopInfoByOrder");
+        Route::resource("order", "OrderController", ["only" => ["store", "show", "index", "destroy"]]);
         // 获取配送费
-        Route::get('order/money/{shop}', "OrderController@money");
+        Route::get("order/money/{shop}", "OrderController@money");
         // 个人中心-用户充值
-        Route::resource('deposit', "DepositController", ['only' => ['store', 'show', 'index']]);
+        Route::resource("deposit", "DepositController", ["only" => ["store", "show", "index"]]);
         // 所有权限列表
-        Route::get('permission/all', "PermissionController@all")->name('permission.all');
+        Route::get("permission/all", "PermissionController@all")->name("permission.all");
         // 权限管理
-        Route::resource('permission', "PermissionController", ['only' => ['store', 'index', 'update']]);
+        Route::resource("permission", "PermissionController", ["only" => ["store", "index", "update"]]);
         // 所有角色列表
-        Route::get('role/all', "RoleController@all")->name('role.all');
+        Route::get("role/all", "RoleController@all")->name("role.all");
         // 角色管理
-        Route::resource('role', "RoleController", ['only' => ['store', 'show', 'index', 'update']]);
+        Route::resource("role", "RoleController", ["only" => ["store", "show", "index", "update"]]);
 
         /**
          * 采购商城
@@ -261,6 +266,8 @@ Route::middleware(['force-json'])->group(function() {
         Route::prefix("/purchase")->group(function () {
             // 采购购物车
             Route::get("category", "SupplierCategoryController@index");
+            // 采购购物车
+            Route::get("category_all", "SupplierCategoryController@all");
             // 采购商品列表
             Route::get("product", "SupplierProductController@index");
             // 采购活动商品列表
@@ -316,121 +323,121 @@ Route::middleware(['force-json'])->group(function() {
 /**
  * 支付回调接口
  */
-Route::group(['namespace' => 'Api'], function () {
-    Route::post('payment/wechat/notify', 'PaymentController@wechatNotify');
-    Route::post('payment/wechat/notify_supplier', 'PaymentController@wechatSupplierNotify');
-    Route::post('payment/alipay/notify', 'PaymentController@alipayNotify');
+Route::group(["namespace" => "Api"], function () {
+    Route::post("payment/wechat/notify", "PaymentController@wechatNotify");
+    Route::post("payment/wechat/notify_supplier", "PaymentController@wechatSupplierNotify");
+    Route::post("payment/alipay/notify", "PaymentController@alipayNotify");
 });
 
 /**
  * 美团回调接口
  */
-Route::namespace('MeiTuan')->prefix('mt')->group(function () {
+Route::namespace("MeiTuan")->prefix("mt")->group(function () {
     // 门店状态回调
-    Route::post('shop/status', "ShopController@status");
+    Route::post("shop/status", "ShopController@status");
     // 订单状态回调
-    Route::post('order/status', "OrderController@status");
+    Route::post("order/status", "OrderController@status");
     // 订单异常回调
-    Route::post('order/exception', "OrderController@exception");
+    Route::post("order/exception", "OrderController@exception");
 });
 
 /**
  * 蜂鸟回调接口
  */
-Route::namespace('FengNiao')->prefix('fengniao')->group(function () {
+Route::namespace("FengNiao")->prefix("fengniao")->group(function () {
     // 门店状态回调
-    Route::post('shop/status', "ShopController@status");
+    Route::post("shop/status", "ShopController@status");
     // 订单状态回调
-    Route::post('order/status', "OrderController@status");
+    Route::post("order/status", "OrderController@status");
 });
 
 /**
  * 闪送回调接口
  */
-Route::namespace('ShanSong')->prefix('shansong')->group(function () {
+Route::namespace("ShanSong")->prefix("shansong")->group(function () {
     // 订单状态回调
-    Route::post('order/status', "OrderController@status");
+    Route::post("order/status", "OrderController@status");
 });
 
 /**
  * 药柜回调接口
  */
-Route::namespace('Api')->prefix('zg')->group(function () {
+Route::namespace("Api")->prefix("zg")->group(function () {
     // 结算订单
-    Route::post('order/settlement', "YaoguiController@settlement");
+    Route::post("order/settlement", "YaoguiController@settlement");
     // 隐私号降级
-    Route::post('order/downgrade', "YaoguiController@downgrade");
+    Route::post("order/downgrade", "YaoguiController@downgrade");
     // 创建订单
-    Route::post('order/create', "YaoguiController@create");
+    Route::post("order/create", "YaoguiController@create");
     // 取消订单
-    Route::post('order/cancel', "YaoguiController@cancel");
+    Route::post("order/cancel", "YaoguiController@cancel");
     // 催单
-    Route::post('order/urge', "YaoguiController@urge");
+    Route::post("order/urge", "YaoguiController@urge");
 });
 
 /**
  * 顺丰回调接口
  */
-Route::namespace('Api')->prefix('shunfeng')->group(function () {
+Route::namespace("Api")->prefix("shunfeng")->group(function () {
     // 结算订单
-    Route::post('order/status', "ShunfengController@status");
+    Route::post("order/status", "ShunfengController@status");
     // 隐私号降级
-    Route::post('order/complete', "ShunfengController@complete");
+    Route::post("order/complete", "ShunfengController@complete");
     // 创建订单
-    Route::post('order/cancel', "ShunfengController@cancel");
+    Route::post("order/cancel", "ShunfengController@cancel");
     // 取消订单
-    Route::post('order/fail', "ShunfengController@fail");
+    Route::post("order/fail", "ShunfengController@fail");
 });
 
 /**
  * 美团外卖民康回调接口
  */
-Route::namespace('Api')->prefix('waimai')->group(function () {
+Route::namespace("Api")->prefix("waimai")->group(function () {
     // 结算订单
-    Route::post('minkang/confirm', "MinKangController@confirm");
+    Route::post("minkang/confirm", "MinKangController@confirm");
 });
 
 /**
  * 蜂鸟测试接口
  */
-// Route::group(['namespace' => 'Test'], function () {
-//     Route::post('/test/fn/createShop', 'FengNiaoTestController@createShop');
-//     Route::post('/test/fn/updateShop', 'FengNiaoTestController@updateShop');
-//     Route::post('/test/fn/getShop', 'FengNiaoTestController@getShop');
-//     Route::post('/test/fn/getArea', 'FengNiaoTestController@getArea');
+// Route::group(["namespace" => "Test"], function () {
+//     Route::post("/test/fn/createShop", "FengNiaoTestController@createShop");
+//     Route::post("/test/fn/updateShop", "FengNiaoTestController@updateShop");
+//     Route::post("/test/fn/getShop", "FengNiaoTestController@getShop");
+//     Route::post("/test/fn/getArea", "FengNiaoTestController@getArea");
 //
-//     Route::post('/test/fn/createOrder', 'FengNiaoTestController@createOrder');
-//     Route::post('/test/fn/cancelOrder', 'FengNiaoTestController@cancelOrder');
-//     Route::post('/test/fn/getOrder', 'FengNiaoTestController@getOrder');
-//     Route::post('/test/fn/complaintOrder', 'FengNiaoTestController@complaintOrder');
+//     Route::post("/test/fn/createOrder", "FengNiaoTestController@createOrder");
+//     Route::post("/test/fn/cancelOrder", "FengNiaoTestController@cancelOrder");
+//     Route::post("/test/fn/getOrder", "FengNiaoTestController@getOrder");
+//     Route::post("/test/fn/complaintOrder", "FengNiaoTestController@complaintOrder");
 //
-//     Route::post('/test/fn/delivery', 'FengNiaoTestController@delivery');
-//     Route::post('/test/fn/carrier', 'FengNiaoTestController@carrier');
-//     Route::post('/test/fn/route', 'FengNiaoTestController@route');
+//     Route::post("/test/fn/delivery", "FengNiaoTestController@delivery");
+//     Route::post("/test/fn/carrier", "FengNiaoTestController@carrier");
+//     Route::post("/test/fn/route", "FengNiaoTestController@route");
 // });
 
 /**
  * 闪送测试接口
  */
-// Route::namespace('Test')->prefix("test/ss")->group(function () {
-//     Route::post('createShop', 'ShanSongTestController@createShop');
-//     Route::post('getShop', 'ShanSongTestController@getShop');
+// Route::namespace("Test")->prefix("test/ss")->group(function () {
+//     Route::post("createShop", "ShanSongTestController@createShop");
+//     Route::post("getShop", "ShanSongTestController@getShop");
 //
-//     Route::post('orderCalculate', 'ShanSongTestController@orderCalculate');
-//     Route::post('createOrder', 'ShanSongTestController@createOrder');
-//     Route::post('cancelOrder', 'ShanSongTestController@cancelOrder');
-//     Route::post('getOrder', 'ShanSongTestController@getOrder');
-//     Route::post('complaintOrder', 'ShanSongTestController@complaintOrder');
+//     Route::post("orderCalculate", "ShanSongTestController@orderCalculate");
+//     Route::post("createOrder", "ShanSongTestController@createOrder");
+//     Route::post("cancelOrder", "ShanSongTestController@cancelOrder");
+//     Route::post("getOrder", "ShanSongTestController@getOrder");
+//     Route::post("complaintOrder", "ShanSongTestController@complaintOrder");
 //
-//     Route::post('delivery', 'ShanSongTestController@delivery');
-//     Route::post('carrier', 'ShanSongTestController@carrier');
-//     Route::post('route', 'ShanSongTestController@route');
+//     Route::post("delivery", "ShanSongTestController@delivery");
+//     Route::post("carrier", "ShanSongTestController@carrier");
+//     Route::post("route", "ShanSongTestController@route");
 // });
 
 
 /**
  * 美团测试接口
  */
-Route::namespace('Test')->prefix("test/mt")->group(function () {
-    Route::get('shopIdList', 'MeiTuanTestController@shopIdList');
+Route::namespace("Test")->prefix("test/mt")->group(function () {
+    Route::get("shopIdList", "MeiTuanTestController@shopIdList");
 });
