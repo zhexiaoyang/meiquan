@@ -268,8 +268,8 @@ class SupplierOrderController extends Controller
                 if ($frozen_status > 0 && $frozen_money > 0) {
                     \Log::info("[商城订单-创建订单]-商品冻结余额：{$frozen_money}(分)-使用冻结余额");
                     $orderUser = User::find($user->id);
-                    \Log::info("[商城订单-创建订单]-用户冻结余额：{$user->frozen_money}(元)-使用冻结余额");
-                    $use_frozen_money = min($frozen_money, $user->frozen_money * 100);
+                    \Log::info("[商城订单-创建订单]-用户冻结余额：{$orderUser->frozen_money}(元)-使用冻结余额");
+                    $use_frozen_money = min($frozen_money, $orderUser->frozen_money * 100);
                     \Log::info("[商城订单-创建订单]-使用冻结余额：{$use_frozen_money}(分)-使用冻结余额");
 
                     if ($use_frozen_money > 0) {
