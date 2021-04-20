@@ -44,6 +44,7 @@ class ShoppingController extends Controller
      */
     public function store(Request $request)
     {
+        \Log::info("[商城认证-全部参数]：", $request->all());
         if (!$shop = Shop::query()->find($request->get("shop_id"))) {
             return $this->error("门店不存在");
         }
