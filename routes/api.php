@@ -50,6 +50,12 @@ Route::middleware(["force-json"])->group(function() {
         // 合同管理
         Route::prefix("/contract")->group(function () {
             Route::post("auth", "ContractController@auth");
+            // 门店认证
+            Route::post("shop_auth", "ContractController@shopAuth");
+            // 门店签署合同
+            Route::get("shop_sign", "ContractController@shopSign");
+            // 用户可签署合同
+            Route::get("shops", "ContractController@shops");
         });
         // 前台-质量公告
         Route::resource("notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
