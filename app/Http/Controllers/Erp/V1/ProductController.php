@@ -348,52 +348,71 @@ class ProductController extends Controller
                     );
                     $c->save();
                 }
+                $category_params = [
+                    "app_poi_code" => $access_shop->mt_shop_id,
+                    "category_code" => "9000000",
+                    "category_name" => "未分类",
+                    "sequence" => 100,
+                ];
+                $meituan->medicineCatSave($category_params);
 
                 $params_data = [];
                 $params_update_data = [];
 
                 if (!is_null($meituan)) {
                     foreach ($v as $item) {
-                        $_tmp = [
+                        // $_tmp = [
+                        //     "shop_id" => $shop_id,
+                        //     'app_medicine_code' => $item['app_medicine_code'],
+                        //     "status" => 1,
+                        //     "msg" => "成功"
+                        // ];
+                        // if (isset($upc_pluck[$item['upc']])) {
+                        //     $params_data[] = [
+                        //         'app_medicine_code' => $item['app_medicine_code'],
+                        //         'upc' => $item['upc'],
+                        //         'price' => $item['price'],
+                        //         'stock' => $item['stock'],
+                        //         'category_code' => $upc_pluck[$item['upc']],
+                        //         'is_sold_out' => 0,
+                        //         'sequence' => 100
+                        //     ];
+                        // } else {
+                            // $_tmp['status'] = 2;
+                            // $_tmp['msg'] = "条码在品库中不存在";
+                            // \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
+                        // }
+                        $res_data_items[$item['app_medicine_code']] = [
                             "shop_id" => $shop_id,
                             'app_medicine_code' => $item['app_medicine_code'],
                             "status" => 1,
                             "msg" => "成功"
                         ];
-                        if (isset($upc_pluck[$item['upc']])) {
-                            $params_data[] = [
-                                'app_medicine_code' => $item['app_medicine_code'],
-                                'upc' => $item['upc'],
-                                'price' => $item['price'],
-                                'stock' => $item['stock'],
-                                'category_code' => $upc_pluck[$item['upc']],
-                                'is_sold_out' => 0,
-                                'sequence' => 100
-                            ];
-                            $params_update_data[] = [
-                                'app_medicine_code' => $item['app_medicine_code'],
-                                'upc' => $item['upc'],
-                                'price' => $item['price'],
-                                'stock' => $item['stock'],
-                                'category_code' => $upc_pluck[$item['upc']],
-                                // 'is_sold_out' => 0,
-                                // 'sequence' => 100
-                            ];
-                        } else {
-                            $_tmp['status'] = 2;
-                            $_tmp['msg'] = "条码在品库中不存在";
-                            \Log::info("[ERP接口]-[添加商品]-UPC不存在: {$item['upc']}");
-                        }
-                        $res_data_items[] = $_tmp;
+                        // 添加数组
+                        $params_data[] = [
+                            'app_medicine_code' => $item['app_medicine_code'],
+                            'upc' => $item['upc'],
+                            'price' => $item['price'],
+                            'stock' => $item['stock'],
+                            'category_code' => isset($upc_pluck[$item['upc']]) ? $upc_pluck[$item['upc']] : 9000000,
+                            'is_sold_out' => 0,
+                            'sequence' => 100
+                        ];
+                        // 更新数组
+                        $params_update_data[] = [
+                            'app_medicine_code' => $item['app_medicine_code'],
+                            'price' => $item['price'],
+                            'stock' => $item['stock'],
+                        ];
                     }
-                    $res_data = [
-                        "service_key" => "HXFW_365",
-                        "hx_parama" => $res_data_items
-                    ];
-                    \Log::info("海协ERP推送商品状态", $res_data);
-                    $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
-                    $result = json_decode($response->getBody(), true);
-                    \Log::info("海协ERP推送商品状态-返回", [$result]);
+                    // $res_data = [
+                    //     "service_key" => "HXFW_365",
+                    //     "hx_parama" => $res_data_items
+                    // ];
+                    // \Log::info("海协ERP推送商品状态", $res_data);
+                    // $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
+                    // $result = json_decode($response->getBody(), true);
+                    // \Log::info("海协ERP推送商品状态-返回", [$result]);
                     $params = [
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
@@ -408,6 +427,44 @@ class ProductController extends Controller
                     \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
                     $update_log = $meituan->medicineBatchUpdate($params_update);
                     \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
+
+                    $msg = '';
+                    if ($create_log['data'] === 'ok') {
+                        $msg = $create_log['msg'] ?? '';
+                    } else {
+                        $msg = $create_log['error']['msg'] ?? '';
+                    }
+                    \Log::info("[ERP接口]-[添加商品]-[MSG]: " . $msg);
+                    if ($msg) {
+                        $msg = str_replace('批量添加药品结果：','',$msg);
+                        \Log::info("[ERP接口]-[添加商品]-[MSG2]: " . $msg);
+                        $msg_arr = json_decode($msg, true);
+                        \Log::info("[ERP接口]-[添加商品]-[MSG-ARR]: ", [$msg_arr]);
+
+                        if (!empty($msg_arr)) {
+                            foreach ($msg_arr as $arr) {
+                                if (mb_strpos($arr['error_msg'], '编码在该店中已存在') !== false) {
+                                    $res_data_items[$arr['app_medicine_code']]['status'] = 2;
+                                    $res_data_items[$arr['app_medicine_code']]['msg'] = '条码已存在';
+                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                }
+                                if (mb_strpos($arr['error_msg'], '标品库中没有此药品') !== false) {
+                                    $res_data_items[$arr['app_medicine_code']]['status'] = 2;
+                                    $res_data_items[$arr['app_medicine_code']]['msg'] = '美团标品库中没有此药品';
+                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                }
+                            }
+                        }
+                    }
+
+                    $res_data = [
+                        "service_key" => "HXFW_365",
+                        "hx_parama" => $res_data_items
+                    ];
+                    \Log::info("海协ERP推送商品状态", $res_data);
+                    $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
+                    $result = json_decode($response->getBody(), true);
+                    \Log::info("海协ERP推送商品状态-返回", [$result]);
                 }
             }
         }
