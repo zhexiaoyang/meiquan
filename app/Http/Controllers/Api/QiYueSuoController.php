@@ -34,6 +34,19 @@ class QiYueSuoController extends Controller
     public function contractStatus(Request $request)
     {
         Log::info("[契约锁回调-合同状态回调]-全部参数：", $request->all());
+        $content = $request->get("content", "");
+        if ($content) {
+            $result = openssl_decrypt(base64_decode($content), 'AES-128-ECB', 'MGgrrudkCvQ7UcRW', OPENSSL_RAW_DATA);
+            Log::info("[契约锁回调-合同状态回调]-解密参数：", [$result]);
+            if (isset($result['contractId']) && isset($result['contractStatus'])) {
+                $contract_id = $request['contractId'];
+                if ($shop = OnlineShop::query()->where("contract_id", $contract_id)->first()) {
+                    if ($result['contractStatus'] === 'COMPLETE') {
+                        $shop->contract_status = 1;
+                    }
+                }
+            }
+        }
         return $this->success();
     }
 
