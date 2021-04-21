@@ -457,6 +457,7 @@ class ProductController extends Controller
                         }
                     }
 
+                    $res_data_items = array_values($res_data_items);
                     $res_data = [
                         "service_key" => "HXFW_365",
                         "hx_parama" => $res_data_items
