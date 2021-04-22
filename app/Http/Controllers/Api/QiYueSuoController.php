@@ -36,7 +36,8 @@ class QiYueSuoController extends Controller
         Log::info("[契约锁回调-合同状态回调]-全部参数：", $request->all());
         $content = $request->get("content", "");
         if ($content) {
-            $result = openssl_decrypt(base64_decode($content), 'AES-128-ECB', 'MGgrrudkCvQ7UcRW', OPENSSL_RAW_DATA);
+            // $result = openssl_decrypt(base64_decode($content), 'AES-128-ECB', 'MGgrrudkCvQ7UcRW', OPENSSL_RAW_DATA);
+            $result = openssl_decrypt(base64_decode($content), 'AES-128-ECB', 'Al9xUegalRL8eZI7', OPENSSL_RAW_DATA);
             Log::info("[契约锁回调-合同状态回调]-解密参数：", [$result]);
             if (isset($result['contractId']) && isset($result['contractStatus'])) {
                 $contract_id = $request['contractId'];
