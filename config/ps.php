@@ -78,7 +78,7 @@ return [
     "order_delay_ttl" => 60,
     "user_setting" => [
         'delay_send' => 60,
-        'delay_reset' => 5,
+        'delay_reset' => 15,
         'type' => 2,
         'meituan' => 1,
         'fengniao' => 1,
