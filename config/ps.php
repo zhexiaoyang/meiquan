@@ -74,7 +74,7 @@ return [
         "2020-02-16",
         "2020-02-17",
     ],
-    "order_ttl" => 480,
+    "order_ttl" => 900,
     "order_delay_ttl" => 60,
     "user_setting" => [
         'delay_send' => 60,
