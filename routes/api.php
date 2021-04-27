@@ -233,14 +233,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man");
 
         /**
-         * 资源路由
+         * 订管管理
          */
-        // 创建待审核门店
-        Route::post("storeShop", "ShopController@storeShop")->name("shop.storeShop");
-        // 审核门店
-        Route::post("/shop/examine/{shop}", "ShopController@examine")->name("shop.examine");
-        // 可以看到的所有门店
-        Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
         // 订单
         Route::post("order/send/{order}", "OrderController@send")->name("order.send");
         // 重新发送订单
@@ -255,6 +249,23 @@ Route::middleware(["force-json"])->group(function() {
         Route::resource("order", "OrderController", ["only" => ["store", "show", "index", "destroy"]]);
         // 获取配送费
         Route::get("order/money/{shop}", "OrderController@money");
+
+        /**
+         * 发单设置
+         */
+        Route::get("order_setting", "OrderSettingController@show")->name("order_setting.show");
+        Route::post("order_setting", "OrderSettingController@store")->name("order_setting.store");
+        Route::get("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
+
+        /**
+         * 资源路由
+         */
+        // 创建待审核门店
+        Route::post("storeShop", "ShopController@storeShop")->name("shop.storeShop");
+        // 审核门店
+        Route::post("/shop/examine/{shop}", "ShopController@examine")->name("shop.examine");
+        // 可以看到的所有门店
+        Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
         // 个人中心-用户充值
         Route::resource("deposit", "DepositController", ["only" => ["store", "show", "index"]]);
         // 所有权限列表

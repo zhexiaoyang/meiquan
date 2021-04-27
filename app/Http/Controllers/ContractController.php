@@ -112,7 +112,7 @@ class ContractController extends Controller
         if (!$shop = OnlineShop::find(intval($request->get("shop_id")))) {
             return $this->error("门店ID不能为空");
         }
-        if ($shop->contract_auth === 0) {
+        if ($shop->contract_auth <= 1) {
             $shop->company_name = $company_name;
             $shop->applicant = $applicant;
             $shop->applicant_phone = $applicant_phone;
