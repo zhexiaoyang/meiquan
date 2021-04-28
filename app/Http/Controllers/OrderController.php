@@ -119,6 +119,7 @@ class OrderController extends Controller
         }
 
         if (!Redis::setnx("create_shop_id_" . $shop_id, $shop_id)) {
+            \Log::info("[跑腿订单-手动创建订单]-[门店ID: {$shop_id}]]-重复提交");
             return $this->error("已经创建订单了，请刷新试下");
         }
         Redis::expire("create_shop_id_" . $shop_id, 6);
@@ -157,6 +158,7 @@ class OrderController extends Controller
         $order_id = $request->get("order_id", 0);
 
         if (!Redis::setnx("reset_order_id_" . $order_id, $order_id)) {
+            \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]]-重复提交");
             return $this->error("已经重新发送了，请刷新试下");
         }
         Redis::expire("reset_order_id_" . $order_id, 6);
