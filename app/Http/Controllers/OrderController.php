@@ -11,6 +11,7 @@ use App\Models\OrderDeduction;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class OrderController extends Controller
 {
@@ -33,6 +34,8 @@ class OrderController extends Controller
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps',
+            // 'receiver_address','status','mt_status','money_mt','fn_status','money_fn','ss_status','money_ss',
+            // 'fail_mt','fail_fn','fail_ss',
             'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
@@ -105,12 +108,21 @@ class OrderController extends Controller
         // 状态（-3取消发送，-2等待发送，-1:发送失败，0：未发送，3：余额不足，5：暂无运力，10：待接单，20：已接单，30：已取货，50：已送达，99：已取消）
 
         $shop_id = $request->get('shop_id', 0);
+
+        \Log::info("[跑腿订单-手动创建订单]-[门店ID: {$shop_id}]]");
+
         if (!$shop = Shop::query()->find($shop_id)) {
             $shop = Shop::query()->where('shop_id', $shop_id)->first();
         }
         if (!$shop) {
             return $this->error('门店不存在');
         }
+
+        if (!Redis::setnx("create_shop_id_" . $shop_id, $shop_id)) {
+            return $this->error("已经创建订单了，请刷新试下");
+        }
+        Redis::expire("create_shop_id_" . $shop_id, 6);
+
         $order->fill($request->all());
         $order->shop_id = $shop->id;
         // 订单未发送状态
@@ -143,6 +155,11 @@ class OrderController extends Controller
     public function resend(Request $request)
     {
         $order_id = $request->get("order_id", 0);
+
+        if (!Redis::setnx("reset_order_id_" . $order_id, $order_id)) {
+            return $this->error("已经重新发送了，请刷新试下");
+        }
+        Redis::expire("reset_order_id_" . $order_id, 6);
 
         if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
