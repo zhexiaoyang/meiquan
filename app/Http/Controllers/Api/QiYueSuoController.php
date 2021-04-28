@@ -43,7 +43,7 @@ class QiYueSuoController extends Controller
             Log::info("[契约锁回调-合同状态回调]-解密参数2：", [$result]);
             if (isset($result['contractId']) && isset($result['contractStatus']) && ($result['contractStatus'] === 'COMPLETE')) {
                 Log::info("[契约锁回调-合同状态回调]-合同状态：COMPLETE");
-                $contract_id = $request['contractId'];
+                $contract_id = $result['contractId'];
                 if ($shop = OnlineShop::query()->where("contract_id", $contract_id)->first()) {
                     Log::info("[契约锁回调-合同状态回调]-合同状态，更改");
                     $shop->contract_status = 1;
