@@ -58,10 +58,12 @@ class YaoguiController
 
         if (!empty($data) && count($data) > 20) {
             // 创建订单信息
+            $shop = Shop::query()->find($data['appStoreCode']);
             $order_data = [
                 'delivery_id' => $data['orderNo'],
                 'order_id' => $data['orderNo'],
                 'shop_id' => $data['appStoreCode'],
+                'user_id' => $shop->user_id,
                 'delivery_service_code' => "4011",
                 'receiver_name' => $data['deliveryAddress']['receiverName'] ?? "无名",
                 'receiver_address' => $data['deliveryAddress']['receiverAddress'],
