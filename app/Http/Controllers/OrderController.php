@@ -34,8 +34,8 @@ class OrderController extends Controller
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps',
-            // 'receiver_address','status','mt_status','money_mt','fn_status','money_fn','ss_status','money_ss',
-            // 'fail_mt','fail_fn','fail_ss',
+            'receiver_address','mt_status','money_mt','fn_status','money_fn','ss_status','money_ss',
+            'fail_mt','fail_fn','fail_ss',
             'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
@@ -126,6 +126,7 @@ class OrderController extends Controller
 
         $order->fill($request->all());
         $order->shop_id = $shop->id;
+        $order->user_id = $shop->user_id;
         // 订单未发送状态
         $order->status = 0;
 
@@ -469,6 +470,7 @@ class OrderController extends Controller
             $order_data = [
                 'delivery_id' => $data['wm_order_id_view'],
                 'order_id' => $data['wm_order_id_view'],
+                'user_id' => $shop->user_id,
                 'shop_id' => $shop->id,
                 'delivery_service_code' => "4011",
                 'receiver_name' => trim($data['recipient_name']) ? trim($data['recipient_name']) : '无名',
