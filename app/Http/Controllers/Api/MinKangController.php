@@ -142,6 +142,7 @@ class MinKangController
                 // 创建订单数组
                 $order_pt = [
                     'delivery_id' => $mt_order_id,
+                    'user_id' => $shop->user_id,
                     'order_id' => $mt_order_id,
                     'shop_id' => $shop->id,
                     'delivery_service_code' => "4011",
