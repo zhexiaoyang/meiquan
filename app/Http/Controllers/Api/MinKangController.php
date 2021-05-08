@@ -9,6 +9,7 @@ use App\Models\ErpAccessShop;
 use App\Models\MkOrder;
 use App\Models\MkOrderItem;
 use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -175,6 +176,10 @@ class MinKangController
                 $order = new Order($order_pt);
                 // 保存订单
                 if ($order->save()) {
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "（美团外卖）自动创建跑腿订单：{$order->order_id}"
+                    ]);
                     Log::info("【民康-推送已确认订单】（{$mt_order_id}）：跑腿订单创建完毕");
                     if ($status === 0) {
                         if ($order->order_type) {

@@ -76,12 +76,12 @@ return [
     ],
     "order_ttl" => 900,
     "order_delay_ttl" => 60,
-    "user_setting" => [
+    "shop_setting" => [
         // 延时发送订单，单位：秒
         'delay_send' => 60,
         // 检查订单重新发送，单位：分钟
         'delay_reset' => 15,
-        // 重新发送是是否取消之前订单，1 是、2 否
+        // 重新发送是是否保持之前订单呼叫，1 是、2 否
         'type' => 2,
         'meituan' => 1,
         'fengniao' => 1,

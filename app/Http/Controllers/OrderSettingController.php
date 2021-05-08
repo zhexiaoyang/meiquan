@@ -3,15 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\OrderSetting;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class OrderSettingController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
-        if (!$setting = OrderSetting::query()->where("user_id", Auth::id())->first()) {
-            $setting = config("ps.user_setting");
+        if (!$setting = OrderSetting::query()->where("shop_id", intval($request->get("id")))->first()) {
+            $setting = config("ps.shop_setting");
         }
 
         return $this->success($setting);
@@ -19,11 +20,15 @@ class OrderSettingController extends Controller
 
     public function store(Request $request)
     {
-        if (!$setting = OrderSetting::query()->where("user_id", Auth::id())->first()) {
+        if (!$shop = Shop::query()->where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
+            return $this->error('门店不存在');
+        }
+
+        if (!$setting = OrderSetting::query()->where("shop_id", intval($request->get("id")))->first()) {
             $setting = new OrderSetting;
         }
 
-        $setting->user_id = Auth::id();
+        $setting->shop_id = intval($request->get("id"));
 
         $delay_send = intval($request->get('delay_send', 0));
         if ($delay_send < 0 || $delay_send > 300) {
@@ -60,10 +65,25 @@ class OrderSettingController extends Controller
      * @author zhangzhen
      * @data 2021/4/22 10:48 下午
      */
-    public function reset()
+    public function reset(Request $request)
     {
-        OrderSetting::where("user_id", Auth::id())->delete();
+        if (!$shop = Shop::query()->where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
+            return $this->error('门店不存在');
+        }
+        OrderSetting::where("shop_id", intval($request->get("id")))->delete();
 
         return $this->success();
+    }
+
+    /**
+     * 用户所创建的门店列表
+     * @author zhangzhen
+     * @data 2021/5/3 10:06 下午
+     */
+    public function shops()
+    {
+        $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+
+        return $this->success($shops);
     }
 }

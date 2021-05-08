@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Order;
+use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
@@ -24,6 +25,7 @@ class CreateMtOrder implements ShouldQueue
     protected $weight_money = 0;
     protected $time_money = 0;
     protected $money_ss = 16;
+    protected $log = "";
 
     /**
      * Create a new job instance.
@@ -35,6 +37,7 @@ class CreateMtOrder implements ShouldQueue
         $this->delay = $ttl;
         $this->order = $order;
         $this->dingding = app("ding");
+        $this->log = "[发单|id:{$order->id},order_id:{$order->order_id}]-";
     }
 
     /**
@@ -44,76 +47,141 @@ class CreateMtOrder implements ShouldQueue
      */
     public function handle()
     {
-        if ($this->order->status > 70) {
-            \Log::info("(CreateMtOrder)订单状态不正确-不能发单", [$this->order->id,$this->order->order_id]);
+        if ($this->order->status > 30) {
+            Log::info($this->log."订单状态不正确,不能发单");
             return;
         }
 
         // \Log::info("(CreateMtOrder)订单信息", [$this->order->status]);
         // return;
 
-        $this->dingTalk("发送订单", "开始");
+        // $this->dingTalk("发送订单", "开始");
+        Log::info($this->log."开始");
+
+        // 相关信息
         $shop = Shop::query()->find($this->order->shop_id);
         $user = User::query()->find($shop->user_id ?? 0);
+        $setting = OrderSetting::where("shop_id", $shop->id)->first();
+        if ($setting) {
+            $order_ttl = $setting->delay_reset * 60;
+        } else {
+            $order_ttl = config("ps.shop_setting.delay_reset") * 60;
+        }
+
+        Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
+
+        if ($order_ttl < 60) {
+            $order_ttl = 60;
+            Log::info($this->log."检查重新发送时间小于60秒，重置为60秒");
+        }
 
         // 判断用户和门店是否存在
         if (!$shop && !$user) {
-            Log::info('发送订单-用户和门店不存在', ['id' => $this->order->id, 'order_id' => $this->order->order_id]);
+            Log::info($this->log."用户和门店不存在,不能发单");
+            return;
         }
 
         // 判断用户金额是否满足最小订单
         if ($user->money <= 5.2) {
-            $this->order->status = 5;
-            $this->order->save();
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 5]));
-            Log::info('发送订单-用户金额不足5.2元', ['id' => $this->order->id, 'order_id' => $this->order->order_id]);
+            Log::info($this->log."用户金额不足5.2元,不能发单");
+            // Log::info('发送订单-用户金额不足5.2元', ['id' => $this->order->id, 'order_id' => $this->order->order_id]);
             return;
         }
+
+        $use_money = 0;
+        $orders = DB::table("orders")->where("user_id", $user->id)->whereIn("status", [20, 30])->get();
+        if ($orders->isNotEmpty()) {
+            foreach ($orders as $v) {
+                $use_money += max($v->money_mt, $v->money_fn, $v->money_ss);
+            }
+        }
+        Log::info($this->log."用户冻结金额：{$use_money}");
 
         $money_mt = 0;
         $money_fn = 0;
         $money_ss = 0;
         $ss_order_id = "";
 
-        // 判断美团是否可以接单、并加入数组
-        if ($shop->shop_id && !$this->order->fail_mt) {
+        $order = Order::query()->find($this->order->id);
+
+        // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
+        if ($shop->shop_id && $setting->meituan && !$this->order->fail_mt && ($order->mt_status === 0)) {
             $meituan = app("meituan");
             $check_mt = $meituan->check($shop, $this->order);
             if (isset($check_mt['code']) && ($check_mt['code'] === 0)) {
                 $money_mt = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
                 $this->services['meituan'] = $money_mt;
-                Log::info('发送订单-美团可以', ['money' => $money_mt, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                // $log_arr = ['money' => $money_mt, 'id' => $this->order->id, 'order_id' => $this->order->order_id];
+                Log::info($this->log."美团可以，金额：{$money_mt}");
+                // Log::info('发送订单-美团可以', ['money' => $money_mt, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
             } else {
-                $this->order->fail_mt = $check_mt['message'] ?? "美团校验订单请求失败";
-                $this->order->save();
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $check_mt['message'] ?? "美团校验订单请求失败"]);
+                Log::info($this->log."美团校验订单请求失败");
             }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'mt_status' => $order->mt_status,
+                'meituan' => $setting->meituan,
+                'fail_mt' => $this->order->fail_mt
+            ];
+            Log::info($this->log."跳出美团发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足美团订单
+        if ($user->money < ($money_mt + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+            Log::info($this->log."用户金额不足发美团单");
+            return;
         }
 
         // 判断蜂鸟是否可以接单、并加入数组
-        if ($shop->shop_id_fn && !$this->order->fail_fn) {
-
+        if ($shop->shop_id_fn && $setting->fengniao && !$this->order->fail_fn && ($order->fn_status === 0)) {
             if ($this->order->type == 11) {
-                \Log::info('禁止发送蜂鸟-药柜订单', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
+                Log::info($this->log."药柜订单禁止发送蜂鸟");
+                // \Log::info('禁止发送蜂鸟-药柜订单', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
             } else {
                 if ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
-                    \Log::info('禁止发送蜂鸟-时间问题', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
+                    Log::info($this->log."禁止发送蜂鸟-时间问题");
+                    // \Log::info('禁止发送蜂鸟-时间问题', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
                 } else {
                     $fengniao = app("fengniao");
                     $check_fn = $fengniao->delivery($shop, $this->order);
                     if (isset($check_fn['code']) && ($check_fn['code'] == 200)) {
                         $money_fn = distanceMoneyFn($this->order->distance) + baseMoneyFn($shop->city_level_fn ?: "G") + timeMoneyFn() + weightMoneyFn($this->order->goods_weight);
                         $this->services['fengniao'] = $money_fn;
-                        Log::info('发送订单-蜂鸟可以', ['money' => $money_fn, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                        // Log::info('发送订单-蜂鸟可以', ['money' => $money_fn, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                        // $log_arr = ['money' => $money_fn, 'id' => $this->order->id, 'order_id' => $this->order->order_id];
+                        Log::info($this->log."蜂鸟可以，金额：{$money_fn}");
                     } else {
-                        $this->order->fail_fn = $check_fn['msg'] ?? "蜂鸟校验请求失败";
-                        $this->order->save();
+                        DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $check_fn['msg'] ?? "蜂鸟校验请求失败"]);
+                        Log::info($this->log."蜂鸟校验请求失败");
                     }
                 }
             }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id_fn,
+                'fn_status' => $order->fn_status,
+                'fengniao' => $setting->fengniao,
+                'fail_fn' => $this->order->fail_fn
+            ];
+            Log::info($this->log."跳出蜂鸟发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足蜂鸟订单
+        if ($user->money < ($money_fn + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
+            Log::info($this->log."用户金额不足发蜂鸟单");
+            return;
         }
 
         // 判断闪送是否可以接单、并加入数组
-        if ($shop->shop_id_ss && !$this->order->fail_ss) {
+        if ($shop->shop_id_ss && $setting->shansong && !$this->order->fail_ss && ($order->ss_status === 0)) {
             $shansong = app("shansong");
             $check_ss = $shansong->orderCalculate($shop, $this->order);
             if (isset($check_ss['status']) && ($check_ss['status'] === 200) ) {
@@ -141,84 +209,116 @@ class CreateMtOrder implements ShouldQueue
                     $this->money_ss = $money_ss;
                     $ss_order_id = $check_ss['data']['orderNumber'] ?? 0;
                     $this->services['shansong'] = $money_ss;
-                    Log::info('发送订单-闪送可以', ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+                    // $log_arr = [
+                    //     'shop_id' => $shop->shop_id_ss,
+                    //     'shansong' => $setting->shansong,
+                    //     'fail_ss' => $this->order->fail_ss
+                    // ];
+                    // $log_arr = ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id];
+                    Log::info($this->log."闪送可以，金额：{$money_ss},money_log:{$money_log}");
+                    // Log::info('发送订单-闪送可以', ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
                 }
             } else {
-                $this->order->fail_ss = $check_ss['msg'] ?? "闪送校验订单请求失败";
-                $this->order->save();
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $check_fn['msg'] ?? "闪送校验订单请求失败"]);
+                Log::info($this->log."闪送校验订单请求失败");
             }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id_ss,
+                'ss_status' => $order->ss_status,
+                'shansong' => $setting->shansong,
+                'fail_ss' => $this->order->fail_ss
+            ];
+            Log::info($this->log."跳出闪送发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足闪送订单
+        if ($user->money < ($money_ss + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
+            Log::info($this->log."用户金额不足发闪送单");
+            return;
         }
 
         // 没有配送服务商
         if (empty($this->services)) {
-            $this->order->status = 10;
-            $this->order->save();
-            $this->dingTalk("发送订单失败", "暂无运力");
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 10]);
+            // $this->dingTalk("发送订单失败", "暂无运力");
+            // Log::info("[发单]-[id:{$this->order->id},order_id:{$this->order->order_id}]-暂无运力");
+            Log::info($this->log."暂无运力");
             return;
         }
 
         // 更新价格
-        DB::table('orders')->where('id', $this->order->id)->update([
-            "money_mt" => $money_mt,
-            "money_fn" => $money_fn,
-            "money_ss" => $money_ss,
-            "ss_order_id" => $ss_order_id
-        ]);
+        $money_arr = [];
+        if ($money_mt) {
+            $money_arr["money_mt"] = $money_mt;
+        }
+        if ($money_fn) {
+            $money_arr["money_fn"] = $money_fn;
+        }
+        if ($money_ss) {
+            $money_arr["money_ss"] = $money_ss;
+        }
+        if ($ss_order_id) {
+            $money_arr["ss_order_id"] = $ss_order_id;
+        }
+        DB::table('orders')->where('id', $this->order->id)->update($money_arr);
 
         $ps = $this->getService();
 
         if ($ps === "meituan") {
             if ($this->meituan()) {
                 if (count($this->services) > 1) {
-                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
             } else {
-                $this->dingTalk("发送订单失败", "发送订单失败");
+                // $this->dingTalk("发送订单失败", "发送订单失败");
+                Log::info($this->log."发送美团订单失败");
             }
             return;
         } else if ($ps === "fengniao") {
             if ($this->fengniao()) {
                 if (count($this->services) > 1) {
-                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
             } else {
-                $this->dingTalk("发送订单失败", "发送订单失败");
+                // $this->dingTalk("发送订单失败", "发送订单失败");
+                Log::info($this->log."发送蜂鸟订单失败");
             }
             return;
         } else if ($ps === "shansong") {
             if ($this->shansong()) {
                 if (count($this->services) > 1) {
-                    dispatch(new CheckSendStatus($this->order, config("ps.order_ttl")));
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
             } else {
-                $this->dingTalk("发送订单失败", "发送订单失败");
+                // $this->dingTalk("发送订单失败", "发送订单失败");
+                Log::info($this->log."发送闪送订单失败");
             }
             return;
         }
-        $this->dingTalk("发送订单失败", "没有返回最小平台");
+        Log::info($this->log."发送订单失败，没有返回最小平台");
+        // $this->dingTalk("发送订单失败", "没有返回最小平台");
     }
 
     public function meituan()
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->ps) {
-            $this->dingTalk("不能发送美团订单", "ps状态错误");
-            return false;
+        if ($order->status > 20) {
+            Log::info($this->log."不能发送美团订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->mt_status != 0) {
+            Log::info($this->log."不能发送美团订单，美团状态不是0，状态：{$order->mt_status}");
         }
 
         if ($order->fail_mt) {
-            $this->dingTalk("不能发送美团订单", "已有美团错误信息");
+            Log::info($this->log."不能发送美团订单，已有美团错误信息");
             return false;
         }
         $shop = Shop::query()->find($this->order->shop_id);
-        $user = User::query()->find($shop->user_id ?? 0);
-
-        // 判断用户和门店是否存在
-        if (!$shop && !$user) {
-            $this->dingTalk("不能发送美团订单", "门店或用户不存在");
-            return false;
-        }
 
         $meituan = app("meituan");
         $distance = distanceMoney($this->order->distance);
@@ -228,49 +328,85 @@ class CreateMtOrder implements ShouldQueue
         $weight_money = weightMoney($this->order->goods_weight);
 
         $money = $base + $time_money + $date_money + $distance + $weight_money;
-
-        if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
-            Log::info('美团订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
-            // 发送美团订单
-            $result_mt = $meituan->createByShop($shop, $this->order);
-            if ($result_mt['code'] === 0) {
-                // 订单发送成功
-                $this->dingTalk("美团成功", "发送美团订单成功。money：{$money}");
-                // 写入订单信息
-                $update_info = [
-                    'money' => $money,
-                    'base_money' => $base,
-                    'distance_money' => $distance,
-                    'weight_money' => $weight_money,
-                    'time_money' => $time_money,
-                    'date_money' => $date_money,
-                    'peisong_id' => $result_mt['data']['mt_peisong_id'],
-                    'status' => 20,
-                    'ps' => 1,
-                    'push_at' => date("Y-m-d H:i:s")
-                ];
-                DB::table('orders')->where('id', $this->order->id)->update($update_info);
-                Log::info('美团订单-更新创建订单状态成功');
-                return true;
-            } else {
-                $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
-                DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt]);
-                DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
-                Log::info('美团发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-                if (count($this->services) > 1) {
-                    dispatch(new CreateMtOrder($this->order));
-                } else {
-                    $this->dingTalk("不能发送订单", "没有平台了");
-                }
-                $this->dingTalk("不能发送美团订单", "美团创建订单失败了");
+        // 发送美团订单
+        $result_mt = $meituan->createByShop($shop, $this->order);
+        if ($result_mt['code'] === 0) {
+            // 订单发送成功
+            Log::info($this->log."发送美团订单成功，返回参数：", [$result_mt]);
+            if (!empty($result_mt['data']['delivery_fee']) && $result_mt['data']['delivery_fee'] > 0) {
+                $money = $result_mt['data']['delivery_fee'] + 1;
             }
+            // 写入订单信息
+            $update_info = [
+                'money_mt' => $money,
+                'mt_order_id' => $result_mt['data']['mt_peisong_id'],
+                'mt_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 1,
+                'order_id' => $this->order->id,
+                'des' => '【美团】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."美团更新创建订单状态成功");
+            return true;
         } else {
-            Log::info('美团订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-            $this->order->status = 5;
-            $this->order->save();
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-            $this->dingTalk("不能发送美团订单", "余额不足");
+            $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt, 'mt_status' => 3]);
+            Log::info($this->log."美团发送订单失败：{$fail_mt}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."美团发送订单失败，没有平台了");
+            }
         }
+
+        // if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
+        //     Log::info('美团订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
+        //     // 发送美团订单
+        //     $result_mt = $meituan->createByShop($shop, $this->order);
+        //     if ($result_mt['code'] === 0) {
+        //         // 订单发送成功
+        //         $this->dingTalk("美团成功", "发送美团订单成功。money：{$money}");
+        //         // 写入订单信息
+        //         $update_info = [
+        //             'money' => $money,
+        //             'base_money' => $base,
+        //             'distance_money' => $distance,
+        //             'weight_money' => $weight_money,
+        //             'time_money' => $time_money,
+        //             'date_money' => $date_money,
+        //             'peisong_id' => $result_mt['data']['mt_peisong_id'],
+        //             'status' => 20,
+        //             'ps' => 1,
+        //             'push_at' => date("Y-m-d H:i:s")
+        //         ];
+        //         DB::table('orders')->where('id', $this->order->id)->update($update_info);
+        //         Log::info('美团订单-更新创建订单状态成功');
+        //         return true;
+        //     } else {
+        //         $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
+        //         DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt]);
+        //         DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
+        //         Log::info('美团发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
+        //         if (count($this->services) > 1) {
+        //             dispatch(new CreateMtOrder($this->order));
+        //         } else {
+        //             $this->dingTalk("不能发送订单", "没有平台了");
+        //         }
+        //         $this->dingTalk("不能发送美团订单", "美团创建订单失败了");
+        //     }
+        // } else {
+        //     Log::info('美团订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
+        //     $this->order->status = 5;
+        //     $this->order->save();
+        //     dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
+        //     $this->dingTalk("不能发送美团订单", "余额不足");
+        // }
 
         return false;
     }
@@ -279,23 +415,20 @@ class CreateMtOrder implements ShouldQueue
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->ps) {
-            $this->dingTalk("不能发送蜂鸟订单", "ps状态错误");
-            return false;
+        if ($order->status > 20) {
+            Log::info($this->log."不能发送蜂鸟订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->fn_status != 0) {
+            Log::info($this->log."不能发送蜂鸟订单，蜂鸟状态不是0，状态：{$order->fn_status}");
         }
 
         if ($order->fail_fn) {
-            $this->dingTalk("不能发送蜂鸟订单", "已有蜂鸟错误信息");
+            Log::info($this->log."不能发送蜂鸟订单，已有蜂鸟错误信息");
             return false;
         }
-        $shop = Shop::query()->find($this->order->shop_id);
-        $user = User::query()->find($shop->user_id ?? 0);
 
-        // 判断用户和门店是否存在
-        if (!$shop && !$user) {
-            $this->dingTalk("不能发送蜂鸟订单", "门店或用户不存在");
-            return false;
-        }
+        $shop = Shop::query()->find($this->order->shop_id);
 
         $fengniao = app("fengniao");
         $distance = distanceMoneyFn($this->order->distance);
@@ -306,47 +439,43 @@ class CreateMtOrder implements ShouldQueue
 
         $money = $base + $time_money + $date_money + $distance + $weight_money;
 
-        if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
-            Log::info('蜂鸟订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
-            $send = true;
-            $result_fn = $fengniao->createOrder($shop, $this->order);
-            if ($result_fn['code'] == 200) {
-                // 订单发送成功
-                $this->dingTalk("蜂鸟成功", "发送蜂鸟订单成功。money：{$money}");
-                // 写入订单信息
-                $update_info = [
-                    'money' => $money,
-                    'base_money' => $base,
-                    'distance_money' => $distance,
-                    'weight_money' => $weight_money,
-                    'time_money' => $time_money,
-                    'date_money' => $date_money,
-                    'peisong_id' => $result_fn['data']['peisong_id'] ?? $this->order->order_id,
-                    'status' => 20,
-                    'ps' => 2,
-                    'push_at' => date("Y-m-d H:i:s")
-                ];
-                DB::table('orders')->where('id', $this->order->id)->update($update_info);
-                Log::info('蜂鸟订单-更新创建订单状态成功');
-                return true;
-            } else {
-                $fail_fn = $result_fn['msg'] ?? "蜂鸟创建订单失败";
-                DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $fail_fn]);
-                DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
-                Log::info('蜂鸟发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-                if (count($this->services) > 1) {
-                    dispatch(new CreateMtOrder($this->order));
-                } else {
-                    $this->dingTalk("不能发送订单", "没有平台了");
+        $result_fn = $fengniao->createOrder($shop, $this->order);
+        if ($result_fn['code'] == 200) {
+            // 订单发送成功
+            Log::info($this->log."发送蜂鸟订单成功，返回参数：", [$result_fn]);
+            $fn_order_info = $fengniao->getOrder($this->order->order_id);
+            if ((!empty($fn_order_info['code'])) && ($fn_order_info['code'] == 200)) {
+                if (!empty($fn_order_info['data']['order_total_delivery_cost']) && $fn_order_info['data']['order_total_delivery_cost'] > 0) {
+                    $money = $fn_order_info['data']['order_total_delivery_cost'] + 1;
                 }
-                $this->dingTalk("不能发送蜂鸟订单", "蜂鸟创建订单失败了");
             }
+            // 写入订单信息
+            $update_info = [
+                'money_fn' => $money,
+                'fn_order_id' => $fn_order_info['data']['tracking_id'] ?? $this->order->order_id,
+                'fn_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 2,
+                'order_id' => $this->order->id,
+                'des' => '【蜂鸟】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."蜂鸟更新创建订单状态成功");
+            return true;
         } else {
-            Log::info('蜂鸟订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-            $this->order->status = 5;
-            $this->order->save();
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-            $this->dingTalk("不能发送蜂鸟订单", "余额不足");
+            $fail_fn = $result_fn['msg'] ?? "蜂鸟创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $fail_fn, 'fn_status' => 3]);
+            Log::info($this->log."蜂鸟发送订单失败：{$fail_fn}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."蜂鸟发送订单失败，没有平台了");
+            }
         }
 
         return false;
@@ -356,75 +485,54 @@ class CreateMtOrder implements ShouldQueue
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->ps) {
-            $this->dingTalk("不能发送闪送订单", "ps状态错误");
-            return false;
+        if ($order->status > 20) {
+            Log::info($this->log."不能发送闪送订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->fn_status != 0) {
+            Log::info($this->log."不能发送闪送订单，闪送状态不是0，状态：{$order->fn_status}");
         }
 
         if ($order->fail_ss) {
-            $this->dingTalk("不能发送闪送订单", "已有闪送错误信息");
-            return false;
-        }
-        $shop = Shop::query()->find($this->order->shop_id);
-        $user = User::query()->find($shop->user_id ?? 0);
-
-        // 判断用户和门店是否存在
-        if (!$shop && !$user) {
-            $this->dingTalk("不能发送闪送订单", "门店或用户不存在");
+            Log::info($this->log."不能发送闪送订单，已有闪送错误信息");
             return false;
         }
 
         $shansong = app("shansong");
-        $distance = 0;
-        $base = $this->base;
-        $time_money = $this->time_money;
-        $date_money = 0;
-        $weight_money = $this->weight_money;
-
         $money = $this->money_ss;
 
-        if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
-            Log::info('闪送订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
-            // 发送闪送订单
-            $result_ss = $shansong->createOrder($order->ss_order_id);
-            if ($result_ss['status'] === 200) {
-                // 订单发送成功
-                $this->dingTalk("闪送成功", "发送闪送订单成功。money：{$money}");
-                // 写入订单信息
-                $update_info = [
-                    'money' => $money,
-                    'base_money' => $base,
-                    'distance_money' => $distance,
-                    'weight_money' => $weight_money,
-                    'time_money' => $time_money,
-                    'date_money' => $date_money,
-                    'peisong_id' => $order->ss_order_id,
-                    'status' => 20,
-                    'ps' => 3,
-                    'push_at' => date("Y-m-d H:i:s")
-                ];
-                DB::table('orders')->where('id', $this->order->id)->update($update_info);
-                Log::info('闪送订单-更新创建订单状态成功');
-                return true;
-            } else {
-                $fail_ss = $result_ss['msg'] ?? "闪送创建订单失败";
-                DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $fail_ss]);
-                DB::table('users')->where('id', $user->id)->increment('money', $money);
-                // DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
-                Log::info('闪送发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-                if (count($this->services) > 1) {
-                    dispatch(new CreateMtOrder($this->order));
-                } else {
-                    $this->dingTalk("不能发送订单", "没有平台了");
-                }
-                $this->dingTalk("不能发送闪送订单", "闪送创建订单失败了");
-            }
+        // 发送闪送订单
+        $result_ss = $shansong->createOrder($order->ss_order_id);
+        if ($result_ss['status'] === 200) {
+            // 订单发送成功
+            Log::info($this->log."发送闪送订单成功，金额：{$money}。返回参数：", [$result_ss]);
+            // 写入订单信息
+            $update_info = [
+                'money_ss' => $money,
+                'ss_order_id' => $order->ss_order_id,
+                'ss_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 3,
+                'order_id' => $this->order->id,
+                'des' => '【闪送】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."闪送更新创建订单状态成功");
+            return true;
         } else {
-            Log::info('闪送订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-            $this->order->status = 5;
-            $this->order->save();
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-            $this->dingTalk("不能发送闪送订单", "余额不足");
+            $fail_ss = $result_ss['msg'] ?? "闪送创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $fail_ss, 'ss_status' => 3]);
+            Log::info($this->log."闪送发送订单失败：{$fail_ss}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."闪送发送订单失败，没有平台了");
+            }
         }
 
         return false;

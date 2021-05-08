@@ -4,82 +4,340 @@ namespace App\Http\Controllers\MeiTuan;
 
 use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
-use App\Models\Shop;
+use App\Models\OrderLog;
+use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class OrderController
 {
     public function status(Request $request)
     {
-        $res = ['code' => 1];
+        // 接收参数
         $status = $request->get('status', '');
         $delivery_id = $request->get('delivery_id', 0);
         $data = $request->only(['courier_name', 'courier_phone', 'cancel_reason_id', 'cancel_reason','status']);
-        \Log::info('美团跑腿订单状态回调-全部参数', [$data]);
+        // 定义日志格式
+        $log_prefix = "[美团跑腿回调-订单|订单号:{$delivery_id}]-";
+        Log::info($log_prefix . '全部参数', $data);
+        $dd = app("ding");
+        // 查询订单
         if (($order = Order::where('delivery_id', $delivery_id)->first()) && in_array($status, [0, 20, 30, 50, 99])) {
 
+            $log_prefix = "[美团跑腿回调-订单|订单号:{$delivery_id}|订单状态:{$order->status}|请求状态:{$status}]-";
             if ($order->status == 99) {
-                \Log::info('美团跑腿订单状态回调-订单已是取消状态', ['order_id' => $order->id, 'shop_id' => $order->shop_id]);
-                return json_encode($res);
+                Log::info($log_prefix . '订单已是取消状态');
+                return json_encode(['code' => 0]);
+            }
+            if ($order->status == 70) {
+                Log::info($log_prefix . '订单已是完成');
+                return json_encode(['code' => 0]);
             }
 
-            $tui = false;
+            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【美团】发起取消
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 1)) {
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美团】发起取消-开始');
+                $logs = [
+                    "des" => "【美团订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美团】发起取消-开始",
+                    "id" => $order->id,
+                    "order_id" => $order->order_id
+                ];
+                $dd->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
+                $meituan = app("meituan");
+                $result = $meituan->delete([
+                    'delivery_id' => $order->delivery_id,
+                    'mt_peisong_id' => $order->mt_order_id,
+                    'cancel_reason_id' => 399,
+                    'cancel_reason' => '其他原因',
+                ]);
+                if ($result['code'] !== 0) {
+                    Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美团】发起取消-失败');
+                    $logs = [
+                        "des" => "【美团订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美团】发起取消-失败",
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】美团取消订单失败", $logs);
+                    return json_encode(['code' => 100]);
+                }
+                Order::create([
+                    'ps' => 1,
+                    'order_id' => $order->id,
+                    'des' => '取消【美团】跑腿订单',
+                ]);
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美团】发起取消-成功');
+                return json_encode(['code' => 0]);
+            }
+
+            // 判断状态逻辑
+            // 美团跑腿状态【0：待调度，20：已接单，30：已取货，50：已送达，99：已取消】
+            // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 0) {
+                // 待调度【待接单】
+                // 判断订单状态
+                if ($order->status != 20 && $order->status != 30) {
+                    Log::info($log_prefix . '待接单回调(待接单)，订单状态不正确，不能操作待接单');
+                    $logs = [
+                        "des" => "【美团订单回调】待接单回调(待接单)，订单状态不正确，不能操作待接单",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
+                    return json_encode(['code' => 0]);
+                }
                 $order->status = 30;
+                $order->mt_status = 30;
+                $order->save();
+                Log::info($log_prefix . '待接单');
+                return json_encode(['code' => 0]);
+            }
 
-            } elseif ($status == 20) {
+            if ($status == 20) {
                 // 已接单
-                $order->status = 50;
-                $order->receive_at = date("Y-m-d H:i:s");
-
-            } elseif ($status == 30) {
-                // 已取货
-                $order->status = 60;
-                $order->take_at = date("Y-m-d H:i:s");
-
-            } elseif ($status == 50) {
-                // 已送达
-                $order->status = 70;
-                $order->over_at = date("Y-m-d H:i:s");
-
-            } elseif ($status == 99) {
-                if ($order->ps != 1) {
-                    return json_encode($res);
+                // 判断订单状态，是否可接单
+                if ($order->status != 20 && $order->status != 30) {
+                    Log::info($log_prefix . '接单回调(已接单)，订单状态不正确，不能操作接单');
+                    $logs = [
+                        "des" => "【美团订单回调】接单回调(已接单)，订单状态不正确，不能操作接单",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】不能操作接单", $logs);
+                    return json_encode(['code' => 0]);
                 }
-
-                if ($order->status < 99) {
-                    $order->cancel_at = date("Y-m-d H:i:s");
-                    $tui = true;
+                // 设置锁，防止其他平台接单
+                if (!Redis::setnx("callback_order_id_" . $order->id, $order->id)) {
+                    Log::info($log_prefix . '设置锁失败');
+                    $logs = [
+                        "des" => "【美团订单回调】设置锁失败",
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
+                    return json_encode(['code' => 100]);
                 }
-
-                $order->status = 99;
-            }
-
-            $order->courier_name = $data['courier_name'] ?? '';
-            $order->courier_phone = $data['courier_phone'] ?? '';
-            $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
-            $order->cancel_reason = $data['cancel_reason'] ?? '';
-
-            if ($order->save()) {
-                $res = ['code' => 0];
-
-                if ($tui) {
-                    $shop = Shop::query()->find($order->shop_id);
-                    if ($shop) {
-                        \DB::table('users')->where('id', $shop->user_id)->increment('money', $order->money);
-                        \Log::info('美团平台取消订单-将钱返回给用户', ['order_id' => $order->id, 'money' => $order->money, 'shop_id' => $shop->id, 'user_id' => $shop->user_id]);
+                Redis::expire("callback_order_id_" . $order->id, 6);
+                // 取消其它平台订单
+                if (($order->fn_status > 30) || ($order->ss_status > 30)) {
+                    $logs = [
+                        "des" => "【美团订单回调】美团接单，蜂鸟闪送已经接过单了",
+                        "fn_status" => $order->fn_status,
+                        "ss_status" => $order->ss_status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】蜂鸟闪送已经接过单了", $logs);
+                }
+                // 取消蜂鸟订单
+                if ($order->fn_status === 20 || $order->fn_status === 30) {
+                    $fengniao = app("fengniao");
+                    $result = $fengniao->cancelOrder([
+                        'partner_order_code' => $order->order_id,
+                        'order_cancel_reason_code' => 2,
+                        'order_cancel_code' => 9,
+                        'order_cancel_time' => time() * 1000,
+                    ]);
+                    if ($result['code'] != 200) {
+                        $logs = [
+                            "des" => "【美团订单回调】蜂鸟待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("【ERROR】蜂鸟待接单取消失败", $logs);
                     }
-                    return json_encode($res);
+                    OrderLog::create([
+                        'ps' => 2,
+                        'order_id' => $order->id,
+                        'des' => '取消【蜂鸟】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消蜂鸟待接单订单成功');
                 }
+                // 取消闪送订单
+                if ($order->ss_status === 20 || $order->ss_status === 30) {
+                    $shansong = app("shansong");
+                    $result = $shansong->cancelOrder($order->ss_order_id);
+                    if ($result['status'] != 200) {
+                        $logs = [
+                            "des" => "【美团订单回调】闪送待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("【ERROR】闪送待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 3,
+                        'order_id' => $order->id,
+                        'des' => '取消【闪送】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消闪送待接单订单成功');
+                }
+                // 更改信息，扣款
+                try {
+                    DB::transaction(function () use ($order, $data) {
+                        // 更改订单信息
+                        Order::where("id", $order->id)->update([
+                            'ps' => 1,
+                            'money' => $order->money_mt,
+                            'status' => 50,
+                            'mt_status' => 50,
+                            'fn_status' => $order->fn_status < 20 ?: 7,
+                            'ss_status' => $order->ss_status < 20 ?: 7,
+                            'peisong_id' => $order->mt_order_id,
+                            'receive_at' => date("Y-m-d H:i:s"),
+                            'courier_name' => $data['courier_name'] ?? '',
+                            'courier_phone' => $data['courier_phone'] ?? '',
+                        ]);
+                        // 查找扣款用户，为了记录余额日志
+                        $current_user = DB::table('users')->find($order->user_id);
+                        // 减去用户配送费
+                        DB::table('users')->where('id', $order->user_id)->decrement('money', $order->money_mt);
+                        // 用户余额日志
+                        UserMoneyBalance::create([
+                            "user_id" => $order->user_id,
+                            "money" => $order->money_mt,
+                            "type" => 1,
+                            "before_money" => $current_user->money,
+                            "after_money" => ($current_user->money - $order->money_mt),
+                            "description" => "美团跑腿订单：" . $order->order_id,
+                            "tid" => $order->id
+                        ]);
+                        // DB::table("user_money_balances")->insert();
+                        // 记录订单日志
+                        OrderLog::create([
+                            'ps' => 1,
+                            "order_id" => $order->id,
+                            "des" => "【美团】跑腿，待取货",
+                            'name' => $data['courier_name'] ?? '',
+                            'phone' => $data['courier_phone'] ?? '',
+                        ]);
+                    });
+                    Log::info($log_prefix . "美团接单，更改信息成功，扣款成功。扣款：{$order->money_ss}");
+                } catch (\Exception $e) {
+                    $message = [
+                        $e->getCode(),
+                        $e->getFile(),
+                        $e->getLine(),
+                        $e->getMessage()
+                    ];
+                    Log::info($log_prefix . '更改信息、扣款事务提交失败', $message);
+                    $logs = [
+                        "des" => "【美团订单回调】更改信息、扣款失败",
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【ERROR】更改信息、扣款失败", $logs);
+                    return json_encode(['code' => 100]);
+                }
+                // 同步美团外卖配送信息
+                $order = Order::where('delivery_id', $delivery_id)->first();
+                dispatch(new MtLogisticsSync($order));
+                return json_encode(['code' => 0]);
+            } elseif ($status == 30) {
+                // 已取货【配送中】
+                $order->status = 60;
+                $order->mt_status = 60;
+                $order->take_at = date("Y-m-d H:i:s");
+                $order->courier_name = $data['courier_name'] ?? '';
+                $order->courier_phone = $data['courier_phone'] ?? '';
+                $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
+                $order->cancel_reason = $data['cancel_reason'] ?? '';
+                $order->save();
+                // 记录订单日志
+                OrderLog::create([
+                    'ps' => 1,
+                    "order_id" => $order->id,
+                    "des" => "【美团】跑腿，配送中",
+                    'name' => $data['courier_name'] ?? '',
+                    'phone' => $data['courier_phone'] ?? '',
+                ]);
+                Log::info($log_prefix . '配送中，更改信息成功');
+                dispatch(new MtLogisticsSync($order));
+                return json_encode(['code' => 0]);
+            } elseif ($status == 50) {
+                // 已送达【已完成】
+                $order->status = 70;
+                $order->mt_status = 70;
+                $order->over_at = date("Y-m-d H:i:s");
+                $order->courier_name = $data['courier_name'] ?? '';
+                $order->courier_phone = $data['courier_phone'] ?? '';
+                $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
+                $order->cancel_reason = $data['cancel_reason'] ?? '';
+                $order->save();
+                // 记录订单日志
+                OrderLog::create([
+                    'ps' => 1,
+                    "order_id" => $order->id,
+                    "des" => "【美团】跑腿，已送达",
+                    'name' => $data['courier_name'] ?? '',
+                    'phone' => $data['courier_phone'] ?? '',
+                ]);
+                Log::info($log_prefix . '已完成，更改信息成功');
+                dispatch(new MtLogisticsSync($order));
+                return json_encode(['code' => 0]);
+            } elseif ($status == 99) {
+                // 已取消
+                if ($order->status > 20 && $order->status < 70 && $order->ps == 1) {
+                    try {
+                        DB::transaction(function () use ($order, $data, $log_prefix) {
+                            if ($order->status == 50 || $order->status == 60) {
+                                // 查询当前用户，做余额日志
+                                $current_user = DB::table('users')->find($order->user_id);
+                                // DB::table("user_money_balances")->insert();
+                                UserMoneyBalance::create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $order->money,
+                                    "type" => 2,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "取消美团跑腿订单：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                                // 将配送费返回
+                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mt);
+                                Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                            }
+                            Order::where("id", $order->id)->update([
+                                'status' => 99,
+                                'mt_status' => 99,
+                                'courier_name' => $data['courier_name'] ?? '',
+                                'courier_phone' => $data['courier_phone'] ?? '',
+                            ]);
+                            OrderLog::create([
+                                'ps' => 1,
+                                'order_id' => $order->id,
+                                'des' => '【美团】跑腿，发起取消配送',
+                                'name' => $data['courier_name'] ?? '',
+                                'phone' => $data['courier_phone'] ?? '',
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        Log::info($log_prefix . '接口取消订单，将钱返回给用户失败', $message);
+                        $logs = [
+                            "des" => "【美团订单回调】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团接口取消订单将钱返回给用户失败", $logs);
+                        return json_encode(['code' => 100]);
+                    }
+                    Log::info($log_prefix . '接口取消订单成功');
+                } else {
+                    Log::info($log_prefix . "接口取消订单，状态不正确。状态(status)：{$order->status}");
+                }
+                return json_encode(['code' => 0]);
             }
         }
-        \Log::info('美团跑腿订单状态回调', ['request' => $request, 'response' => $res]);
-
-        if (in_array($order->status, [40, 50, 60, 70])) {
-            dispatch(new MtLogisticsSync($order));
-        }
-
-        return json_encode($res);
+        return json_encode(['code' => 0]);
     }
 
     public function exception(Request $request)
