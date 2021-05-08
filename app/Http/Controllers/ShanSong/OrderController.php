@@ -118,6 +118,9 @@ class OrderController
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
                     $logs = [
                         "des" => "【闪送订单回调】接单回调，订单状态不正确，不能操作接单",
+                        "mq_ps" => $order->ps,
+                        "mq_status" => $order->status,
+                        "ss_status" => $status,
                         "id" => $order->id,
                         "order_id" => $order->order_id
                     ];
