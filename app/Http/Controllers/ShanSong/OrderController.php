@@ -96,13 +96,13 @@ class OrderController
                 // 判断订单状态
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '待接单回调(待接单)，订单状态不正确，不能操作待接单');
-                    $logs = [
-                        "des" => "【闪送订单回调】待接单回调(待接单)，订单状态不正确，不能操作待接单",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
+                    // $logs = [
+                    //     "des" => "【闪送订单回调】待接单回调(待接单)，订单状态不正确，不能操作待接单",
+                    //     "status" => $order->status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
                     return json_encode($res);
                 }
                 $order->status = 30;
