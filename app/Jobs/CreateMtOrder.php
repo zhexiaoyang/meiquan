@@ -130,7 +130,7 @@ class CreateMtOrder implements ShouldQueue
             $log_arr = [
                 'shop_id' => $shop->shop_id,
                 'mt_status' => $order->mt_status,
-                'meituan' => $setting->meituan,
+                'meituan' => $mt_switch,
                 'fail_mt' => $this->order->fail_mt
             ];
             Log::info($this->log."跳出美团发单", $log_arr);
@@ -172,7 +172,7 @@ class CreateMtOrder implements ShouldQueue
             $log_arr = [
                 'shop_id' => $shop->shop_id_fn,
                 'fn_status' => $order->fn_status,
-                'fengniao' => $setting->fengniao,
+                'fengniao' => $fn_switch,
                 'fail_fn' => $this->order->fail_fn
             ];
             Log::info($this->log."跳出蜂鸟发单", $log_arr);
@@ -232,7 +232,7 @@ class CreateMtOrder implements ShouldQueue
             $log_arr = [
                 'shop_id' => $shop->shop_id_ss,
                 'ss_status' => $order->ss_status,
-                'shansong' => $setting->shansong,
+                'shansong' => $ss_switch,
                 'fail_ss' => $this->order->fail_ss
             ];
             Log::info($this->log."跳出闪送发单", $log_arr);
