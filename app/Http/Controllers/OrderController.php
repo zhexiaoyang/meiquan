@@ -781,6 +781,14 @@ class OrderController extends Controller
                             // $current_user->increment('money', ($order->money - $jian_money));
                             DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
+                            if ($jian_money > 0) {
+                                $jian_data = [
+                                    'order_id' => $order->id,
+                                    'money' => $jian_money,
+                                    'ps' => $order->ps
+                                ];
+                                OrderDeduction::create($jian_data);
+                            }
                             OrderLog::create([
                                 "order_id" => $order->id,
                                 "des" => "（美团外卖）取消【闪送】跑腿订单"
@@ -1075,6 +1083,14 @@ class OrderController extends Controller
                             // $current_user->increment('money', ($order->money - $jian_money));
                             DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
+                            if ($jian_money > 0) {
+                                $jian_data = [
+                                    'order_id' => $order->id,
+                                    'money' => $jian_money,
+                                    'ps' => $order->ps
+                                ];
+                                OrderDeduction::create($jian_data);
+                            }
                             OrderLog::create([
                                 "order_id" => $order->id,
                                 "des" => "操作取消【闪送】跑腿订单"
