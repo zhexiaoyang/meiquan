@@ -215,7 +215,7 @@ class OrderController
                             'phone' => $data['courier_phone'] ?? '',
                         ]);
                     });
-                    Log::info($log_prefix . "美团接单，更改信息成功，扣款成功。扣款：{$order->money_ss}");
+                    Log::info($log_prefix . "美团接单，更改信息成功，扣款成功。扣款：{$order->money_mt}");
                 } catch (\Exception $e) {
                     $message = [
                         $e->getCode(),

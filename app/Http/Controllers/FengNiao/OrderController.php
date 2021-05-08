@@ -233,7 +233,7 @@ class OrderController
                             'phone' => $phone,
                         ]);
                     });
-                    Log::info($log_prefix . "蜂鸟接单，更改信息成功，扣款成功。扣款：{$order->money_ss}");
+                    Log::info($log_prefix . "蜂鸟接单，更改信息成功，扣款成功。扣款：{$order->money_fn}");
                 } catch (\Exception $e) {
                     $message = [
                         $e->getCode(),
