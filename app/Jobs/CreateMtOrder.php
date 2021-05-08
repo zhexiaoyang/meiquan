@@ -64,8 +64,14 @@ class CreateMtOrder implements ShouldQueue
         $setting = OrderSetting::where("shop_id", $shop->id)->first();
         if ($setting) {
             $order_ttl = $setting->delay_reset * 60;
+            $mt_switch = $setting->meituan;
+            $fn_switch = $setting->fengniao;
+            $ss_switch = $setting->shansong;
         } else {
             $order_ttl = config("ps.shop_setting.delay_reset") * 60;
+            $mt_switch = config("ps.shop_setting.meituan");
+            $fn_switch = config("ps.shop_setting.fengniao");
+            $ss_switch = config("ps.shop_setting.shansong");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -107,7 +113,7 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
-        if ($shop->shop_id && $setting->meituan && !$this->order->fail_mt && ($order->mt_status === 0)) {
+        if ($shop->shop_id && $mt_switch && !$this->order->fail_mt && ($order->mt_status === 0)) {
             $meituan = app("meituan");
             $check_mt = $meituan->check($shop, $this->order);
             if (isset($check_mt['code']) && ($check_mt['code'] === 0)) {
@@ -139,7 +145,7 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 判断蜂鸟是否可以接单、并加入数组
-        if ($shop->shop_id_fn && $setting->fengniao && !$this->order->fail_fn && ($order->fn_status === 0)) {
+        if ($shop->shop_id_fn && $fn_switch && !$this->order->fail_fn && ($order->fn_status === 0)) {
             if ($this->order->type == 11) {
                 Log::info($this->log."药柜订单禁止发送蜂鸟");
                 // \Log::info('禁止发送蜂鸟-药柜订单', ["time" => time(), "date" => date("Y-m-d H:i:s")]);
@@ -181,7 +187,7 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 判断闪送是否可以接单、并加入数组
-        if ($shop->shop_id_ss && $setting->shansong && !$this->order->fail_ss && ($order->ss_status === 0)) {
+        if ($shop->shop_id_ss && $ss_switch && !$this->order->fail_ss && ($order->ss_status === 0)) {
             $shansong = app("shansong");
             $check_ss = $shansong->orderCalculate($shop, $this->order);
             if (isset($check_ss['status']) && ($check_ss['status'] === 200) ) {
