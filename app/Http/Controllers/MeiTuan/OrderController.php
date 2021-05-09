@@ -62,7 +62,7 @@ class OrderController
                     $dd->sendMarkdownMsgArray("【ERROR】美团取消订单失败", $logs);
                     return json_encode(['code' => 100]);
                 }
-                Order::create([
+                OrderLog::create([
                     'ps' => 1,
                     'order_id' => $order->id,
                     'des' => '取消【美团】跑腿订单',
