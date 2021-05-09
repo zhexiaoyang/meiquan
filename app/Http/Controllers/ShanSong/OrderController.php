@@ -303,7 +303,7 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 60) {
-                if ($order->status > 20 && $order->status < 70 && $order->ps == 3) {
+                if ($order->status >= 20 && $order->status < 70 && $order->ps == 3) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
                             if ($order->status == 50 || $order->status == 60) {

@@ -311,7 +311,7 @@ class OrderController
                 return json_encode($res);
             } elseif ($status == 4) {
                 // 取消
-                if ($order->status > 20 && $order->status < 70 && $order->ps == 2) {
+                if ($order->status >= 20 && $order->status < 70 && $order->ps == 2) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
                             if ($order->status == 50 || $order->status == 60) {
