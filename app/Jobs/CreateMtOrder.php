@@ -312,11 +312,11 @@ class CreateMtOrder implements ShouldQueue
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->status > 20) {
+        if ($order->status > 30) {
             Log::info($this->log."不能发送美团订单，订单状态大于20，状态：{$order->status}");
         }
 
-        if ($order->mt_status != 0) {
+        if ($order->mt_status >= 20) {
             Log::info($this->log."不能发送美团订单，美团状态不是0，状态：{$order->mt_status}");
         }
 
@@ -421,11 +421,11 @@ class CreateMtOrder implements ShouldQueue
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->status > 20) {
+        if ($order->status > 30) {
             Log::info($this->log."不能发送蜂鸟订单，订单状态大于20，状态：{$order->status}");
         }
 
-        if ($order->fn_status != 0) {
+        if ($order->fn_status >= 20) {
             Log::info($this->log."不能发送蜂鸟订单，蜂鸟状态不是0，状态：{$order->fn_status}");
         }
 
@@ -491,12 +491,14 @@ class CreateMtOrder implements ShouldQueue
     {
         $order = Order::query()->find($this->order->id);
 
-        if ($order->status > 20) {
+        if ($order->status > 30) {
             Log::info($this->log."不能发送闪送订单，订单状态大于20，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->fn_status != 0) {
-            Log::info($this->log."不能发送闪送订单，闪送状态不是0，状态：{$order->fn_status}");
+        if ($order->ss_status >= 20) {
+            Log::info($this->log."不能发送闪送订单，闪送状态不是0，状态：{$order->ss_status}");
+            return false;
         }
 
         if ($order->fail_ss) {
