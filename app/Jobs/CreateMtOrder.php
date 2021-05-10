@@ -248,7 +248,9 @@ class CreateMtOrder implements ShouldQueue
 
         // 没有配送服务商
         if (empty($this->services)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 10]);
+            if (!$this->order->mt_status && !$this->order->fn_status && !$this->order->ss_status) {
+                DB::table('orders')->where('id', $this->order->id)->update(['status' => 10]);
+            }
             // $this->dingTalk("发送订单失败", "暂无运力");
             // Log::info("[发单]-[id:{$this->order->id},order_id:{$this->order->order_id}]-暂无运力");
             Log::info($this->log."暂无运力");
