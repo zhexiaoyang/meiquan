@@ -82,7 +82,7 @@ return [
         // 检查订单重新发送，单位：分钟
         'delay_reset' => 15,
         // 重新发送是是否保持之前订单呼叫，1 是、2 否
-        'type' => 2,
+        'type' => 1,
         'meituan' => 1,
         'fengniao' => 1,
         'shansong' => 1,

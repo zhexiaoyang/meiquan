@@ -173,8 +173,6 @@ class OrderController
                         'ps' => 1,
                         "order_id" => $order->id,
                         "des" => "取消【美团】跑腿订单",
-                        'name' => $name,
-                        'phone' => $phone,
                     ]);
                     Log::info($log_prefix . '取消美团待接单订单成功');
                 }
@@ -200,8 +198,6 @@ class OrderController
                         'ps' => 2,
                         "order_id" => $order->id,
                         "des" => "取消【蜂鸟】跑腿订单",
-                        'name' => $name,
-                        'phone' => $phone,
                     ]);
                     Log::info($log_prefix . '取消蜂鸟待接单订单成功');
                 }
