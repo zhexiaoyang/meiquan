@@ -323,7 +323,7 @@ class OrderController
                             $update_data = [
                                 'ss_status' => 99
                             ];
-                            if (in_array($order->mt_status, [0,3,7,80,99]) && in_array($order->fn_status, [0,3,7,80,99])) {
+                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99])) {
                                 $update_data = [
                                     'status' => 99,
                                     'ss_status' => 99
