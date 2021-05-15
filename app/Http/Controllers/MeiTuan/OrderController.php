@@ -199,7 +199,7 @@ class OrderController
                         UserMoneyBalance::create([
                             "user_id" => $order->user_id,
                             "money" => $order->money_mt,
-                            "type" => 1,
+                            "type" => 2,
                             "before_money" => $current_user->money,
                             "after_money" => ($current_user->money - $order->money_mt),
                             "description" => "美团跑腿订单：" . $order->order_id,
@@ -290,7 +290,7 @@ class OrderController
                                 UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
-                                    "type" => 2,
+                                    "type" => 1,
                                     "before_money" => $current_user->money,
                                     "after_money" => ($current_user->money + $order->money),
                                     "description" => "取消美团跑腿订单：" . $order->order_id,

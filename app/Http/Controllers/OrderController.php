@@ -632,7 +632,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "（美团外卖）取消美团跑腿订单：" . $order->order_id,
@@ -693,7 +693,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "（美团外卖）取消蜂鸟跑腿订单：" . $order->order_id,
@@ -759,7 +759,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "（美团外卖）取消闪送跑腿订单：" . $order->order_id,
@@ -934,7 +934,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "操作取消美团跑腿订单：" . $order->order_id,
@@ -995,7 +995,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "操作取消蜂鸟跑腿订单：" . $order->order_id,
@@ -1061,7 +1061,7 @@ class OrderController extends Controller
                             UserMoneyBalance::query()->create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
-                                "type" => 2,
+                                "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
                                 "description" => "操作取消闪送跑腿订单：" . $order->order_id,
