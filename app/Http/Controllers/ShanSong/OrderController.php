@@ -299,10 +299,10 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 60) {
-                if ($order->status >= 20 && $order->status < 70 && $order->ps == 3) {
+                if ($order->status >= 20 && $order->status < 70 ) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
-                            if ($order->status == 50 || $order->status == 60) {
+                            if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
                                 // 查询当前用户，做余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
                                 // DB::table("user_money_balances")->insert();
@@ -319,12 +319,17 @@ class OrderController
                                 DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
                                 Log::info($log_prefix . '接口取消订单，将钱返回给用户');
                             }
-                            Order::where("id", $order->id)->update([
-                                'status' => 99,
-                                'ss_status' => 99,
-                                'courier_name' => $name,
-                                'courier_phone' => $phone,
-                            ]);
+
+                            $update_data = [
+                                'ss_status' => 99
+                            ];
+                            if (in_array($order->mt_status, [0,3,7,80,99]) && in_array($order->fn_status, [0,3,7,80,99])) {
+                                $update_data = [
+                                    'status' => 99,
+                                    'ss_status' => 99
+                                ];
+                            }
+                            Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
                                 'ps' => 3,
                                 'order_id' => $order->id,
