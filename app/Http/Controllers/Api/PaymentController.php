@@ -70,8 +70,8 @@ class PaymentController
                     "user_id" => $user->id,
                     "money" => $order->amount,
                     "type" => 1,
-                    "before_money" => $user->frozen_money,
-                    "after_money" => ($user->frozen_money * 100 + $order->amount * 100) / 100,
+                    "before_money" => $user->money,
+                    "after_money" => ($user->money * 100 + $order->amount * 100) / 100,
                     "description" => "微信充值：{$data->transaction_id}",
                     "tid" => $order->id
                 ]);
@@ -185,8 +185,8 @@ class PaymentController
                     "user_id" => $user->id,
                     "money" => $order->amount,
                     "type" => 1,
-                    "before_money" => $user->frozen_money,
-                    "after_money" => ($user->frozen_money * 100 + $order->amount * 100) / 100,
+                    "before_money" => $user->money,
+                    "after_money" => ($user->money * 100 + $order->amount * 100) / 100,
                     "description" => "支付宝充值：{$data->trade_no}",
                     "tid" => $order->id
                 ]);
