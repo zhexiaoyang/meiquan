@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Traits\PassportToken;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -312,22 +313,81 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        $isCheck = Hash::check($request->get('old_password'), auth()->user()->password);
+        // $isCheck = Hash::check($request->get('old_password'), auth()->user()->password);
+        //
+        // if (!$isCheck) {
+        //     return $this->error('旧密码错误');
+        // }
+        //
+        // $request->validate([
+        //     'old_password' => 'required',
+        //     'password' => 'required|confirmed',
+        // ], [], [
+        //     'old_password' => '旧密码',
+        // ]);
 
-        if (!$isCheck) {
-            return $this->error('旧密码错误');
+        // auth()->user()->update([
+        //     'password' => bcrypt($request->get('password')),
+        // ]);
+
+        $password = $request->get('password');
+
+        if (empty($password)) {
+            return $this->error("新密码不能为空");
         }
 
-        $request->validate([
-            'old_password' => 'required',
-            'password' => 'required|confirmed',
-        ], [], [
-            'old_password' => '旧密码',
-        ]);
+        if (strlen($password) < 6) {
+            return $this->error("密码长度不能小于6位");
+        }
+
+        $phone = $request->user()->phone;
+        $captcha = $request->get('code', '');
+
+        $verifyData = \Cache::get($phone);
+        \Log::info("aaa", [$phone,$captcha,$verifyData]);
+
+        if (!$verifyData) {
+            return $this->error('验证码已失效');
+        }
+
+        if (!hash_equals($verifyData['code'], $captcha)) {
+            return $this->error('验证码失效');
+        }
 
         auth()->user()->update([
-            'password' => bcrypt($request->get('password')),
+            'password' => bcrypt($password),
         ]);
+
+        \Cache::forget($phone);
+
+        return $this->success();
+    }
+
+    public function sms_password(Request $request)
+    {
+        $phone = $request->user()->phone;
+        $template = 'SMS_186405047';
+
+        // 生成4位随机数，左侧补0
+        $code = str_pad(random_int(1, 9999), 4, 0, STR_PAD_LEFT);
+
+        try {
+            app('easysms')->send($phone, [
+                'template' => $template,
+                'data' => [
+                    'code' => $code
+                ],
+            ]);
+        } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+            $message = $exception->getException('aliyun')->getMessage();
+            \Log::info('注册短信验证码发送异常', [$phone, $message]);
+            return $this->error($message ?: '短信发送异常');
+        }
+
+        $key = $phone;
+        $expiredAt = now()->addMinutes(5);
+        // 缓存验证码 5 分钟过期。
+        Cache::put($key, ['phone' => $phone, 'code' => $code], $expiredAt);
 
         return $this->success();
     }

@@ -11,7 +11,16 @@ class OrderSettingController extends Controller
 {
     public function show(Request $request)
     {
-        if (!$setting = OrderSetting::query()->where("shop_id", intval($request->get("id")))->first()) {
+        if (!$shop_id = intval($request->get("id"))) {
+            return $this->error("门店不存在");
+        }
+
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error("门店不存在");
+        }
+        if ($setting = OrderSetting::query()->where("shop_id", $shop_id)->first()) {
+            $setting->tool = $shop->tool;
+        } else {
             $setting = config("ps.shop_setting");
         }
 
@@ -28,7 +37,7 @@ class OrderSettingController extends Controller
             $setting = new OrderSetting;
         }
 
-        $setting->shop_id = intval($request->get("id"));
+        $setting->shop_id =(int) $request->get("id");
 
         $delay_send = intval($request->get('delay_send', 0));
         if ($delay_send < 0 || $delay_send > 300) {
@@ -56,6 +65,12 @@ class OrderSettingController extends Controller
 
         $setting->save();
 
+        $tool = intval($request->get("tool"));
+        if ($tool != $shop->tool) {
+            $shop->tool = $tool;
+            $shop->save();
+        }
+
         return $this->success();
     }
 
@@ -71,6 +86,10 @@ class OrderSettingController extends Controller
             return $this->error('门店不存在');
         }
         OrderSetting::where("shop_id", intval($request->get("id")))->delete();
+        if ($shop->tool === 8) {
+            $shop->tool = 0;
+            $shop->save();
+        }
 
         return $this->success();
     }

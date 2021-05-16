@@ -83,6 +83,9 @@ return [
         'delay_reset' => 15,
         // 重新发送是是否保持之前订单呼叫，1 是、2 否
         'type' => 1,
+        // 交通工具（0 未指定，8 汽车）
+        'tool' => 0,
+        // 平台
         'meituan' => 1,
         'fengniao' => 1,
         'shansong' => 1,

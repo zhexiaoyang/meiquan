@@ -39,7 +39,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps',
             'receiver_address','mt_status','money_mt','fn_status','money_fn','ss_status','money_ss',
-            'fail_mt','fail_fn','fail_ss',
+            'fail_mt','fail_fn','fail_ss','tool',
             'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
@@ -134,6 +134,7 @@ class OrderController extends Controller
         $order->fill($request->all());
         $order->shop_id = $shop->id;
         $order->user_id = $shop->user_id;
+        $order->tool = $shop->tool;
         // 订单未发送状态
         // $order->status = 0;
         // 订单倒计时参考时间
@@ -389,6 +390,7 @@ class OrderController extends Controller
                 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
                 'type' => $type,
                 'status' => $status,
+                'tool' => $shop->tool
             ];
 
             // 判断是否预约单
@@ -521,7 +523,8 @@ class OrderController extends Controller
                 'platform' => 1,
                 'type' => $type,
                 'status' => $status,
-                'order_type' => 0
+                'order_type' => 0,
+                'tool' => $shop->tool
             ];
 
             // 判断是否预约单
@@ -1462,6 +1465,14 @@ class OrderController extends Controller
         ];
 
         return $this->success($result);
+    }
+
+    public function tool(Order $order)
+    {
+        $order->tool = $order->tool === 8 ? 0 : 8;
+        $order->save();
+
+        return $this->success();
     }
 }
 

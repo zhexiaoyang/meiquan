@@ -23,6 +23,8 @@ Route::middleware(["force-json"])->group(function() {
     Route::get("getAgreementList", "CommonController@agreement")->name("agreement");
 
     Route::middleware("multiauth:api")->group(function () {
+        // *修改密码验证码
+        Route::post("auth/code", "AuthController@sms_password")->name("sms_password");
         // 退出
         Route::post("auth/logout", "AuthController@logout");
         // 个人中心-用户信息
@@ -237,6 +239,8 @@ Route::middleware(["force-json"])->group(function() {
          */
         // 订单
         Route::post("order/send/{order}", "OrderController@send")->name("order.send");
+        // 更改交通工具
+        Route::post("order/tool/{order}", "OrderController@tool")->name("order.tool");
         // 重新发送订单
         Route::post("order/resend", "OrderController@resend")->name("order.resend");
         // 物品已送回
@@ -255,7 +259,7 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::get("order_setting", "OrderSettingController@show")->name("order_setting.show");
         Route::post("order_setting", "OrderSettingController@store")->name("order_setting.store");
-        Route::get("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
+        Route::post("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
         Route::get("order_setting/shops", "OrderSettingController@shops")->name("order_setting.shops");
 
         /**

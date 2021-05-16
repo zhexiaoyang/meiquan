@@ -11,7 +11,7 @@ class Api extends Request
 {
 
     /**
-     * 订单创建(门店方式)
+     * 创建门店
      */
     public function createShop(Shop $shop)
     {
@@ -30,6 +30,10 @@ class Api extends Request
 
         return $this->post('/openapi/merchants/v5/storeOperation', $data);
     }
+
+    /**
+     * 更新门店
+     */
     public function updateShop(Shop $shop)
     {
         $jwd = gd2bd($shop->shop_lng, $shop->shop_lat);
@@ -99,6 +103,7 @@ class Api extends Request
             "appointType" => $order->order_type ?? "",
             // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
             "appointmentDate" => "",
+            "travelWay" => $order->tool === 8 ? 8 : 0,
             "storeId" => $shop->shop_id_ss
         ];
 
