@@ -300,7 +300,8 @@ function baseMoney($shop_live) {
 function baseMoneyFn($shop_live) {
 
     // $start_arr = [ 'S' => 9.3, 'A' => 8.8, 'B' => 8.3, 'C' => 7.8, 'D' => 7.3, 'E' => 6.8 ];
-    $start_arr = [ 'S' => 7.3, 'A' => 7.1, 'B' => 6.9, 'C' => 6.5, 'D' => 6.0, 'E' => 5.7 ];
+    // $start_arr = [ 'S' => 7.3, 'A' => 7.1, 'B' => 6.9, 'C' => 6.5, 'D' => 6.0, 'E' => 5.7 ];
+    $start_arr = [ 'S' => 7.8, 'A' => 7.6, 'B' => 7.4, 'C' => 7, 'D' => 6.5, 'E' => 6.2 ];
 
     $b = $start_arr[$shop_live] ?? 7.3;
     // $b = $b + 5;
