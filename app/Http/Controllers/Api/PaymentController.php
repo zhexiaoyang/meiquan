@@ -233,7 +233,7 @@ class PaymentController
         // \Log::info('订单支付回调', $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat()->verify($request->getContent());
-        \Log::info('[商城订单-微信支付回调-全部参数]', $request->all());
+        \Log::info('[商城订单-微信支付回调-全部参数]', [$data]);
         // 找到对应的订单
         $orders = SupplierOrder::query()->where('no', $data->out_trade_no)->get();
 
