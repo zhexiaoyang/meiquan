@@ -257,9 +257,12 @@ class PaymentController
             $amount += ($order->total_fee * 100 - $order->frozen_fee * 100);
         }
 
+        $pay_amount = intval($amount);
+        $notify_amount = intval($data->total_fee);
+
         // 订单金额判断
-        if ($amount != $data->total_fee) {
-            \Log::info('支付订单金额不符', [ $data, $orders ]);
+        if ($pay_amount != $notify_amount) {
+            \Log::info('支付订单金额不符', [ $data, $orders, $pay_amount, $notify_amount ]);
             return $this->wechat();
         }
 
