@@ -230,18 +230,19 @@ class PaymentController
 
     public function wechatSupplierNotify(Request $request)
     {
-        \Log::info('订单支付回调', $request->all());
+        // \Log::info('订单支付回调', $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat()->verify($request->getContent());
+        \Log::info('[商城订单-微信支付回调-全部参数]', $request->all());
         // 找到对应的订单
         $orders = SupplierOrder::query()->where('no', $data->out_trade_no)->get();
 
         // 订单不存在
         if ($orders->isEmpty()) {
-            \Log::info('支付-订单号为空', [ $data ]);
+            \Log::info('商城订单-微信支付回调-订单号为空', [ $data ]);
             $orders = SupplierOrder::query()->where('pay_no', $data->out_trade_no)->get();
             if ($orders->isEmpty()) {
-                \Log::info('支付-交易单号为空', [ $data ]);
+                \Log::info('商城订单-微信支付回调-交易单号为空', [ $data ]);
                 return $this->wechat();
             }
         }
@@ -259,10 +260,11 @@ class PaymentController
 
         $pay_amount = intval($amount);
         $notify_amount = intval($data->total_fee);
+        \Log::info('商城订单-微信支付回调-订单号为空', [ $data->out_trade_no, $pay_amount, $notify_amount ]);
 
         // 订单金额判断
         if ($pay_amount != $notify_amount) {
-            \Log::info('支付订单金额不符', [ $data, $orders, $pay_amount, $notify_amount ]);
+            \Log::info('商城订单-微信支付回调-支付订单金额不符', [ $data, $orders, $pay_amount, $notify_amount ]);
             return $this->wechat();
         }
 
@@ -270,7 +272,7 @@ class PaymentController
 
             foreach ($orders as $order) {
                 if ($order->status == 0) {
-                    \Log::info('将订单标记为已支付', [ $data, $order ]);
+                    \Log::info('商城订单-微信支付回调-将订单标记为已支付', [ $data, $order ]);
                     // 将订单标记为已支付
                     DB::table('supplier_orders')->where("id", $order->id)->update([
                         'paid_at'           => date('Y-m-d H:i:s'),
