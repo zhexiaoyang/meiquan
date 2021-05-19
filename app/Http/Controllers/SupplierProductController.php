@@ -255,6 +255,7 @@ class SupplierProductController extends Controller
             "depot_id" => $supplierProduct->depot_id,
             "stock" => $supplierProduct->stock,
             "sale_count" => $supplierProduct->sale_count,
+            "review_count" => $supplierProduct->review_count,
             "price" => $city_price ? $city_price->price : $supplierProduct->price,
             "detail" => $supplierProduct->detail,
             "category_id" => $supplierProduct->depot->category_id,
