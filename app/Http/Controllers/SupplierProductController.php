@@ -246,6 +246,8 @@ class SupplierProductController extends Controller
             "number" => $supplierProduct->number,
             "is_active" => $supplierProduct->is_active,
             "is_control" => $supplierProduct->is_control,
+            "is_meituan" => $supplierProduct->is_meituan,
+            "is_ele" => $supplierProduct->is_ele,
             "control_price" => $supplierProduct->control_price,
             "product_date" => $supplierProduct->product_date,
             "product_end_date" => $supplierProduct->product_end_date,
