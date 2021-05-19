@@ -241,6 +241,8 @@ class SupplierProductController extends Controller
             return $this->error("没有认证的门店");
         }
 
+        SupplierProduct::where("id", $supplierProduct->id)->increment("review_count");
+
         $result = [
             "id" => $supplierProduct->id,
             "number" => $supplierProduct->number,
