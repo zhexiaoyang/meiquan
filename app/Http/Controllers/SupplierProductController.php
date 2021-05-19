@@ -190,6 +190,8 @@ class SupplierProductController extends Controller
                 $tmp['id'] = $product->id;
                 $tmp['is_active'] = $product->is_active;
                 $tmp['is_control'] = $product->is_control;
+                $tmp['is_meituan'] = $product->is_meituan;
+                $tmp['is_ele'] = $product->is_ele;
                 $tmp['control_price'] = $product->control_price;
                 $tmp['depot_id'] = $product->depot->id;
                 $tmp['name'] = $product->depot->name;
