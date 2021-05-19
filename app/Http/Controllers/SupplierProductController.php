@@ -142,7 +142,7 @@ class SupplierProductController extends Controller
         // 查询门店城市编码
         $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price","is_meituan","is_ele")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
