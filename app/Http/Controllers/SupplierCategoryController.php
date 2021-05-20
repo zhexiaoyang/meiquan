@@ -24,7 +24,7 @@ class SupplierCategoryController extends Controller
     {
         $categories = [];
 
-        $data = Category::select("id","pid", "title", "picture")
+        $data = Category::select("id","pid", "title", "picture")->where("status", 1)
             ->orderBy("pid")->orderBy("sort")->get()->toArray();
 
         if (!empty($data)) {
