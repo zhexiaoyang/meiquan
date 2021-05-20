@@ -213,6 +213,11 @@ class OnlineController extends Controller
         }
         $data["sfzsc"] = $sfzsc;
 
+        if (!$sfzscbm = $request->get("sfzscbm")) {
+            return $this->error("负责人手持背面身份证不能为空");
+        }
+        $data["sfzscbm"] = $sfzscbm;
+
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");
         }
@@ -443,6 +448,11 @@ class OnlineController extends Controller
             return $this->error("负责人手持身份证不能为空");
         }
         $data["sfzsc"] = $sfzsc;
+
+        if (!$sfzscbm = $request->get("sfzscbm")) {
+            return $this->error("负责人手持背面身份证不能为空");
+        }
+        $data["sfzscbm"] = $sfzscbm;
 
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");
