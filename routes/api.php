@@ -61,6 +61,18 @@ Route::middleware(["force-json"])->group(function() {
         });
         // 前台-质量公告
         Route::resource("notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
+        // 【H5】轮播图
+        Route::get("banner", "BannerController@index");
+        // 【H5】广告
+        Route::get("ad", "AdController@index");
+        // 【H5】通知
+        Route::get("notice", "NoticeController@index");
+        // 【H5】热门搜索
+        Route::get("search_key", "SearchKeyController@index");
+        // 【H5】首页搜索
+        Route::get("search_key_index", "SearchKeyIndexController@index");
+
+
 
         /**
          * 门店管理
@@ -288,7 +300,9 @@ Route::middleware(["force-json"])->group(function() {
         Route::prefix("/purchase")->group(function () {
             // 采购购物车
             Route::get("category", "SupplierCategoryController@index");
-            // 采购购物车
+            // 移动端全部分类
+            Route::get("category_all", "SupplierCategoryController@all");
+            // 移动端根据二级分类获取一级分类
             Route::get("category_all", "SupplierCategoryController@all");
             // 采购商品列表
             Route::get("product", "SupplierProductController@index");
