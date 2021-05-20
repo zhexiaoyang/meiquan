@@ -11,7 +11,7 @@ class CategoryController extends Controller
     {
         $pid = intval($request->get("pid", 0));
 
-        $data = Category::query()->select("id","title")->where("pid", $pid)->orderBy("sort", "asc")->get();
+        $data = Category::query()->select("id","title")->where("pid", $pid)->where("status", 1)->orderBy("sort", "asc")->get();
 
         return $this->success($data);
     }
