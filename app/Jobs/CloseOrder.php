@@ -41,7 +41,6 @@ class CloseOrder implements ShouldQueue
             \DB::transaction(function() {
                 // 将订单的 closed 字段标记为 true，即关闭订单
                 \Log::info("[商城订单-检查支付，订单号：{$this->order->no}]-未支付，操作取消订单");
-                $this->order->update(['status' => 90]);
                 if ($this->order->frozen_fee > 0 && $this->order->status === 0) {
                     \Log::info("[商城订单-检查支付，订单号：{$this->order->no}]-未支付，操作取消订单，冻结余额退款");
                     if ($user = User::query()->find($this->order->user_id)) {
@@ -59,6 +58,7 @@ class CloseOrder implements ShouldQueue
                         $logs->save();
                     }
                 }
+                $this->order->update(['status' => 90]);
                 // 循环遍历订单中的商品 SKU，将订单中的数量加回到 SKU 的库存中去
                 foreach ($this->order->items as $item) {
                     $item->product->addStock($item->amount);
