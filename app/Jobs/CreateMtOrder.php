@@ -110,6 +110,7 @@ class CreateMtOrder implements ShouldQueue
         $money_mt = 0;
         $money_fn = 0;
         $money_ss = 0;
+        $money_mqd = 0;
         $ss_order_id = "";
 
         $order = Order::query()->find($this->order->id);
@@ -117,28 +118,28 @@ class CreateMtOrder implements ShouldQueue
         // *****************************************
 
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
-        // if ($shop->shop_id_mqd && $mqd_switch && !$this->order->fail_mqd && ($order->mqd_status === 0)) {
-        //     // $money_mqd = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
-        //     $money_mqd = 6;
-        //     $this->services['meiquanda'] = $money_mqd;
-        //     Log::info($this->log."美全达可以，金额：{$money_mqd}");
-        // } else {
-        //     $log_arr = [
-        //         'shop_id' => $shop->shop_id,
-        //         'mqd_status' => $order->mqd_status,
-        //         'meiquanda' => $mqd_switch,
-        //         'fail_meiquanda' => $this->order->fail_mqd
-        //     ];
-        //     Log::info($this->log."跳出美全达发单", $log_arr);
-        // }
-        //
-        // // 判断用户金额是否满足美全达订单
-        // if ($user->money < ($money_mqd + $use_money)) {
-        //     DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-        //     dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-        //     Log::info($this->log."用户金额不足发美全达单");
-        //     return;
-        // }
+        if ($shop->shop_id_mqd && $mqd_switch && !$this->order->fail_mqd && ($order->mqd_status === 0)) {
+            // $money_mqd = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
+            $money_mqd = 6;
+            $this->services['meiquanda'] = $money_mqd;
+            Log::info($this->log."美全达可以，金额：{$money_mqd}");
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'mqd_status' => $order->mqd_status,
+                'meiquanda' => $mqd_switch,
+                'fail_meiquanda' => $this->order->fail_mqd
+            ];
+            Log::info($this->log."跳出美全达发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足美全达订单
+        if ($user->money < ($money_mqd + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+            Log::info($this->log."用户金额不足发美全达单");
+            return;
+        }
 
         // ************************************************
 
@@ -289,9 +290,9 @@ class CreateMtOrder implements ShouldQueue
 
         // 更新价格
         $money_arr = [];
-        // if ($money_mqd) {
-        //     $money_arr["money_mqd"] = $money_mqd;
-        // }
+        if ($money_mqd) {
+            $money_arr["money_mqd"] = $money_mqd;
+        }
         if ($money_mt) {
             $money_arr["money_mt"] = $money_mt;
         }
