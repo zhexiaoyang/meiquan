@@ -23,3 +23,34 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     // 推送美配订单配送状态回调
     Route::post('test', "MeiTuanMeiquanController@test");
 });
+
+// 美全达跑腿
+Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(function () {
+    Route::post('order', "MeiQuanDaController@order_status");
+});
+
+// 达达跑腿
+// Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(function () {
+//     Route::post('order', "DaDaController@order_status");
+// });
+
+// 寝趣
+Route::middleware(['force-json'])->prefix('meituan/qinqu')->namespace('Api\Waimai')->group(function () {
+
+    // // 推送已确认订单回调
+    // Route::post('create', "QinQuController@create");
+    // // 推送用户或客服取消订单回调
+    // Route::get('cancel', "QinQuController@cancel");
+
+
+    // 推送已支付订单回调
+    // Route::post('pay', "MeiTuanMeiquanController@pay");
+    // 推送全额退款信息回调
+    // Route::get('refund', "MeiTuanMeiquanController@refund");
+    // 推送部分退款信息回调
+    // Route::get('refund/part', "MeiTuanMeiquanController@refundPart");
+    // 推送美配订单配送状态回调
+    // Route::post('logistics', "MeiTuanMeiquanController@logistics");
+    // 推送美配订单配送状态回调
+    // Route::post('test', "MeiTuanMeiquanController@test");
+});
