@@ -289,9 +289,9 @@ class CreateMtOrder implements ShouldQueue
 
         // 更新价格
         $money_arr = [];
-        if ($money_mqd) {
-            $money_arr["money_mqd"] = $money_mqd;
-        }
+        // if ($money_mqd) {
+        //     $money_arr["money_mqd"] = $money_mqd;
+        // }
         if ($money_mt) {
             $money_arr["money_mt"] = $money_mt;
         }
