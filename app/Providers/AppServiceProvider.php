@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Libraries\DaDa\DaDa;
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\Fengniao\Fengniao;
+use App\Libraries\MeiQuanDa\MeiQuanDa;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Shunfeng\Shunfeng;
@@ -20,6 +22,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // 美全达跑腿
+        $this->app->singleton('dada', function () {
+            $config = config('ps.dada');
+            return new DaDa($config);
+        });
+        // 美全达跑腿
+        $this->app->singleton('meiquanda', function () {
+            $config = config('ps.meiquanda');
+            return new MeiQuanDa($config);
+        });
         // 美团跑腿
         $this->app->singleton('meituan', function () {
             $config = config('ps.meituan');

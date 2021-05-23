@@ -1,6 +1,18 @@
 <?php
 
 return [
+    // 达达配送
+    "dada" => [
+        "app_key" => env("DADA_APP_KEY", ""),
+        "app_secret" => env("DADA_APP_SECRET", ""),
+        "url" => env("DADA_APP_URL", ""),
+    ],
+    // 美全达配送
+    "meiquanda" => [
+        "app_id" => env("MEIQUANDA_APP_ID", ""),
+        "app_secret" => env("MEIQUANDA_APP_SECRET", ""),
+        "url" => env("MEIQUANDA_APP_URL", ""),
+    ],
     // 美团配送
     "meituan" => [
         "app_key" => env("MEITUAN_APP_KEY", ""),
@@ -91,6 +103,7 @@ return [
         'shansong' => 1,
         'shunfeng' => 1,
         'dada' => 1,
+        'meiquanda' => 1,
     ]
 
 ];

@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
-use App\Libraries\DingTalk\DingTalkRobot;
-use App\Models\MoneyLog;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
-use App\Models\User;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -37,9 +34,13 @@ class OrderController extends Controller
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
-        }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed','ps',
-            'receiver_address','mt_status','money_mt','fn_status','money_fn','ss_status','money_ss',
-            'fail_mt','fail_fn','fail_ss','tool',
+        }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
+            'receiver_address','tool','ps',
+            'mt_status','money_mt','fail_mt',
+            'fn_status','money_fn','fail_fn',
+            'ss_status','money_ss','fail_ss',
+            'mqd_status','money_mqd','fail_mqd',
+            'dd_status','money_dd','fail_dd',
             'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
@@ -138,7 +139,7 @@ class OrderController extends Controller
         // 订单未发送状态
         // $order->status = 0;
         // 订单倒计时参考时间
-        $order->send_at = date("Y-m-d H:i:s");
+        // $order->send_at = date("Y-m-d H:i:s");
         // 订单即将发送
         $order->status = 8;
         // 保存数据
@@ -207,6 +208,7 @@ class OrderController extends Controller
                 $order->fail_mt = '重新发送订单-不选择';
             }
         } else {
+            $order->mt_status = 0;
             $order->fail_mt = '';
         }
 
@@ -215,6 +217,7 @@ class OrderController extends Controller
                 $order->fail_fn = '重新发送订单-不选择';
             }
         } else {
+            $order->fn_status = 0;
             $order->fail_fn = '';
         }
 
@@ -223,6 +226,7 @@ class OrderController extends Controller
                 $order->fail_ss = '重新发送订单-不选择';
             }
         } else {
+            $order->ss_status = 0;
             $order->fail_ss = '';
         }
 
@@ -231,13 +235,29 @@ class OrderController extends Controller
                 $order->fail_sf = '重新发送订单-不选择';
             }
         } else {
+            $order->sf_status = 0;
             $order->fail_sf = '';
         }
 
+        if ($request->get("mqd", 0) === 0) {
+            if (!$order->fail_mqd) {
+                $order->fail_mqd = '重新发送订单-不选择';
+            }
+        } else {
+            $order->mqd_status = 0;
+            $order->fail_mqd = '';
+        }
+
+        if ($request->get("dd", 0) === 0) {
+            if (!$order->fail_dd) {
+                $order->fail_dd = '重新发送订单-不选择';
+            }
+        } else {
+            $order->dd_status = 0;
+            $order->fail_dd = '';
+        }
+
         $order->status = 0;
-        $order->mt_status = 0;
-        $order->fn_status = 0;
-        $order->ss_status = 0;
         $order->ps = 0;
 
         $order->save();
@@ -823,6 +843,60 @@ class OrderController extends Controller
                     ];
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消闪送订单返回失败", $logs);
                 }
+            } elseif ($ps == 4) {
+                $fengniao = app("meiquanda");
+                $result = $fengniao->repealOrder($order->mqd_order_id);
+                if ($result['code'] == 100) {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消美全达跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            // 更改订单信息
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'mqd_status' => 99,
+                            ]);
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "（美团外卖）取消【美全达】跑腿订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "美全达",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消蜂鸟订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "美全达",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
+                }
             }
             return $this->success();
         } elseif (in_array($order->status, [20, 30])) {
@@ -1124,6 +1198,60 @@ class OrderController extends Controller
                         "order_id" => $order->order_id
                     ];
                     $dd->sendMarkdownMsgArray("操作取消订单，取消闪送订单返回失败", $logs);
+                }
+            } elseif ($ps == 4) {
+                $fengniao = app("meiquanda");
+                $result = $fengniao->repealOrder($order->mqd_order_id);
+                if ($result['code'] == 100) {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消美全达跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            // 更改订单信息
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'mqd_status' => 99,
+                            ]);
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "（美团外卖）取消【美全达】跑腿订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "美全达",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消蜂鸟订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "美全达",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
                 }
             }
             return $this->success();
@@ -1461,7 +1589,9 @@ class OrderController extends Controller
             'mt' => $shop->shop_id ?? 0,
             'fn' => $shop->shop_id_fn ?? 0,
             'ss' => $shop->shop_id_ss ?? 0,
-            'sf' => $shop->shop_id_sf ?? 0
+            'sf' => $shop->shop_id_sf ?? 0,
+            'dd' => $shop->shop_id_dd ?? 0,
+            'mqd' => $shop->shop_id_mqd ?? 0
         ];
 
         return $this->success($result);

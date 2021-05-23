@@ -31,6 +31,7 @@ class Order extends Model
         'exception_descr','exception_time','distance','money','base_money','distance_money','weight_money',
         'time_money','date_money','money_mt','money_fn','money_ss','ss_order_id','fail_mt','fail_fn','fail_ss','ps',
         'mt_status','money_mt','fn_status','money_fn','ss_status','money_ss','user_id','tool',
+        'mqd_status','money_mqd','fail_mqd','dd_status','money_dd','fail_dd',
         'receive_at','take_at','over_at','push_at','created_at','updated_at'];
 
     public function shop() {

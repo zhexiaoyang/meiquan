@@ -67,11 +67,13 @@ class CreateMtOrder implements ShouldQueue
             $mt_switch = $setting->meituan;
             $fn_switch = $setting->fengniao;
             $ss_switch = $setting->shansong;
+            $mqd_switch = $setting->meiquanda;
         } else {
             $order_ttl = config("ps.shop_setting.delay_reset") * 60;
             $mt_switch = config("ps.shop_setting.meituan");
             $fn_switch = config("ps.shop_setting.fengniao");
             $ss_switch = config("ps.shop_setting.shansong");
+            $mqd_switch = config("ps.shop_setting.meiquanda");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -111,6 +113,34 @@ class CreateMtOrder implements ShouldQueue
         $ss_order_id = "";
 
         $order = Order::query()->find($this->order->id);
+
+        // *****************************************
+
+        // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
+        if ($shop->shop_id_mqd && $mqd_switch && !$this->order->fail_mqd && ($order->mqd_status === 0)) {
+            // $money_mqd = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
+            $money_mqd = 6;
+            $this->services['meiquanda'] = $money_mqd;
+            Log::info($this->log."美全达可以，金额：{$money_mqd}");
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'mqd_status' => $order->mqd_status,
+                'meiquanda' => $mqd_switch,
+                'fail_meiquanda' => $this->order->fail_mqd
+            ];
+            Log::info($this->log."跳出美全达发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足美全达订单
+        if ($user->money < ($money_mqd + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+            Log::info($this->log."用户金额不足发美全达单");
+            return;
+        }
+
+        // ************************************************
 
         // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
         if ($shop->shop_id && $mt_switch && !$this->order->fail_mt && ($order->mt_status === 0)) {
@@ -259,6 +289,9 @@ class CreateMtOrder implements ShouldQueue
 
         // 更新价格
         $money_arr = [];
+        if ($money_mqd) {
+            $money_arr["money_mqd"] = $money_mqd;
+        }
         if ($money_mt) {
             $money_arr["money_mt"] = $money_mt;
         }
@@ -305,9 +338,88 @@ class CreateMtOrder implements ShouldQueue
                 Log::info($this->log."发送闪送订单失败");
             }
             return;
+        } else if ($ps === "meiquanda") {
+            if ($this->meiquanda()) {
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
+                }
+            } else {
+                // $this->dingTalk("发送订单失败", "发送订单失败");
+                Log::info($this->log."发送美全达订单失败");
+            }
+            return;
         }
         Log::info($this->log."发送订单失败，没有返回最小平台");
         // $this->dingTalk("发送订单失败", "没有返回最小平台");
+    }
+
+    public function meiquanda()
+    {
+        $order = Order::query()->find($this->order->id);
+
+        if ($order->status > 30) {
+            Log::info($this->log."不能发送美全达订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->mqd_status >= 20) {
+            Log::info($this->log."不能发送美全达订单，美团状态不是0，状态：{$order->mqd_status}");
+        }
+
+        if ($order->fail_mqd) {
+            Log::info($this->log."不能发送美全达订单，已有美全达错误信息");
+            return false;
+        }
+        $shop = Shop::query()->find($this->order->shop_id);
+
+        $meiquanda = app("meiquanda");
+        // $distance = distanceMoney($this->order->distance);
+        // $base = baseMoney($shop->city_level ?: 9);
+        // $time_money = timeMoney();
+        // $date_money = dateMoney();
+        // $weight_money = weightMoney($this->order->goods_weight);
+        //
+        // $money = $base + $time_money + $date_money + $distance + $weight_money;
+        $money = 6;
+        // 发送美全达订单
+        $result_mqd = $meiquanda->createOrder($shop, $this->order);
+        if ($result_mqd['code'] === 100) {
+            // 订单发送成功
+            Log::info($this->log."发送美全达订单成功，返回参数：", [$result_mqd]);
+            $mqd_order_info = $meiquanda->getOrderInfo($result_mqd['data']['trade_no'] ?? "");
+            if (!empty($mqd_order_info['data']['merchant_pay_fee']) && $mqd_order_info['data']['merchant_pay_fee'] > 0) {
+                Log::info($this->log."获取美全达订单金额成功");
+                $money = $mqd_order_info['data']['merchant_pay_fee'];
+            }
+            // 写入订单信息
+            $update_info = [
+                'money_mqd' => $money,
+                'mqd_order_id' => $result_mqd['data']['trade_no'],
+                'mqd_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 4,
+                'order_id' => $this->order->id,
+                'des' => '【美全达】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."美团更新创建订单状态成功");
+            return true;
+        } else {
+            $fail_mqd = $result_mqd['message'] ?? "美全达创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_mqd' => $fail_mqd, 'mqd_status' => 3]);
+            Log::info($this->log."美全达发送订单失败：{$fail_mqd}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."美全达发送订单失败，没有平台了");
+            }
+        }
+
+        return false;
     }
 
     public function meituan()
@@ -372,49 +484,6 @@ class CreateMtOrder implements ShouldQueue
                 Log::info($this->log."美团发送订单失败，没有平台了");
             }
         }
-
-        // if ($money >= 0 && ($user->money > $money) && DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money - $money])) {
-        //     Log::info('美团订单-扣款成功', ['order_id' => $this->order->id, 'user_id' => $user->id, 'money' => $money]);
-        //     // 发送美团订单
-        //     $result_mt = $meituan->createByShop($shop, $this->order);
-        //     if ($result_mt['code'] === 0) {
-        //         // 订单发送成功
-        //         $this->dingTalk("美团成功", "发送美团订单成功。money：{$money}");
-        //         // 写入订单信息
-        //         $update_info = [
-        //             'money' => $money,
-        //             'base_money' => $base,
-        //             'distance_money' => $distance,
-        //             'weight_money' => $weight_money,
-        //             'time_money' => $time_money,
-        //             'date_money' => $date_money,
-        //             'peisong_id' => $result_mt['data']['mt_peisong_id'],
-        //             'status' => 20,
-        //             'ps' => 1,
-        //             'push_at' => date("Y-m-d H:i:s")
-        //         ];
-        //         DB::table('orders')->where('id', $this->order->id)->update($update_info);
-        //         Log::info('美团订单-更新创建订单状态成功');
-        //         return true;
-        //     } else {
-        //         $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
-        //         DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt]);
-        //         DB::table('users')->where('id', $user->id)->where('money', '>', $money)->update(['money' => $user->money + $money]);
-        //         Log::info('美团发送创建失败-把钱返给用户', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-        //         if (count($this->services) > 1) {
-        //             dispatch(new CreateMtOrder($this->order));
-        //         } else {
-        //             $this->dingTalk("不能发送订单", "没有平台了");
-        //         }
-        //         $this->dingTalk("不能发送美团订单", "美团创建订单失败了");
-        //     }
-        // } else {
-        //     Log::info('美团订单-余额不足-扣款失败', ['order_id' => $this->order->id, 'user_id' => $user->id]);
-        //     $this->order->status = 5;
-        //     $this->order->save();
-        //     dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 20]));
-        //     $this->dingTalk("不能发送美团订单", "余额不足");
-        // }
 
         return false;
     }
