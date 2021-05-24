@@ -57,6 +57,12 @@ return [
         "secret" => env("MINKANG_SECRET", ""),
         "url" => "https://waimaiopen.meituan.com/api/"
     ],
+    // 美团外卖-民康
+    "jilin" => [
+        "app_key" => '5616',
+        "secret" => 'c514c7a4f9564c77b04004449d8a5784',
+        "url" => "https://waimaiopen.meituan.com/api/"
+    ],
     // 美团外卖-寝趣
     "qinqu" => [
         "app_key" => env("QINQU_APP_KEY", ""),
