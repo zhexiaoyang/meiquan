@@ -9,62 +9,113 @@ class Api extends Request
 {
     public function cityCode()
     {
-        return $this->post('/api/cityCode/list', []);
+        return $this->post('/api/order/cancel/reasons', []);
     }
 
     public function createShop(Shop $shop)
     {
-        $data = [
-            "station_name" => "新门店1",
-            "origin_shop_id" => "shop001",
-            "area_name" => "浦东新区",
-            "station_address" => "地址1",
-            "contact_name" => "xxx",
-            "city_name" => "上海",
-            "business" => 1,
-            "lng" => 121.515014,
-            "phone" => "13012345678",
-            "lat" => 31.229081
+        $data[] = [
+            'origin_shop_id' => (string) $shop->id,
+            'station_name' => $shop->shop_name,
+            'business' => 20,
+            'city_name' => $shop->city,
+            'area_name' => $shop->area,
+            'station_address' => $shop->shop_address,
+            'lng' => (float) $shop->shop_lng,
+            'lat' => (float) $shop->shop_lat,
+            'contact_name' => $shop->contact_name,
+            'phone' => $shop->contact_phone,
         ];
+
         return $this->post('/api/shop/add', $data);
     }
+
+    public function updateShop(Shop $shop)
+    {
+        $data = [
+            'origin_shop_id' => (string) $shop->id,
+            'station_name' => $shop->shop_name,
+            'station_address' => $shop->shop_address,
+            'lng' => (float) $shop->shop_lng,
+            'lat' => (float) $shop->shop_lat,
+            'contact_name' => $shop->contact_name,
+            'phone' => $shop->contact_phone,
+        ];
+
+        return $this->post('/api/shop/update', $data);
+    }
+
+    /**
+     * 订单计算，判断是否可以接单
+     */
+    public function orderCalculate(Shop $shop, Order $order)
+    {
+        $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
+        $data = [
+            // 门店信息
+            'shop_no' => $shop->shop_id_dd,
+            'city_code' => $shop->citycode,
+            // 订单信息
+            'origin_id' => $order->order_id,
+            'cargo_price' => $order->goods_value,
+            'cargo_weight' => $order->goods_weight,
+            'callback' => 'http://psapi.meiquanda.com/api/waimai/dada/order',
+            'is_prepay' => 0,
+            'is_direct_delivery' => 0,
+            // 收货信息
+            'receiver_name' => $order->receiver_name,
+            'receiver_phone' => $order->receiver_phone,
+            'receiver_address' => $order->receiver_address,
+            'receiver_lng' => $order->receiver_lng,
+            'receiver_lat' => $order->receiver_lat,
+            // 订单备注
+            'order_infonote' => $order->note ?: "",
+        ];
+
+        // 订单来源编号，最大长度为30，该字段可以显示在骑士APP订单详情页面，示例：
+        // origin_mark_no:"#京东到家#1" // 达达骑士APP看到的是：#京东到家#1
+        if ($order->platform > 0 ) {
+            if ($order->platform < 10) {
+                $data['origin_mark_no'] = empty($platform[$order->platform]) ? "" : "#美团#" . $platform[$order->day_seq];
+            } elseif ($order->platform === 11) {
+                $data['origin_mark_no'] = empty($platform[$order->platform]) ? "" : "#药柜#取货码：" . $order->goods_pickup_info;
+            }
+        }
+
+        // 预约发单时间（预约时间unix时间戳(10位),精确到分;整分钟为间隔，并且需要至少提前5分钟预约，可以支持未来3天内的订单发预约单。）
+        // $data['delay_publish_time'] = ''
+
+        return $this->post('/api/order/queryDeliverFee', $data);
+    }
+
     /**
      * 创建订单
      */
-    public function createOrder(Shop $shop, Order $order)
+    public function createOrder($order_id)
+    {
+        return $this->post('/api/order/addAfterQuery', ["deliveryNo" => $order_id]);
+    }
+
+    /**
+     * 取消订单
+     */
+    public function orderCancel($order_id)
     {
         $data = [
-            // 门店信息
-            'shop_id' => $shop->shop_id_mqd,
-            'shop_name' => $shop->shop_name,
-            'shop_tel' => $shop->contact_phone,
-            'shop_address' => $shop->shop_address,
-            'shop_tag' => $shop->shop_lng . ',' . $shop->shop_lat,
-            // 订单信息
-            'customer_name' => $order->receiver_name,
-            'customer_tel' => $order->receiver_phone,
-            'customer_address' => $order->receiver_address,
-            'customer_tag' => $order->receiver_lng . ',' . $order->receiver_lat,
-            // 订单备注
-            'order_note' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : 'order_note',
-            'order_mark' => 'order_mark',
-            'order_from' => 'order_from',
-            // 'order_time' => $order->created_at,
-            'order_no' => $order->order_id,
-            'pay_status' => 0,
-            'is_calc_fee' => 1,
+            'order_id' => $order_id,
+            'cancel_reason_id' => 4
         ];
-
-        return $this->post('/open.Order/createOrder', $data);
+        return $this->post('/api/order/formalCancel', $data);
     }
 
-    public function getOrderInfo($order_id)
+    /**
+     * 物品送回
+     */
+    public function sendBack($order_id)
     {
-        return $this->get('/open.Order/getOrderInfo', ['trade_no' => $order_id]);
-    }
-
-    public function repealOrder($order_id)
-    {
-        return $this->post('/open.Order/repealOrder', ['trade_no' => $order_id, 'reason' => '不需要配送']);
+        $data = [
+            'order_id' => $order_id
+        ];
+        return $this->post('/api/order/confirm/goods', $data);
     }
 }

@@ -76,7 +76,7 @@ class Request
 
     private function checkErrorAndThrow($result)
     {
-        if (!$result || $result['code'] != 100) {
+        if (!$result || $result['code'] != 0) {
             \Log::info('达达配送Api返回异常', [$result]);
         }
 
