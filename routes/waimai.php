@@ -30,9 +30,9 @@ Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(functi
 });
 
 // 达达跑腿
-// Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(function () {
-//     Route::post('order', "DaDaController@order_status");
-// });
+Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(function () {
+    Route::post('order', "DaDaController@order_status");
+});
 
 // 寝趣
 Route::middleware(['force-json'])->prefix('meituan/qinqu')->namespace('Api\Waimai')->group(function () {
