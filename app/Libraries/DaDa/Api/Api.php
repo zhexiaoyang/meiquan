@@ -76,7 +76,7 @@ class Api extends Request
         // origin_mark_no:"#京东到家#1" // 达达骑士APP看到的是：#京东到家#1
         if ($order->platform > 0 ) {
             if ($order->platform < 10) {
-                $data['origin_mark_no'] = empty($platform[$order->platform]) ? "" : "#美团#" . $platform[$order->day_seq];
+                $data['origin_mark_no'] = empty($platform[$order->platform]) ? "" : "#{$platform[$order->platform]}#" . $order->day_seq;
             } elseif ($order->platform === 11) {
                 $data['origin_mark_no'] = empty($platform[$order->platform]) ? "" : "#药柜#取货码：" . $order->goods_pickup_info;
             }
