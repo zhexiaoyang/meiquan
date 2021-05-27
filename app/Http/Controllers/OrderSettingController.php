@@ -60,7 +60,7 @@ class OrderSettingController extends Controller
         $setting->meituan = intval($request->get("meituan")) ? 1 : 0;
         $setting->fengniao = intval($request->get("fengniao")) ? 1 : 0;
         $setting->shansong = intval($request->get("shansong")) ? 1 : 0;
-        $setting->shunfeng = intval($request->get("shunfeng")) ? 1 : 0;
+        $setting->meiquanda = intval($request->get("meiquanda")) ? 1 : 0;
         $setting->dada = intval($request->get("dada")) ? 1 : 0;
 
         $setting->save();

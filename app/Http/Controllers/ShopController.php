@@ -59,7 +59,9 @@ class ShopController extends Controller
                 $tmp['shop_id_fn'] = $shop->shop_id_fn;
                 $tmp['shop_id_sf'] = $shop->shop_id_sf;
                 $tmp['shop_id_ss'] = $shop->shop_id_ss;
-                // $tmp['mt_shop_id'] = $shop->mt_shop_id;
+                $tmp['shop_id_dd'] = $shop->shop_id_dd;
+                $tmp['shop_id_mqd'] = $shop->shop_id_mqd;
+                $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['city'] = $shop->city;
 
                 // 外卖资料
@@ -121,6 +123,10 @@ class ShopController extends Controller
             if ($shop->shop_id_ss) {
                 $shansong = app("shansong");
                 $shansong->updateShop($shop);
+            }
+            if ($shop->shop_id_dd) {
+                $dada = app("dada");
+                $dada->updateShop($shop);
             }
 
             return $this->success();
@@ -515,5 +521,20 @@ class ShopController extends Controller
         $shop->save();
 
         return $this->success();
+    }
+
+    public function platform(Shop $shop)
+    {
+
+        $result = [
+            'mt' => $shop->shop_id ?? 0,
+            'fn' => $shop->shop_id_fn ?? 0,
+            'ss' => $shop->shop_id_ss ?? 0,
+            'sf' => $shop->shop_id_sf ?? 0,
+            'dd' => $shop->shop_id_dd ?? 0,
+            'mqd' => $shop->shop_id_mqd ?? 0
+        ];
+
+        return $this->success($result);
     }
 }

@@ -141,7 +141,7 @@ class OrderController
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
-                if (($order->mt_status > 30) || ($order->fn_status > 30)) {
+                if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->dd_status > 30) || ($order->mqd_status > 30)) {
                     $logs = [
                         "des" => "【闪送订单回调】闪送接单，美团蜂鸟已经接过单了",
                         "mt_status" => $order->mt_status,
@@ -201,6 +201,44 @@ class OrderController
                     ]);
                     Log::info($log_prefix . '取消蜂鸟待接单订单成功');
                 }
+                // 取消美全达订单
+                if ($order->mqd_status === 20 || $order->mqd_status === 30) {
+                    $meiquanda = app("meiquanda");
+                    $result = $meiquanda->repealOrder($order->mqd_order_id);
+                    if ($result['code'] != 100) {
+                        $logs = [
+                            "des" => "【达达订单回调】美全达待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("【ERROR】美全达待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 4,
+                        'order_id' => $order->id,
+                        'des' => '取消【美全达】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消美全达待接单订单成功');
+                }
+                // 取消达达订单
+                if ($order->dd_status === 20 || $order->dd_status === 30) {
+                    $dada = app("dada");
+                    $result = $dada->orderCancel($order->order_id);
+                    if ($result['code'] != 0) {
+                        $logs = [
+                            "des" => "【美全达订单回调】达达待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 5,
+                        'order_id' => $order->id,
+                        'des' => '取消【达达】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消达达待接单订单成功');
+                }
                 // 更改信息，扣款
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
@@ -212,6 +250,8 @@ class OrderController
                             'ss_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,
                             'fn_status' => $order->ss_status < 20 ?: 7,
+                            'mqd_status' => $order->mqd_status < 20 ?: 7,
+                            'dd_status' => $order->dd_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
                             'peisong_id' => $order->ss_order_id,
                             'courier_name' => $name,
@@ -323,7 +363,7 @@ class OrderController
                             $update_data = [
                                 'ss_status' => 99
                             ];
-                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99])) {
+                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
                                 $update_data = [
                                     'status' => 99,
                                     'ss_status' => 99

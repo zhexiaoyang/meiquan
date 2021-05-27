@@ -25,7 +25,9 @@ class CreateMtOrder implements ShouldQueue
     protected $weight_money = 0;
     protected $time_money = 0;
     protected $money_ss = 16;
+    protected $money_dd = 8;
     protected $log = "";
+    protected $dada_order_id = '';
 
     /**
      * Create a new job instance.
@@ -68,12 +70,14 @@ class CreateMtOrder implements ShouldQueue
             $fn_switch = $setting->fengniao;
             $ss_switch = $setting->shansong;
             $mqd_switch = $setting->meiquanda;
+            $dd_switch = $setting->dada;
         } else {
             $order_ttl = config("ps.shop_setting.delay_reset") * 60;
             $mt_switch = config("ps.shop_setting.meituan");
             $fn_switch = config("ps.shop_setting.fengniao");
             $ss_switch = config("ps.shop_setting.shansong");
             $mqd_switch = config("ps.shop_setting.meiquanda");
+            $dd_switch = config("ps.shop_setting.dada");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -111,9 +115,43 @@ class CreateMtOrder implements ShouldQueue
         $money_fn = 0;
         $money_ss = 0;
         $money_mqd = 0;
+        $money_dd = 0;
         $ss_order_id = "";
 
         $order = Order::query()->find($this->order->id);
+
+        // *****************************************
+        // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
+        if ($shop->shop_id_dd && $dd_switch && !$this->order->fail_dd && ($order->dd_status === 0)) {
+            $dada = app("dada");
+            $check_dd= $dada->orderCalculate($shop, $this->order);
+            $money_dd = $check_dd['result']['fee'] ?? 0;
+            if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 0) ) {
+                $this->dada_order_id = $check_dd['result']['deliveryNo'];
+                $this->money_dd = $money_dd;
+                $this->services['dada'] = $money_dd;
+                Log::info($this->log."达达可以，金额：{$money_dd}");
+            } else {
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $check_dd['msg'] ?? "达达校验订单请求失败"]);
+                Log::info($this->log."达达校验订单请求失败");
+            }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'dd_status' => $order->dd_status,
+                'dada' => $dd_switch,
+                'fail_dd' => $this->order->fail_dd
+            ];
+            Log::info($this->log."跳出美全达发单", $log_arr);
+        }
+
+        // 判断用户金额是否满足美全达订单
+        if ($user->money < ($money_mqd + $use_money)) {
+            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+            Log::info($this->log."用户金额不足发美全达单");
+            return;
+        }
 
         // *****************************************
 
@@ -290,6 +328,9 @@ class CreateMtOrder implements ShouldQueue
 
         // 更新价格
         $money_arr = [];
+        if ($money_dd) {
+            $money_arr["money_dd"] = $money_dd;
+        }
         if ($money_mqd) {
             $money_arr["money_mqd"] = $money_mqd;
         }
@@ -349,9 +390,75 @@ class CreateMtOrder implements ShouldQueue
                 Log::info($this->log."发送美全达订单失败");
             }
             return;
+        } else if ($ps === "dada") {
+            if ($this->dada()) {
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
+                }
+            } else {
+                // $this->dingTalk("发送订单失败", "发送订单失败");
+                Log::info($this->log."发送达达订单失败");
+            }
+            return;
         }
         Log::info($this->log."发送订单失败，没有返回最小平台");
         // $this->dingTalk("发送订单失败", "没有返回最小平台");
+    }
+
+    public function dada()
+    {
+        $order = Order::query()->find($this->order->id);
+
+        if ($order->status > 30) {
+            Log::info($this->log."不能发达达达订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->dd_status >= 20) {
+            Log::info($this->log."不能发送达达订单，达达状态不是0，状态：{$order->mqd_status}");
+        }
+
+        if ($order->fail_dd) {
+            Log::info($this->log."不能发送达达订单，已有达达错误信息");
+            return false;
+        }
+
+        $dada = app("dada");
+        $money = $this->money_ss;
+        // 发送美全达订单
+        $result_dd = $dada->createOrder($this->dada_order_id);
+        if ($result_dd['code'] === 0) {
+            // 订单发送成功
+            Log::info($this->log."发送达达订单成功，返回参数：", [$result_dd]);
+            // 写入订单信息
+            $update_info = [
+                'money_mqd' => $money,
+                'dd_order_id' => $this->order->order_id,
+                'dd_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 5,
+                'order_id' => $this->order->id,
+                'des' => '【达达】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."达达更新创建订单状态成功");
+            return true;
+        } else {
+            $fail_dd = $result_dd['message'] ?? "达达创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $fail_dd, 'dd_status' => 3]);
+            Log::info($this->log."达达发送订单失败：{$fail_dd}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."达达发送订单失败，没有平台了");
+            }
+        }
+
+        return false;
     }
 
     public function meiquanda()
@@ -407,7 +514,7 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
-            Log::info($this->log."美团更新创建订单状态成功");
+            Log::info($this->log."美全达更新创建订单状态成功");
             return true;
         } else {
             $fail_mqd = $result_mqd['message'] ?? "美全达创建订单失败";

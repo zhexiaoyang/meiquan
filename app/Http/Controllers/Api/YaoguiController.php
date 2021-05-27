@@ -77,6 +77,7 @@ class YaoguiController
                 'type' => 11,
                 'status' => 0,
                 'order_type' => 0,
+                'platform' => 6,
                 'goods_pickup_info' => $data['takeCode'] ?? substr($data['fourthPartyOrderId'], -6),
             ];
 

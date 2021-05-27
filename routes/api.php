@@ -35,6 +35,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）
         Route::get("user/contract/sign", "ContractController@userSign");
+        // 门店所有跑腿平台状态
+        Route::get("{shop}/platform", "ShopController@platform")->name("api.shop.platform");
         // 用户全部可发单药店
         Route::get("shop/all", "ShopController@all")->name("api.shop.all");
         // 订单状态

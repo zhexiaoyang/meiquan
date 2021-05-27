@@ -117,7 +117,7 @@ class DaDaController extends Controller
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
-                if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->ss_status > 30) || ($order->dd_status > 30)) {
+                if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->ss_status > 30) || ($order->mqd_status > 30)) {
                     $logs = [
                         "des" => "【达达订单回调】达达接单，其它平台已经接过单了",
                         "mt_status" => $order->mt_status,
@@ -227,7 +227,7 @@ class DaDaController extends Controller
                             'mt_status' => $order->mt_status < 20 ?: 7,
                             'fn_status' => $order->fn_status < 20 ?: 7,
                             'ss_status' => $order->ss_status < 20 ?: 7,
-                            'mqd_status' => $order->dd_status < 20 ?: 7,
+                            'mqd_status' => $order->mqd_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
                             'peisong_id' => $order->dd_order_id,
                             'courier_name' => $name,

@@ -39,7 +39,6 @@ class CreateMtShop implements ShouldQueue
             $result = $meituan->shopCreate($this->shop);
             if (isset($result['code']) && $result['code'] == 0) {
                 if ($this->shop->status < 10) {
-                    // $this->shop->status = 20;
                     $this->shop->save();
                 }
             }
@@ -50,8 +49,6 @@ class CreateMtShop implements ShouldQueue
             $result = $fengniao->createShop($this->shop);
             if (isset($result['code']) && $result['code'] == 200) {
                 if ($this->shop->status < 10) {
-                    // $this->shop->status = 20;
-                    $this->shop->save();
                 }
             }
         }
@@ -60,8 +57,22 @@ class CreateMtShop implements ShouldQueue
             $shansong = app("shansong");
             $result = $shansong->createShop($this->shop);
             if (isset($result['status']) && $result['status'] == 200) {
-                // $this->shop->status = 40;
+                if ($this->shop->status < 40) {
+                    $this->shop->status = 40;
+                }
                 $this->shop->shop_id_ss = $result['data'];
+                $this->shop->save();
+            }
+        }
+
+        if (!$this->shop->shop_id_dd) {
+            $dada = app("dada");
+            $result = $dada->createShop($this->shop);
+            if (isset($result['code']) && $result['code'] == 0) {
+                if ($this->shop->status < 40) {
+                    $this->shop->status = 40;
+                }
+                $this->shop->shop_id_dd = $this->shop->id;
                 $this->shop->save();
             }
         }

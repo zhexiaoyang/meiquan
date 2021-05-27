@@ -890,14 +890,68 @@ class OrderController extends Controller
                         $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消蜂鸟订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【美团外卖接口取消订单】取消美全达订单返回失败",
                         "id" => $order->id,
                         "ps" => "美全达",
                         "order_id" => $order->order_id
                     ];
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
+                }
+            } elseif ($ps == 5) {
+                $dada = app("dada");
+                $result = $dada->orderCancel($order->order_id);
+                if ($result['code'] == 0) {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消达达跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            // 更改订单信息
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'dd_status' => 99,
+                            ]);
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "（美团外卖）取消【达达】跑腿订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "达达",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【美团外卖接口取消订单】取消达达订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "达达",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
                 }
             }
             return $this->success();
@@ -949,6 +1003,32 @@ class OrderController extends Controller
                     OrderLog::create([
                         "order_id" => $order->id,
                         "des" => "（美团外卖）取消【闪送】跑腿订单"
+                    ]);
+                }
+            }
+            if (in_array($order->mqd_status, [20, 30])) {
+                $meiquanda = app("meiquanda");
+                $result = $meiquanda->repealOrder($order->mqd_order_id);
+                if ($result['code'] == 100) {
+                    $order->status = 99;
+                    $order->mqd_status = 99;
+                    $order->save();
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "（美团外卖）取消【美全达】跑腿订单"
+                    ]);
+                }
+            }
+            if (in_array($order->dd_status, [20, 30])) {
+                $dada = app("dada");
+                $result = $dada->orderCancel($order->order_id);
+                if ($result['code'] == 0) {
+                    $order->status = 99;
+                    $order->dd_status = 99;
+                    $order->save();
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "（美团外卖）取消【达达】跑腿订单"
                     ]);
                 }
             }
@@ -1246,14 +1326,68 @@ class OrderController extends Controller
                         $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消蜂鸟订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【美团外卖接口取消订单】取消美全达订单返回失败",
                         "id" => $order->id,
                         "ps" => "美全达",
                         "order_id" => $order->order_id
                     ];
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
+                }
+            } elseif ($ps == 5) {
+                $dada = app("dada");
+                $result = $dada->orderCancel($order->order_id);
+                if ($result['code'] == 0) {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消达达跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            // 更改订单信息
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'dd_status' => 99,
+                            ]);
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "（美团外卖）取消【达达】跑腿订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "达达",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消达达订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【美团外卖接口取消订单】取消达达订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "达达",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
                 }
             }
             return $this->success();
@@ -1313,6 +1447,36 @@ class OrderController extends Controller
                         "des" => "操作取消【闪送】跑腿订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，闪送成功");
+                }
+            }
+            if (in_array($order->mqd_status, [20, 30])) {
+                \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消美全达");
+                $meiquanda = app("meiquanda");
+                $result = $meiquanda->repealOrder($order->mqd_order_id);
+                if ($result['code'] == 100) {
+                    $order->status = 99;
+                    $order->mqd_status = 99;
+                    $order->save();
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "操作取消【美全达】跑腿订单"
+                    ]);
+                    \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美全达成功");
+                }
+            }
+            if (in_array($order->dd_status, [20, 30])) {
+                \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消达达");
+                $dada = app("dada");
+                $result = $dada->orderCancel($order->order_id);
+                if ($result['code'] == 0) {
+                    $order->status = 99;
+                    $order->dd_status = 99;
+                    $order->save();
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "操作取消【达达】跑腿订单"
+                    ]);
+                    \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，达达成功");
                 }
             }
             return $this->success();
@@ -1606,5 +1770,14 @@ class OrderController extends Controller
 
         return $this->success();
     }
+
+    /**
+     * 取消平台订单-----取消平台订单
+     * 取消平台订单-----取消平台订单
+     * 取消平台订单-----取消平台订单
+     * 取消平台订单-----取消平台订单
+     */
+
+    // private
 }
 
