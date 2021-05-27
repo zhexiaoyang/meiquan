@@ -125,8 +125,9 @@ class CreateMtOrder implements ShouldQueue
         if ($shop->shop_id_dd && $dd_switch && !$this->order->fail_dd && ($order->dd_status === 0)) {
             $dada = app("dada");
             $check_dd= $dada->orderCalculate($shop, $this->order);
-            $money_dd = $check_dd['result']['fee'] ?? 0;
-            if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 0) ) {
+            // $money_dd = $check_dd['result']['fee'] ?? 0;
+            $money_dd = (($check_dd['result']['fee'] ?? 0)) + 1;
+            if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
                 $this->dada_order_id = $check_dd['result']['deliveryNo'];
                 $this->money_dd = $money_dd;
                 $this->services['dada'] = $money_dd;
