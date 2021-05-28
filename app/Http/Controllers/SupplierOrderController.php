@@ -441,7 +441,8 @@ class SupplierOrderController extends Controller
             "amount" => $amount,
             "money" => $user->money,
             "created_at" => $created_at,
-            "orders" => $orders
+            "orders" => $orders,
+            "timestamp" => strtotime($created_at) + 1800 - time() > 0 ? strtotime($created_at) + 1800 - time() : 0
         ];
 
         return $this->success($result);
