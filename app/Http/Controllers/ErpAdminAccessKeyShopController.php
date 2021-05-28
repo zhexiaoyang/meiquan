@@ -72,6 +72,7 @@ class ErpAdminAccessKeyShopController extends Controller
         }
 
         $shop->shop_name = $shop_name;
+        $shop->shop_id = $mt_shop_id;
         $shop->mt_shop_id = $mt_shop_id;
         $shop->type = $type;
         $shop->save();
