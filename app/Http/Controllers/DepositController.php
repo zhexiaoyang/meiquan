@@ -69,7 +69,7 @@ class DepositController extends Controller
             if ($type === 1) {
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->scan($order);
             } else {
-                $wechatOrder = Pay::wechat(config("pay.wechat_supplier"))->scan($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->scan($order);
             }
 
             $data = [
@@ -108,7 +108,7 @@ class DepositController extends Controller
             if ($type === 1) {
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->mp($order);
             } else {
-                $wechatOrder = Pay::wechat(config("pay.wechat_supplier"))->mp($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->mp($order);
             }
 
             \Log::info("公众号支付获取参数", [$wechatOrder]);
