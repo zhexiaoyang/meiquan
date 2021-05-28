@@ -34,6 +34,7 @@ class ErpAdminAccessKeyShopController extends Controller
         if (!$mt_shop_id = $request->get("mt_shop_id")) {
             return $this->error("美团ID不能为空");
         }
+        $data['shop_id'] = $mt_shop_id;
         $data['mt_shop_id'] = $mt_shop_id;
 
         if (!$type = $request->get("type")) {
