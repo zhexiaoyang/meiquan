@@ -17,7 +17,7 @@ class PaymentController
     {
         \Log::info("微信支付回调全部参数", $request->all());
         // 校验回调参数是否正确
-        $data  = Pay::wechat(config("wechat"))->verify($request->getContent());
+        $data  = Pay::wechat(config("pay.wechat"))->verify($request->getContent());
         // 找到对应的订单
         $order = Deposit::where('no', $data->out_trade_no)->first();
 
