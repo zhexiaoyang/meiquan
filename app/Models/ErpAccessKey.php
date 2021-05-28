@@ -49,7 +49,7 @@ class ErpAccessKey extends Model
     {
         // access_key
         for ($i = 0; $i < 20; $i++) {
-            $access_secret = static::randStr(8, 2);
+            $access_secret = static::randStr(32);
             if (!static::query()->where('access_secret', $access_secret)->exists()) {
                 return $access_secret;
             }
