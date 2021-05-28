@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Models\UserFrozenBalance;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
-use Pay;
+use Yansongda\Pay\Pay;
 use DB;
 
 class PaymentController
@@ -17,7 +17,12 @@ class PaymentController
     {
         \Log::info("微信支付回调全部参数", $request->all());
         // 校验回调参数是否正确
-        $data  = Pay::wechat()->verify($request->getContent());
+        $data  = Pay::wechat(config("pay.wechat"))->verify($request->getContent());
+        \Log::info("微信支付回调全部参数data", [$data]);
+        if (empty($data)) {
+            $data  = Pay::wechat(config("pay.wechat_supplier"))->verify($request->getContent());
+            \Log::info("微信支付回调全部参数data", [$data]);
+        }
         // 找到对应的订单
         $order = Deposit::where('no', $data->out_trade_no)->first();
 
@@ -232,7 +237,7 @@ class PaymentController
     {
         // \Log::info('订单支付回调', $request->all());
         // 校验回调参数是否正确
-        $data  = Pay::wechat()->verify($request->getContent());
+        $data  = Pay::wechat(config("pay.wechat_supplier"))->verify($request->getContent());
         \Log::info('[商城订单-微信支付回调-全部参数]', [$data]);
         // 找到对应的订单
         $orders = SupplierOrder::query()->where('no', $data->out_trade_no)->get();
