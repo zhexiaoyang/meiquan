@@ -375,6 +375,7 @@ Route::middleware(["force-json"])->group(function() {
  */
 Route::group(["namespace" => "Api"], function () {
     Route::post("payment/wechat/notify", "PaymentController@wechatNotify");
+    Route::post("payment/wechat/notify2", "PaymentController@wechatNotify2");
     Route::post("payment/wechat/notify_supplier", "PaymentController@wechatSupplierNotify");
     Route::post("payment/alipay/notify", "PaymentController@alipayNotify");
 });

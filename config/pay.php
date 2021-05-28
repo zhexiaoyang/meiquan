@@ -113,7 +113,7 @@ return [
         'mch_id' => env('SUPPLIER_WECHAT_MCH_ID', ''),
 
         // 微信支付异步通知地址
-        'notify_url' => env('WECHAT_NOTIFY_URL', ''),
+        'notify_url' => 'http://psapi.meiquanda.com/api/payment/wechat/notify2',
 
         // 微信支付签名秘钥
         'key' => env('SUPPLIER_WECHAT_KEY', ''),
