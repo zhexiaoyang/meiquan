@@ -285,6 +285,12 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("/shop/examine/{shop}", "ShopController@examine")->name("shop.examine");
         // 可以看到的所有门店
         Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
+        // 个人中心-商城余额-微信支付-公众号
+        // Route::post("deposit/shop/wechat/mp", "DepositController@shopWechatMp");
+        // 个人中心-商城余额-微信支付-扫码
+        // Route::post("deposit/shop/wechat/scan", "DepositController@shopWechatScan");
+        // 个人中心-商城余额-微信支付-小程序
+        Route::post("deposit/shop/wechat/miniapp", "DepositController@shopWechatMiniApp");
         // 个人中心-用户充值
         Route::resource("deposit", "DepositController", ["only" => ["store", "show", "index"]]);
         // 所有权限列表
@@ -334,7 +340,13 @@ Route::middleware(["force-json"])->group(function() {
             Route::resource("order", "SupplierOrderController");
             // 支付订单
             Route::post("order/pay", "PaymentController@pay");
-            // 支付订单
+            // 商城订单-微信-公众号-支付
+            Route::post("pay/order/wechat/mp", "PaymentController@supplierOrderByWeChatMp");
+            // 商城订单-微信-扫码-支付
+            Route::post("pay/order/wechat/scan", "PaymentController@supplierOrderByWeChatScan");
+            // 商城订单-微信-小程序-支付
+            Route::post("pay/order/wechat/miniapp", "PaymentController@supplierOrderByWeChatMiniApp");
+            // 确认收货
             Route::post("order/receive", "SupplierOrderController@receiveOrder");
             // 支付订单页面调用-订单详情
             Route::get("payOrders", "SupplierOrderController@payOrders");

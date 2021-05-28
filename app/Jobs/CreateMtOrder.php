@@ -143,7 +143,7 @@ class CreateMtOrder implements ShouldQueue
                 'dada' => $dd_switch,
                 'fail_dd' => $this->order->fail_dd
             ];
-            Log::info($this->log."跳出美全达发单", $log_arr);
+            Log::info($this->log."跳出达达发单", $log_arr);
         }
 
         // 判断用户金额是否满足美全达订单

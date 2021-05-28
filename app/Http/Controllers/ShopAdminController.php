@@ -11,6 +11,7 @@ use App\Models\SupplierUser;
 use App\Models\SupplierUserBalance;
 use App\Models\SupplierWithdrawal;
 use App\Models\User;
+use App\Models\UserFrozenBalance;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -290,10 +291,36 @@ class ShopAdminController extends Controller
                         'cancel_reason' => '管理员取消'
                     ]);
                     if ($order->frozen_fee) {
-                        DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
+                        if ($user = User::query()->find($order->user_id)) {
+                            // 取消订单-商城余额支付部分返回到商城余额
+                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
+                            $logs = new UserFrozenBalance([
+                                "user_id" => $order->user_id,
+                                "money" => $order->frozen_fee,
+                                "type" => 1,
+                                "before_money" => $user->frozen_money,
+                                "after_money" => $user->frozen_money + $order->frozen_fee,
+                                "description" => "商城订单取消(余额)：{$order->no}",
+                                "tid" => $order->id
+                            ]);
+                            $logs->save();
+                        }
                     }
                     if ($order->pay_fee) {
-                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->pay_fee);
+                        if ($user = User::query()->find($order->user_id)) {
+                            // 取消订单-支付部分返回到商城余额
+                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->pay_fee);
+                            $logs = new UserFrozenBalance([
+                                "user_id" => $order->user_id,
+                                "money" => $order->pay_fee,
+                                "type" => 1,
+                                "before_money" => $user->frozen_money,
+                                "after_money" => $user->frozen_money + $order->pay_fee,
+                                "description" => "商城订单取消(支付)：{$order->no}",
+                                "tid" => $order->id
+                            ]);
+                            $logs->save();
+                        }
                     }
                 });
             } catch (\Exception $e) {
