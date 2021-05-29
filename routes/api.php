@@ -360,6 +360,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("depot/authList", "ExampleProductController@index");
             // 药品审核
             Route::post("depot/setAuth", "ExampleProductController@setAuth");
+            // 商城余额明细
+            Route::get("balance", "UserFrozenBalanceController@index");
         });
         // 设置默认收货门店
         Route::post("shop/userShop", "ShopController@setUserShop");

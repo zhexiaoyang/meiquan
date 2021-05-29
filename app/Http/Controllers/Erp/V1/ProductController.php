@@ -82,8 +82,6 @@ class ProductController extends Controller
                 $medicine_data[] = $tmp;
             }
         }
-        \Log::info("dadada", [$data]);
-        \Log::info("dadada", [$medicine_data]);
 
         if (empty($medicine_data)) {
             return $this->error("参数错误：data内容错误", 701);

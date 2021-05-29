@@ -23,11 +23,24 @@ class SupplierOrderController extends Controller
     public function index(Request $request)
     {
         $user_id = $request->user()->id;
-
         $page_size = $request->get("page_size", 10);
+        $idx = $request->get("idx", 0);
+
         $query = SupplierOrder::with(['shop' => function($query) {
             $query->select("id","name");
         }, 'items'])->orderBy("id", "desc")->where("user_id", $user_id);
+
+        if (in_array($idx, [1, 2, 3])) {
+            if ($idx == 1) {
+                $query->where("status", 0);
+            }
+            if ($idx == 2) {
+                $query->whereIn("status", [30, 50]);
+            }
+            if ($idx == 3) {
+                $query->where("status", 70);
+            }
+        }
 
         $orders = $query->paginate($page_size);
 
@@ -58,6 +71,7 @@ class SupplierOrderController extends Controller
                             $item_info['unit'] = $item->unit;
                             $item_info['amount'] = $item->amount;
                             $item_info['price'] = $item->price;
+                            $item_info['is_active'] = $item->is_active;
                             $order_info['items'][] = $item_info;
                         }
                     }
@@ -212,6 +226,7 @@ class SupplierOrderController extends Controller
                         'spec'  => $depot->spec,
                         'unit'  => $depot->unit,
                         'upc'  => $depot->upc,
+                        'is_active'  => $product->is_active,
                         'commission'  => $product->commission,
                         'mq_charge_fee'  => $item_charge_fee,
                     ]);
@@ -357,6 +372,9 @@ class SupplierOrderController extends Controller
         $order_info['ship_no'] = $order->ship_no;
         $order_info['ship_platform'] = $order->ship_platform;
         $order_info['total_fee'] = $order->total_fee;
+        $order_info['product_fee'] = $order->product_fee;
+        $order_info['frozen_fee'] = $order->frozen_fee;
+        $order_info['pay_fee'] = $order->pay_fee;
         $order_info['original_amount'] = $order->original_amount;
         $order_info['payment_method'] = $order->payment_method;
         $order_info['status'] = $order->status;
