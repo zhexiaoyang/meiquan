@@ -15,13 +15,18 @@ class SupplierShopController extends Controller
     {
         $shop_id = $request->get("shop_id", 0);
 
-        $shop = SupplierUser::select("id","avatar","name","telephone","description","notice","shtxd","yzymbab",
+        $shop = SupplierUser::select("id","avatar","name","telephone","description","notice","shtxd","yzymbab","starting",
         "yyzz","ypjy","spjy","ylqx","ndbg","elqx","khxk","nsrdj","hggh","qygl","kpxx","ypgxht","zlbzxys","xssqwts")
             ->find($shop_id);
 
         if (!$shop) {
             return $this->error("供货商不存在");
         }
+
+        $shop->count = SupplierProduct::query()->where([
+            "user_id"=> $shop_id,
+            "status"=> 20,
+        ])->count();
 
         return $this->success($shop);
     }
