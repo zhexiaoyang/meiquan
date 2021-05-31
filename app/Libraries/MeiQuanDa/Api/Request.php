@@ -34,7 +34,7 @@ class Request
             'version' => 1,
             'timestamp' => time(),
             'noncestr' => (string) round(11111, 99999),
-            'team_token' => '1PKR3D13JCBIMWAW',
+            'team_token' => 'T3J96RMYHCKDFGJO',
         ]);
 
         $params['sign'] = Tool::getSign($params, $this->app_secret);
