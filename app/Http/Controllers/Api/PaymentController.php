@@ -229,7 +229,7 @@ class PaymentController
     {
         \Log::info("支付宝支付回调全部参数", $request->all());
         // 校验输入参数
-        $data  = Pay::alipay()->verify($request->all());
+        $data  = Pay::alipay(config("pay.alipay"))->verify($request->all());
         // 如果订单状态不是成功或者结束，则不走后续的逻辑
         if(!in_array($data->trade_status, ['TRADE_SUCCESS', 'TRADE_FINISHED'])) {
             return $this->alipay();
