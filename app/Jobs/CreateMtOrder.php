@@ -121,7 +121,7 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         // *****************************************
-        // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
+        // 判断是否开启达达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
         if ($shop->shop_id_dd && $dd_switch && !$this->order->fail_dd && ($order->dd_status === 0)) {
             $dada = app("dada");
             $check_dd= $dada->orderCalculate($shop, $this->order);
@@ -159,7 +159,8 @@ class CreateMtOrder implements ShouldQueue
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
         if ($shop->shop_id_mqd && $mqd_switch && !$this->order->fail_mqd && ($order->mqd_status === 0)) {
             // $money_mqd = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
-            $money_mqd = 6;
+            $money_mqd = distanceMoneyMqd($this->order->distance) + baseMoneyMqd($shop->city_level ?: 7) + timeMoneyMqd() + weightMoneyMqd($this->order->goods_weight);
+            // $money_mqd = 6;
             $this->services['meiquanda'] = $money_mqd;
             Log::info($this->log."美全达可以，金额：{$money_mqd}");
         } else {
@@ -481,14 +482,13 @@ class CreateMtOrder implements ShouldQueue
         $shop = Shop::query()->find($this->order->shop_id);
 
         $meiquanda = app("meiquanda");
-        // $distance = distanceMoney($this->order->distance);
-        // $base = baseMoney($shop->city_level ?: 9);
-        // $time_money = timeMoney();
+        $distance = distanceMoneyMqd($this->order->distance);
+        $base = baseMoneyMqd($shop->city_level ?: 9);
+        $time_money = timeMoneyMqd();
         // $date_money = dateMoney();
-        // $weight_money = weightMoney($this->order->goods_weight);
-        //
-        // $money = $base + $time_money + $date_money + $distance + $weight_money;
-        $money = 6;
+        $date_money = 0;
+        $weight_money = weightMoneyMqd($this->order->goods_weight);
+        $money = $base + $time_money + $date_money + $distance + $weight_money;
         // 发送美全达订单
         $result_mqd = $meiquanda->createOrder($shop, $this->order);
         if ($result_mqd['code'] === 100) {

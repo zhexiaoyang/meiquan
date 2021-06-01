@@ -48,6 +48,21 @@ function timeMoney() {
 }
 
 /**
+ * （美全达）时间加价
+ * @return int
+ */
+function timeMoneyMqd() {
+    $money = 0;
+
+    // 夜间加价
+    if (time() >= strtotime(date("Y-m-d 23:00:00")) || time() < strtotime(date("Y-m-d 6:30:00"))) {
+        $money +=3;
+    }
+
+    return $money;
+}
+
+/**
  * 时间加价
  * @return int
  */
@@ -113,6 +128,33 @@ function weightMoney($weight) {
 
     if ($weight > 20) {
         $money += ($weight - 20) * 2;
+    }
+
+    return $money;
+}
+
+/**
+ * （美全达）重量加价
+ * @param $weight
+ * @return float|int
+ */
+function weightMoneyMqd($weight) {
+    $money = 0;
+
+    if ($weight > 5) {
+        if ($weight <= 10) {
+            $money += ($weight - 5) * 1;
+        } else {
+            $money += 5 * 1;
+        }
+    }
+
+    if ($weight > 10) {
+        if ($weight <= 20) {
+            $money += ($weight - 10) * 2;
+        } else {
+            $money += 10 * 2;
+        }
     }
 
     return $money;
@@ -222,6 +264,42 @@ function distanceMoney($juli) {
 }
 
 /**
+ * （美全达）获取距离加价
+ * @param $juli
+ * @return float|int
+ */
+function distanceMoneyMqd($juli) {
+    $money = 0;
+
+    // if ($juli > 10) {
+    //     \Log::info('美团获取距离超出10公里', []);
+        // return -1;
+    // }
+
+    if ($juli > 2) {
+        if ($juli <= 5) {
+            $money += ceil($juli - 1) * 1;
+        } else {
+            $money += 3 * 1;
+        }
+    }
+
+    if ($juli > 5) {
+        if ($juli <= 10) {
+            $money += ceil($juli - 5) * 2;
+        } else {
+            $money += 5 * 2;
+        }
+    }
+
+    if ($juli > 10) {
+        $money += ceil($juli - 10) * 3;
+    }
+
+    return $money;
+}
+
+/**
  * 获取 蜂鸟 距离加价
  * @param $juli
  * @return float|int
@@ -285,6 +363,22 @@ function baseMoney($shop_live) {
 
     // $start_arr = [ 3 => 6.7, 4 => 6.5, 5 => 6, 6 => 5.5, 7 => 5.2, 11 => 7, 12 => 7, 13 => 6.7 ];
     $start_arr = [ 3 => 6.8, 4 => 6.6, 5 => 6.3, 6 => 5.8, 7 => 5.5, 11 => 7.5, 12 => 7.5, 13 => 6.8 ];
+
+    $b = $start_arr[$shop_live] ?? 7;
+    // $b = $b + 2;
+
+    return $b;
+}
+
+/**
+ * （美全达）获取基础价格
+ * @param $shop_live
+ * @return int|mixed
+ */
+function baseMoneyMqd($shop_live) {
+
+    // $start_arr = [ 3 => 6.7, 4 => 6.5, 5 => 6, 6 => 5.5, 7 => 5.2, 11 => 7, 12 => 7, 13 => 6.7 ];
+    $start_arr = [ 2 => 6.8, 3 => 6.8, 4 => 6.8, 5 => 6.8, 6 => 6.8, 7 => 6.8, 11 => 6.8, 12 => 6.8, 13 => 6.8 ];
 
     $b = $start_arr[$shop_live] ?? 7;
     // $b = $b + 2;
