@@ -3,6 +3,7 @@
 namespace App\Libraries\MeiQuanDa\Api;
 
 use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\Shop;
 
 class Api extends Request
@@ -36,6 +37,15 @@ class Api extends Request
             'is_calc_fee' => 1,
             'weight' => $order->goods_weight
         ];
+
+        $count = OrderLog::where([
+            "order_id" => $order->id,
+            "ps" => 4,
+        ])->count();
+
+        if ($count > 0) {
+            $data['order_no'] = $order->order_id . "#{$count}";
+        }
 
         if ($order->platform > 0 ) {
             if ($order->platform < 10) {
