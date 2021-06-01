@@ -22,7 +22,7 @@ class Api extends Request
             'shop_tag' => $shop->shop_lng . ',' . $shop->shop_lat,
             // 订单信息
             'customer_name' => $order->receiver_name,
-            'customer_tel' => str_replace('_', '#', $order->receiver_phone),
+            'customer_tel' => str_replace('_', ',', $order->receiver_phone),
             'customer_address' => $order->receiver_address,
             'customer_tag' => $order->receiver_lng . ',' . $order->receiver_lat,
             // 订单备注
