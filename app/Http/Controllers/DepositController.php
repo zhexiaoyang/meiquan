@@ -24,11 +24,10 @@ class DepositController extends Controller
 
     public function store(Request $request)
     {
-        \Log::info("充值全部参数", $request->all());
         $user  = $request->user();
         $amount = $request->get("amount", 0);
         $pay_method = $request->get("pay_method", 0);
-        $type = $request->get("type", 1);
+        $type = (int) $request->get("type", 1);
 
         if ($amount < 1) {
             return $this->error("金额不正确");
