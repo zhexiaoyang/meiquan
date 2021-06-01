@@ -24,6 +24,7 @@ class DepositController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info("充值全部参数", $request->all());
         $user  = $request->user();
         $amount = $request->get("amount", 0);
         $pay_method = $request->get("pay_method", 0);
@@ -62,13 +63,15 @@ class DepositController extends Controller
 
             $order = [
                 'out_trade_no'  => $deposit->no,
-                'body'          => '美全配送充值',
+                // 'body'          => '美全配送充值',
                 'total_fee'     => $deposit->amount * 100
             ];
 
             if ($type === 1) {
+                $order['body'] = '美全配送充值';
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->scan($order);
             } else {
+                $order['body'] = '美全商城充值';
                 $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->scan($order);
             }
 
@@ -100,14 +103,16 @@ class DepositController extends Controller
 
             $order = [
                 'out_trade_no'  => $deposit->no,
-                'body'          => '美全配送充值',
+                // 'body'          => '美全配送充值',
                 'total_fee'     => $deposit->amount * 100,
                 'openid'        => $auth['openid']
             ];
 
             if ($type === 1) {
+                $order['body'] = '美全配送充值';
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->mp($order);
             } else {
+                $order['body'] = '美全商城充值';
                 $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->mp($order);
             }
 
