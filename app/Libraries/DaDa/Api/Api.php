@@ -118,4 +118,9 @@ class Api extends Request
         ];
         return $this->post('/api/order/confirm/goods', $data);
     }
+
+    public function getUserAccount()
+    {
+        return $this->post('/api/balance/query', ['category' => 1]);
+    }
 }

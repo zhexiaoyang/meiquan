@@ -190,4 +190,9 @@ class Api extends Request
 
         return $this->post('/openapi/merchants/v5/confirmGoodsReturn', $data);
     }
+
+    public function getUserAccount()
+    {
+        return $this->post('/openapi/merchants/v5/getUserAccount', []);
+    }
 }
