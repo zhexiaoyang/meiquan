@@ -18,7 +18,7 @@ class AccountMoneyCronJob extends CronJob
     public function isImmediate()
     {
         // 是否立即执行第一次，false则等待间隔时间后执行第一次
-        return true;
+        return false;
     }
     // --- 重载对应的方法来返回配置：结束
     public function run()
@@ -32,8 +32,8 @@ class AccountMoneyCronJob extends CronJob
             $ss_res = $ss->getUserAccount();
             if (isset($ss_res['data']['balance'])) {
                 $ss_money = $ss_res['data']['balance'] / 100;
+                \Log::info("[检查闪送、达达余额任务]-闪送余额：{$ss_money}");
                 if ($ss_money < 1000) {
-                    \Log::info("[检查闪送、达达余额任务]-闪送余额：{$ss_money}");
                     app('easysms')->send('13843209606', [
                         'template' => 'SMS_218028146',
                         'data' => [
@@ -47,7 +47,7 @@ class AccountMoneyCronJob extends CronJob
             if (isset($dd_res['result']['deliverBalance'])) {
                 $dd_money = $dd_res['result']['deliverBalance'];
                 \Log::info("[检查闪送、达达余额任务]-达达余额：{$dd_money}");
-                if ($dd_money < 500) {
+                if ($dd_money < 300) {
                     app('easysms')->send('13843209606', [
                         'template' => 'SMS_218028204',
                         'data' => [

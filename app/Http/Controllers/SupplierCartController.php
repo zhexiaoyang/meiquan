@@ -52,7 +52,7 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
                     continue;
                 }
                 $starting = $supplier->starting;
@@ -177,7 +177,7 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
                     continue;
                 }
 
@@ -388,7 +388,6 @@ class SupplierCartController extends Controller
         return $this->success();
     }
 
-
     public function change(Request $request)
     {
         $num = $request->get("num", 0);
@@ -407,7 +406,6 @@ class SupplierCartController extends Controller
 
         return $this->success();
     }
-
 
     public function checked(Request $request)
     {
@@ -434,5 +432,59 @@ class SupplierCartController extends Controller
 
 
         return $this->success();
+    }
+
+    /**
+     * 查询购物车总商品数量
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/6/3 3:36 下午
+     */
+    public function number(Request $request)
+    {
+        $user = $request->user();
+        $user_id = $user->id;
+        $shop_id = $user->shop_id;
+        $number= 0;
+
+        if (!$shop = Shop::query()->find($shop_id)) {
+            return $this->success(['number' => $number]);
+        }
+
+        // 查询门店城市编码
+        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+
+        $carts = SupplierCart::with(["product.depot" => function($query) {
+            $query->select("id","cover","name","spec","unit");
+        },"product.city_price" => function($query) use ($city_code) {
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+        }])
+            ->where("user_id", $user_id)
+            ->whereHas("product", function ($query) use ($city_code) {
+                $query->select("id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
+                    $query->where("city_code", $city_code->id);
+                });
+            })
+            ->get();
+
+        if (!empty($carts)) {
+            $shop_cart_data = [];
+            foreach ($carts as $cart) {
+                $shop_cart_data[$cart->product->user_id][] = $cart;
+            }
+            foreach ($shop_cart_data as $shop_id => $shop_cart) {
+                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
+                    continue;
+                }
+                foreach ($shop_cart as $item) {
+                    if ($item->product->depot->id) {
+                        $number += $item->amount;
+                    }
+                }
+            }
+        }
+
+        return $this->success(['number' => $number]);
     }
 }

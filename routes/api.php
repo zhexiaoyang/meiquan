@@ -334,6 +334,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("cart/checked", "SupplierCartController@checked");
             // 采购购物车-结算
             Route::get("cart/settlement", "SupplierCartController@settlement");
+            // 采购购物车-商品总数量
+            Route::get("cart/number", "SupplierCartController@number");
             // 地址
             Route::get("address", "SupplierAddressController@index");
             // 订单
