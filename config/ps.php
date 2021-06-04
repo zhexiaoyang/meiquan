@@ -1,6 +1,12 @@
 <?php
 
 return [
+    // 蜂鸟配送
+    "ele" => [
+        "app_key" => env("ELE_APP_KEY", ""),
+        "secret" => env("ELE_SECRET", ""),
+        "url" => env("ELE_URL", ""),
+    ],
     // 达达配送
     "dada" => [
         "app_key" => env("DADA_APP_KEY", ""),
