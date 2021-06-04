@@ -147,10 +147,10 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 判断用户金额是否满足美全达订单
-        if ($user->money < ($money_mqd + $use_money)) {
+        if ($user->money < ($money_dd + $use_money)) {
             DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-            Log::info($this->log."用户金额不足发美全达单");
+            Log::info($this->log."用户金额不足发达达单");
             return;
         }
 
