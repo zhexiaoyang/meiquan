@@ -42,8 +42,7 @@ class SupplierCartController extends Controller
                 $query->select("id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
                     $query->where("city_code", $city_code->id);
                 });
-            })
-            ->get();
+            })->orderByDesc("id")->get();
 
         if (!empty($carts)) {
             $shop_cart_data = [];
