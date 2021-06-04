@@ -126,7 +126,7 @@ class AuthController extends Controller
         }
 
         if (!hash_equals($verifyData['code'], $captcha)) {
-            if ($phone !== '18611683889' && $verifyData !== '0000') {
+            if ($phone !== '18611683889' && $captcha !== '0000') {
                 return $this->error('验证码失效');
             }
         }
