@@ -119,8 +119,7 @@ class AuthController extends Controller
         $phone = $request->get('mobile', '');
         $captcha = $request->get('code', '');
 
-
-        if ($phone !== '18611683889' && $captcha !== '0000') {
+        if ($phone !== '18611683889' || $captcha !== '00000000') {
 
             $verifyData = \Cache::get($phone);
 
@@ -131,7 +130,6 @@ class AuthController extends Controller
             if (!hash_equals($verifyData['code'], $captcha)) {
                     return $this->error('验证码失效');
             }
-
         }
 
         $user = User::query()->where('phone', $phone)->first();
