@@ -95,7 +95,10 @@ class CreateMtOrder implements ShouldQueue
 
         // 判断用户金额是否满足最小订单
         if ($user->money <= 5.2) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            if ($this->order->status < 20) {
+                DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            }
+            // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 5]));
             Log::info($this->log."用户金额不足5.2元,不能发单");
             // Log::info('发送订单-用户金额不足5.2元', ['id' => $this->order->id, 'order_id' => $this->order->order_id]);
@@ -106,7 +109,9 @@ class CreateMtOrder implements ShouldQueue
         $orders = DB::table("orders")->where("user_id", $user->id)->whereIn("status", [20, 30])->get();
         if ($orders->isNotEmpty()) {
             foreach ($orders as $v) {
-                $use_money += max($v->money_mt, $v->money_fn, $v->money_ss);
+                if ($v->id !== $this->order->id) {
+                    $use_money += max($v->money_mt, $v->money_fn, $v->money_ss, $v->money_dd, $v->money_mqd);
+                }
             }
         }
         Log::info($this->log."用户冻结金额：{$use_money}");
@@ -136,6 +141,17 @@ class CreateMtOrder implements ShouldQueue
                 DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $check_dd['msg'] ?? "达达校验订单请求失败"]);
                 Log::info($this->log."达达校验订单请求失败");
             }
+
+            // 判断用户金额是否满足达达订单
+            if ($user->money < ($money_dd + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发达达单");
+                return;
+            }
         } else {
             $log_arr = [
                 'shop_id' => $shop->shop_id,
@@ -144,14 +160,6 @@ class CreateMtOrder implements ShouldQueue
                 'fail_dd' => $this->order->fail_dd
             ];
             Log::info($this->log."跳出达达发单", $log_arr);
-        }
-
-        // 判断用户金额是否满足美全达订单
-        if ($user->money < ($money_dd + $use_money)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-            Log::info($this->log."用户金额不足发达达单");
-            return;
         }
 
         // *****************************************
@@ -163,6 +171,17 @@ class CreateMtOrder implements ShouldQueue
             // $money_mqd = 6;
             $this->services['meiquanda'] = $money_mqd;
             Log::info($this->log."美全达可以，金额：{$money_mqd}");
+
+            // 判断用户金额是否满足美全达订单
+            if ($user->money < ($money_mqd + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发美全达单");
+                return;
+            }
         } else {
             $log_arr = [
                 'shop_id' => $shop->shop_id,
@@ -171,14 +190,6 @@ class CreateMtOrder implements ShouldQueue
                 'fail_meiquanda' => $this->order->fail_mqd
             ];
             Log::info($this->log."跳出美全达发单", $log_arr);
-        }
-
-        // 判断用户金额是否满足美全达订单
-        if ($user->money < ($money_mqd + $use_money)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-            Log::info($this->log."用户金额不足发美全达单");
-            return;
         }
 
         // ************************************************
@@ -197,6 +208,17 @@ class CreateMtOrder implements ShouldQueue
                 DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $check_mt['message'] ?? "美团校验订单请求失败"]);
                 Log::info($this->log."美团校验订单请求失败");
             }
+
+            // 判断用户金额是否满足美团订单
+            if ($user->money < ($money_mt + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发美团单");
+                return;
+            }
         } else {
             $log_arr = [
                 'shop_id' => $shop->shop_id,
@@ -205,14 +227,6 @@ class CreateMtOrder implements ShouldQueue
                 'fail_mt' => $this->order->fail_mt
             ];
             Log::info($this->log."跳出美团发单", $log_arr);
-        }
-
-        // 判断用户金额是否满足美团订单
-        if ($user->money < ($money_mt + $use_money)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-            Log::info($this->log."用户金额不足发美团单");
-            return;
         }
 
         // 判断蜂鸟是否可以接单、并加入数组
@@ -237,6 +251,17 @@ class CreateMtOrder implements ShouldQueue
                         DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $check_fn['msg'] ?? "蜂鸟校验请求失败"]);
                         Log::info($this->log."蜂鸟校验请求失败");
                     }
+
+                    // 判断用户金额是否满足蜂鸟订单
+                    if ($user->money < ($money_fn + $use_money)) {
+                        if ($this->order->status < 20) {
+                            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                        }
+                        // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                        dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
+                        Log::info($this->log."用户金额不足发蜂鸟单");
+                        return;
+                    }
                 }
             }
         } else {
@@ -247,14 +272,6 @@ class CreateMtOrder implements ShouldQueue
                 'fail_fn' => $this->order->fail_fn
             ];
             Log::info($this->log."跳出蜂鸟发单", $log_arr);
-        }
-
-        // 判断用户金额是否满足蜂鸟订单
-        if ($user->money < ($money_fn + $use_money)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
-            Log::info($this->log."用户金额不足发蜂鸟单");
-            return;
         }
 
         // 判断闪送是否可以接单、并加入数组
@@ -294,6 +311,17 @@ class CreateMtOrder implements ShouldQueue
                     // $log_arr = ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id];
                     Log::info($this->log."闪送可以，金额：{$money_ss},money_log:{$money_log}");
                     // Log::info('发送订单-闪送可以', ['money' => $money_ss, 'money_log' => $money_log, 'id' => $this->order->id, 'order_id' => $this->order->order_id]);
+
+                    // 判断用户金额是否满足闪送订单
+                    if ($user->money < ($money_ss + $use_money)) {
+                        if ($this->order->status < 20) {
+                            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                        }
+                        // DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                        dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
+                        Log::info($this->log."用户金额不足发闪送单");
+                        return;
+                    }
                 }
             } else {
                 DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $check_fn['msg'] ?? "闪送校验订单请求失败"]);
@@ -307,14 +335,6 @@ class CreateMtOrder implements ShouldQueue
                 'fail_ss' => $this->order->fail_ss
             ];
             Log::info($this->log."跳出闪送发单", $log_arr);
-        }
-
-        // 判断用户金额是否满足闪送订单
-        if ($user->money < ($money_ss + $use_money)) {
-            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
-            Log::info($this->log."用户金额不足发闪送单");
-            return;
         }
 
         // 没有配送服务商
