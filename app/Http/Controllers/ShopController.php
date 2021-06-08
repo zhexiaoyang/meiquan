@@ -71,7 +71,10 @@ class ShopController extends Controller
                 $tmp['shopping'] = $shop->auth;
                 // 自动接单
                 $tmp['mtwm'] = (bool) $shop->mtwm;
+                $tmp['ele'] = (bool) $shop->ele;
                 $tmp['auto'] = (bool) $shop->mt_shop_id;
+                $tmp['mt_shop_id'] = $shop->mt_shop_id;
+                $tmp['ele_shop_id'] = $shop->ele_shop_id;
                 $data[] = $tmp;
             }
         }
@@ -496,8 +499,13 @@ class ShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        if ($mtwm = intval($request->get("mtwm", 0))) {
+        if ($mtwm = intval($request->get("mtwm", ''))) {
             $shop->mtwm = intval($mtwm);
+            $shop->save();
+        }
+
+        if ($ele = intval($request->get("ele", ''))) {
+            $shop->ele = intval($ele);
             $shop->save();
         }
 
@@ -517,8 +525,16 @@ class ShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        $shop->mtwm = '';
-        $shop->mt_shop_id = '';
+        $platform = $request->get("platform", 1);
+
+        if ($platform == 1) {
+            $shop->mtwm = '';
+            $shop->mt_shop_id = '';
+        } else {
+            $shop->ele = '';
+            $shop->ele_shop_id = '';
+        }
+
         $shop->save();
 
         return $this->success();

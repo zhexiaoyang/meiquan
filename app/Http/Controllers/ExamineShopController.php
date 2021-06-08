@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ExamineShopController extends Controller
 {
@@ -71,17 +72,32 @@ class ExamineShopController extends Controller
             $page_size = 10;
         }
 
-        $query = Shop::query()->select("id","mtwm","shop_name","shop_address","category","second_category","contact_name",
-            "contact_phone","shop_lng","shop_lat","status","created_at")
-            ->whereIn("mt_shop_id", [0, ""])
-            ->where("mtwm", "<>","")
-            ->where("mtwm", "<>",0);
+        $query = Shop::query()->select("id","mtwm","ele","shop_name","shop_address","category","second_category","contact_name",
+            "contact_phone","shop_lng","shop_lat","status","created_at","mt_shop_id","ele_shop_id")
+            ->where(function ($query) {
+                $query->where(
+                    [
+                        ['mt_shop_id', ""],
+                        ['mtwm', '<>', ""],
+                        ['mtwm', '<>', 0]
+                    ]
+                )->orWhere(
+                    [
+                        ['ele_shop_id', ""],
+                        ['ele', '<>', ""],
+                        ['ele', '<>', 0]
+                    ]
+                );
+            });
 
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");
         }
-
+        DB::connection()->enableQueryLog();
         $shops = $query->orderBy("id", "desc")->paginate($page_size);
+        $queries = DB::connection()->getQueryLog();
+
+        \Log::info($queries);
 
         return $this->page($shops);
     }
@@ -100,14 +116,17 @@ class ExamineShopController extends Controller
         }
 
         if ($status === 1) {
-            if (!$shop->mtwm) {
-                return $this->error("美团外卖ID不存在");
+            if ($shop->mtwm) {
+                $shop->mt_shop_id = $shop->mtwm;
             }
-            $shop->mt_shop_id = $shop->mtwm;
+            if ($shop->ele) {
+                $shop->ele_shop_id = $shop->ele;
+            }
         }
 
         if ($status === 2) {
             $shop->mtwm = "";
+            $shop->ele = "";
         }
 
         $shop->save();
