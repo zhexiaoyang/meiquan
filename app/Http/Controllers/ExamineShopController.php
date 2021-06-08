@@ -79,13 +79,11 @@ class ExamineShopController extends Controller
                     [
                         ['mt_shop_id', ""],
                         ['mtwm', '<>', ""],
-                        ['mtwm', '<>', 0]
                     ]
                 )->orWhere(
                     [
                         ['ele_shop_id', ""],
                         ['ele', '<>', ""],
-                        ['ele', '<>', 0]
                     ]
                 );
             });
@@ -93,11 +91,10 @@ class ExamineShopController extends Controller
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");
         }
-        DB::connection()->enableQueryLog();
+        // DB::connection()->enableQueryLog();
         $shops = $query->orderBy("id", "desc")->paginate($page_size);
-        $queries = DB::connection()->getQueryLog();
-
-        \Log::info($queries);
+        // $queries = DB::connection()->getQueryLog();
+        // \Log::info($queries);
 
         return $this->page($shops);
     }
