@@ -499,13 +499,13 @@ class ShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        if ($mtwm = intval($request->get("mtwm", ''))) {
-            $shop->mtwm = intval($mtwm);
+        if ($mtwm = $request->get("mtwm", '')) {
+            $shop->mtwm = $mtwm;
             $shop->save();
         }
 
-        if ($ele = intval($request->get("ele", ''))) {
-            $shop->ele = intval($ele);
+        if ($ele = $request->get("ele", '')) {
+            $shop->ele = $ele;
             $shop->save();
         }
 
