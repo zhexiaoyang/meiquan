@@ -38,16 +38,16 @@ class Api extends Request
      * @author zhangzhen
      * @data 2021/6/4 8:49 下午
      */
-    public function deliveryStatus($order_id)
+    public function deliveryStatus($params)
     {
         $data = [
             'distributor_id' => 201,
-            'order_id' => $order_id,
+            'order_id' => $params['order_id'],
             'state' => 21,
             'knight' => [
                 'id' => 1,
-                'name' => "张三",
-                'phone' => 18210800834
+                'name' => $params['name'],
+                'phone' => $params['phone']
             ]
         ];
 

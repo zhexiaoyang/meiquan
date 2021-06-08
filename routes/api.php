@@ -171,6 +171,11 @@ Route::middleware(["force-json"])->group(function() {
             // *自动接单-审核操作
             Route::post("examine/auto", "ExamineShopController@AutoStore");
 
+            // *外卖平台-门店列表
+            Route::get("examine/platform/shops", "Admin\ShopPlatFormController@index");
+            // *外卖平台-设置平台
+            Route::post("examine/platform/shops", "Admin\ShopPlatFormController@update");
+
             // 商城后台
             // *商城后台-商品列表
             Route::get("/shopAdmin/product", "ShopAdminController@productList");
@@ -283,6 +288,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("storeShop", "ShopController@storeShop")->name("shop.storeShop");
         // 审核门店
         Route::post("/shop/examine/{shop}", "ShopController@examine")->name("shop.examine");
+        // 删除门店
+        Route::post("/shop/delete/{shop}", "ShopController@delete")->name("shop.delete");
         // 可以看到的所有门店
         Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
         // 个人中心-商城余额-微信支付-公众号

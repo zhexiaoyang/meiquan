@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Overtrue\EasySms\EasySms;
 
 class ShopController extends Controller
@@ -40,7 +41,7 @@ class ShopController extends Controller
         if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
-        $shops = $query->orderBy('id', 'desc')->paginate($page_size);
+        $shops = $query->where("status", ">=", 0)->orderBy('id', 'desc')->paginate($page_size);
 
         $result = [];
         $data = [];
@@ -516,9 +517,36 @@ class ShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        $shop->mtwm = 0;
-        $shop->mt_shop_id = 0;
+        $shop->mtwm = '';
+        $shop->mt_shop_id = '';
         $shop->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 删除门店
+     * @param Shop $shop
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/6/7 10:19 下午
+     */
+    public function delete(Shop $shop)
+    {
+        if ($shop->mt_shop_id) {
+            return $this->error("请先关闭美团自动接单");
+        }
+        if ($shop->ele_shop_id) {
+            return $this->error("请先关闭饿了么自动接单");
+        }
+
+        $shop->user_id = 0;
+        $shop->own_id = 0;
+        $shop->status = -1;
+
+        if ($shop->save()) {
+            DB::table("user_has_shops")->where("shop_id", $shop->id)->delete();
+        }
 
         return $this->success();
     }

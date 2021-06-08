@@ -41,7 +41,7 @@ class OrderController extends Controller
             'ss_status','money_ss','fail_ss',
             'mqd_status','money_mqd','fail_mqd',
             'dd_status','money_dd','fail_dd',
-            'receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
+            'platform','receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
 
         // 关键字搜索
         if ($search_key) {

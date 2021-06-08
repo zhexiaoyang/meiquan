@@ -94,6 +94,16 @@ class MtLogisticsSync implements ShouldQueue
             \Log::info('药柜同步配送信息开始', []);
             $result = $yaogui->logisticsOrder($params);
             \Log::info('药柜同步配送信息结束', compact("params", "result"));
+        } elseif ($this->order->type == 21) {
+            \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-开始");
+            $ele = app("ele");
+            $params = [
+                "order_id" =>  $this->order->order_id,
+                "name" => $this->order->courier_name,
+                "phone" => $this->order->courier_phone,
+            ];
+            $result = $ele->deliveryStatus($params);
+            \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-结束", compact("params", "result"));
         }
     }
 }
