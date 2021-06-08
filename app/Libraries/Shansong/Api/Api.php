@@ -116,6 +116,10 @@ class Api extends Request
                 $data['receiverList'][0]['orderingSourceType'] = 4;
                 $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
             }
+            if ($order->platform === 2) {
+                $data['receiverList'][0]['orderingSourceType'] = 3;
+                $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
+            }
         }
 
         // if ($order->type === 11) {

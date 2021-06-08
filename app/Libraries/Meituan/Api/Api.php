@@ -39,6 +39,10 @@ class Api extends Request
                 $params['outer_order_source_desc'] = 101;
                 $params['outer_order_source_no'] = $order->order_id;
             }
+            if ($order->platform === 2) {
+                $params['outer_order_source_desc'] = 102;
+                $params['outer_order_source_no'] = $order->order_id;
+            }
         }
 
         if (!empty($order->expected_pickup_time) && ($order->type != 11)) {

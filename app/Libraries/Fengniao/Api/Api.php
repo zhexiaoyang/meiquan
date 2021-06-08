@@ -159,6 +159,10 @@ class Api extends Request
                 $data['order_source'] = 2;
                 $data['order_source_order_id'] = $order->order_id;
             }
+            if ($order->platform === 2) {
+                $data['order_source'] = 101;
+                $data['order_source_order_id'] = $order->order_id;
+            }
         }
 
         return $this->post('v2/order', $data);
