@@ -19,6 +19,10 @@ class StatisticsController extends Controller
         $fn_num = 0;
         $ss_money = 0;
         $ss_num = 0;
+        $dd_money = 0;
+        $dd_num = 0;
+        $mqd_money = 0;
+        $mqd_num = 0;
         $today_total_money = 0;
         $today_total_num = 0;
         $today_mt_money = 0;
@@ -27,6 +31,10 @@ class StatisticsController extends Controller
         $today_fn_num = 0;
         $today_ss_money = 0;
         $today_ss_num = 0;
+        $today_dd_money = 0;
+        $today_dd_num = 0;
+        $today_mqd_money = 0;
+        $today_mqd_num = 0;
         $date_num = [];
         $date_money = [];
 
@@ -99,6 +107,24 @@ class StatisticsController extends Controller
                         $today_ss_num++;
                         $today_ss_money += $order->money * 100;
                     }
+                }elseif ($order->ps == 4) {
+                    $mqd_num++;
+                    $mqd_money += $order->money * 100;
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                        $today_total_num++;
+                        $today_total_money += $order->money * 100;
+                        $today_mqd_num++;
+                        $today_mqd_money += $order->money * 100;
+                    }
+                }elseif ($order->ps == 5) {
+                    $dd_num++;
+                    $dd_money += $order->money * 100;
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                        $today_total_num++;
+                        $today_total_money += $order->money * 100;
+                        $today_dd_num++;
+                        $today_dd_money += $order->money * 100;
+                    }
                 }
             }
         }
@@ -116,6 +142,10 @@ class StatisticsController extends Controller
             "fn_num" => $fn_num,
             "ss_money" => $ss_money / 100,
             "ss_num" => $ss_num,
+            "dd_money" => $dd_money / 100,
+            "dd_num" => $dd_num,
+            "mqd_money" => $mqd_money / 100,
+            "mqd_num" => $mqd_num,
             "today_total_money" => $today_total_money / 100,
             "today_total_num" => $today_total_num,
             "today_mt_money" => $today_mt_money / 100,
@@ -124,6 +154,10 @@ class StatisticsController extends Controller
             "today_fn_num" => $today_fn_num,
             "today_ss_money" => $today_ss_money / 100,
             "today_ss_num" => $today_ss_num,
+            "today_dd_money" => $today_dd_money / 100,
+            "today_dd_num" => $today_dd_num,
+            "today_mqd_money" => $today_mqd_money / 100,
+            "today_mqd_num" => $today_mqd_num,
             "date_num" => array_values($date_num),
             "date_money" => array_values($date_money),
 
