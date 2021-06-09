@@ -136,6 +136,13 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("online_shop/export", "OnlineShopController@export")->name("admin.online_shop.export");
             // 外卖资料
             Route::resource("online_shop", "OnlineShopController", ["only" => ["index", "show"]]);
+
+            // 跑腿订单结算
+            // ERP管理-品库分类
+            Route::get("/running/fundrecord", "RunningFundrecordController@index");
+
+            // 用户管理-所有用户余额统计
+            Route::get("/user/statistics", "UserController@statistics");
         });
         Route::middleware(["role:super_man"])->group(function () {
             // 用户管理
