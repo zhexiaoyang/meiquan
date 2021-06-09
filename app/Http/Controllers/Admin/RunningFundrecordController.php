@@ -65,7 +65,7 @@ class RunningFundrecordController extends Controller
         $res['total_money'] = $total_money;
         $res['avg_money'] = sprintf("%.2f", $total_money / $day);
         $res['total_number'] = $total_number;
-        $res['avg_number'] = sprintf("%.2f", $total_number / $day);
+        $res['avg_number'] = intval($total_number / $day);
         $res['page'] = $orders->currentPage();
         $res['total'] = $orders->total();
         $res['list'] = $data;
