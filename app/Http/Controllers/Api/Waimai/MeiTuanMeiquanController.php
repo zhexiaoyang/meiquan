@@ -35,23 +35,23 @@ class MeiTuanMeiquanController extends Controller
 
         // 创建跑腿订单
         if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
-            Log::info("【民康-推送已确认订单】（{$mt_order_id}）：正在创建跑腿订单");
+            Log::info("【外卖-美团服务商】（{$mt_order_id}）：正在创建跑腿订单");
             $mt_status = $request->get("status", 0);
             $pick_type = $request->get("pick_type", 0);
             $recipient_address = urldecode($request->get("recipient_address", ""));
 
             if ($pick_type === 1) {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
+                Log::info("【外卖-美团服务商】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
                 return json_encode(['data' => 'ok']);
             }
 
             if (strstr($recipient_address, "到店自取")) {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
+                Log::info("【外卖-美团服务商】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
                 return json_encode(['data' => 'ok']);
             }
 
             if (Order::where('order_id', $mt_order_id)->first()) {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：跑腿订单已存在");
+                Log::info("【外卖-美团服务商】（{$mt_order_id}）：跑腿订单已存在");
                 return json_encode(['data' => 'ok']);
             }
 
@@ -105,7 +105,7 @@ class MeiTuanMeiquanController extends Controller
                     "order_id" => $order->id,
                     "des" => "（美团外卖）自动创建跑腿订单：{$order->order_id}"
                 ]);
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：跑腿订单创建完毕");
+                Log::info("【外卖-美团服务商】（{$mt_order_id}）：跑腿订单创建完毕");
                 if ($status === 0) {
                     if ($order->order_type) {
                         $qu = 2400;
@@ -114,7 +114,7 @@ class MeiTuanMeiquanController extends Controller
                         }
 
                         dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
-                        Log::info("【民康-推送已确认订单】（{$mt_order_id}）：美团创建预约订单成功");
+                        Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团创建预约订单成功");
                         // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);
 
                         $ding_notice = app("ding");
@@ -128,7 +128,7 @@ class MeiTuanMeiquanController extends Controller
                         ];
                         $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                     } else {
-                        Log::info("【民康-推送已确认订单】（{$mt_order_id}）：派单单成功");
+                        Log::info("【外卖-美团服务商】（{$mt_order_id}）：派单单成功");
                         $order->send_at = date("Y-m-d H:i:s");
                         $order->status = 8;
                         $order->save();
@@ -137,8 +137,8 @@ class MeiTuanMeiquanController extends Controller
                 }
             }
         } else {
-            Log::info("【民康-推送已确认订单】（{$mt_order_id}）：未开通自动接单");
-            // Log::info('民康-推送已确认订单-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
+            Log::info("【外卖-美团服务商】（{$mt_order_id}）：未开通自动接单");
+            // Log::info('外卖-美团服务商-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
         }
         return json_encode(['data' => 'ok']);
     }
