@@ -145,7 +145,7 @@ class MeiTuanMeiquanController extends Controller
     public function cancel(Request $request)
     {
         \Log::info("[外卖-美团服务商]-[推送用户或客服取消订单回调]-全部参数：", $request->all());
-        $order_id = $request->get("wm_order_id_view", "");
+        $order_id = $request->get("order_id", "");
 
         if ($order = Order::query()->where("order_id", $order_id)->first()) {
             $order = Order::query()->where('order_id', $order_id)->first();
@@ -611,7 +611,7 @@ class MeiTuanMeiquanController extends Controller
 
 
         if ($type == 1) {
-            $res = $meiquan->waimaiOrderConfirm(['order_id' => $id,'access_token' => 'token_nZ-Mtc7LVt_RbVaW-2hJ5g','app_poi_code' => '6167_2705857']);
+            $res = $meiquan->waimaiOrderConfirm(['order_id' => $id,'access_token' => 'token_nZ-Mtc7LVt_RbVaW-2hJ5g','app_poi_code' => '6167_2694600']);
         } elseif ($type == 2) {
             $res = $meiquan->waimaiOrderCancel(['order_id' => $id,'access_token' => 'token_nZ-Mtc7LVt_RbVaW-2hJ5g','app_poi_code' => '6167_2705857']);
         } elseif ($type == 3) {
