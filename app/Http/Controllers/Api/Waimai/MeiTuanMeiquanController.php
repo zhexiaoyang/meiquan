@@ -149,10 +149,10 @@ class MeiTuanMeiquanController extends Controller
 
         if ($order = Order::query()->where("order_id", $order_id)->first()) {
             $order = Order::query()->where('order_id', $order_id)->first();
-            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-开始");
+            \Log::info("[外卖-美团服务商-接口取消订单]-[订单号: {$order_id}]-开始");
 
             if (!$order) {
-                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-订单不存在");
+                \Log::info("[外卖-美团服务商-接口取消订单]-[订单号: {$order_id}]-订单不存在");
                 // \Log::info('[订单-饿了么接口取消订单]-订单未找到', ['请求参数' => $request->all()]);
                 return $this->error("订单不存在");
             }
@@ -161,10 +161,10 @@ class MeiTuanMeiquanController extends Controller
 
             if ($order->status == 99) {
                 // 已经是取消状态
-                return $this->success();
+                return json_encode(['data' => 'ok']);
             } elseif ($order->status == 80) {
                 // 异常状态
-                return $this->success();
+                return json_encode(['data' => 'ok']);
             } elseif ($order->status == 70) {
                 // 已经完成
                 return $this->error("订单已经完成，不能取消");
@@ -199,7 +199,7 @@ class MeiTuanMeiquanController extends Controller
                                     'status' => 99,
                                     'mt_status' => 99,
                                 ]);
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
+                                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
                                 OrderLog::create([
                                     "order_id" => $order->id,
                                     "des" => "（饿了么）取消【美团】跑腿订单"
@@ -212,7 +212,7 @@ class MeiTuanMeiquanController extends Controller
                                 $e->getLine(),
                                 $e->getMessage()
                             ];
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户失败", $message);
+                            \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户失败", $message);
                             $logs = [
                                 "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
                                 "id" => $order->id,
@@ -222,7 +222,7 @@ class MeiTuanMeiquanController extends Controller
                             $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
-                        \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
                         $logs = [
                             "des" => "【饿了么接口取消订单】取消美团订单返回失败",
                             "id" => $order->id,
@@ -258,7 +258,7 @@ class MeiTuanMeiquanController extends Controller
                                     'status' => 99,
                                     'fn_status' => 99,
                                 ]);
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
+                                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
                                 OrderLog::create([
                                     "order_id" => $order->id,
                                     "des" => "（饿了么）取消【蜂鸟】跑腿订单"
@@ -271,7 +271,7 @@ class MeiTuanMeiquanController extends Controller
                                 $e->getLine(),
                                 $e->getMessage()
                             ];
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户失败", $message);
+                            \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户失败", $message);
                             $logs = [
                                 "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
                                 "id" => $order->id,
@@ -281,7 +281,7 @@ class MeiTuanMeiquanController extends Controller
                             $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
-                        \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
                         $logs = [
                             "des" => "【饿了么接口取消订单】取消蜂鸟订单返回失败",
                             "id" => $order->id,
@@ -334,7 +334,7 @@ class MeiTuanMeiquanController extends Controller
                                 ]);
                                 // $current_user->increment('money', ($order->money - $jian_money));
                                 DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
+                                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
                                 if ($jian_money > 0) {
                                     $jian_data = [
                                         'order_id' => $order->id,
@@ -355,7 +355,7 @@ class MeiTuanMeiquanController extends Controller
                                 $e->getLine(),
                                 $e->getMessage()
                             ];
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
+                            \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
                             $logs = [
                                 "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
                                 "id" => $order->id,
@@ -365,7 +365,7 @@ class MeiTuanMeiquanController extends Controller
                             $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
-                        \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
                         $logs = [
                             "des" => "【饿了么接口取消订单】取消蜂鸟订单返回失败",
                             "id" => $order->id,
@@ -396,7 +396,7 @@ class MeiTuanMeiquanController extends Controller
                                     'status' => 99,
                                     'mqd_status' => 99,
                                 ]);
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
+                                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                                 OrderLog::create([
                                     "order_id" => $order->id,
                                     "des" => "（饿了么）取消【美全达】跑腿订单"
@@ -409,7 +409,7 @@ class MeiTuanMeiquanController extends Controller
                                 $e->getLine(),
                                 $e->getMessage()
                             ];
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
+                            \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
                             $logs = [
                                 "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
                                 "id" => $order->id,
@@ -419,7 +419,7 @@ class MeiTuanMeiquanController extends Controller
                             $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
-                        \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
                         $logs = [
                             "des" => "【饿了么接口取消订单】取消美全达订单返回失败",
                             "id" => $order->id,
@@ -450,7 +450,7 @@ class MeiTuanMeiquanController extends Controller
                                     'status' => 99,
                                     'dd_status' => 99,
                                 ]);
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                                 OrderLog::create([
                                     "order_id" => $order->id,
                                     "des" => "（饿了么）取消【达达】跑腿订单"
@@ -463,7 +463,7 @@ class MeiTuanMeiquanController extends Controller
                                 $e->getLine(),
                                 $e->getMessage()
                             ];
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                            \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
                             $logs = [
                                 "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
                                 "id" => $order->id,
@@ -473,7 +473,7 @@ class MeiTuanMeiquanController extends Controller
                             $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
-                        \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
                         $logs = [
                             "des" => "【饿了么接口取消订单】取消达达订单返回失败",
                             "id" => $order->id,
@@ -483,7 +483,7 @@ class MeiTuanMeiquanController extends Controller
                         $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消达达订单返回失败", $logs);
                     }
                 }
-                return $this->res("order.status.success");
+                return json_encode(['data' => 'ok']);
             } elseif (in_array($order->status, [20, 30])) {
                 // 没有骑手接单，取消订单
                 if (in_array($order->mt_status, [20, 30])) {
@@ -561,11 +561,11 @@ class MeiTuanMeiquanController extends Controller
                         ]);
                     }
                 }
-                return $this->res("order.status.success");
+                return json_encode(['data' => 'ok']);
             } else {
                 // 状态小于20，属于未发单，直接操作取消
                 if ($order->status < 0) {
-                    \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-[订单状态：{$order->status}]-订单状态小于0");
+                    \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-[订单状态：{$order->status}]-订单状态小于0");
                     $order->status = -10;
                 } else {
                     $order->status = 99;
@@ -575,8 +575,8 @@ class MeiTuanMeiquanController extends Controller
                     "order_id" => $order->id,
                     "des" => "（饿了么）取消跑腿订单"
                 ]);
-                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-未配送");
-                return $this->res("order.status.success");
+                \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-未配送");
+                return json_encode(['data' => 'ok']);
             }
         }
         return json_encode(['data' => 'ok']);
