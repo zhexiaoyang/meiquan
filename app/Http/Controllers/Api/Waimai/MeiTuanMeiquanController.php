@@ -33,6 +33,10 @@ class MeiTuanMeiquanController extends Controller
         $mt_shop_id = $request->get("app_poi_code", "");
         $mt_order_id = $request->get("wm_order_id_view", "");
 
+        if (!$mt_shop_id || !$mt_order_id) {
+            return json_encode(['data' => 'ok']);
+        }
+
         // 创建跑腿订单
         if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：正在创建跑腿订单");
