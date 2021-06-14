@@ -58,7 +58,7 @@ class Api extends Request
             // 订单信息
             'origin_id' => $order->order_id,
             'cargo_price' => $order->goods_value,
-            'cargo_weight' => $order->goods_weight,
+            'cargo_weight' => 1,
             'callback' => 'http://psapi.meiquanda.com/api/waimai/dada/order',
             'is_prepay' => 0,
             'is_direct_delivery' => 0,
