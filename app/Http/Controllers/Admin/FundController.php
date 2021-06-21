@@ -250,6 +250,8 @@ class FundController extends Controller
 
 
         $res = [
+            'user_running' => sprintf("%.2f", $user_running),
+            'user_shopping' => sprintf("%.2f", $user_shopping),
             'total_income' => sprintf("%.2f", $total_income + $user_running + $user_shopping),
             'total_income_running' => sprintf("%.2f", $total_income_running + $user_running),
             'total_income_shop' => sprintf("%.2f", $total_income_shop + $user_shopping),

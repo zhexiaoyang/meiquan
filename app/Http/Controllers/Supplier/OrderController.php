@@ -8,9 +8,11 @@ use App\Models\Shop;
 use App\Models\ShopAuthentication;
 use App\Models\SupplierOrder;
 use App\Models\User;
+use App\Models\UserFrozenBalance;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -257,8 +259,10 @@ class OrderController extends Controller
     public function cancel(Request $request)
     {
         $user = Auth::user();
+        $id = $request->get("id", 0);
+        $reason = $request->get("cancel_reason") ?? '商家取消';
 
-        if (!$order = SupplierOrder::query()->where("shop_id", $user->id)->find($request->get("id", 0))) {
+        if (!$order = SupplierOrder::query()->where("shop_id", $user->id)->find($id)) {
             return $this->error("订单不存在");
         }
 
@@ -270,26 +274,85 @@ class OrderController extends Controller
             return $this->error("订单已完成不能取消");
         }
 
-        if ($order->status <= 30) {
-            $status = $order->status;
-            \Log::info("取消订单状态1", ['status=' . $status]);
-            $order->status = 90;
-            $order->cancel_reason = $request->get("cancel_reason") ?? '';
-            $order->save();
-            \Log::info("取消订单状态2", ['status=' . $status]);
-            if ($status === 30 && ($order->total_fee > 0)) {
-                if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
-                    if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
-                        if (!User::query()->where(["id" => $receive_shop_user->id, "money" => $receive_shop_user->money])->update(["money" => $receive_shop_user->money + $order->total_fee])) {
-                            \Log::info("取消订单返款失败", ['order_id' => $order->id, 'money' => $order->total_fee]);
+        if ($order->status !== 30) {
+            return $this->error("订单状态不正确，不能取消");
+        }
+
+        if ($order->status === 30) {
+            try {
+                DB::transaction(function () use ($order, $reason) {
+                    DB::table('supplier_orders')->where("id", $order->id)->update([
+                        'status' => 90,
+                        'cancel_reason' => $reason
+                    ]);
+                    if ($order->frozen_fee) {
+                        if ($user = User::query()->find($order->user_id)) {
+                            // 取消订单-商城余额支付部分返回到商城余额
+                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
+                            $logs = new UserFrozenBalance([
+                                "user_id" => $order->user_id,
+                                "money" => $order->frozen_fee,
+                                "type" => 1,
+                                "before_money" => $user->frozen_money,
+                                "after_money" => $user->frozen_money + $order->frozen_fee,
+                                "description" => "商城订单取消(余额)：{$order->no}",
+                                "tid" => $order->id
+                            ]);
+                            $logs->save();
                         }
                     }
-                }
+                    if ($order->pay_fee) {
+                        if ($user = User::query()->find($order->user_id)) {
+                            // 取消订单-支付部分返回到商城余额
+                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->pay_fee);
+                            $logs = new UserFrozenBalance([
+                                "user_id" => $order->user_id,
+                                "money" => $order->pay_fee,
+                                "type" => 1,
+                                "before_money" => $user->frozen_money,
+                                "after_money" => $user->frozen_money + $order->pay_fee,
+                                "description" => "商城订单取消(支付)：{$order->no}",
+                                "tid" => $order->id
+                            ]);
+                            $logs->save();
+                        }
+                    }
+                });
+            } catch (\Exception $e) {
+                $message = [
+                    $e->getCode(),
+                    $e->getFile(),
+                    $e->getLine(),
+                    $e->getMessage()
+                ];
+                \Log::info("[商家后台-取消订单-事务提交失败]-[订单ID: {$id}]", $message);
+                return $this->error("操作失败，请稍后再试");
             }
             foreach ($order->items as $item) {
                 $item->product->addStock($item->amount);
             }
         }
+
+        // if ($order->status <= 30) {
+        //     $status = $order->status;
+        //     \Log::info("取消订单状态1", ['status=' . $status]);
+        //     $order->status = 90;
+        //     $order->cancel_reason = $request->get("cancel_reason") ?? '';
+        //     $order->save();
+        //     \Log::info("取消订单状态2", ['status=' . $status]);
+        //     if ($status === 30 && ($order->total_fee > 0)) {
+        //         if ($receive_shop = Shop::query()->find($order->receive_shop_id)) {
+        //             if ($receive_shop_user = User::query()->find($receive_shop->own_id)) {
+        //                 if (!User::query()->where(["id" => $receive_shop_user->id, "money" => $receive_shop_user->money])->update(["money" => $receive_shop_user->money + $order->total_fee])) {
+        //                     \Log::info("取消订单返款失败", ['order_id' => $order->id, 'money' => $order->total_fee]);
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     foreach ($order->items as $item) {
+        //         $item->product->addStock($item->amount);
+        //     }
+        // }
 
         return $this->success();
     }
