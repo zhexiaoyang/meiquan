@@ -339,6 +339,14 @@ class Api extends Request
         return $this->request('shop/area/query', $params);
     }
 
+
+    /**
+     * 服务商接口
+     * @param array $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/6/10 12:57 下午
+     */
     public function waimaiOrderConfirm(array $params)
     {
         return $this->request_get('v1/order/confirm', $params);
@@ -369,8 +377,11 @@ class Api extends Request
         return $this->request_get('v1/ecommerce/order/reviewAfterSales', $params);
     }
 
-    public function waimaiAuthorize(array $params)
+    public function waimaiAuthorize($shop_id)
     {
+        $params['app_poi_code'] = $shop_id;
+        $params['response_type'] = 'token';
+        // $params['version'] = "1.0";
         return $this->request_get('v1/oauth/authorize', $params);
     }
 

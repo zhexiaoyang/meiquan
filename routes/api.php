@@ -130,6 +130,16 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man"])->prefix("admin")->namespace("Admin")->group(function () {
+            // 商城轮播图
+            Route::resource("banner", "BannerController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 商城分类
+            Route::resource("category", "CategoryController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 首页关键词
+            Route::resource("searchKeyIndex", "SearchKeyIndexController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 搜索关键词
+            Route::resource("searchKey", "SearchKeyController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 轮播公告
+            Route::resource("notice2", "NoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 质量公告
             Route::resource("notice", "SupplierNoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 外卖资料-导出
@@ -143,6 +153,17 @@ Route::middleware(["force-json"])->group(function() {
 
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
+
+            /**
+             * 财务结算
+             */
+            Route::prefix("finance")->group(function () {
+                Route::get("shopping/store", "FundController@shops");
+                Route::get("supplier/store", "FundController@supplier");
+                Route::get("running_orders", "FundController@running_orders");
+                Route::get("shopping_orders", "FundController@shopping_orders");
+                Route::get("statistic", "FundController@statistic");
+            });
         });
         Route::middleware(["role:super_man"])->group(function () {
             // 用户管理
