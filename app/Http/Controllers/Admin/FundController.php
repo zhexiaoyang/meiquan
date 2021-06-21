@@ -212,15 +212,15 @@ class FundController extends Controller
         if (!empty($running_orders)) {
             // 跑腿订单收入
             foreach ($running_orders as $running_order) {
-                $total_income += $running_order->profit;
-                $total_income_running += $running_order->profit;
+                $total_income += $running_order->money;
+                $total_income_running += $running_order->money;
             }
         }
         if (!empty($shopping_orders)) {
             // 商城订单收入
             foreach ($shopping_orders as $shopping_order) {
-                $total_income += $shopping_order->mq_charge_fee;
-                $total_income_shop += $shopping_order->mq_charge_fee;
+                $total_income += $shopping_order->total_fee;
+                $total_income_shop += $shopping_order->total_fee;
             }
         }
         $user_running = User::query()->sum("money");
