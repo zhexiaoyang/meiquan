@@ -220,6 +220,7 @@ class OrderController
                         Order::where("id", $order->id)->update([
                             'ps' => 1,
                             'money' => $order->money_mt,
+                            'profit' => 1,
                             'status' => 50,
                             'mt_status' => 50,
                             'fn_status' => $order->fn_status < 20 ?: 7,

@@ -222,6 +222,7 @@ class DaDaController extends Controller
                         Order::where("id", $order->id)->update([
                             'ps' => 5,
                             'money' => $order->money_dd,
+                            'profit' => 1,
                             'status' => 50,
                             'dd_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,

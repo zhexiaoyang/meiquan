@@ -246,6 +246,7 @@ class OrderController
                         Order::where("id", $order->id)->update([
                             'ps' => 3,
                             'money' => $order->money_ss,
+                            'profit' => 1,
                             'status' => 50,
                             'ss_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,
