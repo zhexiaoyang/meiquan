@@ -87,7 +87,7 @@ class MeiTuanMeiquanController extends Controller
                 'goods_weight' => 3,
                 'day_seq' => $request->get("day_seq", 0),
                 'platform' => 1,
-                'type' => 4,
+                'type' => 31,
                 'status' => $status,
                 'order_type' => 0
             ];
