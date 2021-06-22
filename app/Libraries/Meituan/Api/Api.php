@@ -277,6 +277,15 @@ class Api extends Request
         return $this->request_post('v1/ecommerce/order/logistics/sync', $params);
     }
 
+    public function syncEstimateArrivalTime($order_id, $date)
+    {
+        $params = [
+            'order_id' => $order_id,
+            'estimate_arrival_time' => $date
+        ];
+        return $this->request_get('v1/ecommerce/order/syncEstimateArrivalTime', $params);
+    }
+
     /**
      * 同步库存
      * @param array $params

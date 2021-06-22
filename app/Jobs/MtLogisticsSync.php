@@ -54,6 +54,8 @@ class MtLogisticsSync implements ShouldQueue
                 $status = 10;
             }elseif ($this->order->status == 50) {
                 $status = 10;
+                $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
+                \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
             }elseif ($this->order->status == 60) {
                 $status = 20;
             }elseif ($this->order->status == 70) {
