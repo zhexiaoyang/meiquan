@@ -102,7 +102,7 @@ class PaymentController extends Controller
             $auth = Cache::get($code);
 
             if (!$auth) {
-                $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=1d3436d84cc39862aff5ef7f46f41e2e&code={$code}&grant_type=authorization_code";
+                $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=58beb50cbf852451d317d75b5c1f266e&code={$code}&grant_type=authorization_code";
 
                 $auth_json = file_get_contents($url);
 
@@ -295,7 +295,7 @@ class PaymentController extends Controller
 
         // 判断是否授权过了
         if (!$auth) {
-            $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=1d3436d84cc39862aff5ef7f46f41e2e&code={$code}&grant_type=authorization_code";
+            $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=58beb50cbf852451d317d75b5c1f266e&code={$code}&grant_type=authorization_code";
             $auth_json = file_get_contents($url);
             $auth = json_decode($auth_json, true);
 
