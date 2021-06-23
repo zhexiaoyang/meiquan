@@ -27,8 +27,8 @@ class Api extends Request
             'customer_address' => $order->receiver_address,
             'customer_tag' => $order->receiver_lng . ',' . $order->receiver_lat,
             // 订单备注
-            // 'order_note' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : 'order_note',
-            'order_note' => $order->note ?: "",
+            'order_note' => $order->goods_pickup_info ?: "取货码：" . $order->goods_pickup_info,
+            // 'order_note' => $order->note ?: "",
             // 'order_mark' => '',
             'order_from' => '',
             // 'order_time' => $order->created_at,
