@@ -55,9 +55,9 @@ class OrderStatisticsExport implements WithStrictNullComparison, Responsable, Fr
             $start += 86400;
         }
 
-        $query = Order::select("id","shop_id","ps","money","created_at")->where("status", 70)
-            ->where("created_at", ">=", $start_date)
-            ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
+        $query = Order::select("id","shop_id","ps","money","over_at")->where("status", 70)
+            ->where("over_at", ">=", $start_date)
+            ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         if (!$this->request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $this->request->user()->shops()->pluck('id'));
@@ -67,8 +67,8 @@ class OrderStatisticsExport implements WithStrictNullComparison, Responsable, Fr
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                $data[date("Y-m-d", strtotime($order->created_at))]["money"] += $order->money * 100;
-                $data[date("Y-m-d", strtotime($order->created_at))]["num"]++;
+                $data[date("Y-m-d", strtotime($order->over_at))]["money"] += $order->money * 100;
+                $data[date("Y-m-d", strtotime($order->over_at))]["num"]++;
             }
         }
 

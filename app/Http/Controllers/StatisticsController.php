@@ -62,9 +62,9 @@ class StatisticsController extends Controller
             $start += 86400;
         }
 
-        $query = Order::query()->select("id","shop_id","ps","money","created_at")->where("status", 70)
-            ->where("created_at", ">=", $start_date)
-            ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
+        $query = Order::query()->select("id","shop_id","ps","money","over_at")->where("status", 70)
+            ->where("over_at", ">=", $start_date)
+            ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         if (!$request->user()->hasRole('super_man')) {
             $_shop_ids = $request->user()->shops()->pluck('id') ?? [];
@@ -77,13 +77,13 @@ class StatisticsController extends Controller
             foreach ($orders as $order) {
                 $total_money += $order->money * 100;
                 $total_num++;
-                $date_money[date("Y-m-d", strtotime($order->created_at))]["y"] += $order->money * 100;
-                $date_num[date("Y-m-d", strtotime($order->created_at))]["y"]++;
+                $date_money[date("Y-m-d", strtotime($order->over_at))]["y"] += $order->money * 100;
+                $date_num[date("Y-m-d", strtotime($order->over_at))]["y"]++;
 
                 if ($order->ps == 1) {
                     $mt_num++;
                     $mt_money += $order->money * 100;
-                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
                         $today_total_num++;
                         $today_total_money += $order->money * 100;
                         $today_mt_num++;
@@ -92,7 +92,7 @@ class StatisticsController extends Controller
                 }elseif ($order->ps == 2) {
                     $fn_num++;
                     $fn_money += $order->money * 100;
-                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
                         $today_total_num++;
                         $today_total_money += $order->money * 100;
                         $today_fn_num++;
@@ -101,7 +101,7 @@ class StatisticsController extends Controller
                 }elseif ($order->ps == 3) {
                     $ss_num++;
                     $ss_money += $order->money * 100;
-                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
                         $today_total_num++;
                         $today_total_money += $order->money * 100;
                         $today_ss_num++;
@@ -110,7 +110,7 @@ class StatisticsController extends Controller
                 }elseif ($order->ps == 4) {
                     $mqd_num++;
                     $mqd_money += $order->money * 100;
-                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
                         $today_total_num++;
                         $today_total_money += $order->money * 100;
                         $today_mqd_num++;
@@ -119,7 +119,7 @@ class StatisticsController extends Controller
                 }elseif ($order->ps == 5) {
                     $dd_num++;
                     $dd_money += $order->money * 100;
-                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->created_at))) {
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
                         $today_total_num++;
                         $today_total_money += $order->money * 100;
                         $today_dd_num++;
