@@ -19,7 +19,7 @@ class Api extends Request
             'shop_id' => $shop->shop_id_mqd,
             'shop_name' => $shop->shop_name,
             'shop_tel' => $shop->contact_phone,
-            'shop_address' => $shop->shop_address,
+            'shop_address' => "{$shop->shop_name}（" . $shop->shop_address ."）",
             'shop_tag' => $shop->shop_lng . ',' . $shop->shop_lat,
             // 订单信息
             'customer_name' => $order->receiver_name,
