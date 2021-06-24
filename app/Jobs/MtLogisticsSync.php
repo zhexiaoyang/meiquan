@@ -56,6 +56,32 @@ class MtLogisticsSync implements ShouldQueue
                 $status = 10;
                 $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
                 \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
+                // 同步其它状态
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 0
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 1
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 5
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+
             }elseif ($this->order->status == 60) {
                 $status = 20;
             }elseif ($this->order->status == 70) {
