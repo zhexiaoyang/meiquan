@@ -582,9 +582,11 @@ class ShopController extends Controller
         return $this->success($result);
     }
 
-    public function runningAuthAll()
+    public function runningAuthAll(Request $request)
     {
-        $data = Shop::select("id", "shop_name as name")->get();
+        $user = $request->user();
+
+        $data = Shop::select("id", "shop_name as name")->where("user_id", $user->id)->get();
 
         return $this->success($data);
     }
