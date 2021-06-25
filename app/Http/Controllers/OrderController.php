@@ -670,6 +670,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'mt_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
                             OrderLog::create([
@@ -729,6 +730,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'fn_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
                             OrderLog::create([
@@ -803,6 +805,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'ss_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             // $current_user->increment('money', ($order->money - $jian_money));
                             DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
@@ -867,6 +870,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'mqd_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
@@ -921,6 +925,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'dd_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                             OrderLog::create([
@@ -969,6 +974,7 @@ class OrderController extends Controller
                 if ($result['code'] == 0) {
                     $order->status = 99;
                     $order->mt_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -987,6 +993,7 @@ class OrderController extends Controller
                 if ($result['code'] == 200) {
                     $order->status = 99;
                     $order->fn_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1000,6 +1007,7 @@ class OrderController extends Controller
                 if ($result['status'] == 200) {
                     $order->status = 99;
                     $order->ss_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1013,6 +1021,7 @@ class OrderController extends Controller
                 if ($result['code'] == 100) {
                     $order->status = 99;
                     $order->mqd_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1026,6 +1035,7 @@ class OrderController extends Controller
                 if ($result['code'] == 0) {
                     $order->status = 99;
                     $order->dd_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1040,6 +1050,7 @@ class OrderController extends Controller
                 $order->status = -10;
             } else {
                 $order->status = 99;
+                $order->cancel_at = date("Y-m-d H:i:s");
             }
             $order->save();
             OrderLog::create([
@@ -1106,6 +1117,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'mt_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
                             OrderLog::create([
@@ -1165,6 +1177,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'fn_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
                             OrderLog::create([
@@ -1239,6 +1252,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'ss_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             // $current_user->increment('money', ($order->money - $jian_money));
                             DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
@@ -1303,6 +1317,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'mqd_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
@@ -1357,6 +1372,7 @@ class OrderController extends Controller
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'dd_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
                             ]);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                             OrderLog::create([
@@ -1407,6 +1423,7 @@ class OrderController extends Controller
                 if ($result['code'] == 0) {
                     $order->status = 99;
                     $order->mt_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1427,6 +1444,7 @@ class OrderController extends Controller
                 if ($result['code'] == 200) {
                     $order->status = 99;
                     $order->fn_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1442,6 +1460,7 @@ class OrderController extends Controller
                 if ($result['status'] == 200) {
                     $order->status = 99;
                     $order->ss_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1457,6 +1476,7 @@ class OrderController extends Controller
                 if ($result['code'] == 100) {
                     $order->status = 99;
                     $order->mqd_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1472,6 +1492,7 @@ class OrderController extends Controller
                 if ($result['code'] == 0) {
                     $order->status = 99;
                     $order->dd_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
@@ -1489,6 +1510,7 @@ class OrderController extends Controller
                 $order->status = -10;
             } else {
                 $order->status = 99;
+                $order->cancel_at = date("Y-m-d H:i:s");
             }
             $order->save();
             OrderLog::create([

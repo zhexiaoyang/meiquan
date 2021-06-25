@@ -32,7 +32,7 @@ class Order extends Model
         'time_money','date_money','money_mt','money_fn','money_ss','ss_order_id','fail_mt','fail_fn','fail_ss','ps',
         'mt_status','money_mt','fn_status','money_fn','ss_status','money_ss','user_id','tool','profit',
         'mqd_status','money_mqd','fail_mqd','dd_status','money_dd','fail_dd',
-        'receive_at','take_at','over_at','push_at','created_at','updated_at'];
+        'receive_at','take_at','over_at','cancel_at','push_at','created_at','updated_at'];
 
     public function shop() {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
