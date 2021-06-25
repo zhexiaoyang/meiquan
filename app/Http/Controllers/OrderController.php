@@ -41,7 +41,8 @@ class OrderController extends Controller
             'ss_status','money_ss','fail_ss',
             'mqd_status','money_mqd','fail_mqd',
             'dd_status','money_dd','fail_dd',
-            'platform','receiver_lng','expected_delivery_time','receiver_lat','status','send_at','created_at');
+            'send_at','created_at','over_at','cancel_at','receive_at','take_at',
+            'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
         // 关键字搜索
         if ($search_key) {
@@ -1790,7 +1791,7 @@ class OrderController extends Controller
             "dai" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count(),
             "jin" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count(),
             "wan" => Order::query()->where('created_at', '>', date("Y-m-d"))->where("status", 70)->count(),
-            "qu" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,90])->count(),
+            "qu" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count(),
         ];
 
         return $this->success($data);
