@@ -75,6 +75,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("search_key_index", "SearchKeyIndexController@index");
         // 【H5-跑腿】用户可发单门店列表
         Route::get("/h5/shop_success_all", "ShopController@runningAuthAll");
+        // 【H5-跑腿】今日订单数量
+        Route::get("/h5/order/today_count", "OrderController@todayCount");
 
 
 

@@ -1778,6 +1778,22 @@ class OrderController extends Controller
      * 取消平台订单-----取消平台订单
      */
 
-    // private
+    /**
+     * 获取今日订单统计
+     * @author zhangzhen
+     * @data 2021/6/25 8:21 下午
+     */
+    public function todayCount()
+    {
+        $data = [
+            "all" => Order::query()->where('created_at', '>', date("Y-m-d"))->where("status", ">=", 0)->count(),
+            "dai" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count(),
+            "jin" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count(),
+            "wan" => Order::query()->where('created_at', '>', date("Y-m-d"))->where("status", 70)->count(),
+            "qu" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,90])->count(),
+        ];
+
+        return $this->success($data);
+    }
 }
 
