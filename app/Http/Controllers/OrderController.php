@@ -66,7 +66,23 @@ class OrderController extends Controller
 
         // 状态查询
         if (!is_null($status)) {
-            $query->where('status', $status);
+            if (is_numeric($status)) {
+                $query->where('status', $status);
+            } else {
+                // $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+                // $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+                // $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+                // $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+                if ($status === 'dai') {
+                    $query->whereIn("status", [0,3,5,7,8,10]);
+                } elseif ($status === 'jin') {
+                    $query->whereIn("status", [20,30,40,50,60]);
+                } elseif ($status === 'wan') {
+                    $query->where("status", 70);
+                } elseif ($status === 'jin') {
+                    $query->whereIn("status", [80,99]);
+                }
+            }
         }
 
         // 查询订单
