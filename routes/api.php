@@ -31,6 +31,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("user/info", "AuthController@user");
         // 个人中心-用户信息-ant框架返回
         Route::get("user/me", "AuthController@me");
+        // 个人中心-用户余额明细
+        Route::get("user/balance", "UserMoneyBalanceController@index");
         // 首页-合同信息（认证状态、签署信息）
         Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）
