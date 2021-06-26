@@ -79,7 +79,7 @@ class OrderController extends Controller
                     $query->whereIn("status", [20,30,40,50,60]);
                 } elseif ($status === 'wan') {
                     $query->where("status", 70);
-                } elseif ($status === 'jin') {
+                } elseif ($status === 'qu') {
                     $query->whereIn("status", [80,99]);
                 }
             }
