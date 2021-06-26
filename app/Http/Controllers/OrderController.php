@@ -1808,12 +1808,17 @@ class OrderController extends Controller
      */
     public function todayCount()
     {
+        $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+        $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+        $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+        $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+
         $data = [
-            "all" => Order::query()->where('created_at', '>', date("Y-m-d"))->where("status", ">=", 0)->count(),
-            "dai" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count(),
-            "jin" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count(),
-            "wan" => Order::query()->where('created_at', '>', date("Y-m-d"))->where("status", 70)->count(),
-            "qu" => Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count(),
+            "all" => $dai + $jin + $wan + $qu,
+            "dai" => $dai,
+            "jin" => $jin,
+            "wan" => $wan,
+            "qu" => $qu,
         ];
 
         return $this->success($data);
