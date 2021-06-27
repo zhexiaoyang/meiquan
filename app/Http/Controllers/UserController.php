@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\UserExport;
 use App\Models\Deposit;
 use App\Models\Shop;
 use App\Models\User;
@@ -240,6 +241,11 @@ class UserController extends Controller
         }
         $recharges = $query->orderBy('id', 'desc')->paginate($page_size);
         return $this->success($recharges);
+    }
+
+    public function export(Request $request, UserExport $userExport)
+    {
+        return $userExport->withRequest($request);
     }
 
 }
