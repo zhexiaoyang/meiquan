@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -42,7 +43,8 @@ class UserExport implements WithStrictNullComparison, Responsable, FromQuery, Wi
             $user->phone,
             $user->money,
             $user->frozen_money,
-            $user->my_shops,
+            // $user->my_shops,
+            implode(",", Arr::pluck($user->my_shops, 'shop_name')),
         ];
     }
 

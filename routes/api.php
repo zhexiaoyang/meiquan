@@ -159,8 +159,6 @@ Route::middleware(["force-json"])->group(function() {
 
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
-            // 用户管理-导出
-            Route::get("/user/export", "UserController@export");
 
             /**
              * 财务结算
@@ -176,6 +174,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::middleware(["role:super_man"])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
+            // 用户管理-导出
+            Route::get("/user/export", "UserController@export");
 
             // *商城认证-审核列表
             Route::get("examine/shopping", "ExamineShoppingController@index");
