@@ -224,7 +224,7 @@ class PaymentController extends Controller
         $order = [
             'out_trade_no'  => $pay_no,
             'body'          => '商城订单：' . $pay_no,
-            'total_fee'     => $total_fee * 100,
+            'total_fee'     => intval($total_fee * 100),
         ];
 
         $wechatOrder = app('pay.wechat_supplier')->scan($order);
