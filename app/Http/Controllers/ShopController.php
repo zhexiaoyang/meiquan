@@ -586,7 +586,8 @@ class ShopController extends Controller
     {
         $user = $request->user();
 
-        $data = Shop::select("id", "shop_name as name")->where("user_id", $user->id)->get();
+        $data = Shop::select("id","shop_name as name","shop_id","shop_id_fn","shop_id_ss","shop_id_dd","shop_id_mqd","city","status","mt_shop_id","ele_shop_id")
+            ->where("user_id", $user->id)->get();
 
         return $this->success($data);
     }
