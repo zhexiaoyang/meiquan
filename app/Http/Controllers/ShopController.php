@@ -195,17 +195,18 @@ class ShopController extends Controller
     {
         $user = Auth::user();
 
-        $lng = $request->get("shop_lng");
-        $lat = $request->get("shop_lat");
-
         $shop->fill($request->all());
 
-        $url="http://restapi.amap.com/v3/geocode/regeo?output=json&location=".$lng.",".$lat."&key=59c3b9c0a69978649edb06bbaccccbe9";
-        if($result=file_get_contents($url)) {
-            $result = json_decode($result, true);
-            if (!empty($result['status']) && $result['status'] == 1) {
-                $shop->city = $result['regeocode']['addressComponent']['city'];
-                $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
+        if (!$request->get("city")) {
+            $lng = $request->get("shop_lng");
+            $lat = $request->get("shop_lat");
+            $url="http://restapi.amap.com/v3/geocode/regeo?output=json&location=".$lng.",".$lat."&key=59c3b9c0a69978649edb06bbaccccbe9";
+            if($result=file_get_contents($url)) {
+                $result = json_decode($result, true);
+                if (!empty($result['status']) && $result['status'] == 1) {
+                    $shop->city = $result['regeocode']['addressComponent']['city'];
+                    $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
+                }
             }
         }
 
