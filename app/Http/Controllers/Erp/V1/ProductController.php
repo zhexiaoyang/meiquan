@@ -297,10 +297,10 @@ class ProductController extends Controller
             return $this->error("参数错误：access_key错误", 701);
         }
 
-        if (!$this->checkSing($request->only("access_key", "timestamp", "data", "signature"), $access->access_secret)) {
-            \Log::info("[ERP接口]-[添加商品]-签名错误");
-            return $this->error("签名错误", 703);
-        }
+        // if (!$this->checkSing($request->only("access_key", "timestamp", "data", "signature"), $access->access_secret)) {
+        //     \Log::info("[ERP接口]-[添加商品]-签名错误");
+        //     return $this->error("签名错误", 703);
+        // }
 
         if (!empty($data)) {
             $upc_pluck = ErpDepot::whereIn("upc", $upcs)->pluck("second_code", "upc");
