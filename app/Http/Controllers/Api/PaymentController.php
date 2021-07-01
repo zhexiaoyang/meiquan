@@ -395,4 +395,10 @@ class PaymentController
 
         return '';
     }
+
+    public function supplierRefund(Request $request)
+    {
+        \Log::info("微信支付-退款回调-全部参数", $request->all());
+        return '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';
+    }
 }
