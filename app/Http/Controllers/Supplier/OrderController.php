@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Yansongda\Pay\Pay;
 
 class OrderController extends Controller
 {
@@ -337,7 +338,9 @@ class OrderController extends Controller
                                     'total_fee' => intval($order->pay_fee * 100),
                                     "refund_desc" => "取消订单"
                                 ];
-                                $wechatOrder = app('pay.wechat_supplier')->refund($order);
+                                $config = config('pay.wechat_supplier');
+                                $config['notify_url'] = 'http://psapi.meiquanda.com/api/payment/wechat/supplier/refund';
+                                $wechatOrder = Pay::wechat($config)->refund($order);
                                 \Log::info("商家-微信退款-返回参数", [$wechatOrder]);
                             }
                         }
