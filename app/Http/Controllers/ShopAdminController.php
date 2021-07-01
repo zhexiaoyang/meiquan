@@ -327,8 +327,8 @@ class ShopAdminController extends Controller
                                 $order = [
                                     'transaction_id' => $order->payment_no,
                                     'out_refund_no' => $order->no,
-                                    'refund_fee' => intval($order->pay_fee),
-                                    'total_fee' => intval($order->pay_fee),
+                                    'refund_fee' => intval($order->pay_fee) * 100,
+                                    'total_fee' => intval($order->pay_fee) * 100,
                                     "refund_desc" => "取消订单"
                                 ];
                                 $wechatOrder = app('pay.wechat_supplier')->refund($order);
