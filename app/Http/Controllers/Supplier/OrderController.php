@@ -288,33 +288,58 @@ class OrderController extends Controller
                     if ($order->frozen_fee) {
                         if ($user = User::query()->find($order->user_id)) {
                             // 取消订单-商城余额支付部分返回到商城余额
-                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
-                            $logs = new UserFrozenBalance([
-                                "user_id" => $order->user_id,
-                                "money" => $order->frozen_fee,
-                                "type" => 1,
-                                "before_money" => $user->frozen_money,
-                                "after_money" => $user->frozen_money + $order->frozen_fee,
-                                "description" => "商城订单取消(余额)：{$order->no}",
-                                "tid" => $order->id
-                            ]);
-                            $logs->save();
+                            if ($order->frozen_fee > 0) {
+                                DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
+                                $logs = new UserFrozenBalance([
+                                    "user_id" => $order->user_id,
+                                    "money" => $order->frozen_fee,
+                                    "type" => 1,
+                                    "before_money" => $user->frozen_money,
+                                    "after_money" => $user->frozen_money + $order->frozen_fee,
+                                    "description" => "商城订单取消(余额)：{$order->no}",
+                                    "tid" => $order->id
+                                ]);
+                                $logs->save();
+                            }
+                            // DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->frozen_fee);
+                            // $logs = new UserFrozenBalance([
+                            //     "user_id" => $order->user_id,
+                            //     "money" => $order->frozen_fee,
+                            //     "type" => 1,
+                            //     "before_money" => $user->frozen_money,
+                            //     "after_money" => $user->frozen_money + $order->frozen_fee,
+                            //     "description" => "商城订单取消(余额)：{$order->no}",
+                            //     "tid" => $order->id
+                            // ]);
+                            // $logs->save();
                         }
                     }
                     if ($order->pay_fee) {
                         if ($user = User::query()->find($order->user_id)) {
                             // 取消订单-支付部分返回到商城余额
-                            DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->pay_fee);
-                            $logs = new UserFrozenBalance([
-                                "user_id" => $order->user_id,
-                                "money" => $order->pay_fee,
-                                "type" => 1,
-                                "before_money" => $user->frozen_money,
-                                "after_money" => $user->frozen_money + $order->pay_fee,
-                                "description" => "商城订单取消(支付)：{$order->no}",
-                                "tid" => $order->id
-                            ]);
-                            $logs->save();
+                            // DB::table('users')->where('id', $order->user_id)->increment('frozen_money', $order->pay_fee);
+                            // $logs = new UserFrozenBalance([
+                            //     "user_id" => $order->user_id,
+                            //     "money" => $order->pay_fee,
+                            //     "type" => 1,
+                            //     "before_money" => $user->frozen_money,
+                            //     "after_money" => $user->frozen_money + $order->pay_fee,
+                            //     "description" => "商城订单取消(支付)：{$order->no}",
+                            //     "tid" => $order->id
+                            // ]);
+                            // $logs->save();
+                            // 微信支付原路返回
+                            if ($order->payment_no) {
+                                $order = [
+                                    'transaction_id' => $order->payment_no,
+                                    'out_refund_no' => $order->no,
+                                    'refund_fee' => intval($order->pay_fee * 100),
+                                    'total_fee' => intval($order->pay_fee * 100),
+                                    "refund_desc" => "取消订单"
+                                ];
+                                $wechatOrder = app('pay.wechat_supplier')->refund($order);
+                                \Log::info("商家-微信退款-返回参数", [$wechatOrder]);
+                            }
                         }
                     }
                 });
