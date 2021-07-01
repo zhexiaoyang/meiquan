@@ -415,7 +415,6 @@ class PaymentController extends Controller
             return $this->error("订单不存在");
         }
 
-
         if ($supplier_order->user_id !== $user->id) {
             return $this->error("订单不存在");
         }
