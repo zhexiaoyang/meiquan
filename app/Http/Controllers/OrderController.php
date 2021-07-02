@@ -1822,12 +1822,23 @@ class OrderController extends Controller
      * @author zhangzhen
      * @data 2021/6/25 8:21 下午
      */
-    public function todayCount()
+    public function todayCount(Request $request)
     {
-        $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
-        $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
-        $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
-        $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+
+        // 判断可以查询的药店
+        if ($request->user()->hasRole('super_man')) {
+            $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+            $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+            $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+            $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+            // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        } else {
+            $dai = Order::whereIn('shop_id', $request->user()->shops()->pluck('id'))->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+            $jin = Order::whereIn('shop_id', $request->user()->shops()->pluck('id'))->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+            $wan = Order::whereIn('shop_id', $request->user()->shops()->pluck('id'))->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+            $qu = Order::whereIn('shop_id', $request->user()->shops()->pluck('id'))->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+
+        }
 
         $data = [
             "all" => $dai + $jin + $wan + $qu,
