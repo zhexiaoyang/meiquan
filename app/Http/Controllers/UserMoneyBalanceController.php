@@ -46,7 +46,7 @@ class UserMoneyBalanceController extends Controller
 
         if ($day === 5 && $start_date !== "" && $end_date !== "") {
             $query->where("created_at", '>=', date("Y-m-d", strtotime($start_date)));
-            $query->where("created_at", '<', date("Y-m-d", strtotime($end_date)) + 86400);
+            $query->where("created_at", '<', date("Y-m-d", strtotime($end_date) + 86400));
         }
 
         $data = $query->orderBy("id", "desc")->paginate($page_size);
