@@ -79,28 +79,28 @@ class PaymentController
             }
 
 
-            try {
-                $user = DB::table('users')->where('id', $order->user_id)->first();
-                app('easysms')->send('13843209606', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '微信',
-                        'number' => $data->total_fee / 100
-                    ],
-                ]);
-                app('easysms')->send('18611683889', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '微信',
-                        'number' => $data->total_fee / 100
-                    ],
-                ]);
-            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('aliyun')->getMessage();
-                \Log::info('充值通知短信发送失败', [$message]);
-            }
+            // try {
+            //     $user = DB::table('users')->where('id', $order->user_id)->first();
+            //     app('easysms')->send('13843209606', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '微信',
+            //             'number' => $data->total_fee / 100
+            //         ],
+            //     ]);
+            //     app('easysms')->send('18611683889', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '微信',
+            //             'number' => $data->total_fee / 100
+            //         ],
+            //     ]);
+            // } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+            //     $message = $exception->getException('aliyun')->getMessage();
+            //     \Log::info('充值通知短信发送失败', [$message]);
+            // }
 
             return true;
 
@@ -180,28 +180,28 @@ class PaymentController
             }
 
 
-            try {
-                $user = DB::table('users')->where('id', $order->user_id)->first();
-                app('easysms')->send('13843209606', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '微信',
-                        'number' => $data->total_fee / 100
-                    ],
-                ]);
-                app('easysms')->send('18611683889', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '微信',
-                        'number' => $data->total_fee / 100
-                    ],
-                ]);
-            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('aliyun')->getMessage();
-                \Log::info('充值通知短信发送失败', [$message]);
-            }
+            // try {
+            //     $user = DB::table('users')->where('id', $order->user_id)->first();
+            //     app('easysms')->send('13843209606', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '微信',
+            //             'number' => $data->total_fee / 100
+            //         ],
+            //     ]);
+            //     app('easysms')->send('18611683889', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '微信',
+            //             'number' => $data->total_fee / 100
+            //         ],
+            //     ]);
+            // } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+            //     $message = $exception->getException('aliyun')->getMessage();
+            //     \Log::info('充值通知短信发送失败', [$message]);
+            // }
 
             return true;
 
@@ -294,28 +294,28 @@ class PaymentController
                 \Log::info("日志保存结束");
             }
 
-            try {
-                $user = DB::table('users')->where('id', $order->user_id)->first();
-                app('easysms')->send('13843209606', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '支付宝',
-                        'number' => $data->total_amount
-                    ],
-                ]);
-                app('easysms')->send('18611683889', [
-                    'template' => 'SMS_186360326',
-                    'data' => [
-                        'name' => $user->phone ?? '',
-                        'type' => '支付宝',
-                        'number' => $data->total_amount
-                    ],
-                ]);
-            } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
-                $message = $exception->getException('aliyun')->getMessage();
-                \Log::info('充值通知短信发送失败', [$message]);
-            }
+            // try {
+            //     $user = DB::table('users')->where('id', $order->user_id)->first();
+            //     app('easysms')->send('13843209606', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '支付宝',
+            //             'number' => $data->total_amount
+            //         ],
+            //     ]);
+            //     app('easysms')->send('18611683889', [
+            //         'template' => 'SMS_186360326',
+            //         'data' => [
+            //             'name' => $user->phone ?? '',
+            //             'type' => '支付宝',
+            //             'number' => $data->total_amount
+            //         ],
+            //     ]);
+            // } catch (\Overtrue\EasySms\Exceptions\NoGatewayAvailableException $exception) {
+            //     $message = $exception->getException('aliyun')->getMessage();
+            //     \Log::info('充值通知短信发送失败', [$message]);
+            // }
 
             return true;
 
