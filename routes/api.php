@@ -334,6 +334,8 @@ Route::middleware(["force-json"])->group(function() {
         // Route::post("deposit/shop/wechat/scan", "DepositController@shopWechatScan");
         // 个人中心-商城余额-微信支付-小程序
         Route::post("deposit/shop/wechat/miniapp", "DepositController@shopWechatMiniApp");
+        // 个人中心-跑腿余额-微信支付-小程序
+        Route::post("deposit/running/wechat/miniapp", "DepositController@runningWechatMiniApp");
         // 个人中心-用户充值
         Route::resource("deposit", "DepositController", ["only" => ["store", "show", "index"]]);
         // 所有权限列表
