@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class SupplierOrderItem extends Model
 {
-    protected $fillable = ['amount', 'price', 'rating', 'review', 'reviewed_at','name','cover','spec','unit',
-        'commission','mq_charge_fee'];
+    protected $fillable = ['amount', 'price', 'rating', 'review', 'reviewed_at','name','cover','spec','unit','upc',
+        'third_id','commission','mq_charge_fee'];
     protected $dates = ['reviewed_at'];
     public $timestamps = false;
 

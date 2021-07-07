@@ -6,6 +6,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Jobs\CloseOrder;
 use App\Models\AddressCity;
 use App\Models\Shop;
+use App\Models\SupplierDepot;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProductCityPriceItem;
 use App\Models\SupplierUser;
@@ -210,7 +211,7 @@ class SupplierOrderController extends Controller
                     // 商品信息
                     $product = $cart->product;
                     // 品库信息
-                    $depot = $product->depot;
+                    $depot = SupplierDepot::find($product->depot_id);
 
                     // 单个商品-总金额
                     $item_fee = ($price * 100) * $cart['amount'];
@@ -221,11 +222,12 @@ class SupplierOrderController extends Controller
                     $item = $order->items()->make([
                         'amount' => $cart['amount'],
                         'price'  => $price,
-                        'name'  => $depot->name,
-                        'cover'  => $depot->cover,
-                        'spec'  => $depot->spec,
-                        'unit'  => $depot->unit,
-                        'upc'  => $depot->upc,
+                        'name'  => $depot->name ?? "",
+                        'cover'  => $depot->cover ?? "",
+                        'spec'  => $depot->spec ?? "",
+                        'unit'  => $depot->unit ?? "",
+                        'upc'  => $depot->upc ?? "",
+                        'third_id'  => $product->third_id ?? "",
                         'is_active'  => $product->is_active,
                         'commission'  => $product->commission,
                         'mq_charge_fee'  => $item_charge_fee,

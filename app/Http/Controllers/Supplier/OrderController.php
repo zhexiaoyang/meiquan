@@ -91,6 +91,7 @@ class OrderController extends Controller
                     foreach ($order->items as $item) {
                         if (isset($item->id)) {
                             $item_info['id'] = $item->id;
+                            $item_info['third_id'] = $item->third_id;
                             $item_info['product_id'] = $item->product_id;
                             $item_info['name'] = $item->name;
                             $item_info['upc'] = $item->upc;

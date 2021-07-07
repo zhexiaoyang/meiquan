@@ -31,7 +31,7 @@ class ProductController extends Controller
         $status = $request->get("status", "");
         $stock = intval($request->get("stock", 0));
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","is_control","is_meituan","is_ele","control_price","sale_count","status","stock","sale_type","product_date","product_end_date","number","weight","detail")
+        $query = SupplierProduct::query()->select("id","depot_id","third_id","user_id","price","is_control","is_meituan","is_ele","control_price","sale_count","status","stock","sale_type","product_date","product_end_date","number","weight","detail")
             ->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
@@ -78,6 +78,7 @@ class ProductController extends Controller
             foreach ($products as $product) {
                 $tmp['id'] = $product->id;
                 $tmp['price'] = $product->price;
+                $tmp['third_id'] = $product->third_id;
                 $tmp['is_control'] = $product->is_control;
                 $tmp['is_meituan'] = $product->is_meituan;
                 $tmp['is_ele'] = $product->is_ele;
@@ -157,6 +158,7 @@ class ProductController extends Controller
             "id" => $product->id,
             "status" => $product->status,
             "depot_id" => $product->depot_id,
+            "third_id" => $product->third_id,
             "stock" => $product->stock,
             "price" => (float) $product->price,
             "detail" => $product->detail,
@@ -238,7 +240,7 @@ class ProductController extends Controller
      */
     public function update(ProductUpdateRequest $request)
     {
-        $data = $request->only("stock","price", "status","number","product_date","product_end_date","weight","detail");
+        $data = $request->only("stock","price", "status","number","product_date","product_end_date","weight","detail","third_id");
         $data['is_control'] = $request->get("is_control", 0);
         $data['is_meituan'] = $request->get("is_meituan", 0);
         $data['is_ele'] = $request->get("is_ele", 0);
@@ -350,6 +352,7 @@ class ProductController extends Controller
         $product_data['user_id'] = $user->id;
         $product_data['depot_id'] = $depot->id;
         $product_data['status'] = 20;
+        $product_data['third_id'] = $request->get("third_id", "");
         $product_data['price'] = $request->get("price");
         $product_data['stock'] = $request->get("stock");
         $product_data['number'] = $request->get("number");
