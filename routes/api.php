@@ -33,6 +33,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("user/me", "AuthController@me");
         // 个人中心-用户余额明细
         Route::get("user/balance", "UserMoneyBalanceController@index");
+        // 个人中心-用户冻结余额明细
+        Route::get("user/frozen/balance", "UserFrozenBalanceController@index");
         // 首页-合同信息（认证状态、签署信息）
         Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）
@@ -328,7 +330,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("/shop/delete/{shop}", "ShopController@delete")->name("shop.delete");
         // 可以看到的所有门店
         Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
-        // 个人中心-商城余额-微信支付-公众号
+        // 个人中心-商城余额-微信支付-公众号user/balance
         // Route::post("deposit/shop/wechat/mp", "DepositController@shopWechatMp");
         // 个人中心-商城余额-微信支付-扫码
         // Route::post("deposit/shop/wechat/scan", "DepositController@shopWechatScan");

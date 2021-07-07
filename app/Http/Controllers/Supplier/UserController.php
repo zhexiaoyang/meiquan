@@ -64,7 +64,8 @@ class UserController extends Controller
             $user->telephone = $telephone;
         }
 
-        if ($starting = intval($request->get("starting"))) {
+        $starting = intval($request->get("starting", 0));
+        if ($starting !== null) {
             $user->starting = $starting;
         }
 
@@ -206,7 +207,8 @@ class UserController extends Controller
             $user->telephone = $telephone;
         }
 
-        if ($starting = intval($request->get("starting"))) {
+        $starting = intval($request->get("starting", 0));
+        if ($starting !== null) {
             $user->starting = $starting;
         }
 
