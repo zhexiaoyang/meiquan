@@ -195,7 +195,7 @@ class DepositController extends Controller
     }
 
     /**
-     * 商城余额-微信支付-小程序
+     * 跑腿余额-微信支付-小程序
      */
     public function runningWechatMiniApp(Request $request)
     {
