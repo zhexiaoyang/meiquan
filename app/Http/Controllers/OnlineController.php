@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CityManager;
 use App\Models\OnlineShop;
 use App\Models\OnlineShopReason;
 use App\Models\Shop;
@@ -161,13 +162,15 @@ class OnlineController extends Controller
         }
         $data["bank_name"] = $bank;
 
-        if ($manager_name = $request->get("manager_name")) {
-            $data["manager_name"] = $manager_name;
+        if (!$manager_id = $request->get("manager_id")) {
+            return $this->error("城市经理不能为空");
         }
-
-        if ($manager_phone = $request->get("manager_phone")) {
-            $data["manager_phone"] = $manager_phone;
+        if (!$manager = CityManager::query()->find($manager_id)) {
+            return $this->error("城市经理不存在");
         }
+        $data["manager_id"] = $manager_id;
+        $data["manager_name"] = $manager->name;
+        $data["manager_phone"] = $manager->phone;
 
         if ($remark = $request->get("remark")) {
             $data["remark"] = $remark;
@@ -397,13 +400,23 @@ class OnlineController extends Controller
         }
         $data["bank_name"] = $bank;
 
-        if ($manager_name = $request->get("manager_name")) {
-            $data["manager_name"] = $manager_name;
+        if (!$manager_id = $request->get("manager_id")) {
+            return $this->error("城市经理不能为空");
         }
+        if (!$manager = CityManager::query()->find($manager_id)) {
+            return $this->error("城市经理不存在");
+        }
+        $data["manager_id"] = $manager_id;
+        $data["manager_name"] = $manager->name;
+        $data["manager_phone"] = $manager->phone;
 
-        if ($manager_phone = $request->get("manager_phone")) {
-            $data["manager_phone"] = $manager_phone;
-        }
+        // if ($manager_name = $request->get("manager_name")) {
+        //     $data["manager_name"] = $manager_name;
+        // }
+        //
+        // if ($manager_phone = $request->get("manager_phone")) {
+        //     $data["manager_phone"] = $manager_phone;
+        // }
 
         if ($remark = $request->get("remark")) {
             $data["remark"] = $remark;

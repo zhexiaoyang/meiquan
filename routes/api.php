@@ -81,6 +81,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("/h5/shop_success_all", "ShopController@runningAuthAll");
         // 【H5-跑腿】今日订单数量
         Route::get("/h5/order/today_count", "OrderController@todayCount");
+        // 城市经理列表
+        Route::get("/city_manager", "CityManagerController@index");
 
 
 
@@ -161,6 +163,9 @@ Route::middleware(["force-json"])->group(function() {
 
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
+
+            // 城市经理
+            Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
 
             /**
              * 财务结算
