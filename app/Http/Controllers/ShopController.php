@@ -204,6 +204,7 @@ class ShopController extends Controller
             if($result=file_get_contents($url)) {
                 $result = json_decode($result, true);
                 if (!empty($result['status']) && $result['status'] == 1) {
+                    \Log::info("门店城市信息返回", [$result]);
                     $shop->city = $result['regeocode']['addressComponent']['city'];
                     $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
                 }
