@@ -193,6 +193,7 @@ class ShopController extends Controller
      */
     public function store(Request $request, Shop $shop)
     {
+        \Log::info("创建门店全部参数", $request->all());
         $user = Auth::user();
 
         $shop->fill($request->all());
