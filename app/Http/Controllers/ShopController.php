@@ -208,6 +208,7 @@ class ShopController extends Controller
                     // \Log::info("门店城市信息返回", [$result]);
                     $shop->city = $result['regeocode']['addressComponent']['city'] ?: $result['regeocode']['addressComponent']['province'];
                     $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
+                    $shop->area = $result['regeocode']['addressComponent']['district'] ?: '';
                 }
             }
         }
