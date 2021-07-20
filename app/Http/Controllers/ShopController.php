@@ -193,7 +193,7 @@ class ShopController extends Controller
      */
     public function store(Request $request, Shop $shop)
     {
-        \Log::info("创建门店全部参数", $request->all());
+        // \Log::info("创建门店全部参数", $request->all());
         $user = Auth::user();
 
         $shop->fill($request->all());
@@ -205,8 +205,8 @@ class ShopController extends Controller
             if($result=file_get_contents($url)) {
                 $result = json_decode($result, true);
                 if (!empty($result['status']) && $result['status'] == 1) {
-                    \Log::info("门店城市信息返回", [$result]);
-                    $shop->city = $result['regeocode']['addressComponent']['city'];
+                    // \Log::info("门店城市信息返回", [$result]);
+                    $shop->city = $result['regeocode']['addressComponent']['city'] ?: $result['regeocode']['addressComponent']['province'];
                     $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
                 }
             }
