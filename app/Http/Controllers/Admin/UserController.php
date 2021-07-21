@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\UserBalanceExport;
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use App\Models\Deposit;
 use App\Models\User;
+use App\Models\UserFrozenBalance;
+use App\Models\UserMoneyBalance;
 
 class UserController extends Controller
 {
@@ -42,5 +46,41 @@ class UserController extends Controller
         ];
 
         return $this->success($data);
+    }
+
+    public function balance(Request $request)
+    {
+        $page_size = $request->get('page_size', 10);
+        $type = $request->get('type', 1);
+        $start_date = $request->get('start_date', '');
+        $end_date = $request->get('end_date', '');
+
+        if (!$user_id = $request->get("user_id")) {
+            return $this->error("用户ID不能为空");
+        }
+
+        if ($type == 1) {
+            $query = UserMoneyBalance::query();
+        } else {
+            $query = UserFrozenBalance::query();
+        }
+
+        if ($start_date) {
+            $query->where("created_at", ">=", $start_date);
+        }
+
+        if ($end_date) {
+            $query->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
+        }
+
+        $data = $query->where("user_id", $user_id)->orderByDesc("id")->paginate($page_size);
+
+
+        return $this->page($data);
+    }
+
+    public function balanceExport(Request $request, UserBalanceExport $balanceExport)
+    {
+        return $balanceExport->withRequest($request);
     }
 }

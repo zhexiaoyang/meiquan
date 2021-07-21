@@ -156,6 +156,10 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("online_shop/export", "OnlineShopController@export")->name("admin.online_shop.export");
             // 外卖资料
             Route::resource("online_shop", "OnlineShopController", ["only" => ["index", "show"]]);
+            // 用户管理-充值记录
+            Route::get("deposit", "DepositController@index")->name("admin.deposit.index");
+            // 用户管理-充值记录-导出
+            Route::get("deposit/export", "DepositController@export")->name("admin.deposit.export");
 
             // 跑腿订单结算
             // ERP管理-品库分类
@@ -163,6 +167,10 @@ Route::middleware(["force-json"])->group(function() {
 
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
+            // 用户管理-用户列表-余额消费明细
+            Route::get("/user/balance", "UserController@balance");
+            // 用户管理-用户列表-余额消费明细
+            Route::get("/user/balance/export", "UserController@balanceExport");
 
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
