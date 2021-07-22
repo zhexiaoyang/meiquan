@@ -56,7 +56,7 @@ class CreateMtOrder implements ShouldQueue
         }
 
         if (!Redis::setnx("send_order_id_" . $this->order->order_id, $this->order->order_id)) {
-            \Log::info("[发送订单]-[订单ID: {$this->order->order_id}]]-重复发送");
+            \Log::info("[CreateMtOrder]-[发送跑腿订单]-[订单ID: {$this->order->order_id}]]-重复发送");
             return;
         }
         Redis::expire("send_order_id_" . $this->order->order_id, 6);
