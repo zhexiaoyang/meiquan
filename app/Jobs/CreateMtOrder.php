@@ -13,6 +13,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class CreateMtOrder implements ShouldQueue
 {
@@ -53,6 +54,12 @@ class CreateMtOrder implements ShouldQueue
             Log::info($this->log."订单状态不正确,不能发单");
             return;
         }
+
+        if (!Redis::setnx("send_order_id_" . $this->order->order_id, $this->order->order_id)) {
+            \Log::info("[发送订单]-[订单ID: {$this->order->order_id}]]-重复发送");
+            return;
+        }
+        Redis::expire("send_order_id_" . $this->order->order_id, 6);
 
         // \Log::info("(CreateMtOrder)订单信息", [$this->order->status]);
         // return;
