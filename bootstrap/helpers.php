@@ -212,7 +212,8 @@ function getShopDistanceV4($shop, $lng, $lat)
 
     $data = json_decode($str, true);
 
-    $distance = $data['route']['paths'][0]['distance'] / 1000;
+    // $distance = $data['route']['paths'][0]['distance'] / 1000;
+    $distance = 3;
 
     \Log::info('Walking 获取距离结果：', [ $distance ]);
 
