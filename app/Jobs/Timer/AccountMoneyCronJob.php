@@ -33,7 +33,7 @@ class AccountMoneyCronJob extends CronJob
             if (isset($ss_res['data']['balance'])) {
                 $ss_money = $ss_res['data']['balance'] / 100;
                 \Log::info("[检查闪送、达达余额任务]-闪送余额：{$ss_money}");
-                if ($ss_money < 1000) {
+                if ($ss_money < 2000) {
                     app('easysms')->send('13843209606', [
                         'template' => 'SMS_218028146',
                         'data' => [
