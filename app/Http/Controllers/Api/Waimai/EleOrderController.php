@@ -542,7 +542,7 @@ class EleOrderController extends Controller
                 'receiver_lng' => $order['user']['coord_amap']['longitude'],
                 'receiver_lat' => $order['user']['coord_amap']['latitude'],
                 'coordinate_type' => 0,
-                'goods_value' => $order['order']['total_fee'],
+                'goods_value' => $order['order']['total_fee'] / 100,
                 'goods_weight' => $weight,
                 'day_seq' => $order['order']['order_index'],
                 'platform' => 2,
