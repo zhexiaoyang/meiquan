@@ -51,7 +51,8 @@ class EleOrderController extends Controller
     {
         \Log::info("[饿了么]-[订单回调-确认订单]-订单号：{$order_id}");
         $ele = app("ele");
-         $ele->confirmOrder($order_id);
+        $res = $ele->confirmOrder($order_id);
+        \Log::info("[饿了么]-[订单回调-确认订单]-结果", [$res]);
         return $this->res("order.status.success");
     }
 
