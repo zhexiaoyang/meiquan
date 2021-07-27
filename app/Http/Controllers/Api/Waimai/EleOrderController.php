@@ -35,6 +35,8 @@ class EleOrderController extends Controller
                 $status = $body['status'] ?? 0;
                 if ($status === 5) {
                     return $this->createOrder($body['order_id']);
+                } elseif ($status === 1) {
+                    return $this->confirmOrder($body['order_id']);
                 } elseif ($status === 10) {
                     return $this->cancelOrder($body['order_id']);
                 }
@@ -42,6 +44,14 @@ class EleOrderController extends Controller
         }
 
         \Log::info("[饿了么]-[订单回调]，错误请求");
+        return $this->res("order.status.success");
+    }
+
+    public function confirmOrder($order_id)
+    {
+        \Log::info("[饿了么]-[订单回调-确认订单]-订单号：{$order_id}");
+        $ele = app("ele");
+         $ele->confirmOrder($order_id);
         return $this->res("order.status.success");
     }
 

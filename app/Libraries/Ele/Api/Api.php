@@ -32,6 +32,22 @@ class Api extends Request
     }
 
     /**
+     * 确认订单
+     * @param $order_id
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/7/27 5:53 下午
+     */
+    public function confirmOrder($order_id)
+    {
+        $data = [
+            'order_id' => $order_id
+        ];
+
+        return $this->post('order.confirm', $data);
+    }
+
+    /**
      * 同步状态信息
      * @param $order_id
      * @return mixed
