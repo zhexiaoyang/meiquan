@@ -427,6 +427,8 @@ Route::middleware(["force-json"])->group(function() {
         });
         // 设置默认收货门店
         Route::post("shop/userShop", "ShopController@setUserShop");
+        // 设置默认发单门店
+        Route::post("shop/runningShop", "ShopController@setRunningShop");
     });
 });
 

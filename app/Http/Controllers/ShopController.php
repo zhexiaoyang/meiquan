@@ -503,6 +503,34 @@ class ShopController extends Controller
     }
 
     /**
+     * 设置默认发单门店
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2020/12/9 2:36 下午
+     */
+    public function setRunningShop(Request $request)
+    {
+        $user = Auth::user();
+
+        if (!$shop_id = $request->get("shop_id")) {
+            return $this->error("参数错误");
+        }
+
+        if (!$shop = Shop::where(['id' => $shop_id, 'own_id' => $user->id])->first()) {
+            return $this->error("门店不存在");
+        }
+
+        Shop::where(['user_id' => $user->id])->update(['running_select' => 0]);
+
+        $shop->running_select = 1;
+        $shop->save();
+
+
+        return $this->success();
+    }
+
+    /**
      * 绑定门店-自动发单
      * @param Request $request
      * @return mixed
