@@ -41,6 +41,12 @@ class EleOrderController extends Controller
                     return $this->cancelOrder($body['order_id']);
                 }
             }
+        } elseif ($cmd === 'order.create') {
+            $body = json_decode($request->get("body"), true);
+            if (is_array($body) && isset($body['order_id'])) {
+                \Log::info("[饿了么]-[订单回调-创建订单]，订单号：{$body['order_id']}");
+                return $this->confirmOrder($body['order_id']);
+            }
         }
 
         \Log::info("[饿了么]-[订单回调]，错误请求");
