@@ -40,6 +40,11 @@ Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(funct
     Route::post('order', "DaDaController@order_status");
 });
 
+// UU跑腿
+Route::middleware(['force-json'])->prefix('uu')->namespace('Api')->group(function () {
+    Route::post('order', "UuController@order_status");
+});
+
 // 寝趣
 Route::middleware(['force-json'])->prefix('meituan/qinqu')->namespace('Api\Waimai')->group(function () {
 
