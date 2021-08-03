@@ -62,6 +62,7 @@ class ShopController extends Controller
                 $tmp['shop_id_ss'] = $shop->shop_id_ss;
                 $tmp['shop_id_dd'] = $shop->shop_id_dd;
                 $tmp['shop_id_mqd'] = $shop->shop_id_mqd;
+                $tmp['shop_id_uu'] = $shop->shop_id_uu;
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['city'] = $shop->city;
 
