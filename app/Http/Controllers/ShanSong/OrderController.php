@@ -413,6 +413,13 @@ class OrderController
                         $dd->sendMarkdownMsgArray("闪送接口取消订单将钱返回给用户失败", $logs);
                         return json_encode(['code' => 100]);
                     }
+                    $logs = [
+                        "des" => "【闪送跑腿】，发起取消配送",
+                        "id" => $order->id,
+                        "order_id" => $order->order_id,
+                        "date" => date("Y-m-d H:i:s")
+                    ];
+                    $dd->sendMarkdownMsgArray("【闪送跑腿】，发起取消配送", $logs);
                     Log::info($log_prefix . '接口取消订单成功');
                 } else {
                     Log::info($log_prefix . "取消订单，状态不正确。状态(status)：{$order->status}");
