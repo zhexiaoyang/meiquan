@@ -59,12 +59,12 @@ class OrderController
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 2)) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-开始');
-                $logs = [
-                    "des" => "【蜂鸟订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-开始",
-                    "id" => $order->id,
-                    "order_id" => $order->order_id
-                ];
-                $dd->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
+                // $logs = [
+                //     "des" => "【蜂鸟订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-开始",
+                //     "id" => $order->id,
+                //     "order_id" => $order->order_id
+                // ];
+                // $dd->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
                 $fengniao = app("fengniao");
                 $result = $fengniao->cancelOrder([
                     'partner_order_code' => $order->order_id,
@@ -74,12 +74,12 @@ class OrderController
                 ]);
                 if ($result['code'] != 200) {
                     Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-失败');
-                    $logs = [
-                        "des" => "【蜂鸟订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-失败",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】蜂鸟取消订单失败", $logs);
+                    // $logs = [
+                    //     "des" => "【蜂鸟订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【蜂鸟】发起取消-失败",
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】蜂鸟取消订单失败", $logs);
                     return false;
                 }
                 // 记录订单日志
@@ -99,13 +99,13 @@ class OrderController
                 // 判断订单状态
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '待接单回调(待接单)，订单状态不正确，不能操作待接单');
-                    $logs = [
-                        "des" => "【蜂鸟订单回调】待接单回调(待接单)，订单状态不正确，不能操作待接单",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
+                    // $logs = [
+                    //     "des" => "【蜂鸟订单回调】待接单回调(待接单)，订单状态不正确，不能操作待接单",
+                    //     "status" => $order->status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
                     return json_encode($res);
                 }
                 $order->status = 30;
@@ -119,36 +119,36 @@ class OrderController
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
-                    $logs = [
-                        "des" => "【蜂鸟订单回调】接单回调，订单状态不正确，不能操作接单",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】不能操作接单", $logs);
+                    // $logs = [
+                    //     "des" => "【蜂鸟订单回调】接单回调，订单状态不正确，不能操作接单",
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】不能操作接单", $logs);
                     return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
                 }
                 // 设置锁，防止其他平台接单
                 if (!Redis::setnx("callback_order_id_" . $order->id, $order->id)) {
                     Log::info($log_prefix . '设置锁失败');
-                    $logs = [
-                        "des" => "【蜂鸟订单回调】设置锁失败",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
+                    // $logs = [
+                    //     "des" => "【蜂鸟订单回调】设置锁失败",
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
                     return false;
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
                 if (($order->mt_status > 30) || ($order->ss_status > 30) || ($order->dd_status > 30) || ($order->mqd_status > 30)) {
-                    $logs = [
-                        "des" => "【蜂鸟订单回调】蜂鸟接单，美团闪送已经接过单了",
-                        "mt_status" => $order->mt_status,
-                        "ss_status" => $order->ss_status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】美团闪送已经接过单了", $logs);
+                    // $logs = [
+                    //     "des" => "【蜂鸟订单回调】蜂鸟接单，美团闪送已经接过单了",
+                    //     "mt_status" => $order->mt_status,
+                    //     "ss_status" => $order->ss_status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】美团闪送已经接过单了", $logs);
                 }
                 // 取消美团订单
                 if ($order->mt_status === 20 || $order->mt_status === 30) {
@@ -160,12 +160,12 @@ class OrderController
                         'cancel_reason' => '其他原因',
                     ]);
                     if ($result['code'] !== 0) {
-                        $logs = [
-                            "des" => "【蜂鸟订单回调】美团待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】美团待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【蜂鸟订单回调】美团待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】美团待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 1,
@@ -179,12 +179,12 @@ class OrderController
                     $shansong = app("shansong");
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] != 200) {
-                        $logs = [
-                            "des" => "【蜂鸟订单回调】闪送待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】闪送待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【蜂鸟订单回调】闪送待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】闪送待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 3,
@@ -198,12 +198,12 @@ class OrderController
                     $meiquanda = app("meiquanda");
                     $result = $meiquanda->repealOrder($order->mqd_order_id);
                     if ($result['code'] != 100) {
-                        $logs = [
-                            "des" => "【蜂鸟订单回调】美全达待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】美全达待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【蜂鸟订单回调】美全达待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】美全达待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 4,
@@ -217,12 +217,12 @@ class OrderController
                     $dada = app("dada");
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] != 0) {
-                        $logs = [
-                            "des" => "【蜂鸟订单回调】达达待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【蜂鸟订单回调】达达待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 5,
@@ -236,12 +236,12 @@ class OrderController
                     $uu = app("uu");
                     $result = $uu->cancelOrder($order);
                     if ($result['return_code'] != 'ok') {
-                        $logs = [
-                            "des" => "【美团订单回调】UU待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】UU待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美团订单回调】UU待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】UU待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 6,

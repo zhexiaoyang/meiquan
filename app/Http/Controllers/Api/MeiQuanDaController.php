@@ -58,22 +58,22 @@ class MeiQuanDaController extends Controller
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【美全达】发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 4)) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-开始');
-                $logs = [
-                    "des" => "【美全达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-开始",
-                    "id" => $order->id,
-                    "order_id" => $order->order_id
-                ];
-                $dd->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
+                // $logs = [
+                //     "des" => "【美全达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-开始",
+                //     "id" => $order->id,
+                //     "order_id" => $order->order_id
+                // ];
+                // $dd->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
                 $meiquanda = app("meiquanda");
                 $result = $meiquanda->repealOrder($order->mqd_order_id);
                 if ($result['code'] != 100) {
                     Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-失败');
-                    $logs = [
-                        "des" => "【美全达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-失败",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】美全达取消订单失败", $logs);
+                    // $logs = [
+                    //     "des" => "【美全达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-失败",
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】美全达取消订单失败", $logs);
                     return ['status' => 0, 'msg' => 'err', 'data' => ''];
                 }
                 // 记录订单日志
@@ -95,40 +95,40 @@ class MeiQuanDaController extends Controller
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
-                    $logs = [
-                        "des" => "【美全达订单回调】接单回调，订单状态不正确，不能操作接单",
-                        "date" => date("Y-m-d H:i:s"),
-                        "mq_ps" => $order->ps,
-                        "mq_status" => $order->status,
-                        "mqd_status" => $status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】不能操作接单", $logs);
+                    // $logs = [
+                    //     "des" => "【美全达订单回调】接单回调，订单状态不正确，不能操作接单",
+                    //     "date" => date("Y-m-d H:i:s"),
+                    //     "mq_ps" => $order->ps,
+                    //     "mq_status" => $order->status,
+                    //     "mqd_status" => $status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】不能操作接单", $logs);
                     return json_encode($res);
                 }
                 // 设置锁，防止其他平台接单
                 if (!Redis::setnx("callback_order_id_" . $order->id, $order->id)) {
                     Log::info($log_prefix . '设置锁失败');
-                    $logs = [
-                        "des" => "【美全达订单回调】设置锁失败",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
+                    // $logs = [
+                    //     "des" => "【美全达订单回调】设置锁失败",
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
                     return ['status' => 0, 'msg' => 'err', 'data' => ''];
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
                 if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->ss_status > 30) || ($order->dd_status > 30)) {
-                    $logs = [
-                        "des" => "【美全达订单回调】美全达接单，其它平台已经接过单了",
-                        "mt_status" => $order->mt_status,
-                        "mqd_status" => $order->mqd_status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【ERROR】美团蜂鸟已经接过单了", $logs);
+                    // $logs = [
+                    //     "des" => "【美全达订单回调】美全达接单，其它平台已经接过单了",
+                    //     "mt_status" => $order->mt_status,
+                    //     "mqd_status" => $order->mqd_status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【ERROR】美团蜂鸟已经接过单了", $logs);
                 }
                 // 取消美团订单
                 if ($order->mt_status === 20 || $order->mt_status === 30) {
@@ -140,12 +140,12 @@ class MeiQuanDaController extends Controller
                         'cancel_reason' => '其他原因',
                     ]);
                     if ($result['code'] !== 0) {
-                        $logs = [
-                            "des" => "【美全达订单回调】美团待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】美团待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美全达订单回调】美团待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】美团待接单取消失败", $logs);
                     }
                     // 记录订单日志
                     OrderLog::create([
@@ -165,12 +165,12 @@ class MeiQuanDaController extends Controller
                         'order_cancel_time' => time() * 1000,
                     ]);
                     if ($result['code'] != 200) {
-                        $logs = [
-                            "des" => "【美全达订单回调】蜂鸟待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】蜂鸟待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美全达订单回调】蜂鸟待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】蜂鸟待接单取消失败", $logs);
                     }
                     // 记录订单日志
                     OrderLog::create([
@@ -185,12 +185,12 @@ class MeiQuanDaController extends Controller
                     $shansong = app("shansong");
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] != 200) {
-                        $logs = [
-                            "des" => "【美全达订单回调】闪送待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】闪送待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美全达订单回调】闪送待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】闪送待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 3,
@@ -204,12 +204,12 @@ class MeiQuanDaController extends Controller
                     $dada = app("dada");
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] != 0) {
-                        $logs = [
-                            "des" => "【美全达订单回调】达达待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美全达订单回调】达达待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 5,
@@ -223,12 +223,12 @@ class MeiQuanDaController extends Controller
                     $uu = app("uu");
                     $result = $uu->cancelOrder($order);
                     if ($result['return_code'] != 'ok') {
-                        $logs = [
-                            "des" => "【美全达订单回调】UU待接单取消失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("【ERROR】UU待接单取消失败", $logs);
+                        // $logs = [
+                        //     "des" => "【美全达订单回调】UU待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dd->sendMarkdownMsgArray("【ERROR】UU待接单取消失败", $logs);
                     }
                     OrderLog::create([
                         'ps' => 6,
