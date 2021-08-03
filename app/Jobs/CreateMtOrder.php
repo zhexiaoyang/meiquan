@@ -88,6 +88,7 @@ class CreateMtOrder implements ShouldQueue
             $ss_switch = config("ps.shop_setting.shansong");
             $mqd_switch = config("ps.shop_setting.meiquanda");
             $uu_switch = config("ps.shop_setting.uu");
+            $dd_switch = config("ps.shop_setting.dd");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
