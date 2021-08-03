@@ -33,7 +33,8 @@ class Request
             'appid' => $this->app_id,
             'timestamp' => time(),
             'nonce_str' => Tool::ticket(),
-            'openid' => '910a0dfd12bb4bc0acec147bcb1ae246',
+            'openid' => 'a70ad37d0f954100a6508aa9f1e6ad52',
+            // 'openid' => '910a0dfd12bb4bc0acec147bcb1ae246',
         ];
 
         $params = array_merge($data, $params);

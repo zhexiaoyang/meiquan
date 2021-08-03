@@ -20,7 +20,8 @@ class ShopPlatFormController extends Controller
         $page_size = intval($request->get("page_size", 10)) ?: 10;
         $name = trim($request->get("name", ""));
 
-        $query = Shop::query()->select("id","shop_name","ele_shop_id","mt_shop_id","shop_id","shop_id_fn","shop_id_ss","shop_id_dd","shop_id_mqd");
+        $query = Shop::query()->select("id","shop_name","ele_shop_id","mt_shop_id","shop_id","shop_id_fn",
+            "shop_id_ss","shop_id_dd","shop_id_mqd","shop_id_uu");
 
         if ($name) {
             $query->where("shop_name", "like", "%{$name}%");
@@ -77,6 +78,9 @@ class ShopPlatFormController extends Controller
                 break;
             case 15:
                 $shop->shop_id_mqd = $status;
+                break;
+            case 16:
+                $shop->shop_id_uu = $status;
                 break;
         }
 
