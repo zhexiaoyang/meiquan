@@ -136,6 +136,7 @@ class CreateMtOrder implements ShouldQueue
         $money_uu_need = 0;
         $money_uu_total = 0;
         $ss_order_id = "";
+        $price_token = '';
 
         $order = Order::query()->find($this->order->id);
 
