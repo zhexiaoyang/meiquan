@@ -133,6 +133,7 @@ class CreateMtOrder implements ShouldQueue
         $money_mqd = 0;
         $money_dd = 0;
         $money_uu = 0;
+        $money_uu_need = 0;
         $money_uu_total = 0;
         $ss_order_id = "";
 
