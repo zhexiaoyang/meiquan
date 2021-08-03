@@ -633,7 +633,7 @@ class ShopController extends Controller
         $user = $request->user();
 
         $data = Shop::select("id","shop_name as name","shop_address as address","shop_id","shop_id_fn","shop_id_ss",
-            "shop_id_dd","shop_id_mqd","city","status","mt_shop_id","ele_shop_id", "running_select")
+            "shop_id_dd","shop_id_mqd","shop_id_uu","city","status","mt_shop_id","ele_shop_id", "running_select")
             ->where("user_id", $user->id)->get();
 
         return $this->success($data);
