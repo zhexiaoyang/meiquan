@@ -94,6 +94,12 @@ return [
         "app_key" => env("SHUNFENG_APP_KEY", ""),
         "url" => "https://commit-openic.sf-express.com"
     ],
+    // Uu跑腿
+    "uu" => [
+        "app_id" => env("UU_APPID", ""),
+        "app_key" => env("UU_APPKEY", ""),
+        "url" => env("UU_URL", ""),
+    ],
     "jieri" => [
         "2020-02-16",
         "2020-02-17",
@@ -115,6 +121,7 @@ return [
         'shansong' => 1,
         'shunfeng' => 1,
         'dada' => 1,
+        'uu' => 1,
         'meiquanda' => 1,
     ]
 

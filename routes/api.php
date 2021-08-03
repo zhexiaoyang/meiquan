@@ -149,9 +149,9 @@ Route::middleware(["force-json"])->group(function() {
             // 搜索关键词
             Route::resource("searchKey", "SearchKeyController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 轮播公告
-            Route::resource("notice2", "NoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            Route::resource("notice", "NoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 质量公告
-            Route::resource("notice", "SupplierNoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            Route::resource("supplier/notice", "SupplierNoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 外卖资料-导出
             Route::get("online_shop/export", "OnlineShopController@export")->name("admin.online_shop.export");
             // 外卖资料

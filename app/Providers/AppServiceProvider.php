@@ -10,6 +10,7 @@ use App\Libraries\MeiQuanDa\MeiQuanDa;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Shunfeng\Shunfeng;
+use App\Libraries\Uu\Uu;
 use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
 use Yansongda\Pay\Pay;
@@ -23,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
+        // 饿了么
+        $this->app->singleton('uu', function () {
+            $config = config('ps.uu');
+            return new Uu($config);
+        });
         // 饿了么
         $this->app->singleton('ele', function () {
             $config = config('ps.ele');

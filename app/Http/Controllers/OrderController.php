@@ -41,6 +41,7 @@ class OrderController extends Controller
             'ss_status','money_ss','fail_ss',
             'mqd_status','money_mqd','fail_mqd',
             'dd_status','money_dd','fail_dd',
+            'uu_status','money_uu','fail_uu',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
@@ -272,6 +273,15 @@ class OrderController extends Controller
         } else {
             $order->dd_status = 0;
             $order->fail_dd = '';
+        }
+
+        if ($request->get("uu", 0) === 0) {
+            if (!$order->fail_uu) {
+                $order->fail_uu = '重新发送订单-不选择';
+            }
+        } else {
+            $order->uu_status = 0;
+            $order->fail_uu = '';
         }
 
         $order->status = 0;
@@ -975,6 +985,76 @@ class OrderController extends Controller
                     ];
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
                 }
+            } elseif ($ps == 6) {
+                $uu = app("uu");
+                $result = $uu->cancelOrder($order);
+                if ($result['return_code'] == 'ok') {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->take_at)) {
+                                $jian_money = 3;
+                            }
+                            // 当前用户
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消UU跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $jian_money,
+                                "type" => 2,
+                                "before_money" => ($current_user->money + $order->money),
+                                "after_money" => ($current_user->money + $order->money - $jian_money),
+                                "description" => "取消UU跑腿订单扣款：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'uu_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
+                            ]);
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:UU]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "（美团外卖）取消【UU跑腿】跑腿订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:UU]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "UU",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消UU订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【美团外卖接口取消订单】取消UU订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "UU",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
+                }
             }
             return $this->success();
         } elseif (in_array($order->status, [20, 30])) {
@@ -1087,23 +1167,23 @@ class OrderController extends Controller
      */
     public function cancel2(Order $order)
     {
-        \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-开始");
+        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-开始");
         $ps = $order->ps;
 
         if ($order->status == 99) {
             // 已经是取消状态
-            \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-已经是取消状态");
+            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-已经是取消状态");
             return $this->success();
         } elseif ($order->status == 80) {
             // 异常状态
-            \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-异常状态");
+            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-异常状态");
             return $this->success();
         } elseif ($order->status == 70) {
             // 已经完成
-            \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-订单已经完成，不能取消");
+            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-订单已经完成，不能取消");
             return $this->error("订单已经完成，不能取消");
         } elseif (in_array($order->status, [40, 50, 60])) {
-            \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-已有平台接单，订单状态：{$order->status}");
+            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-已有平台接单，订单状态：{$order->status}");
             $dd = app("ding");
             if ($ps == 1) {
                 $meituan = app("meituan");
@@ -1124,7 +1204,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "操作取消美团跑腿订单：" . $order->order_id,
+                                "description" => "用户操作取消美团跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             // 将配送费返回
@@ -1135,10 +1215,10 @@ class OrderController extends Controller
                                 'mt_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "操作取消【美团】跑腿订单"
+                                "des" => "用户操作取消【美团跑腿】订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1148,24 +1228,24 @@ class OrderController extends Controller
                             $e->getLine(),
                             $e->getMessage()
                         ];
-                        \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户失败", $message);
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "美团",
                             "order_id" => $order->order_id
                         ];
-                        $dd->sendMarkdownMsgArray("操作取消订单将钱返回给用户失败", $logs);
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【操作取消订单】取消美团订单返回失败",
+                        "des" => "【用户操作取消订单】取消美团订单返回失败",
                         "id" => $order->id,
                         "ps" => "美团",
                         "order_id" => $order->order_id
                     ];
-                    $dd->sendMarkdownMsgArray("操作取消订单，取消美团订单返回失败", $logs);
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消美团订单返回失败", $logs);
                 }
             } elseif ($ps == 2) {
                 $fengniao = app("fengniao");
@@ -1186,7 +1266,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "操作取消蜂鸟跑腿订单：" . $order->order_id,
+                                "description" => "用户操作取消蜂鸟跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             // 更改订单信息
@@ -1195,10 +1275,10 @@ class OrderController extends Controller
                                 'fn_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "操作取消【蜂鸟】跑腿订单"
+                                "des" => "用户操作取消【蜂鸟跑腿】订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1208,24 +1288,24 @@ class OrderController extends Controller
                             $e->getLine(),
                             $e->getMessage()
                         ];
-                        \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户失败", $message);
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "蜂鸟",
                             "order_id" => $order->order_id
                         ];
-                        $dd->sendMarkdownMsgArray("操作取消订单将钱返回给用户失败", $logs);
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【操作取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【用户操作取消订单】取消蜂鸟订单返回失败",
                         "id" => $order->id,
                         "ps" => "蜂鸟",
                         "order_id" => $order->order_id
                     ];
-                    $dd->sendMarkdownMsgArray("操作取消订单，取消蜂鸟订单返回失败", $logs);
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消蜂鸟订单返回失败", $logs);
                 }
             } elseif ($ps == 3) {
                 $shansong = app("shansong");
@@ -1253,7 +1333,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "操作取消闪送跑腿订单：" . $order->order_id,
+                                "description" => "用户操作取消闪送跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             UserMoneyBalance::query()->create([
@@ -1262,7 +1342,7 @@ class OrderController extends Controller
                                 "type" => 2,
                                 "before_money" => ($current_user->money + $order->money),
                                 "after_money" => ($current_user->money + $order->money - $jian_money),
-                                "description" => "操作取消闪送跑腿订单扣款：" . $order->order_id,
+                                "description" => "用户操作取消闪送跑腿订单扣款：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
@@ -1272,7 +1352,7 @@ class OrderController extends Controller
                             ]);
                             // $current_user->increment('money', ($order->money - $jian_money));
                             DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
                             if ($jian_money > 0) {
                                 $jian_data = [
                                     'order_id' => $order->id,
@@ -1283,7 +1363,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "操作取消【闪送】跑腿订单"
+                                "des" => "用户操作取消【闪送跑腿】订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1293,24 +1373,24 @@ class OrderController extends Controller
                             $e->getLine(),
                             $e->getMessage()
                         ];
-                        \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "闪送",
                             "order_id" => $order->order_id
                         ];
-                        $dd->sendMarkdownMsgArray("操作取消订单将钱返回给用户失败", $logs);
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【操作取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【用户操作取消订单】取消蜂鸟订单返回失败",
                         "id" => $order->id,
                         "ps" => "闪送",
                         "order_id" => $order->order_id
                     ];
-                    $dd->sendMarkdownMsgArray("操作取消订单，取消闪送订单返回失败", $logs);
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消闪送订单返回失败", $logs);
                 }
             } elseif ($ps == 4) {
                 $fengniao = app("meiquanda");
@@ -1326,7 +1406,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消美全达跑腿订单：" . $order->order_id,
+                                "description" => "用户操作取消美全达跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             // 更改订单信息
@@ -1335,10 +1415,10 @@ class OrderController extends Controller
                                 'mqd_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【美全达】跑腿订单"
+                                "des" => "用户操作取消【美全达跑腿】订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1348,24 +1428,24 @@ class OrderController extends Controller
                             $e->getLine(),
                             $e->getMessage()
                         ];
-                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "美全达",
                             "order_id" => $order->order_id
                         ];
-                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【美团外卖接口取消订单】取消美全达订单返回失败",
+                        "des" => "【用户操作取消订单】取消美全达订单返回失败",
                         "id" => $order->id,
                         "ps" => "美全达",
                         "order_id" => $order->order_id
                     ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消美全达订单返回失败", $logs);
                 }
             } elseif ($ps == 5) {
                 $dada = app("dada");
@@ -1381,7 +1461,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消达达跑腿订单：" . $order->order_id,
+                                "description" => "用户操作取消达达跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             // 更改订单信息
@@ -1390,10 +1470,10 @@ class OrderController extends Controller
                                 'dd_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【达达】跑腿订单"
+                                "des" => "用户操作取消【达达跑腿】订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1403,24 +1483,95 @@ class OrderController extends Controller
                             $e->getLine(),
                             $e->getMessage()
                         ];
-                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "达达",
                             "order_id" => $order->order_id
                         ];
-                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
                     }
                 } else {
-                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消达达订单返回失败", [$result]);
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消达达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【美团外卖接口取消订单】取消达达订单返回失败",
+                        "des" => "【用户操作取消订单】取消达达订单返回失败",
                         "id" => $order->id,
                         "ps" => "达达",
                         "order_id" => $order->order_id
                     ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消达达订单返回失败", $logs);
+                }
+            } elseif ($ps == 6) {
+                // 取消UU跑腿订单
+                $uu = app("uu");
+                $result = $uu->cancelOrder($order);
+                if ($result['return_code'] == 'ok') {
+                    try {
+                        DB::transaction(function () use ($order) {
+                            // 用户余额日志
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->take_at)) {
+                                $jian_money = 3;
+                            }
+                            // 当前用户
+                            $current_user = DB::table('users')->find($order->user_id);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $order->money,
+                                "type" => 1,
+                                "before_money" => $current_user->money,
+                                "after_money" => ($current_user->money + $order->money),
+                                "description" => "（美团外卖）取消UU跑腿订单：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            UserMoneyBalance::query()->create([
+                                "user_id" => $order->user_id,
+                                "money" => $jian_money,
+                                "type" => 2,
+                                "before_money" => ($current_user->money + $order->money),
+                                "after_money" => ($current_user->money + $order->money - $jian_money),
+                                "description" => "取消UU跑腿订单扣款：" . $order->order_id,
+                                "tid" => $order->id
+                            ]);
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'uu_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
+                            ]);
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:UU]-将钱返回给用户");
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "用户操作取消【UU跑腿】订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:UU]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "UU",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
+                    }
+                } else {
+                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:UU]-取消UU订单返回失败", [$result]);
+                    $logs = [
+                        "des" => "【用户操作取消订单】取消UU订单返回失败",
+                        "id" => $order->id,
+                        "ps" => "达达",
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("用户操作取消订单，取消UU订单返回失败", $logs);
                 }
             }
             return $this->success();
@@ -1443,7 +1594,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "操作取消【美团】跑腿订单"
+                        "des" => "用户操作取消【美团跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美团成功");
                 }
@@ -1464,7 +1615,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "操作取消【蜂鸟】跑腿订单"
+                        "des" => "用户操作取消【蜂鸟跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，蜂鸟成功");
                 }
@@ -1480,7 +1631,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "操作取消【闪送】跑腿订单"
+                        "des" => "用户操作取消【闪送跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，闪送成功");
                 }
@@ -1496,7 +1647,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "操作取消【美全达】跑腿订单"
+                        "des" => "用户操作取消【美全达跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美全达成功");
                 }
@@ -1512,9 +1663,25 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "操作取消【达达】跑腿订单"
+                        "des" => "用户操作取消【达达跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，达达成功");
+                }
+            }
+            if (in_array($order->uu_status, [20, 30])) {
+                \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消UU");
+                $uu = app("uu");
+                $result = $uu->cancelOrder($order);
+                if ($result['return_code'] == 'ok') {
+                    $order->status = 99;
+                    $order->uu_status = 99;
+                    $order->cancel_at = date("Y-m-d H:i:s");
+                    $order->save();
+                    OrderLog::create([
+                        "order_id" => $order->id,
+                        "des" => "用户操作取消【UU跑腿】订单"
+                    ]);
+                    \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，UU成功");
                 }
             }
             return $this->success();
@@ -1796,7 +1963,8 @@ class OrderController extends Controller
             'ss' => $shop->shop_id_ss ?? 0,
             'sf' => $shop->shop_id_sf ?? 0,
             'dd' => $shop->shop_id_dd ?? 0,
-            'mqd' => $shop->shop_id_mqd ?? 0
+            'mqd' => $shop->shop_id_mqd ?? 0,
+            'uu' => $shop->shop_id_uu ?? 0
         ];
 
         return $this->success($result);

@@ -16,36 +16,37 @@ class UuController extends Controller
 {
     public function order_status(Request $request)
     {
-
         $res = ['return_code' => 'ok'];
 
         \Log::info("UU跑腿回调全部参数", $request->all());
 
-        return json_encode($res);
-
         // 接收全部参数
-        $data = $request->all();
+        $data_str = $request->get('data');
+        $data = json_decode($data_str, true);
         if (empty($data)) {
-            return $res;
+            return json_encode($res);
         }
+
+        \Log::info("UU跑腿回调全部参数", $data);
+
+        // return json_encode($res);
         // 商家订单号
-        $order_id = $data['order_id'] ?? '';
-        // 订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10, 骑士到店=100,
-        // 创建达达运单失败=1000 可参考文末的状态说明）
-        $status = $data['order_status'] ?? '';
+        $order_id = $data['order_code'] ?? '';
+        // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
+        $status = $data['state'] ?? '';
         // 配送员姓名
-        $name = $data['dm_name'] ?? '';
+        $name = $data['driver_name'] ?? '';
         // 配送员手机号
-        $phone = $data['dm_mobile'] ?? '';
+        $phone = $data['driver_mobile'] ?? '';
 
         // 定义日志格式
-        $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}]-";
+        $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}]-";
         Log::info($log_prefix . '全部参数', $data);
         $dingding = app("ding");
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
-            $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
+            $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
             if ($order->status == 99) {
                 Log::info($log_prefix . '订单已是取消状态');
@@ -56,76 +57,73 @@ class UuController extends Controller
                 return json_encode($res);
             }
 
-            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【达达】发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5)) {
-                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始');
+            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【UU】发起取消
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 6)) {
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-开始');
                 $logs = [
-                    "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始",
+                    "des" => "【UU订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-开始",
                     "id" => $order->id,
                     "order_id" => $order->order_id
                 ];
                 $dingding->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
-                $dd = app("dada");
-                $result = $dd->orderCancel($order->order_id);
-                if ($result['code'] != 0) {
-                    Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-失败');
+                $uu = app("uu");
+                $result = $uu->cancelOrder($order);
+                if ($result['return_code'] != 'ok') {
+                    Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-失败');
                     $logs = [
-                        "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-失败",
+                        "des" => "【UU订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-失败",
                         "id" => $order->id,
                         "order_id" => $order->order_id
                     ];
-                    $dingding->sendMarkdownMsgArray("【ERROR】达达取消订单失败", $logs);
+                    $dingding->sendMarkdownMsgArray("【ERROR】UU取消订单失败", $logs);
                     return ['status' => 'err'];
                 }
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 5,
+                    'ps' => 6,
                     "order_id" => $order->id,
-                    "des" => "取消【达达】跑腿订单",
+                    "des" => "取消【UU】跑腿订单",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
-                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-成功');
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-成功');
                 return json_encode($res);
             }
 
-            // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
-            // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
-
-            // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
-            if ($status == 2) {
+            // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
+            if ($status == 3) {
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
                     $logs = [
-                        "des" => "【达达订单回调】接单回调，订单状态不正确，不能操作接单",
+                        "des" => "【UU订单回调】接单回调，订单状态不正确，不能操作接单",
                         "date" => date("Y-m-d H:i:s"),
                         "mq_ps" => $order->ps,
                         "mq_status" => $order->status,
-                        "dd_status" => $status,
+                        "uu_status" => $status,
                         "id" => $order->id,
                         "order_id" => $order->order_id
                     ];
-                    $dingding->sendMarkdownMsgArray("【ERROR】【达达】不能操作接单", $logs);
+                    $dingding->sendMarkdownMsgArray("【ERROR】【UU】不能操作接单", $logs);
                     return json_encode($res);
                 }
                 // 设置锁，防止其他平台接单
                 if (!Redis::setnx("callback_order_id_" . $order->id, $order->id)) {
                     Log::info($log_prefix . '设置锁失败');
                     $logs = [
-                        "des" => "【达达订单回调】设置锁失败",
+                        "des" => "【UU订单回调】设置锁失败",
                         "id" => $order->id,
                         "order_id" => $order->order_id
                     ];
                     $dingding->sendMarkdownMsgArray("【ERROR】设置锁失败", $logs);
-                    return ['status' => 'err'];
+                    return ['return_code' => 'err'];
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
                 if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->ss_status > 30) || ($order->mqd_status > 30)) {
                     $logs = [
-                        "des" => "【达达订单回调】达达接单，其它平台已经接过单了",
+                        "des" => "【UU订单回调】UU接单，其它平台已经接过单了",
                         "mt_status" => $order->mt_status,
                         "mqd_status" => $order->mqd_status,
                         "id" => $order->id,
@@ -144,7 +142,7 @@ class UuController extends Controller
                     ]);
                     if ($result['code'] !== 0) {
                         $logs = [
-                            "des" => "【达达订单回调】美团待接单取消失败",
+                            "des" => "【UU订单回调】美团待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
@@ -169,7 +167,7 @@ class UuController extends Controller
                     ]);
                     if ($result['code'] != 200) {
                         $logs = [
-                            "des" => "【达达订单回调】蜂鸟待接单取消失败",
+                            "des" => "【UU订单回调】蜂鸟待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
@@ -189,7 +187,7 @@ class UuController extends Controller
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] != 200) {
                         $logs = [
-                            "des" => "【达达订单回调】闪送待接单取消失败",
+                            "des" => "【UU订单回调】闪送待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
@@ -208,7 +206,7 @@ class UuController extends Controller
                     $result = $meiquanda->repealOrder($order->mqd_order_id);
                     if ($result['code'] != 100) {
                         $logs = [
-                            "des" => "【达达订单回调】美全达待接单取消失败",
+                            "des" => "【UU订单回调】美全达待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
@@ -221,50 +219,70 @@ class UuController extends Controller
                     ]);
                     Log::info($log_prefix . '取消美全达待接单订单成功');
                 }
+                // 取消达达订单
+                if ($order->dd_status === 20 || $order->dd_status === 30) {
+                    $dada = app("dada");
+                    $result = $dada->orderCancel($order->order_id);
+                    if ($result['code'] != 0) {
+                        $logs = [
+                            "des" => "【UU订单回调】达达待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dingding->sendMarkdownMsgArray("【ERROR】达达待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 5,
+                        'order_id' => $order->id,
+                        'des' => '取消【达达】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消达达待接单订单成功');
+                }
                 // 更改信息，扣款
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
-                            'ps' => 5,
-                            'money' => $order->money_dd,
+                            'ps' => 6,
+                            'money' => $order->money_uu,
                             'profit' => 1,
                             'status' => 50,
-                            'dd_status' => 50,
+                            'uu_status' => 50,
+                            'dd_status' => $order->mt_status < 20 ?: 7,
                             'mt_status' => $order->mt_status < 20 ?: 7,
                             'fn_status' => $order->fn_status < 20 ?: 7,
                             'ss_status' => $order->ss_status < 20 ?: 7,
                             'mqd_status' => $order->mqd_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
-                            'peisong_id' => $order->dd_order_id,
+                            'peisong_id' => $order->uu_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
                         // 减去用户配送费
-                        DB::table('users')->where('id', $order->user_id)->decrement('money', $order->money_dd);
+                        DB::table('users')->where('id', $order->user_id)->decrement('money', $order->money_uu);
                         // 用户余额日志
                         // DB::table("user_money_balances")->insert();
                         UserMoneyBalance::create([
                             "user_id" => $order->user_id,
-                            "money" => $order->money_dd,
+                            "money" => $order->money_uu,
                             "type" => 2,
                             "before_money" => $current_user->money,
-                            "after_money" => ($current_user->money - $order->money_dd),
-                            "description" => "达达跑腿订单：" . $order->order_id,
+                            "after_money" => ($current_user->money - $order->money_uu),
+                            "description" => "UU跑腿订单：" . $order->order_id,
                             "tid" => $order->id
                         ]);
                         // 记录订单日志
                         OrderLog::create([
-                            'ps' => 5,
+                            'ps' => 6,
                             "order_id" => $order->id,
-                            "des" => "【达达】跑腿，待取货",
+                            "des" => "【UU】跑腿，待取货",
                             'name' => $name,
                             'phone' => $phone,
                         ]);
                     });
-                    Log::info($log_prefix . "达达接单，更改信息成功，扣款成功。扣款：{$order->money_dd}");
+                    Log::info($log_prefix . "UU接单，更改信息成功，扣款成功。扣款：{$order->money_uu}");
                 } catch (\Exception $e) {
                     $message = [
                         $e->getCode(),
@@ -274,7 +292,7 @@ class UuController extends Controller
                     ];
                     Log::info($log_prefix . '更改信息、扣款事务提交失败', $message);
                     $logs = [
-                        "des" => "【达达订单回调】更改信息、扣款失败",
+                        "des" => "【UU订单回调】更改信息、扣款失败",
                         "id" => $order->id,
                         "order_id" => $order->order_id
                     ];
@@ -285,49 +303,48 @@ class UuController extends Controller
                 $order = Order::where('order_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-            } elseif ($status == 3) {
-                // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
-                // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
-                // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
+            } elseif ($status == 5) {
+                // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
                 // 送货中
                 $order->status = 60;
-                $order->dd_status = 60;
+                $order->uu_status = 60;
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 5,
+                    'ps' => 6,
                     "order_id" => $order->id,
-                    "des" => "【达达】跑腿，配送中",
+                    "des" => "【UU】跑腿，配送中",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-            } elseif ($status == 4) {
+            } elseif ($status == 10) {
+                // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
                 $order->status = 70;
-                $order->dd_status = 70;
+                $order->uu_status = 70;
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 5,
+                    'ps' => 6,
                     "order_id" => $order->id,
-                    "des" => "【达达】跑腿，已送达",
+                    "des" => "【UU】跑腿，已送达",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-            } elseif ($status == 5) {
+            } elseif ($status == -1) {
                 if ($order->status >= 20 && $order->status < 70 ) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
-                            if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
+                            if (($order->status == 50 || $order->status == 60) && $order->ps == 6) {
                                 // 查询当前用户，做余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
                                 // DB::table("user_money_balances")->insert();
@@ -337,28 +354,28 @@ class UuController extends Controller
                                     "type" => 1,
                                     "before_money" => $current_user->money,
                                     "after_money" => ($current_user->money + $order->money),
-                                    "description" => "取消达达跑腿订单：" . $order->order_id,
+                                    "description" => "取消UU跑腿订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
                                 // 将配送费返回
-                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
+                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_uu);
                                 Log::info($log_prefix . '接口取消订单，将钱返回给用户');
                             }
 
                             $update_data = [
-                                'dd_status' => 99
+                                'uu_status' => 99
                             ];
                             if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
                                 $update_data = [
                                     'status' => 99,
-                                    'dd_status' => 99
+                                    'uu_status' => 99
                                 ];
                             }
                             Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
-                                'ps' => 5,
+                                'ps' => 6,
                                 'order_id' => $order->id,
-                                'des' => '【达达】跑腿，发起取消配送',
+                                'des' => '【UU】跑腿，发起取消配送',
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -370,11 +387,11 @@ class UuController extends Controller
                         ];
                         Log::info($log_prefix . '取消订单，将钱返回给用户失败', $message);
                         $logs = [
-                            "des" => "【达达订单回调】更改信息、将钱返回给用户失败",
+                            "des" => "【UU订单回调】更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
-                        $dingding->sendMarkdownMsgArray("达达接口取消订单将钱返回给用户失败", $logs);
+                        $dingding->sendMarkdownMsgArray("UU接口取消订单将钱返回给用户失败", $logs);
                         return json_encode(['code' => 100]);
                     }
                     Log::info($log_prefix . '接口取消订单成功');

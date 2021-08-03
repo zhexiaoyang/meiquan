@@ -620,6 +620,7 @@ class ShopController extends Controller
             'ss' => $shop->shop_id_ss ?? 0,
             'sf' => $shop->shop_id_sf ?? 0,
             'dd' => $shop->shop_id_dd ?? 0,
+            'uu' => $shop->shop_id_uu ?? 0,
             'mqd' => $shop->shop_id_mqd ?? 0
         ];
 

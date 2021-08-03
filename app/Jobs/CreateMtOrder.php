@@ -27,8 +27,10 @@ class CreateMtOrder implements ShouldQueue
     protected $time_money = 0;
     protected $money_ss = 16;
     protected $money_dd = 8;
+    protected $money_uu = 8;
     protected $log = "";
     protected $dada_order_id = '';
+    protected $uu_order_id = '';
 
     /**
      * Create a new job instance.
@@ -78,13 +80,14 @@ class CreateMtOrder implements ShouldQueue
             $ss_switch = $setting->shansong;
             $mqd_switch = $setting->meiquanda;
             $dd_switch = $setting->dada;
+            $uu_switch = $setting->uu;
         } else {
             $order_ttl = config("ps.shop_setting.delay_reset") * 60;
             $mt_switch = config("ps.shop_setting.meituan");
             $fn_switch = config("ps.shop_setting.fengniao");
             $ss_switch = config("ps.shop_setting.shansong");
             $mqd_switch = config("ps.shop_setting.meiquanda");
-            $dd_switch = config("ps.shop_setting.dada");
+            $uu_switch = config("ps.shop_setting.uu");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -128,9 +131,51 @@ class CreateMtOrder implements ShouldQueue
         $money_ss = 0;
         $money_mqd = 0;
         $money_dd = 0;
+        $money_uu = 0;
+        $money_uu_total = 0;
         $ss_order_id = "";
 
         $order = Order::query()->find($this->order->id);
+
+        // *****************************************
+        // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没用失败信息)
+        if ($shop->shop_id_uu && $uu_switch && !$this->order->fail_uu && ($order->uu_status === 0)) {
+            $uu = app("uu");
+            $check_uu= $uu->orderCalculate($this->order, $shop);
+            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + 1;
+            $money_uu_total = $check_uu['total_money'] ?? 0;
+            $money_uu_need = $check_uu['need_paymoney'] ?? 0;
+            $price_token = $check_uu['price_token'] ?? '';
+            \Log::info("aaa", [$money_uu, $check_uu['return_code']]);
+            if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) ) {
+                $this->money_uu = $money_uu;
+                $this->services['uu'] = $money_uu;
+                Log::info($this->log."UU可以，金额：{$money_uu}");
+            } else {
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $check_dd['msg'] ?? "UU校验订单请求失败"]);
+                Log::info($this->log."UU校验订单请求失败");
+            }
+
+            // 判断用户金额是否满足UU订单
+            if ($user->money < ($money_uu + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发UU单");
+                return;
+            }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'uu_status' => $order->uu_status,
+                'uu' => $uu_switch,
+                'fail_uu' => $this->order->fail_uu
+            ];
+            Log::info($this->log."跳出UU发单", $log_arr);
+        }
+
+        // *****************************************
 
         // *****************************************
         // 判断是否开启达达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
@@ -372,6 +417,18 @@ class CreateMtOrder implements ShouldQueue
         if ($money_ss) {
             $money_arr["money_ss"] = $money_ss;
         }
+        if ($money_uu) {
+            $money_arr["money_uu"] = $money_uu;
+        }
+        if ($money_uu_total) {
+            $money_arr["money_uu_total"] = $money_uu_total;
+        }
+        if ($money_uu_need) {
+            $money_arr["money_uu_need"] = $money_uu_need;
+        }
+        if ($price_token) {
+            $money_arr["price_token"] = $price_token;
+        }
         if ($ss_order_id) {
             $money_arr["ss_order_id"] = $ss_order_id;
         }
@@ -429,9 +486,74 @@ class CreateMtOrder implements ShouldQueue
                 Log::info($this->log."发送达达订单失败");
             }
             return;
+        } else if ($ps === "uu") {
+            if ($this->uu()) {
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
+                }
+            } else {
+                Log::info($this->log."发送UU订单失败");
+            }
+            return;
         }
         Log::info($this->log."发送订单失败，没有返回最小平台");
         // $this->dingTalk("发送订单失败", "没有返回最小平台");
+    }
+
+    public function uu()
+    {
+        $order = Order::find($this->order->id);
+        $shop = Shop::find($this->order->shop_id);
+
+        if ($order->status > 30) {
+            Log::info($this->log."不能发送UU订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->uu_status >= 20) {
+            Log::info($this->log."不能发送UU订单，达达状态不是0，状态：{$order->uu_status}");
+        }
+
+        if ($order->fail_uu) {
+            Log::info($this->log."不能发送UU订单，已有UU错误信息");
+            return false;
+        }
+
+        $uu = app("uu");
+        // 发送UU订单
+        $result_uu = $uu->addOrder($order, $shop);
+        if ($result_uu['return_code'] === 'ok') {
+            // 订单发送成功
+            Log::info($this->log."发送UU订单成功，返回参数：", [$result_uu]);
+            // 写入订单信息
+            $update_info = [
+                // 'money_uu' => $order->money_uu,
+                'uu_order_id' => $result_uu['ordercode'],
+                'uu_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 6,
+                'order_id' => $this->order->id,
+                'des' => '【UU跑腿】平台发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."UU更新创建订单状态成功");
+            return true;
+        } else {
+            $fail_uu = $result_uu['return_msg'] ?? "UU创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $fail_uu, 'dd_status' => 3]);
+            Log::info($this->log."UU发送订单失败：{$fail_uu}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."UU发送订单失败，没有平台了");
+            }
+        }
+
+        return false;
     }
 
     public function dada()

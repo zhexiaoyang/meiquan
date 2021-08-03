@@ -37,6 +37,7 @@ class NoticeController extends Controller
     public function destroy(Notice $notice)
     {
         $notice->delete();
+        \Log::info("aaa", [$notice->toArray()]);
 
         return $this->success();
     }
@@ -54,6 +55,7 @@ class NoticeController extends Controller
             'status' => 'required',
         ]);
 
+        \Log::info("aaa", $request->only("notice", "sort", "status"));
         $notice->update($request->only("notice", "sort", "status"));
 
         return $this->success();

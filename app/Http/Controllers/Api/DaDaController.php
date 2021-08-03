@@ -215,6 +215,25 @@ class DaDaController extends Controller
                     ]);
                     Log::info($log_prefix . '取消美全达待接单订单成功');
                 }
+                // 取消UU订单
+                if ($order->uu_status === 20 || $order->uu_status === 30) {
+                    $uu = app("uu");
+                    $result = $uu->cancelOrder($order);
+                    if ($result['return_code'] != 'ok') {
+                        $logs = [
+                            "des" => "【美团订单回调】UU待接单取消失败",
+                            "id" => $order->id,
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("【ERROR】UU待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 6,
+                        'order_id' => $order->id,
+                        'des' => '取消【UU跑腿】订单',
+                    ]);
+                    Log::info($log_prefix . '取消UU待接单订单成功');
+                }
                 // 更改信息，扣款
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
@@ -229,6 +248,7 @@ class DaDaController extends Controller
                             'fn_status' => $order->fn_status < 20 ?: 7,
                             'ss_status' => $order->ss_status < 20 ?: 7,
                             'mqd_status' => $order->mqd_status < 20 ?: 7,
+                            'uu_status' => $order->dd_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
                             'peisong_id' => $order->dd_order_id,
                             'courier_name' => $name,
