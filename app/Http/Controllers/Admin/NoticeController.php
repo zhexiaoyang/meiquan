@@ -37,7 +37,6 @@ class NoticeController extends Controller
     public function destroy(Notice $notice)
     {
         $notice->delete();
-        \Log::info("aaa", [$notice->toArray()]);
 
         return $this->success();
     }

@@ -224,7 +224,7 @@ class MeiQuanDaController extends Controller
                     $result = $uu->cancelOrder($order);
                     if ($result['return_code'] != 'ok') {
                         $logs = [
-                            "des" => "【美团订单回调】UU待接单取消失败",
+                            "des" => "【美全达订单回调】UU待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];

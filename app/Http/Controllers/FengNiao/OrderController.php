@@ -199,7 +199,7 @@ class OrderController
                     $result = $meiquanda->repealOrder($order->mqd_order_id);
                     if ($result['code'] != 100) {
                         $logs = [
-                            "des" => "【达达订单回调】美全达待接单取消失败",
+                            "des" => "【蜂鸟订单回调】美全达待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
@@ -218,7 +218,7 @@ class OrderController
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] != 0) {
                         $logs = [
-                            "des" => "【美全达订单回调】达达待接单取消失败",
+                            "des" => "【蜂鸟订单回调】达达待接单取消失败",
                             "id" => $order->id,
                             "order_id" => $order->order_id
                         ];
