@@ -150,10 +150,15 @@ class OrderController extends Controller
         }
         Redis::expire("create_shop_id_" . $shop_id, 6);
 
+        $delivery_time = $request->get("delivery_time");
+
         $order->fill($request->all());
         $order->shop_id = $shop->id;
         $order->user_id = $shop->user_id;
         $order->tool = $shop->tool;
+        if ($delivery_time && strtotime($delivery_time) > 0) {
+            $order->expected_delivery_time = strtotime($delivery_time);
+        }
         // 订单未发送状态
         // $order->status = 0;
         // 订单倒计时参考时间
