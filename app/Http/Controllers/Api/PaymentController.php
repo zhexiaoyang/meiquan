@@ -15,11 +15,11 @@ class PaymentController
 {
     public function wechatNotify(Request $request)
     {
-        \Log::info("微信支付回调全部参数", $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat(config("pay.wechat"))->verify($request->getContent());
+        \Log::info("wechatNotify微信支付回调全部参数", [$data]);
         // 找到对应的订单
-        $order = Deposit::where('no', $data->out_trade_no)->first();
+        $order = Deposit::where('no', $data->out_trade_no)->where("status", 0)->first();
 
         // 订单不存在
         if (!$order) {
@@ -115,12 +115,11 @@ class PaymentController
     }
     public function wechatNotify2(Request $request)
     {
-        \Log::info("微信支付回调全部参数", $request->all());
         // 校验回调参数是否正确
         $data  = Pay::wechat(config("pay.wechat_supplier"))->verify($request->getContent());
-        // $data  = Pay::wechat(config("wechat"))->verify($request->getContent());
+        \Log::info("wechatNotify2微信支付回调全部参数", [$data]);
         // 找到对应的订单
-        $order = Deposit::where('no', $data->out_trade_no)->first();
+        $order = Deposit::where('no', $data->out_trade_no)->where("status", 0)->first();
 
         // 订单不存在
         if (!$order) {
@@ -235,7 +234,7 @@ class PaymentController
             return $this->alipay();
         }
         // $data->out_trade_no 拿到订单流水号，并在数据库中查询
-        $order = Deposit::where('no', $data->out_trade_no)->first();
+        $order = Deposit::where('no', $data->out_trade_no)->where("status", 0)->first();
 
         // 订单不存在
         if (!$order) {
