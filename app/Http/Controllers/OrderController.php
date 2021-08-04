@@ -153,7 +153,7 @@ class OrderController extends Controller
         $delivery_time = $request->get("delivery_time");
         \Log::info($delivery_time);
 
-        $order->fill($request->all());
+        $order->fill($request->only("shop_id","receiver_phone","receiver_name","receiver_lng","receiver_lat","receiver_address","order_tyoe","goods_weight"));
         $order->shop_id = $shop->id;
         $order->user_id = $shop->user_id;
         $order->tool = $shop->tool;
