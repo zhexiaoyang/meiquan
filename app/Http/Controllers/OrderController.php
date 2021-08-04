@@ -151,6 +151,7 @@ class OrderController extends Controller
         Redis::expire("create_shop_id_" . $shop_id, 6);
 
         $delivery_time = $request->get("delivery_time");
+        \Log::info($delivery_time);
 
         $order->fill($request->all());
         $order->shop_id = $shop->id;
