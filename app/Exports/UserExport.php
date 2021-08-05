@@ -3,6 +3,8 @@
 namespace App\Exports;
 
 use App\Models\User;
+use App\Models\UserFrozenBalance;
+use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -37,12 +39,23 @@ class UserExport implements WithStrictNullComparison, Responsable, FromQuery, Wi
 
     public function map($user): array
     {
+        $date1 = $this->request->get("date", date("Y-m-d"));
+        $date = date("Y-m-d", strtotime($date1) + 86400);
+        $frozen = UserFrozenBalance::query()
+            ->where("user_id", $user->id)
+            ->where("created_at", "<", $date)->orderByDesc("id")->first();
+        $money = UserMoneyBalance::query()
+            ->where("user_id", $user->id)
+            ->where("created_at", "<", $date)->orderByDesc("id")->first();
         return [
             $user->id,
             $user->name,
             $user->phone,
             $user->money,
             $user->frozen_money,
+            $date1,
+            $money ? $money->after_money : $user->money,
+            $frozen ? $frozen->after_money : $user->frozen_money,
             // $user->my_shops,
             implode(",", Arr::pluck($user->my_shops, 'shop_name')),
         ];
@@ -56,6 +69,9 @@ class UserExport implements WithStrictNullComparison, Responsable, FromQuery, Wi
             '手机号',
             '跑腿余额',
             '商城余额',
+            '日期',
+            '跑腿余额（时间）',
+            '商城余额（时间）',
             '所有门店',
         ];
     }

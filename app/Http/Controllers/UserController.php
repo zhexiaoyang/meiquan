@@ -6,6 +6,8 @@ use App\Exports\UserExport;
 use App\Models\Deposit;
 use App\Models\Shop;
 use App\Models\User;
+use App\Models\UserFrozenBalance;
+use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Yansongda\Pay\Pay;
@@ -25,6 +27,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 15);
+        $date = $request->get("date", date("Y-m-d"));
 
         $search_key = $request->get('search_key', '');
         $search_key_shop = $request->get('search_key_shop', '');
@@ -73,6 +76,28 @@ class UserController extends Controller
                 }
                 unset($user->my_shops);
                 $user->my_shops = $shops;
+            }
+        }
+
+        if (!empty($users)) {
+            $date = date("Y-m-d", strtotime($date) + 86400);
+            foreach ($users as $user) {
+                $frozen = UserFrozenBalance::query()
+                    ->where("user_id", $user->id)
+                    ->where("created_at", "<", $date)->orderByDesc("id")->first();
+                $money = UserMoneyBalance::query()
+                    ->where("user_id", $user->id)
+                    ->where("created_at", "<", $date)->orderByDesc("id")->first();
+                if ($money) {
+                    $user->after_money = $money->after_money;
+                } else {
+                    $user->after_money = $user->money;
+                }
+                if ($frozen) {
+                    $user->after_frozen_money = $frozen->after_money;
+                } else {
+                    $user->after_frozen_money = $user->frozen_money;
+                }
             }
         }
 

@@ -150,6 +150,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::resource("searchKey", "SearchKeyController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 轮播公告
             Route::resource("notice", "NoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
+            // 轮播广告
+            Route::resource("ad", "AdController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 质量公告
             Route::resource("supplier/notice", "SupplierNoticeController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 外卖资料-导出

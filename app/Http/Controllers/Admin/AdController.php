@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Notice;
+use App\Models\Ad;
 use Illuminate\Http\Request;
 
-class NoticeController extends Controller
+class AdController extends Controller
 {
     public function index(Request $request)
     {
@@ -16,7 +16,7 @@ class NoticeController extends Controller
             $page_size = 10;
         }
 
-        $data = Notice::query()->orderBy("sort")->paginate($page_size);
+        $data = Ad::query()->orderBy("sort")->paginate($page_size);
 
         return $this->page($data);
     }
@@ -24,37 +24,37 @@ class NoticeController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'notice' => 'required',
+            'title' => 'required',
+            'image' => 'required',
             'sort' => 'required',
-            'status' => 'required',
         ]);
 
-        Notice::query()->create($request->only("notice", "sort", "status"));
+        Ad::query()->create($request->only("title", "sort", "image"));
 
         return $this->success();
     }
 
-    public function destroy(Notice $notice)
+    public function destroy(Ad $Ad)
     {
-        $notice->delete();
+        $Ad->delete();
 
         return $this->success();
     }
 
-    public function show(Notice $notice)
+    public function show(Ad $Ad)
     {
-        return $this->success($notice);
+        return $this->success($Ad);
     }
 
-    public function update(Request $request, Notice $notice)
+    public function update(Request $request, Ad $Ad)
     {
         $request->validate([
-            'notice' => 'required',
+            'title' => 'required',
             'sort' => 'required',
-            'status' => 'required',
+            'image' => 'required',
         ]);
 
-        $notice->update($request->only("notice", "sort", "status"));
+        $Ad->update($request->only("title", "sort", "image"));
 
         return $this->success();
     }
