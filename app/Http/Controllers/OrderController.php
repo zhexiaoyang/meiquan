@@ -42,6 +42,7 @@ class OrderController extends Controller
             'mqd_status','money_mqd','fail_mqd',
             'dd_status','money_dd','fail_dd',
             'uu_status','money_uu','fail_uu',
+            'courier_name','courier_phone',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
