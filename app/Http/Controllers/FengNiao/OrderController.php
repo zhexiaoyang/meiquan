@@ -360,16 +360,19 @@ class OrderController
                 Log::info($log_prefix . '配送中，更改信息成功');
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-            } elseif ($status == 5) {
-                // 异常
-                $order->status = 80;
-                $order->fn_status = 80;
-                $order->courier_name = $name;
-                $order->courier_phone = $phone;
-                $order->exception_descr = $description;
-                $order->save();
-                return json_encode($res);
-            } elseif ($status == 4) {
+            // } elseif ($status == 5) {
+            //     // 异常
+            //     $order->status = 80;
+            //     $order->fn_status = 80;
+            //     $order->courier_name = $name;
+            //     $order->courier_phone = $phone;
+            //     $order->exception_descr = $description;
+            //     $order->save();
+            //     return json_encode($res);
+            } elseif ($status == 4 || $status == 5) {
+                if ($status == 5) {
+                    Log::info($log_prefix . '蜂鸟订单异常：' . $description);
+                }
                 // 取消
                 if ($order->status >= 20 && $order->status < 70 && $order->ps == 2) {
                     try {

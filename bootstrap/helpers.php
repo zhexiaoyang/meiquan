@@ -23,7 +23,7 @@ function gd2bd($lng,$lat)
     if (isset($res['result'][0]['x'])) {
         $data['lng'] = $res['result'][0]['x'];
         $data['lat'] = $res['result'][0]['y'];
-        \Log::info("百度地图坐标转换");
+        // \Log::info("百度地图坐标转换");
     } else {
         $x_pi = 3.14159265358979324 * 3000.0 / 180.0;
         $x = $lng;
