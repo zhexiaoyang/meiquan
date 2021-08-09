@@ -52,6 +52,11 @@ class CreateMtOrder implements ShouldQueue
      */
     public function handle()
     {
+        if ((strtotime($this->order->created_at) + 86400 * 2) < time()) {
+            Log::info($this->log."订单创建时间超出两天,不能发单，time:" . $this->order->created_at);
+            return;
+        }
+
         if ($this->order->status > 30) {
             Log::info($this->log."订单状态不正确,不能发单");
             return;
