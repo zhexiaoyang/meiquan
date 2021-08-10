@@ -687,6 +687,11 @@ class OrderController extends Controller
                 if ($result['code'] === 0) {
                     try {
                         DB::transaction(function () use ($order) {
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->take_at)) {
+                                $jian_money = $order->money;
+                            }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -698,8 +703,20 @@ class OrderController extends Controller
                                 "description" => "（美团外卖）取消美团跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
+                            if ($jian_money > 0) {
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $jian_money,
+                                    "type" => 2,
+                                    "before_money" => ($current_user->money + $order->money),
+                                    "after_money" => ($current_user->money + $order->money - $jian_money),
+                                    "description" => "（美团外卖）取消美团跑腿订单扣款：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                            }
                             // 将配送费返回
-                            DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mt);
+                            // DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mt);
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             // 更改订单信息
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
@@ -749,6 +766,18 @@ class OrderController extends Controller
                 if ($result['code'] == 200) {
                     try {
                         DB::transaction(function () use ($order) {
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->receive_at)) {
+                                $jian = time() - strtotime($order->receive_at);
+                                if ($jian <= 1200) {
+                                    $jian_money = 2;
+                                }
+                                if (!empty($order->take_at)) {
+                                    $jian_money = $order->money;
+                                }
+                            }
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-扣款：{$jian_money}");
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -760,6 +789,19 @@ class OrderController extends Controller
                                 "description" => "（美团外卖）取消蜂鸟跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
+                            if ($jian_money > 0) {
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $jian_money,
+                                    "type" => 2,
+                                    "before_money" => ($current_user->money + $order->money),
+                                    "after_money" => ($current_user->money + $order->money - $jian_money),
+                                    "description" => "（美团外卖）取消蜂鸟跑腿订单扣款：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                            }
+                            // 将配送费返回
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             // 更改订单信息
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
@@ -1204,6 +1246,11 @@ class OrderController extends Controller
                 if ($result['code'] === 0) {
                     try {
                         DB::transaction(function () use ($order) {
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->take_at)) {
+                                $jian_money = $order->money;
+                            }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -1215,8 +1262,20 @@ class OrderController extends Controller
                                 "description" => "用户操作取消美团跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
+                            if ($jian_money > 0) {
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $jian_money,
+                                    "type" => 2,
+                                    "before_money" => ($current_user->money + $order->money),
+                                    "after_money" => ($current_user->money + $order->money - $jian_money),
+                                    "description" => "（美团外卖）取消美团跑腿订单扣款：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                            }
                             // 将配送费返回
-                            DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mt);
+                            // DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mt);
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             // 更改订单信息
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
@@ -1266,6 +1325,18 @@ class OrderController extends Controller
                 if ($result['code'] == 200) {
                     try {
                         DB::transaction(function () use ($order) {
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (!empty($order->receive_at)) {
+                                $jian = time() - strtotime($order->receive_at);
+                                if ($jian <= 1200) {
+                                    $jian_money = 2;
+                                }
+                                if (!empty($order->take_at)) {
+                                    $jian_money = $order->money;
+                                }
+                            }
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-扣款：{$jian_money}");
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -1274,9 +1345,22 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "用户操作取消蜂鸟跑腿订单：" . $order->order_id,
+                                "description" => "（用户操作）取消蜂鸟跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
+                            if ($jian_money > 0) {
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $jian_money,
+                                    "type" => 2,
+                                    "before_money" => ($current_user->money + $order->money),
+                                    "after_money" => ($current_user->money + $order->money - $jian_money),
+                                    "description" => "（用户操作）取消蜂鸟跑腿订单扣款：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                            }
+                            // 将配送费返回
+                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                             // 更改订单信息
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
