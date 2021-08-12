@@ -21,7 +21,16 @@ class MinKangController
         if ($request->get('order_id')) {
             $mt_shop_id = $request->get("app_poi_code", "");
             $mt_order_id = $request->get("wm_order_id_view", "");
-            Log::info("【民康-推送已确认订单】（{$mt_order_id}）：开始");
+            Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：开始");
+
+            if (!$mt_shop_id || !$mt_order_id) {
+                return json_encode(['data' => 'ok']);
+            }
+
+            if (Order::query()->where("order_id", $mt_order_id)->first()) {
+                Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：民康平台异常-订单已存在");
+                return json_encode(['data' => 'ok']);
+            }
             // $order_data = [
             //     "order_id" => $mt_order_id,
             //     // "order_tag_list" => urldecode($request->get("order_tag_list", "")),
@@ -110,23 +119,23 @@ class MinKangController
 
             // 创建跑腿订单
             if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：正在创建跑腿订单");
+                Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：正在创建跑腿订单");
                 $mt_status = $request->get("status", 0);
                 $pick_type = $request->get("pick_type", 0);
                 $recipient_address = urldecode($request->get("recipient_address", ""));
 
                 if ($pick_type === 1) {
-                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
+                    Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
                     return json_encode(['data' => 'ok']);
                 }
 
                 if (strstr($recipient_address, "到店自取")) {
-                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
+                    Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：到店自取订单，不创建跑腿订单");
                     return json_encode(['data' => 'ok']);
                 }
 
                 if (Order::where('order_id', $mt_order_id)->first()) {
-                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：跑腿订单已存在");
+                    Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：跑腿订单已存在");
                     return json_encode(['data' => 'ok']);
                 }
 
@@ -180,7 +189,7 @@ class MinKangController
                         "order_id" => $order->id,
                         "des" => "（美团外卖）自动创建跑腿订单：{$order->order_id}"
                     ]);
-                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：跑腿订单创建完毕");
+                    Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：跑腿订单创建完毕");
                     if ($status === 0) {
                         if ($order->order_type) {
                             $qu = 2400;
@@ -189,7 +198,7 @@ class MinKangController
                             }
 
                             dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
-                            Log::info("【民康-推送已确认订单】（{$mt_order_id}）：美团创建预约订单成功");
+                            Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：美团创建预约订单成功");
                             // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);
 
                             $ding_notice = app("ding");
@@ -203,7 +212,7 @@ class MinKangController
                             ];
                             $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                         } else {
-                            Log::info("【民康-推送已确认订单】（{$mt_order_id}）：派单单成功");
+                            Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：派单单成功");
                             $order->send_at = date("Y-m-d H:i:s");
                             $order->status = 8;
                             $order->save();
@@ -212,21 +221,20 @@ class MinKangController
                     }
                 }
             } else {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：未开通自动接单");
+                Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：未开通自动接单");
+                return json_encode(['data' => 'ok']);
                 // Log::info('民康-推送已确认订单-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
             }
 
             // 推送ERP
             if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
                 if ($erp_shop->access_id === 4) {
-                    Log::info("【民康-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
+                    Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
                     dispatch(new SendOrderToErp($erp_shop->id, $order));
                 }
             }
-
-
-            return json_encode(['data' => 'ok']);
+            // return json_encode(['data' => 'ok']);
         }
-        return 200;
+        // return 200;
     }
 }
