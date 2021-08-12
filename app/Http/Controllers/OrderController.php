@@ -498,6 +498,8 @@ class OrderController extends Controller
             $meituan = app("qinqu");
         } elseif($type === 6) {
             $meituan = app("jilin");
+        } elseif($type === 31) {
+            $meituan = app("meiquan");
         } else {
             return $this->error('参数错误');
         }
