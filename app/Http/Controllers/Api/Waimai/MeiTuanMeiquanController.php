@@ -37,6 +37,11 @@ class MeiTuanMeiquanController extends Controller
             return json_encode(['data' => 'ok']);
         }
 
+        if (Order::query()->where("order_id", $mt_order_id)->first()) {
+            Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-订单已存在");
+            return json_encode(['data' => 'ok']);
+        }
+
         // 创建跑腿订单
         if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：正在创建跑腿订单");
@@ -144,7 +149,8 @@ class MeiTuanMeiquanController extends Controller
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：未开通自动接单");
             // Log::info('外卖-美团服务商-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
         }
-        return json_encode(['data' => 'ok']);
+        // return json_encode(['data' => 'ok']);
+        Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-到底了");
     }
     public function cancel(Request $request)
     {
