@@ -70,6 +70,21 @@ class ExceptionReport
             return false;
         }
 
+        // 钉钉异常通知
+        if ($this->exception->getCode() >= 500) {
+            $ding_notice = app("ding");
+            $logs = [
+                "\n\n请求地址" => $this->request->url(),
+                "\n\n请求参数" => json_encode($this->request->all()),
+                "\n\n头部信息" => json_encode($this->request->header()),
+                "\n\n错误信息" => $this->exception->getMessage(),
+                "\n\n文件名" => $this->exception->getFile(),
+                "\n\n文件行" => $this->exception->getLine(),
+                "\n\n时间" => date("Y-m-d H:i:s")
+            ];
+            $ding_notice->sendMarkdownMsgArray("跑腿系统异常", $logs);
+        }
+
         foreach (array_keys($this->doReport) as $report){
 
             if ($this->exception instanceof $report){
