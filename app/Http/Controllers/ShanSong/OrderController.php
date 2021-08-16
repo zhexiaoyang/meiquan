@@ -92,6 +92,11 @@ class OrderController
             // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 20) {
+                $before_time = time();
+                Log::info($log_prefix . "派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(2);
+                $after_time = time();
+                Log::info($log_prefix . "派单中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 派单中
                 // 判断订单状态
                 if ($order->status != 20 && $order->status != 30) {
