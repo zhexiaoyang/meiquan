@@ -40,18 +40,17 @@ class PushDeliveryOrder implements ShouldQueue
             return;
         }
 
-        $ding_notice = app("ding");
+        // $ding_notice = app("ding");
+        // $logs = [
+        //     "des" => "发送预订单",
+        //     "datetime" => date("Y-m-d H:i:s"),
+        //     "order_id" => $this->order->order_id,
+        //     "status" => $this->order->status,
+        //     "ps" => $this->order->ps
+        // ];
+        // $res = $ding_notice->sendMarkdownMsgArray("发送预订单", $logs);
 
-        $logs = [
-            "des" => "发送预订单",
-            "datetime" => date("Y-m-d H:i:s"),
-            "order_id" => $this->order->order_id,
-            "status" => $this->order->status,
-            "ps" => $this->order->ps
-        ];
-
-        $res = $ding_notice->sendMarkdownMsgArray("发送预订单", $logs);
-        \Log::info('发送预订单', [$res]);
+        \Log::info('发送预订单', [$this->order]);
         dispatch(new CreateMtOrder($this->order));
 
         // -30 未付款，-20 等待发送，-10 发送失败，0 订单未发送，3 预订单等发送，5：余额不足，10 暂无运力，

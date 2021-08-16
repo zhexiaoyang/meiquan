@@ -617,17 +617,15 @@ class OrderController extends Controller
                         // \Log::info('美团创建预约订单成功', $order->toArray());
                         \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-美团创建预约订单成功");
 
-                        $ding_notice = app("ding");
-
-                        $logs = [
-                            "des" => "接到预订单：" . $qu,
-                            "datetime" => date("Y-m-d H:i:s"),
-                            "order_id" => $order->order_id,
-                            "status" => $order->status,
-                            "ps" => $order->ps
-                        ];
-
-                        $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
+                        // $ding_notice = app("ding");
+                        // $logs = [
+                        //     "des" => "接到预订单：" . $qu,
+                        //     "datetime" => date("Y-m-d H:i:s"),
+                        //     "order_id" => $order->order_id,
+                        //     "status" => $order->status,
+                        //     "ps" => $order->ps
+                        // ];
+                        // $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                     } else {
                         $order->send_at = date("Y-m-d H:i:s");
                         $order->status = 8;

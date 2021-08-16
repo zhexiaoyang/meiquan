@@ -99,16 +99,15 @@ class QinQuController extends Controller
                             Log::info("【外卖-寝趣-推送已确认订单】（{$mt_order_id}）：美团创建预约订单成功");
                             // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);
 
-                            $ding_notice = app("ding");
-
-                            $logs = [
-                                "des" => "接到预订单：" . $qu,
-                                "datetime" => date("Y-m-d H:i:s"),
-                                "order_id" => $order->order_id,
-                                "status" => $order->status,
-                                "ps" => $order->ps
-                            ];
-                            $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
+                            // $ding_notice = app("ding");
+                            // $logs = [
+                            //     "des" => "接到预订单：" . $qu,
+                            //     "datetime" => date("Y-m-d H:i:s"),
+                            //     "order_id" => $order->order_id,
+                            //     "status" => $order->status,
+                            //     "ps" => $order->ps
+                            // ];
+                            // $ding_notice->sendMarkdownMsgArray("接到美团预订单", $logs);
                         } else {
                             Log::info("【外卖-寝趣-推送已确认订单】（{$mt_order_id}）：派单单成功");
                             $order->send_at = date("Y-m-d H:i:s");
