@@ -360,6 +360,11 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 60) {
+                $before_time = time();
+                Log::info($log_prefix . "接口取消订单-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(2);
+                $after_time = time();
+                Log::info($log_prefix . "接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 if ($order->status >= 20 && $order->status < 70 ) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
@@ -414,10 +419,12 @@ class OrderController
                         return json_encode(['code' => 100]);
                     }
                     $logs = [
-                        "des" => "【闪送跑腿】，发起取消配送",
-                        "id" => $order->id,
-                        "order_id" => $order->order_id,
-                        "date" => date("Y-m-d H:i:s")
+                        "\n\n描述" => "【闪送跑腿】，发起取消配送",
+                        "\n\n订单ID" => $order->id,
+                        "\n\n订单号" => $order->order_id,
+                        "\n\n时间" => date("Y-m-d H:i:s"),
+                        "\n\n睡眠之前时间戳" => $before_time,
+                        "\n\n睡眠之后时间戳" => $after_time,
                     ];
                     $dd->sendMarkdownMsgArray("【闪送跑腿】，发起取消配送", $logs);
                     Log::info($log_prefix . '接口取消订单成功');
