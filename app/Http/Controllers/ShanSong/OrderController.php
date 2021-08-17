@@ -370,12 +370,28 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 60) {
-                $before_time = time();
-                Log::info($log_prefix . "接口取消订单-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(2);
-                $after_time = time();
-                Log::info($log_prefix . "接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 if ($order->status >= 20 && $order->status < 70 ) {
+                    // 添加延时
+                    $before_time = time();
+                    Log::info($log_prefix . "接口取消订单-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                    sleep(2);
+                    $after_time = time();
+                    Log::info($log_prefix . "接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
+                    // 判断闪送订单号
+                    if ($order->peisong_id !== $ss_order_id) {
+                        Log::info($log_prefix . "接口取消订单闪送单号不符合|订单中闪送单号：{$order->peisong_id}|请求闪送单号：{$ss_order_id}");
+                        $logs = [
+                            "\n\n描述" => "接口取消订单闪送单号不符合",
+                            "\n\n订单ID" => $order->id,
+                            "\n\n订单号" => $order->order_id,
+                            "\n\n订单闪送单号" => $order->peisong_id,
+                            "\n\n请求闪送单号" => $ss_order_id,
+                            "\n\n时间" => date("Y-m-d H:i:s"),
+                        ];
+                        $dd->sendMarkdownMsgArray("【闪送跑腿】，取消单号错误", $logs);
+                        return json_encode($res);
+                    }
+                    // 操作退款
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
                             if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
