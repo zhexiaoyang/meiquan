@@ -117,6 +117,11 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 30) {
+                $before_time = time();
+                Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(2);
+                $after_time = time();
+                Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
