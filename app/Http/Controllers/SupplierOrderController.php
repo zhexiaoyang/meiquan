@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\InvalidRequestException;
 use App\Jobs\CloseOrder;
+use App\Libraries\KuaiDi\KuaiDi;
 use App\Models\AddressCity;
 use App\Models\Shop;
 use App\Models\SupplierDepot;
@@ -466,6 +467,17 @@ class SupplierOrderController extends Controller
         ];
 
         return $this->success($result);
+    }
+
+    public function logistics(SupplierOrder $supplierOrder)
+    {
+
+        $config = config('kuaidi');
+        $kuaidi = new KuaiDi($config);
+        $res = $kuaidi->poll_query($supplierOrder);
+        $data = $res['data'] ?? [];
+
+        return $this->success($data);
     }
 
 

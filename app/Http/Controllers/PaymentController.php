@@ -227,7 +227,8 @@ class PaymentController extends Controller
             'total_fee'     => intval($total_fee * 100),
         ];
 
-        $wechatOrder = app('pay.wechat_supplier')->scan($order);
+        $wechatOrder = Pay::wechat(config('pay.wechat_supplier'))->scan($order);
+        // $wechatOrder = app('pay.wechat_supplier')->scan($order);
 
         $data = [
             'code_url' => $wechatOrder->code_url,

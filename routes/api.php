@@ -412,6 +412,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("pay/order/wechat/miniapp", "PaymentController@supplierOrderByWeChatMiniApp");
             // 确认收货
             Route::post("order/receive", "SupplierOrderController@receiveOrder");
+            // 物流信息
+            Route::get("order/{supplier_order}/logistics", "SupplierOrderController@logistics");
             // 支付订单页面调用-订单详情
             Route::get("payOrders", "SupplierOrderController@payOrders");
             // 收货
