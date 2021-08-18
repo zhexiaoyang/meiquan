@@ -378,13 +378,14 @@ class OrderController
                     $after_time = time();
                     Log::info($log_prefix . "接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                     // 判断闪送订单号
-                    if ($order->peisong_id !== $ss_order_id) {
-                        Log::info($log_prefix . "接口取消订单闪送单号不符合|订单中闪送单号：{$order->peisong_id}|请求闪送单号：{$ss_order_id}");
+                    if ($order->ss_order_id !== $ss_order_id) {
+                        Log::info($log_prefix . "接口取消订单闪送单号不符合|订单中配送单号：{$order->peisong_id}|订单中闪送单号：{$order->ss_order_id}|请求闪送单号：{$ss_order_id}");
                         $logs = [
                             "\n\n描述" => "接口取消订单闪送单号不符合",
                             "\n\n订单ID" => $order->id,
                             "\n\n订单号" => $order->order_id,
-                            "\n\n订单闪送单号" => $order->peisong_id,
+                            "\n\n订单配送单号" => $order->peisong_id,
+                            "\n\n订单闪送单号" => $order->ss_order_id,
                             "\n\n请求闪送单号" => $ss_order_id,
                             "\n\n时间" => date("Y-m-d H:i:s"),
                         ];
