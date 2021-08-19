@@ -42,8 +42,8 @@ class Api extends Request
             'receiver_phone' => $order->receiver_phone,
             'note' => $order->note ?: "",
             'callback_url' => 'http://psapi.meiquanda.com/api/waimai/uu/order',
-            // 'push_type' => 0,
-            'push_type' => 2,
+            'push_type' => 0,
+            // 'push_type' => 2,
             'callme_withtake' => 0,
             'pubusermobile' => $shop->contact_phone,
         ];
