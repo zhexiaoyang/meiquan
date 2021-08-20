@@ -843,7 +843,7 @@ class OrderController extends Controller
             } elseif ($ps == 3) {
                 $shansong = app("shansong");
                 $result = $shansong->cancelOrder($order->ss_order_id);
-                if ($result['status'] == 200) {
+                if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     try {
                         DB::transaction(function () use ($order) {
                             // 计算扣款
@@ -918,7 +918,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【美团外卖接口取消订单】取消闪送订单返回失败",
                         "id" => $order->id,
                         "ps" => "闪送",
                         "order_id" => $order->order_id
@@ -1402,7 +1402,7 @@ class OrderController extends Controller
             } elseif ($ps == 3) {
                 $shansong = app("shansong");
                 $result = $shansong->cancelOrder($order->ss_order_id);
-                if ($result['status'] == 200) {
+                if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     try {
                         DB::transaction(function () use ($order) {
                             // 计算扣款
@@ -1477,7 +1477,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消蜂鸟订单返回失败",
+                        "des" => "【用户操作取消订单】取消闪送订单返回失败",
                         "id" => $order->id,
                         "ps" => "闪送",
                         "order_id" => $order->order_id
