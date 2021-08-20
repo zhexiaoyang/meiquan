@@ -138,7 +138,7 @@ class Api extends Request
             $params['goods_detail'] = json_encode(['goods' => $goods], JSON_UNESCAPED_UNICODE);
         }
 
-        return $this->request('order/createByShop', $params);
+        return $this->request('order/preCreateByShop', $params);
     }
 
     /**
