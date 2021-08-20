@@ -257,14 +257,9 @@ class CreateMtOrder implements ShouldQueue
         // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
         if ($shop->shop_id && $mt_switch && !$this->order->fail_mt && ($order->mt_status === 0)) {
             $meituan = app("meituan");
-            $check_mt = $meituan->preCreateByShop($shop, $this->order);
+            $check_mt = $meituan->check($shop, $this->order);
             if (isset($check_mt['code']) && ($check_mt['code'] === 0)) {
-                $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
-                $money_mt += 1;
-                if ($money_mt <= 1) {
-                    Log::info($this->log."美团可以，没有返回金额");
-                    $money_mt = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
-                }
+                $money_mt = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
                 $this->services['meituan'] = $money_mt;
                 // $log_arr = ['money' => $money_mt, 'id' => $this->order->id, 'order_id' => $this->order->order_id];
                 Log::info($this->log."美团可以，金额：{$money_mt}");
