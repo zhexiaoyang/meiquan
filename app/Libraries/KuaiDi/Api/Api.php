@@ -59,7 +59,7 @@ class Api extends Request
         $param = [
             'num' => $num,
             'com' => $platform,
-            // 'from' => '北京市海淀区',
+            'from' => '',
             'to' => $order->address['address'] ?? '',
         ];
 
