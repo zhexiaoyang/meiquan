@@ -75,6 +75,73 @@ class Api extends Request
     }
 
     /**
+     * 美团预发单
+     * @param Shop $shop
+     * @param Order $order
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/8/19 9:05 下午
+     */
+    public function preCreateByShop(Shop $shop, Order $order)
+    {
+        $params = [
+            'delivery_id' => $order->delivery_id,
+            'order_id' => $order->order_id,
+            'shop_id' => $shop->shop_id,
+            'delivery_service_code' => 100004,
+            'receiver_name' => $order->receiver_name,
+            'receiver_address' => $order->receiver_address,
+            'receiver_phone' => $order->receiver_phone,
+            'receiver_lng' => $order->receiver_lng * 1000000,
+            'receiver_lat' => $order->receiver_lat * 1000000,
+            'coordinate_type' => 0,
+            'goods_value' => $order->goods_value,
+            'goods_weight' => 1,
+            'goods_pickup_info' => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
+        ];
+
+        if ($order->day_seq) {
+            $params['poi_seq'] = $order->day_seq;
+            if ($order->platform === 1) {
+                $params['outer_order_source_desc'] = 101;
+                $params['outer_order_source_no'] = $order->order_id;
+            }
+            if ($order->platform === 2) {
+                $params['outer_order_source_desc'] = 102;
+                $params['outer_order_source_no'] = $order->order_id;
+            }
+        }
+
+        if (!empty($order->expected_pickup_time) && ($order->type != 11)) {
+            // $params['expected_delivery_time'] = $order->expected_delivery_time;
+            $params['expected_pickup_time'] = $order->expected_pickup_time;
+        }
+
+        if (!empty($order->note)) {
+            $params['goods_delivery_info'] = $order->note ?? "";
+        }
+
+        $goods = [];
+
+        if ($items = $order->items) {
+            foreach ($items as $item) {
+                $_tmp['goodCount'] = $item->quantity;
+                $_tmp['goodName'] = $item->name;
+                $_tmp['goodPrice'] = $item->goods_price;
+                $goods[] = $_tmp;
+            }
+        }
+
+        \Log::info('美团商品信息',[$goods]);
+
+        if (!empty($goods)) {
+            $params['goods_detail'] = json_encode(['goods' => $goods], JSON_UNESCAPED_UNICODE);
+        }
+
+        return $this->request('order/createByShop', $params);
+    }
+
+    /**
      * 查询订单状态
      *
      * @param array $params

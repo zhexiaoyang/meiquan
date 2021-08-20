@@ -34,7 +34,7 @@ class Request
     {
         $params = [
             'customer' => $this->customer,
-            'param' => json_encode($data)
+            'param' => json_encode($data, JSON_UNESCAPED_UNICODE)
         ];
 
         $params['sign'] = Tool::getSign($data, $this->key, $this->customer);

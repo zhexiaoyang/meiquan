@@ -471,13 +471,29 @@ class SupplierOrderController extends Controller
 
     public function logistics(SupplierOrder $supplierOrder)
     {
+        $res = [];
 
         $config = config('kuaidi');
         $kuaidi = new KuaiDi($config);
-        $res = $kuaidi->poll_query($supplierOrder);
-        $data = $res['data'] ?? [];
 
-        return $this->success($data);
+        $order_ids = explode(",", $supplierOrder->ship_no);
+
+        if (!empty($order_ids)) {
+            foreach ($order_ids as $order_id) {
+                $logs = $kuaidi->maptrack($supplierOrder, $order_id);
+                if (!empty($logs['data']) && !empty($logs['trailUrl'])) {
+                    $res[] = [
+                        'data' => $logs['data'],
+                        'url' => $logs['trailUrl'],
+                        'platform' => $supplierOrder->ship_platform,
+                        'num' => $order_id,
+                    ];
+                }
+            }
+        }
+
+
+        return $this->success($res);
     }
 
 
