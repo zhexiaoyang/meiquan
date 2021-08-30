@@ -66,7 +66,7 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("shops", "ContractController@shops");
         });
         // 前台-质量公告
-        Route::resource("notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
+        Route::resource("supplier/notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
         // 【H5】轮播图
         Route::get("banner", "BannerController@index");
         // 【H5】广告
