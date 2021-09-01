@@ -390,7 +390,7 @@ class OrderController
                             "\n\n时间" => date("Y-m-d H:i:s"),
                         ];
                         $dd->sendMarkdownMsgArray("【闪送跑腿】，取消单号错误", $logs);
-                        return json_encode($res);
+                        return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
                     }
                     // 操作退款
                     try {
