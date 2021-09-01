@@ -31,7 +31,7 @@ class UuController extends Controller
 
         // return json_encode($res);
         // 商家订单号
-        $order_id = $data['order_code'] ?? '';
+        $order_id = $data['origin_id'] ?? '';
         // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
         $status = $data['state'] ?? '';
         // 配送员姓名
