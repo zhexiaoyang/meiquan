@@ -139,7 +139,7 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 管理员操作
          */
-        Route::middleware(["role:super_man"])->prefix("admin")->namespace("Admin")->group(function () {
+        Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
             // 商城轮播图
             Route::resource("banner", "BannerController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 商城分类
@@ -188,7 +188,7 @@ Route::middleware(["force-json"])->group(function() {
                 Route::get("statistic", "FundController@statistic");
             });
         });
-        Route::middleware(["role:super_man"])->group(function () {
+        Route::middleware(["role:super_man|admin|finance|city_manager"])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
             // 用户管理-导出
