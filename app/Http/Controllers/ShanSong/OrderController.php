@@ -94,7 +94,7 @@ class OrderController
             if ($status == 20) {
                 $before_time = time();
                 Log::info($log_prefix . "派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(2);
+                sleep(1);
                 $after_time = time();
                 Log::info($log_prefix . "派单中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 派单中
@@ -119,7 +119,7 @@ class OrderController
             } elseif ($status == 30) {
                 $before_time = time();
                 Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(2);
+                sleep(1);
                 $after_time = time();
                 Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 取货中
@@ -374,7 +374,7 @@ class OrderController
                     // 添加延时
                     $before_time = time();
                     Log::info($log_prefix . "接口取消订单-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                    sleep(2);
+                    sleep(1);
                     $after_time = time();
                     Log::info($log_prefix . "接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                     // 判断闪送订单号
