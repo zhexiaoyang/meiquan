@@ -23,6 +23,8 @@ class StatisticsController extends Controller
         $dd_num = 0;
         $mqd_money = 0;
         $mqd_num = 0;
+        $uu_money = 0;
+        $uu_num = 0;
         $today_total_money = 0;
         $today_total_num = 0;
         $today_mt_money = 0;
@@ -35,6 +37,8 @@ class StatisticsController extends Controller
         $today_dd_num = 0;
         $today_mqd_money = 0;
         $today_mqd_num = 0;
+        $today_uu_money = 0;
+        $today_uu_num = 0;
         $date_num = [];
         $date_money = [];
 
@@ -125,6 +129,15 @@ class StatisticsController extends Controller
                         $today_dd_num++;
                         $today_dd_money += $order->money * 100;
                     }
+                }elseif ($order->ps == 6) {
+                    $uu_num++;
+                    $uu_money += $order->money * 100;
+                    if (date("Y-m-d") == date("Y-m-d", strtotime($order->over_at))) {
+                        $today_total_num++;
+                        $today_total_money += $order->money * 100;
+                        $today_uu_num++;
+                        $today_uu_money += $order->money * 100;
+                    }
                 }
             }
         }
@@ -146,6 +159,8 @@ class StatisticsController extends Controller
             "dd_num" => $dd_num,
             "mqd_money" => $mqd_money / 100,
             "mqd_num" => $mqd_num,
+            "uu_money" => $uu_money / 100,
+            "uu_num" => $uu_num,
             "today_total_money" => $today_total_money / 100,
             "today_total_num" => $today_total_num,
             "today_mt_money" => $today_mt_money / 100,
@@ -158,6 +173,8 @@ class StatisticsController extends Controller
             "today_dd_num" => $today_dd_num,
             "today_mqd_money" => $today_mqd_money / 100,
             "today_mqd_num" => $today_mqd_num,
+            "today_uu_money" => $today_uu_money / 100,
+            "today_uu_num" => $today_uu_num,
             "date_num" => array_values($date_num),
             "date_money" => array_values($date_money),
 
