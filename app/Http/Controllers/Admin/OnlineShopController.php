@@ -16,6 +16,11 @@ class OnlineShopController extends Controller
 
         $query = OnlineShop::query();
 
+        // 非管理员只能查看所指定的门店
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+
         if ($name) {
             $query->where("name", "like", "%{$name}%");
         }
@@ -32,7 +37,6 @@ class OnlineShopController extends Controller
 
     public function export(Request $request, AdminOnlineShopSettlementExport $adminOnlineShopSettlementExport)
     {
-        \Log::info("bvvv");
         return $adminOnlineShopSettlementExport->withRequest($request);
     }
 }

@@ -34,6 +34,11 @@ class AdminOnlineShopSettlementExport implements WithStrictNullComparison, Respo
 
         $query = OnlineShop::query();
 
+        // 非管理员只能查看所指定的门店
+        if (!$this->request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $this->request->user()->shops()->pluck('id'));
+        }
+
         if ($name) {
             $query->where('name', 'like', "%{$name}%");
         }
