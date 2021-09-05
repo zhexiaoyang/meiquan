@@ -18,7 +18,7 @@ class OnlineShopController extends Controller
 
         // 非管理员只能查看所指定的门店
         if (!$request->user()->hasRole('super_man')) {
-            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
         if ($name) {
