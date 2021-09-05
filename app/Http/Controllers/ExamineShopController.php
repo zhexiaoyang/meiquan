@@ -22,6 +22,11 @@ class ExamineShopController extends Controller
             "contact_phone","shop_lng","shop_lat","status","created_at")
             ->where("status", 0)->where("id", ">", 900);
 
+        // 判断可以查询的药店
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");
         }
@@ -87,6 +92,11 @@ class ExamineShopController extends Controller
                     ]
                 );
             });
+
+        // 判断可以查询的药店
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
 
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");

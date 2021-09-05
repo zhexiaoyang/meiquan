@@ -551,6 +551,11 @@ class OnlineController extends Controller
         $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name",
             "contact_phone","is_meituan","is_ele","is_jddj","is_btoc");
 
+        // 判断可以查询的药店
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+
         if ($name = $request->get("name")) {
             $query->where("name", "like", "%{$name}%");
         }
