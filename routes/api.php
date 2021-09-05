@@ -140,6 +140,8 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
+            // 跑腿门店管理
+            Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图
             Route::resource("banner", "BannerController", ["only" => ["index", "show", "store", "update", "destroy"]]);
             // 商城分类
@@ -173,6 +175,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("/user/balance", "UserController@balance");
             // 用户管理-用户列表-余额消费明细
             Route::get("/user/balance/export", "UserController@balanceExport");
+            // 用户管理-管理员创建用户
+            Route::post("/user", "UserController@store");
 
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);

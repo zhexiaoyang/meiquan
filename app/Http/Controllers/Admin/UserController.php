@@ -83,4 +83,45 @@ class UserController extends Controller
     {
         return $balanceExport->withRequest($request);
     }
+
+    public function store(Request $request)
+    {
+        $phone = $request->get('phone', '');
+        $password = $request->get('password', '654321');
+        $role = $request->get('role', '');
+
+        if (!$phone) {
+            return $this->error("用户名不能为空");
+        }
+
+        if (!$password) {
+            return $this->error("密码不能为空");
+        }
+
+        if (strlen($password) < 6) {
+            return $this->error("密码长度不能小于6");
+        }
+
+        if (!in_array($role, ['shop', 'city_manager'])) {
+            return $this->error("角色错误");
+        }
+
+        if ($phone && $password) {
+            \DB::transaction(function () use ($phone, $password, $request, $role) {
+                $user = User::create([
+                    'name' => $phone,
+                    'phone' => $phone,
+                    'password' => bcrypt($password),
+                ]);
+                $user->assignRole($role);
+
+                if ($user->id && $role === 'city_manager') {
+                    $user->shops()->sync($request->user_shop);
+                }
+            });
+            return $this->success([]);
+        }
+
+        return $this->error("创建失败");
+    }
 }
