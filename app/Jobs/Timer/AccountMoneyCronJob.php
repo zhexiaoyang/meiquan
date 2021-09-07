@@ -12,7 +12,7 @@ class AccountMoneyCronJob extends CronJob
     public function interval()
     {
         // 每1秒运行一次（单位毫秒）
-        return 18000000;
+        return 1800000;
         // return 6000;
     }
     public function isImmediate()
