@@ -475,6 +475,8 @@ Route::namespace("FengNiao")->prefix("fengniao")->group(function () {
     Route::post("shop/status", "ShopController@status");
     // 订单状态回调
     Route::post("order/status", "OrderController@status");
+    // 授权回调
+    Route::any("shop/back_auth", "ShopController@back_auth");
 });
 
 /**

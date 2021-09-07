@@ -46,4 +46,10 @@ class ShopController
 
         return json_encode($res);
     }
+
+    public function back_auth(Request $request)
+    {
+        \Log::info("蜂鸟授权回调全部参数", $request->all());
+        return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
+    }
 }
