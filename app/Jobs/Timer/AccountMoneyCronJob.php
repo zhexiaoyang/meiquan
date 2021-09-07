@@ -18,7 +18,7 @@ class AccountMoneyCronJob extends CronJob
     public function isImmediate()
     {
         // 是否立即执行第一次，false则等待间隔时间后执行第一次
-        return false;
+        return true;
     }
     // --- 重载对应的方法来返回配置：结束
     public function run()
