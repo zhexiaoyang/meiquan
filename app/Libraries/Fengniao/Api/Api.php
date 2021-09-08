@@ -238,6 +238,14 @@ class Api extends Request
      */
 
     /**
+     * 获取token
+     */
+    public function getSignNew()
+    {
+        return $this->getV3('https://open-anubis.ele.me/anubis-webapi/openapi/token', []);
+    }
+
+    /**
      * 预下单
      * @param Shop $shop
      * @param Order $order
@@ -249,14 +257,13 @@ class Api extends Request
     {
         $data = [
             'partner_order_code' => (string) $order->order_id,
-            // 'out_shop_code' => (string) $shop->id,
-            'out_shop_code' => 'testorder001',
+            'out_shop_code' => (string) $shop->id,
             'order_type' => 1,
             'position_source' => 3,
             'receiver_address' => $order->receiver_address,
             'receiver_longitude' => (double) $order->receiver_lng,
             'receiver_latitude' => (double) $order->receiver_lat,
-            'goods_total_amount_cent' => 11.22,
+            "goods_total_amount_cent" => (double) $order->goods_value,
             'goods_actual_amount_cent' => (double) $order->goods_value,
             'goods_weight' => 2.1,
             'goods_count' => 1,
@@ -269,8 +276,6 @@ class Api extends Request
                 ]
             ]
         ];
-
-        \Log::info($data);
 
         return $this->postV3('v3/invoke/preCreateOrder', $data);
     }
