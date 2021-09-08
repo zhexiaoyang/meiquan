@@ -782,13 +782,13 @@ class CreateMtOrder implements ShouldQueue
         $shop = Shop::query()->find($this->order->shop_id);
 
         $fengniao = app("fengniao");
-        $distance = distanceMoneyFn($this->order->distance);
-        $base = baseMoneyFn($shop->city_level_fn ?: "G");
-        $time_money = timeMoneyFn();
-        $date_money = 0;
-        $weight_money = weightMoneyFn($this->order->goods_weight);
+        // $distance = distanceMoneyFn($this->order->distance);
+        // $base = baseMoneyFn($shop->city_level_fn ?: "G");
+        // $time_money = timeMoneyFn();
+        // $date_money = 0;
+        // $weight_money = weightMoneyFn($this->order->goods_weight);
 
-        $money = $base + $time_money + $date_money + $distance + $weight_money;
+        // $money = $base + $time_money + $date_money + $distance + $weight_money;
 
         $result_fn = $fengniao->createOrder($shop, $this->order);
         if ($result_fn['code'] == 200) {
@@ -802,7 +802,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                'money_fn' => $money,
+                // 'money_fn' => $money,
                 'fn_order_id' => $fn_order_info['data']['tracking_id'] ?? $this->order->order_id,
                 'fn_status' => 20,
                 'status' => 20,
