@@ -416,6 +416,7 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 更新价格
+        Log::info($this->log."更新价格,蜂鸟金额：{$money_fn}");
         $money_arr = [];
         if ($money_dd) {
             $money_arr["money_dd"] = $money_dd;
