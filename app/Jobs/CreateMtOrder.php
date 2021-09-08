@@ -590,15 +590,15 @@ class CreateMtOrder implements ShouldQueue
         }
 
         $dada = app("dada");
-        $money = $this->money_ss;
-        // 发送美全达订单
+        // $money = $this->money_dd;
+        // 发送达达订单
         $result_dd = $dada->createOrder($this->dada_order_id);
         if ($result_dd['code'] === 0) {
             // 订单发送成功
             Log::info($this->log."发送达达订单成功，返回参数：", [$result_dd]);
             // 写入订单信息
             $update_info = [
-                'money_mqd' => $money,
+                // 'money_mqd' => $money,
                 'dd_order_id' => $this->order->order_id,
                 'dd_status' => 20,
                 'status' => 20,
@@ -647,13 +647,13 @@ class CreateMtOrder implements ShouldQueue
         $shop = Shop::query()->find($this->order->shop_id);
 
         $meiquanda = app("meiquanda");
-        $distance = distanceMoneyMqd($this->order->distance);
-        $base = baseMoneyMqd($shop->city_level ?: 9);
-        $time_money = timeMoneyMqd();
+        // $distance = distanceMoneyMqd($this->order->distance);
+        // $base = baseMoneyMqd($shop->city_level ?: 9);
+        // $time_money = timeMoneyMqd();
         // $date_money = dateMoney();
-        $date_money = 0;
-        $weight_money = weightMoneyMqd($this->order->goods_weight);
-        $money = $base + $time_money + $date_money + $distance + $weight_money;
+        // $date_money = 0;
+        // $weight_money = weightMoneyMqd($this->order->goods_weight);
+        // $money = $base + $time_money + $date_money + $distance + $weight_money;
         // 发送美全达订单
         $result_mqd = $meiquanda->createOrder($shop, $this->order);
         if ($result_mqd['code'] === 100) {
@@ -666,7 +666,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                'money_mqd' => $money,
+                // 'money_mqd' => $money,
                 'mqd_order_id' => $result_mqd['data']['trade_no'],
                 'mqd_status' => 20,
                 'status' => 20,
@@ -732,7 +732,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                'money_mt' => $money,
+                // 'money_mt' => $money,
                 'mt_order_id' => $result_mt['data']['mt_peisong_id'],
                 'mt_status' => 20,
                 'status' => 20,
@@ -861,7 +861,7 @@ class CreateMtOrder implements ShouldQueue
             Log::info($this->log."发送闪送订单成功，金额：{$money}。返回参数：", [$result_ss]);
             // 写入订单信息
             $update_info = [
-                'money_ss' => $money,
+                // 'money_ss' => $money,
                 'ss_order_id' => $order->ss_order_id,
                 'ss_status' => 20,
                 'status' => 20,
