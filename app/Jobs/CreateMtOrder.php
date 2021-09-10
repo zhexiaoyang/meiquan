@@ -666,7 +666,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                // 'money_mqd' => $money,
+                'money_mqd' => $money,
                 'mqd_order_id' => $result_mqd['data']['trade_no'],
                 'mqd_status' => 20,
                 'status' => 20,
