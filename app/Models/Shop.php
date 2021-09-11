@@ -36,7 +36,6 @@ class Shop extends Model
 
     /**
      * 门店付款账号
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user()
     {
@@ -45,7 +44,6 @@ class Shop extends Model
 
     /**
      * 门店所属用户
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function own()
     {
@@ -60,6 +58,11 @@ class Shop extends Model
     public function change_shop()
     {
         return $this->hasOne(ShopAuthenticationChange::class, "shop_id", "id");
+    }
+
+    public function online_shop()
+    {
+        return $this->hasOne(OnlineShop::class, "shop_id", "id");
     }
 
     public function getStatusLabelAttribute()

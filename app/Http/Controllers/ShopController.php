@@ -29,7 +29,9 @@ class ShopController extends Controller
     {
         $page_size = $request->get('page_size', 10);
         $search_key = $request->get('search_key', '');
-        $query = Shop::query();
+        $query = Shop::with(['online_shop' => function($query) {
+            $query->select("shop_id", "contract_status");
+        }]);
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                $query->where('shop_id', 'like', "%{$search_key}%")
@@ -76,6 +78,8 @@ class ShopController extends Controller
                 $tmp['auto'] = (bool) $shop->mt_shop_id;
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['ele_shop_id'] = $shop->ele_shop_id;
+                // 合同状态
+                $tmp['contract'] = $shop->online_shop->contract_status ?? 0;
                 $data[] = $tmp;
             }
         }
