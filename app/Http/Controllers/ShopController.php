@@ -41,6 +41,7 @@ class ShopController extends Controller
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                $query->where('shop_id', 'like', "%{$search_key}%")
+                   ->orWhere('id', 'like', "%{$search_key}%")
                    ->orWhere('shop_name', 'like', "%{$search_key}%")
                    ->orWhere('city', 'like', "%{$search_key}%")
                    ->orWhere('contact_name', 'like', "%{$search_key}%")
