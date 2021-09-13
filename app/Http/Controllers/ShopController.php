@@ -7,6 +7,7 @@ use App\Models\Shop;
 use App\Models\ShopAuthentication;
 use App\Models\ShopRange;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
@@ -29,9 +30,14 @@ class ShopController extends Controller
     {
         $page_size = $request->get('page_size', 10);
         $search_key = $request->get('search_key', '');
+        $contract_status = $request->get('contract_status', 0);
+        $online_status = $request->get('online_status', 0);
+        $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
         }]);
+
+        // 关键字搜索
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                $query->where('shop_id', 'like', "%{$search_key}%")
@@ -40,6 +46,47 @@ class ShopController extends Controller
                    ->orWhere('contact_phone', 'like', "%{$search_key}%");
             });
         }
+        // 合同状态搜索
+        if (in_array($contract_status, [1, 2])) {
+            $query->whereHas('online_shop', function (Builder $query) use ($contract_status) {
+                $query->where('contract_status', $contract_status == 1 ? 0 : 1);
+            })->get();
+        }
+        // 外卖资料状态搜索
+        if (in_array($online_status, [1, 2, 3, 4])) {
+            if ($online_status == 4) {
+                $query->whereDoesntHave('online_shop');
+            } else {
+                $query->whereHas('online_shop', function (Builder $query) use ($online_status) {
+                    if ($online_status == 1) {
+                        $query->where('status', '<', 20);
+                    }
+                    if ($online_status == 2) {
+                        $query->where('status',  20);
+                    }
+                    if ($online_status == 3) {
+                        $query->where('status',  40);
+                    }
+                })->get();
+            }
+        }
+        // 商城认证状态
+        if (in_array($shop_status, [1, 2, 3, 4])) {
+            if ($shop_status == 1) {
+                $query->where('auth',  0);
+            }
+            if ($shop_status == 2) {
+                $query->where('auth',  1);
+            }
+            if ($shop_status == 3) {
+                $query->where('auth',  3);
+            }
+            if ($shop_status == 4) {
+                $query->where('auth',  10);
+            }
+        }
+
+        // 判断角色
         if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
