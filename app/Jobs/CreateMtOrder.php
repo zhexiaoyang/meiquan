@@ -728,7 +728,7 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             Log::info($this->log."发送美团订单成功，返回参数：", [$result_mt]);
             if (!empty($result_mt['data']['delivery_fee']) && $result_mt['data']['delivery_fee'] > 0) {
-                // $money = $result_mt['data']['delivery_fee'] + 1;
+                $money = $result_mt['data']['delivery_fee'] + 1;
             }
             // 写入订单信息
             $update_info = [
