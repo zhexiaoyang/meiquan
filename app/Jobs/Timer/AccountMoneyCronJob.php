@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Jobs\Timer;
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use Hhxsv5\LaravelS\Swoole\Timer\CronJob;
 
 
@@ -26,7 +27,7 @@ class AccountMoneyCronJob extends CronJob
         \Log::info("[执行检查余额任务]-[开始]");
         $h = date("H", time());
         \Log::info("[执行检查余额任务]-[时间]-H:{$h}");
-        $dingding = app("ding");
+        $dingding = new DingTalkRobotNotice("f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323");
         $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
         if ($h > 6 && $h < 22) {
