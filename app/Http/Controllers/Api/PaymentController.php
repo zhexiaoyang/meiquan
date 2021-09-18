@@ -7,6 +7,7 @@ use App\Models\SupplierOrder;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
 use App\Models\UserMoneyBalance;
+use App\Models\UserOperateBalance;
 use Illuminate\Http\Request;
 use Yansongda\Pay\Pay;
 use DB;
@@ -45,7 +46,23 @@ class PaymentController
             \Log::info("将订单标记为已支付结束");
             $user = User::query()->find($order->user_id);
 
-            if ($order->type === 2) {
+            if ($order->type === 3) {
+                \Log::info("运营余额充值");
+                \Log::info("增加运营余额");
+                DB::table('users')->where("id", $order->user_id)->increment('operate_money', $order->amount);
+                \Log::info("记录运营余额日志");
+                $logs = new UserOperateBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->operate_money,
+                    "after_money" => ($user->operate_money * 100 + $order->amount * 100) / 100,
+                    "description" => "微信充值：{$data->transaction_id}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+                \Log::info("日志保存结束");
+            } else if ($order->type === 2) {
                 \Log::info("冻结余额充值");
                 \Log::info("增加冻结余额");
                 DB::table('users')->where("id", $order->user_id)->increment('frozen_money', $order->amount);
@@ -145,7 +162,23 @@ class PaymentController
             \Log::info("将订单标记为已支付结束");
             $user = User::query()->find($order->user_id);
 
-            if ($order->type === 2) {
+            if ($order->type === 3) {
+                \Log::info("运营余额充值");
+                \Log::info("增加运营余额");
+                DB::table('users')->where("id", $order->user_id)->increment('operate_money', $order->amount);
+                \Log::info("记录运营余额日志");
+                $logs = new UserOperateBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->operate_money,
+                    "after_money" => ($user->operate_money * 100 + $order->amount * 100) / 100,
+                    "description" => "微信充值：{$data->transaction_id}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+                \Log::info("日志保存结束");
+            } else if ($order->type === 2) {
                 \Log::info("冻结余额充值");
                 \Log::info("增加冻结余额");
                 DB::table('users')->where("id", $order->user_id)->increment('frozen_money', $order->amount);
