@@ -11,8 +11,8 @@ class AccountMoneyCronJob extends CronJob
     // --- 重载对应的方法来返回配置：开始
     public function interval()
     {
-        // return 1800000;
-        return 1000 * 60 * 5;
+        return 1800000;
+        // return 1000 * 60 * 5;
     }
     public function isImmediate()
     {
@@ -25,8 +25,8 @@ class AccountMoneyCronJob extends CronJob
         \Log::info("[执行检查余额任务]-[开始]");
         $h = date("H", time());
         \Log::info("[执行检查余额任务]-[时间]-H:{$h}");
-        $dingding = app("ding");
-        $dingding->sendMarkdownMsgArray("执行检查余额任务");
+        // $dingding = app("ding");
+        // $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
         if ($h > 6 && $h < 22) {
             $ss = app("shansong");
