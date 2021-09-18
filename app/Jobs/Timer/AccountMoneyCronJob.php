@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Jobs\Timer;
-use App\Libraries\DingTalk\DingTalkRobotNotice;
 use Hhxsv5\LaravelS\Swoole\Timer\CronJob;
 
 
@@ -12,9 +11,8 @@ class AccountMoneyCronJob extends CronJob
     // --- 重载对应的方法来返回配置：开始
     public function interval()
     {
-        // 每1秒运行一次（单位毫秒）
-        return 1800000;
-        // return 6000;
+        // return 1800000;
+        return 1000 * 60 * 5;
     }
     public function isImmediate()
     {
@@ -27,7 +25,7 @@ class AccountMoneyCronJob extends CronJob
         \Log::info("[执行检查余额任务]-[开始]");
         $h = date("H", time());
         \Log::info("[执行检查余额任务]-[时间]-H:{$h}");
-        $dingding = new DingTalkRobotNotice("f9badd5f617a986f267295afded03ee6c936e5f9fd0e381593b02fce5543c323");
+        $dingding = app("ding");
         $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
         if ($h > 6 && $h < 22) {
