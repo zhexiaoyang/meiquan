@@ -23,9 +23,9 @@ class AccountMoneyCronJob extends CronJob
     // --- 重载对应的方法来返回配置：结束
     public function run()
     {
-        \Log::info("[检查闪送、达达余额任务]");
+        \Log::info("[执行检查余额任务]-[开始]");
         $h = date("H", time());
-        \Log::info("[检查闪送、达达余额任务]-H:{$h}");
+        \Log::info("[执行检查余额任务]-[时间]-H:{$h}");
         $dingding = app("ding");
         $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
