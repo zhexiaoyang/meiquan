@@ -203,6 +203,7 @@ class AuthController extends Controller
             'phone' => $request->user()->phone ?? '',
             'money' => $request->user()->money ?? '',
             'frozen_money' => $request->user()->frozen_money ?? '',
+            'operate_money' => $request->user()->operate_money ?? '',
             'roles' => $request->user()->hasRole('super_man') ? ['super_man'] : ['index'],
         ];
         return $this->success($user);
@@ -283,6 +284,7 @@ class AuthController extends Controller
             'phone' => $request->user()->phone ?? '',
             'money' => $request->user()->money ?? '',
             'frozen_money' => $request->user()->frozen_money ?? '',
+            'operate_money' => $request->user()->operate_money ?? '',
             'role' => $data,
         ];
         return $this->success($user);

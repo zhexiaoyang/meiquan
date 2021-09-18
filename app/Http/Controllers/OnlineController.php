@@ -162,15 +162,15 @@ class OnlineController extends Controller
         }
         $data["bank_name"] = $bank;
 
-        if (!$manager_id = $request->get("manager_id")) {
-            return $this->error("城市经理不能为空");
-        }
-        if (!$manager = CityManager::query()->find($manager_id)) {
-            return $this->error("城市经理不存在");
-        }
-        $data["manager_id"] = $manager_id;
-        $data["manager_name"] = $manager->name;
-        $data["manager_phone"] = $manager->phone;
+        // if (!$manager_id = $request->get("manager_id")) {
+        //     return $this->error("城市经理不能为空");
+        // }
+        // if (!$manager = CityManager::query()->find($manager_id)) {
+        //     return $this->error("城市经理不存在");
+        // }
+        // $data["manager_id"] = $manager_id;
+        // $data["manager_name"] = $manager->name;
+        // $data["manager_phone"] = $manager->phone;
 
         if ($remark = $request->get("remark")) {
             $data["remark"] = $remark;
@@ -283,6 +283,11 @@ class OnlineController extends Controller
 
         if (!$shop = Shop::query()->where(['id' => $shop_id, 'own_id' => $user->id])->first()) {
             return $this->error("选择门店不存在，稍后再试");
+        }
+        $data["manager_id"] = $shop->manager_id;
+        if ($manager = CityManager::query()->find($shop->manager_id)) {
+            $data["manager_name"] = $manager->name;
+            $data["manager_phone"] = $manager->phone;
         }
 
         $data["name"] = $shop->shop_name;
@@ -400,15 +405,15 @@ class OnlineController extends Controller
         }
         $data["bank_name"] = $bank;
 
-        if (!$manager_id = $request->get("manager_id")) {
-            return $this->error("城市经理不能为空");
-        }
-        if (!$manager = CityManager::query()->find($manager_id)) {
-            return $this->error("城市经理不存在");
-        }
-        $data["manager_id"] = $manager_id;
-        $data["manager_name"] = $manager->name;
-        $data["manager_phone"] = $manager->phone;
+        // if (!$manager_id = $request->get("manager_id")) {
+        //     return $this->error("城市经理不能为空");
+        // }
+        // if (!$manager = CityManager::query()->find($manager_id)) {
+        //     return $this->error("城市经理不存在");
+        // }
+        // $data["manager_id"] = $manager_id;
+        // $data["manager_name"] = $manager->name;
+        // $data["manager_phone"] = $manager->phone;
 
         // if ($manager_name = $request->get("manager_name")) {
         //     $data["manager_name"] = $manager_name;

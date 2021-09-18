@@ -35,6 +35,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("user/balance", "UserMoneyBalanceController@index");
         // 个人中心-用户冻结余额明细
         Route::get("user/frozen/balance", "UserFrozenBalanceController@index");
+        // 个人中心-用户运营余额明细
+        Route::get("user/operate/balance", "UserOperateBalanceController@index");
         // 首页-合同信息（认证状态、签署信息）
         Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）

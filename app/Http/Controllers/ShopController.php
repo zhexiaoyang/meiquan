@@ -312,6 +312,8 @@ class ShopController extends Controller
             "mtwm" => (bool) $shop->mtwm,
             "auto" => (bool) $shop->mt_shop_id,
             "status" => $shop->status,
+            "manager" => $shop->manager->name ?? '',
+            "manager_phone" => $shop->manager->phone ?? '',
             "created_at" => date("Y-m-d H:i:s", strtotime($shop->created_at)),
         ];
 
