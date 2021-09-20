@@ -226,9 +226,14 @@ class CreateMtOrder implements ShouldQueue
 
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
         if ($shop->shop_id_mqd && $mqd_switch && !$this->order->fail_mqd && ($order->mqd_status === 0)) {
-            // $money_mqd = distanceMoney($this->order->distance) + baseMoney($shop->city_level ?: 9) + timeMoney() + dateMoney() + weightMoney($this->order->goods_weight);
-            $money_mqd = distanceMoneyMqd($this->order->distance) + baseMoneyMqd($shop->city_level ?: 7) + timeMoneyMqd() + weightMoneyMqd($this->order->goods_weight);
-            // $money_mqd = 6;
+            $meiquanda = app('meiquanda');
+            $check_mqd = $meiquanda->orderCalculate($shop, $this->order);
+            $money_mqd = $check_mqd['data']['pay_fee'] ?? 0;
+            if ($money_mqd < 1) {
+                $money_mqd = distanceMoneyMqd($this->order->distance) + baseMoneyMqd($shop->city_level ?: 7) + timeMoneyMqd() + weightMoneyMqd($this->order->goods_weight);
+            } else {
+                Log::info($this->log."美全达校验金额：{$money_mqd}");
+            }
             $this->services['meiquanda'] = $money_mqd;
             Log::info($this->log."美全达可以，金额：{$money_mqd}");
 

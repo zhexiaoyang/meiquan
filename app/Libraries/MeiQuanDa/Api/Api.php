@@ -62,6 +62,30 @@ class Api extends Request
         return $this->post('/open.Order/createOrder', $data);
     }
 
+    public function orderCalculate(Shop $shop, Order $order)
+    {
+        $data = [
+            // 门店信息
+            'shop_id' => $shop->shop_id_mqd,
+            'shop_name' => $shop->shop_name,
+            'shop_tel' => $shop->contact_phone,
+            'shop_address' => "{$shop->shop_name}（" . $shop->shop_address ."）",
+            'shop_tag' => $shop->shop_lng . ',' . $shop->shop_lat,
+            'get_address' => $shop->shop_address,
+            'get_tag' => $shop->shop_lng . ',' . $shop->shop_lat,
+            // 订单信息
+            'customer_address' => $order->receiver_address,
+            'customer_tag' => $order->receiver_lng . ',' . $order->receiver_lat,
+            // 订单备注
+            'order_price' => $order->goods_value,
+            'weight' => $order->goods_weight,
+            'city' => $shop->city,
+            'force_check' => 1
+        ];
+
+        return $this->post('/open.Order/getMerchantCalcFee', $data);
+    }
+
     public function getOrderInfo($order_id)
     {
         return $this->get('/open.Order/getOrderInfo', ['trade_no' => $order_id]);
