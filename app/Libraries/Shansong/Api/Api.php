@@ -100,9 +100,10 @@ class Api extends Request
                 // "orderingSourceNo" => $order->goods_pickup_info ?? "",
                 // "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
             ]],
-            "appointType" => $order->order_type ?? "",
+            // "appointType" => $order->order_type ?? "",
+            "appointType" => 0,
             // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
-            "appointmentDate" => "",
+            // "appointmentDate" => "",
             "travelWay" => $order->tool === 8 ? 8 : 0,
             "storeId" => $shop->shop_id_ss
         ];
