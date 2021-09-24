@@ -50,6 +50,9 @@ class XunFei
                 if (strstr( $v['word'][0]['content'], "***")) {
                     continue;
                 }
+                if (strstr( $v['word'][0]['content'], "手机尾号")) {
+                    continue;
+                }
                 if ($name === '') {
                     $name = $v['word'][0]['content'];
                     continue;
@@ -60,6 +63,7 @@ class XunFei
                         $phone = $phone_data[0][0];
                         $phone_tmp = $phone_data[0][1];
                     }
+                    break;
                 }
                 if ($phone == '') {
                     $address .= $v['word'][0]['content'];
