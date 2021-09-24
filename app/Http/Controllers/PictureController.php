@@ -13,6 +13,6 @@ class PictureController extends Controller
         $file = $request->file('file')->path();
         $xf = new XunFei();
         $res = $xf->xfyun($file);
-        return $res;
+        return $this->success($res);
     }
 }

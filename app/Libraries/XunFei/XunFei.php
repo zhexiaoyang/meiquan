@@ -39,18 +39,38 @@ class XunFei
         $res = $this->http_request($api, $Post, $headers);
         $res_data = json_decode($res, true);
 
-        $str = '';
+        $name = '';
+        $address = '';
+        $phone = '';
+        $phone_tmp = '';
+        $phone_data = [];
         \Log::info("000", $res_data);
-        if (!empty($res_data['data']['block']['line'])) {
-            \Log::info("111");
-            foreach ($res_data['data']['block']['line'] as $v) {
-                \Log::info("222");
-                $str .= $v['word']['content'];
+        if (!empty($res_data['data']['block'][0]['line'])) {
+            foreach ($res_data['data']['block']['line'] as $k => $v) {
+                if (strstr("****", $v['word']['content'])) {
+                    break;
+                }
+                if ($name === '') {
+                    $name = $v['word']['content'];
+                    break;
+                }
+                if (strstr("虚拟号码", $v['word']['content'])) {
+                    preg_match_all('/\d+/', $v['word']['content'],$phone_data);
+                    if (!empty($phone_data[0])) {
+                        $phone = $phone_data[0][0];
+                        $phone_tmp = $phone_data[0][1];
+                    }
+                }
+                if ($phone == '') {
+                    $address .= $v['word']['content'];
+                }
             }
         }
 
-        \Log::info($str);
-        return $str;
+        $data = compact("name", "address", "phone", "phone_tmp");
+
+        \Log::info('讯飞文字-地址判断结果', $data);
+        return $data;
     }
 
     /**
