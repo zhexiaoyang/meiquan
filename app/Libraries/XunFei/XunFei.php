@@ -46,7 +46,7 @@ class XunFei
         $phone_data = [];
         \Log::info("000", $res_data);
         if (!empty($res_data['data']['block'][0]['line'])) {
-            foreach ($res_data['data']['block']['line'] as $k => $v) {
+            foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
                 if (strstr("****", $v['word']['content'])) {
                     break;
                 }
