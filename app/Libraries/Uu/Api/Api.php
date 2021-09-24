@@ -18,6 +18,7 @@ class Api extends Request
             'to_address' => $order->receiver_address,
             'city_name' => $shop->city,
             'send_type' => 0,
+            'addfee' => 0,
             'to_lat' => $jwd2['lat'],
             'to_lng' => $jwd2['lng'],
             "from_lat" => $jwd1['lat'],
