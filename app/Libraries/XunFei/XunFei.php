@@ -48,11 +48,11 @@ class XunFei
         if (!empty($res_data['data']['block'][0]['line'])) {
             foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
                 if (strstr("****", $v['word'][0]['content'])) {
-                    break;
+                    continue;
                 }
                 if ($name === '') {
                     $name = $v['word'][0]['content'];
-                    break;
+                    continue;
                 }
                 if (strstr("虚拟号码", $v['word'][0]['content'])) {
                     preg_match_all('/\d+/', $v['word'][0]['content'],$phone_data);
