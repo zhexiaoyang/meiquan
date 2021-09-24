@@ -51,19 +51,27 @@ class XunFei
         \Log::info("000", $res_data);
         if (!empty($res_data['data']['block'][0]['line'])) {
             foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
-                $str .= $v['word'][0]['content'];
-                if (strstr( $v['word'][0]['content'], "***")) {
+                // 组合识别的行
+                $tmp_str = '';
+                if (!empty($v['word'])) {
+                    foreach ($v['word'] as $tmp_v) {
+                        $tmp_str .= $tmp_v['content'];
+                    }
+                }
+                // 所有识别的行组成一行
+                $str .= $tmp_str;
+                if (strstr( $tmp_str, "***")) {
                     continue;
                 }
-                if (strstr( $v['word'][0]['content'], "手机尾号")) {
+                if (strstr( $tmp_str, "手机尾号")) {
                     continue;
                 }
                 if ($name === '') {
-                    $name = $v['word'][0]['content'];
+                    $name = $tmp_str;
                     continue;
                 }
-                if (strstr($v['word'][0]['content'], "虚拟号码")) {
-                    preg_match_all('/\d+/', $v['word'][0]['content'],$phone_data);
+                if (strstr($tmp_str, "虚拟号码")) {
+                    preg_match_all('/\d+/', $tmp_str,$phone_data);
                     if (!empty($phone_data[0])) {
                         $phone = $phone_data[0][0];
                         $phone_tmp = $phone_data[0][1];
@@ -71,7 +79,7 @@ class XunFei
                     break;
                 }
                 if ($phone == '') {
-                    $address_all .= $v['word'][0]['content'];
+                    $address_all .= $tmp_str;
                 }
             }
         }
@@ -80,6 +88,7 @@ class XunFei
 
         if ($address_all) {
             $num = mb_strrpos($address_all,"（");
+            \Log::info($num);
             $address = mb_substr($address_all, 0, $num);
             $address_detail = mb_substr($address_all, $num -1, -1);
         }
