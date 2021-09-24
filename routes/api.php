@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(["force-json"])->group(function() {
+
+    Route::post("picture/ticket", "PictureController@ticket")->name("picture.ticket");
     // *注册、登录验证码
     Route::post("code", "CommonController@getVerifyCode")->name("code");
     // *中台注册
@@ -86,7 +88,35 @@ Route::middleware(["force-json"])->group(function() {
         // 城市经理列表
         Route::get("/city_manager", "CityManagerController@index");
 
+        /**
+         * 订管管理
+         */
+        // 订单
+        Route::post("order/send/{order}", "OrderController@send")->name("order.send");
+        // 订单
+        // Route::post("picture/ticket", "PictureController@ticket")->name("picture.ticket");
+        // 更改交通工具
+        Route::post("order/tool/{order}", "OrderController@tool")->name("order.tool");
+        // 重新发送订单
+        Route::post("order/resend", "OrderController@resend")->name("order.resend");
+        // 物品已送回
+        Route::post("order/returned", "OrderController@returned")->name("order.returned");
+        // Route::post("order2", "OrderController@store2")->name("order.store2");
+        // 取消订单
+        Route::delete("order/cancel2/{order}", "OrderController@cancel2")->name("api.order.cancel2");
+        // 通过订单获取门店详情（配送平台）
+        Route::get("/order/getShopInfoByOrder", "OrderController@getShopInfoByOrder")->name("api.order.getShopInfoByOrder");
+        Route::resource("order", "OrderController", ["only" => ["store", "show", "index", "destroy"]]);
+        // 获取配送费
+        Route::get("order/money/{shop}", "OrderController@money");
 
+        /**
+         * 发单设置
+         */
+        Route::get("order_setting", "OrderSettingController@show")->name("order_setting.show");
+        Route::post("order_setting", "OrderSettingController@store")->name("order_setting.store");
+        Route::post("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
+        Route::get("order_setting/shops", "OrderSettingController@shops")->name("order_setting.shops");
 
         /**
          * 门店管理
@@ -312,33 +342,6 @@ Route::middleware(["force-json"])->group(function() {
         // 用户
         Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man");
 
-        /**
-         * 订管管理
-         */
-        // 订单
-        Route::post("order/send/{order}", "OrderController@send")->name("order.send");
-        // 更改交通工具
-        Route::post("order/tool/{order}", "OrderController@tool")->name("order.tool");
-        // 重新发送订单
-        Route::post("order/resend", "OrderController@resend")->name("order.resend");
-        // 物品已送回
-        Route::post("order/returned", "OrderController@returned")->name("order.returned");
-        // Route::post("order2", "OrderController@store2")->name("order.store2");
-        // 取消订单
-        Route::delete("order/cancel2/{order}", "OrderController@cancel2")->name("api.order.cancel2");
-        // 通过订单获取门店详情（配送平台）
-        Route::get("/order/getShopInfoByOrder", "OrderController@getShopInfoByOrder")->name("api.order.getShopInfoByOrder");
-        Route::resource("order", "OrderController", ["only" => ["store", "show", "index", "destroy"]]);
-        // 获取配送费
-        Route::get("order/money/{shop}", "OrderController@money");
-
-        /**
-         * 发单设置
-         */
-        Route::get("order_setting", "OrderSettingController@show")->name("order_setting.show");
-        Route::post("order_setting", "OrderSettingController@store")->name("order_setting.store");
-        Route::post("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
-        Route::get("order_setting/shops", "OrderSettingController@shops")->name("order_setting.shops");
 
         /**
          * 资源路由
