@@ -47,22 +47,22 @@ class XunFei
         \Log::info("000", $res_data);
         if (!empty($res_data['data']['block'][0]['line'])) {
             foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
-                if (strstr("****", $v['word']['content'])) {
+                if (strstr("****", $v['word'][0]['content'])) {
                     break;
                 }
                 if ($name === '') {
-                    $name = $v['word']['content'];
+                    $name = $v['word'][0]['content'];
                     break;
                 }
-                if (strstr("虚拟号码", $v['word']['content'])) {
-                    preg_match_all('/\d+/', $v['word']['content'],$phone_data);
+                if (strstr("虚拟号码", $v['word'][0]['content'])) {
+                    preg_match_all('/\d+/', $v['word'][0]['content'],$phone_data);
                     if (!empty($phone_data[0])) {
                         $phone = $phone_data[0][0];
                         $phone_tmp = $phone_data[0][1];
                     }
                 }
                 if ($phone == '') {
-                    $address .= $v['word']['content'];
+                    $address .= $v['word'][0]['content'];
                 }
             }
         }
