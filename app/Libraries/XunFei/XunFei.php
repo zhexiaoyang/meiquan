@@ -39,14 +39,19 @@ class XunFei
         $res = $this->http_request($api, $Post, $headers);
         $res_data = json_decode($res, true);
 
+        // 获取地址信息
+        $str = '';
         $name = '';
-        $address = '';
         $phone = '';
         $phone_tmp = '';
         $phone_data = [];
+        $address_all = '';
+        $address = '';
+        $address_detail = '';
         \Log::info("000", $res_data);
         if (!empty($res_data['data']['block'][0]['line'])) {
             foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
+                $str .= $v['word'][0]['content'];
                 if (strstr( $v['word'][0]['content'], "***")) {
                     continue;
                 }
@@ -66,12 +71,20 @@ class XunFei
                     break;
                 }
                 if ($phone == '') {
-                    $address .= $v['word'][0]['content'];
+                    $address_all .= $v['word'][0]['content'];
                 }
             }
         }
 
-        $data = compact("name", "address", "phone", "phone_tmp");
+        \Log::info($str);
+
+        if ($address_all) {
+            $num = mb_strrpos($address_all,"（");
+            $address = mb_substr($address_all, 0, $num);
+            $address_detail = mb_substr($address_all, $num -1, -1);
+        }
+
+        $data = compact("name", "phone", "phone_tmp", "address", "address_detail");
 
         \Log::info('讯飞文字-地址判断结果', $data);
         return $data;
