@@ -148,31 +148,31 @@ class CreateMtOrder implements ShouldQueue
         // *****************************************
         // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没用失败信息)
         if ($shop->shop_id_uu && $uu_switch && !$this->order->fail_uu && ($order->uu_status === 0)) {
-            // $uu = app("uu");
-            // $check_uu= $uu->orderCalculate($this->order, $shop);
-            // $money_uu = (($check_uu['need_paymoney'] ?? 0)) + 1;
-            // $money_uu_total = $check_uu['total_money'] ?? 0;
-            // $money_uu_need = $check_uu['need_paymoney'] ?? 0;
-            // $price_token = $check_uu['price_token'] ?? '';
-            // \Log::info("aaa", [$money_uu, $check_uu['return_code']]);
-            // if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) ) {
-            //     $this->money_uu = $money_uu;
-            //     $this->services['uu'] = $money_uu;
-            //     Log::info($this->log."UU可以，金额：{$money_uu}");
-            // } else {
-            //     DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $check_dd['msg'] ?? "UU校验订单请求失败"]);
-            //     Log::info($this->log."UU校验订单请求失败");
-            // }
-            //
-            // // 判断用户金额是否满足UU订单
-            // if ($user->money < ($money_uu + $use_money)) {
-            //     if ($this->order->status < 20) {
-            //         DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-            //     }
-            //     dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-            //     Log::info($this->log."用户金额不足发UU单");
-            //     return;
-            // }
+            $uu = app("uu");
+            $check_uu= $uu->orderCalculate($this->order, $shop);
+            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + 1;
+            $money_uu_total = $check_uu['total_money'] ?? 0;
+            $money_uu_need = $check_uu['need_paymoney'] ?? 0;
+            $price_token = $check_uu['price_token'] ?? '';
+            \Log::info("aaa", [$money_uu, $check_uu['return_code']]);
+            if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) ) {
+                $this->money_uu = $money_uu;
+                $this->services['uu'] = $money_uu;
+                Log::info($this->log."UU可以，金额：{$money_uu}");
+            } else {
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $check_dd['msg'] ?? "UU校验订单请求失败"]);
+                Log::info($this->log."UU校验订单请求失败");
+            }
+
+            // 判断用户金额是否满足UU订单
+            if ($user->money < ($money_uu + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发UU单");
+                return;
+            }
         } else {
             $log_arr = [
                 'shop_id' => $shop->shop_id,
