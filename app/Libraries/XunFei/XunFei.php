@@ -74,10 +74,10 @@ class XunFei
                 if (mb_strrpos($tmp_str, "先生") || mb_strrpos($tmp_str, "女士") || mb_strrpos($tmp_str, "美团客人") || (mb_substr( $tmp_str, 0, 1) === '[')) {
                     if (mb_strrpos($tmp_str, "[") === 0) {
                         $name = mb_substr($tmp_str, 1, mb_strrpos($tmp_str, "]")-1);
+                        $address_status = false;
                     } else {
-                        $name = $tmp_str;
+                        $name = mb_substr($tmp_str, 0, mb_strrpos($tmp_str, "（")-1);
                     }
-                    $address_status = false;
                     continue;
                 }
                 if (mb_strrpos($tmp_str, "转")) {
