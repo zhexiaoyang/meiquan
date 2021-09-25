@@ -162,7 +162,7 @@ class CreateMtOrder implements ShouldQueue
             if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) && ($addfee <= 10) ) {
                 $this->money_uu = $money_uu;
                 $this->services['uu'] = $money_uu;
-                Log::info($this->log."UU可以，金额：{$money_uu}");
+                Log::info($this->log."UU可以，金额：{$money_uu},加价：{$addfee}");
             } else {
                 DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $check_dd['msg'] ?? "UU校验订单请求失败"]);
                 Log::info($this->log."UU校验订单请求失败");
