@@ -159,7 +159,7 @@ class CreateMtOrder implements ShouldQueue
             if ($addfee > 0) {
                 Log::info($this->log."UU校验订单有加价：{$addfee}");
             }
-            if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) && ($addfee === 0) ) {
+            if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) && ($addfee <= 10) ) {
                 $this->money_uu = $money_uu;
                 $this->services['uu'] = $money_uu;
                 Log::info($this->log."UU可以，金额：{$money_uu}");
