@@ -48,6 +48,7 @@ class XunFei
         $address_all = '';
         $address = '';
         $address_detail = '';
+        $address_status = true;
         \Log::info("000", $res_data);
         if (!empty($res_data['data']['block'][0]['line'])) {
             foreach ($res_data['data']['block'][0]['line'] as $k => $v) {
@@ -76,6 +77,7 @@ class XunFei
                     } else {
                         $name = $tmp_str;
                     }
+                    $address_status = false;
                     continue;
                 }
                 if (mb_strrpos($tmp_str, "转")) {
@@ -86,7 +88,7 @@ class XunFei
                     }
                     break;
                 }
-                if ($phone == '') {
+                if ($address_status) {
                     $address_all .= $tmp_str;
                 }
             }
