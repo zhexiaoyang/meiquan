@@ -60,19 +60,27 @@ class XunFei
                 }
                 // 所有识别的行组成一行
                 $str .= $tmp_str;
-                if (strstr( $tmp_str, "***")) {
+                // 去除无用的行
+                if (mb_substr( $tmp_str, 0, 3) === '***') {
+                    continue;
+                }
+                if (mb_substr( $tmp_str, 0, 3) === '---') {
                     continue;
                 }
                 if (strstr( $tmp_str, "手机尾号")) {
                     continue;
                 }
-                if ($name === '') {
-                    $name = $tmp_str;
+                if (mb_strrpos($tmp_str, "先生") || mb_strrpos($tmp_str, "女士") || mb_strrpos($tmp_str, "美团客人") || (mb_substr( $tmp_str, 0, 1) === '[')) {
+                    if (mb_strrpos($tmp_str, "[")) {
+                        $name = mb_substr($tmp_str, 1, mb_strrpos($tmp_str, "]")-1);
+                    } else {
+                        $name = $tmp_str;
+                    }
                     continue;
                 }
-                if (strstr($tmp_str, "虚拟号码")) {
+                if (mb_strrpos($tmp_str, "转")) {
                     preg_match_all('/\d+/', $tmp_str,$phone_data);
-                    if (!empty($phone_data[0])) {
+                    if (!empty($phone_data[0]) && strlen($phone_data[0][0]) == 11) {
                         $phone = $phone_data[0][0];
                         $phone_tmp = $phone_data[0][1];
                     }
@@ -87,10 +95,12 @@ class XunFei
         \Log::info($str);
 
         if ($address_all) {
-            $num = mb_strrpos($address_all,"（");
-            \Log::info($num);
-            $address = mb_substr($address_all, 0, $num);
-            $address_detail = mb_substr($address_all, $num -1, -1);
+            // $num = mb_strrpos($address_all,"（");
+            // \Log::info($num);
+            // $address = mb_substr($address_all, 0, $num);
+            // $address_detail = mb_substr($address_all, $num -1, -1);
+            $address = $address_all;
+            $address_detail = $address_all;
         }
 
         $data = compact("name", "phone", "phone_tmp", "address", "address_detail");
