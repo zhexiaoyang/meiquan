@@ -946,7 +946,7 @@ class OrderController extends Controller
                                 'mqd_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', $order->money);
+                            // DB::table('users')->where('id', $order->user_id)->increment('money', $order->money);
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
@@ -1524,7 +1524,7 @@ class OrderController extends Controller
                                 'mqd_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', $order->money);
+                            // DB::table('users')->where('id', $order->user_id)->increment('money', $order->money);
                             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
