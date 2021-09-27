@@ -76,7 +76,7 @@ class XunFei
                         $name = mb_substr($tmp_str, 1, mb_strrpos($tmp_str, "]")-1);
                         $address_status = false;
                     } else {
-                        $name = mb_substr($tmp_str, 0, mb_strrpos($tmp_str, "（")-1);
+                        $name = mb_substr($tmp_str, 0, mb_strrpos($tmp_str, "（"));
                     }
                     continue;
                 }
