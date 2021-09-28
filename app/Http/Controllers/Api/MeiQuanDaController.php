@@ -342,23 +342,23 @@ class MeiQuanDaController extends Controller
                 if ($order->status >= 20 && $order->status < 70 ) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
-                            if (($order->status == 50 || $order->status == 60) && $order->ps == 4) {
+                            // if (($order->status == 50 || $order->status == 60) && $order->ps == 4) {
                                 // 查询当前用户，做余额日志
-                                $current_user = DB::table('users')->find($order->user_id);
+                                // $current_user = DB::table('users')->find($order->user_id);
                                 // DB::table("user_money_balances")->insert();
-                                UserMoneyBalance::create([
-                                    "user_id" => $order->user_id,
-                                    "money" => $order->money,
-                                    "type" => 1,
-                                    "before_money" => $current_user->money,
-                                    "after_money" => ($current_user->money + $order->money),
-                                    "description" => "取消美全达跑腿订单：" . $order->order_id,
-                                    "tid" => $order->id
-                                ]);
+                                // UserMoneyBalance::create([
+                                //     "user_id" => $order->user_id,
+                                //     "money" => $order->money,
+                                //     "type" => 1,
+                                //     "before_money" => $current_user->money,
+                                //     "after_money" => ($current_user->money + $order->money),
+                                //     "description" => "取消美全达跑腿订单：" . $order->order_id,
+                                //     "tid" => $order->id
+                                // ]);
                                 // 将配送费返回
-                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mqd);
-                                Log::info($log_prefix . '接口取消订单，将钱返回给用户');
-                            }
+                                // DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_mqd);
+                                // Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                            // }
 
                             $update_data = [
                                 'mqd_status' => 99
