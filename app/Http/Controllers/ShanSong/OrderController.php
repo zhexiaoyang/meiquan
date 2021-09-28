@@ -442,24 +442,24 @@ class OrderController
                             $update_data = [
                                 'ss_status' => 99
                             ];
-                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
-                                $update_data = [
-                                    'status' => 99,
-                                    'ss_status' => 99
-                                ];
-                            }
                             Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
                                 'ps' => 3,
                                 'order_id' => $order->id,
                                 'des' => '【闪送】跑腿，发起取消配送',
                             ]);
-                            dispatch(new CreateMtOrder($order, 2));
-                            OrderLog::create([
-                                'ps' => 3,
-                                'order_id' => $order->id,
-                                'des' => '【闪送】跑腿，发起取消配送，重新派单',
-                            ]);
+                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
+                                // $update_data = [
+                                //     'status' => 99,
+                                //     'ss_status' => 99
+                                // ];
+                                dispatch(new CreateMtOrder($order, 2));
+                                OrderLog::create([
+                                    'ps' => 3,
+                                    'order_id' => $order->id,
+                                    'des' => '【闪送】跑腿，发起取消配送，重新派单',
+                                ]);
+                            }
 
                         });
                     } catch (\Exception $e) {
