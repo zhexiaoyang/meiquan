@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\ShanSong;
 
 
+use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -408,6 +409,16 @@ class OrderController
                         $dd->sendMarkdownMsgArray("【闪送跑腿】，取消单号错误", $logs);
                         return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
                     }
+                    $logs = [
+                        "\n\n描述" => "【闪送跑腿】，发起取消配送",
+                        "\n\n订单ID" => $order->id,
+                        "\n\n订单号" => $order->order_id,
+                        "\n\n时间" => date("Y-m-d H:i:s"),
+                        "\n\n睡眠之前时间戳" => $before_time,
+                        "\n\n睡眠之后时间戳" => $after_time,
+                    ];
+                    $dd->sendMarkdownMsgArray("【闪送跑腿】，发起取消配送", $logs);
+                    Log::info($log_prefix . '接口取消订单成功');
                     // 操作退款
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
@@ -428,7 +439,6 @@ class OrderController
                                 DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
                                 Log::info($log_prefix . '接口取消订单，将钱返回给用户');
                             }
-
                             $update_data = [
                                 'ss_status' => 99
                             ];
@@ -444,6 +454,13 @@ class OrderController
                                 'order_id' => $order->id,
                                 'des' => '【闪送】跑腿，发起取消配送',
                             ]);
+                            dispatch(new CreateMtOrder($order, 2));
+                            OrderLog::create([
+                                'ps' => 3,
+                                'order_id' => $order->id,
+                                'des' => '【闪送】跑腿，发起取消配送，重新派单',
+                            ]);
+
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -461,16 +478,6 @@ class OrderController
                         $dd->sendMarkdownMsgArray("闪送接口取消订单将钱返回给用户失败", $logs);
                         return json_encode(['code' => 100]);
                     }
-                    $logs = [
-                        "\n\n描述" => "【闪送跑腿】，发起取消配送",
-                        "\n\n订单ID" => $order->id,
-                        "\n\n订单号" => $order->order_id,
-                        "\n\n时间" => date("Y-m-d H:i:s"),
-                        "\n\n睡眠之前时间戳" => $before_time,
-                        "\n\n睡眠之后时间戳" => $after_time,
-                    ];
-                    $dd->sendMarkdownMsgArray("【闪送跑腿】，发起取消配送", $logs);
-                    Log::info($log_prefix . '接口取消订单成功');
                 } else {
                     Log::info($log_prefix . "取消订单，状态不正确。状态(status)：{$order->status}");
                 }
