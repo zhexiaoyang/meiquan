@@ -458,7 +458,7 @@ class OrderController
                                 OrderLog::create([
                                     'ps' => 3,
                                     'order_id' => $order->id,
-                                    'des' => '【闪送】跑腿，发起取消配送，重新派单',
+                                    'des' => '【闪送】跑腿，发起取消配送，系统重新派单',
                                 ]);
                             }
 
