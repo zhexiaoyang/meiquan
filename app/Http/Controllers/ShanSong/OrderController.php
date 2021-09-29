@@ -451,6 +451,7 @@ class OrderController
                             if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
                                 $update_data = [
                                     'status' => 0,
+                                    'ss_status' => 0,
                                     'ps' => 0
                                 ];
                                 Order::where("id", $order->id)->update($update_data);
