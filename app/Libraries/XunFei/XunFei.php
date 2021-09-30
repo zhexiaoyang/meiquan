@@ -71,6 +71,18 @@ class XunFei
                 if (strstr( $tmp_str, "手机尾号")) {
                     continue;
                 }
+                if (strstr( $tmp_str, "若无法")) {
+                    continue;
+                }
+                if (strstr( $tmp_str, "最新号码")) {
+                    continue;
+                }
+                if (strstr( $tmp_str, "可联系号码")) {
+                    continue;
+                }
+                if (strstr( $tmp_str, '10777"')) {
+                    continue;
+                }
                 if (mb_strrpos($tmp_str, "先生") || mb_strrpos($tmp_str, "女士") || mb_strrpos($tmp_str, "美团客人") || (mb_substr( $tmp_str, 0, 1) === '[')) {
                     if (mb_strrpos($tmp_str, "[") === 0) {
                         $name = mb_substr($tmp_str, 1, mb_strrpos($tmp_str, "]")-1);
@@ -78,7 +90,9 @@ class XunFei
                     } else {
                         $name = mb_substr($tmp_str, 0, mb_strrpos($tmp_str, "（"));
                     }
-                    continue;
+                    if ($address_status) {
+                        continue;
+                    }
                 }
                 if (mb_strrpos($tmp_str, "转")) {
                     preg_match_all('/\d+/', $tmp_str,$phone_data);
