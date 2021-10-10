@@ -45,10 +45,10 @@ class Request
 
         $result = json_decode($res, true);
 
-        if (!isset($result['error_code']) || $result['error_code'] !== 0) {
-            Log::debug('顺丰响应异常:', [$res]);
-            return $result['result'] ?? [];
-        }
-        return $result['result'];
+        // if (!isset($result['error_code']) || $result['error_code'] !== 0) {
+        //     Log::debug('顺丰响应异常:', [$res]);
+        //     return $result['result'] ?? [];
+        // }
+        return $result;
     }
 }

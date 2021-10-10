@@ -512,14 +512,18 @@ Route::namespace("Api")->prefix("zg")->group(function () {
  * 顺丰回调接口
  */
 Route::namespace("Api")->prefix("shunfeng")->group(function () {
-    // 结算订单
+    // 配送状态更改
     Route::post("order/status", "ShunfengController@status");
-    // 隐私号降级
+    // 订单完成
     Route::post("order/complete", "ShunfengController@complete");
-    // 创建订单
+    // 顺丰原因取消
     Route::post("order/cancel", "ShunfengController@cancel");
-    // 取消订单
-    Route::post("order/fail", "ShunfengController@fail");
+    // 订单配送异常
+    Route::post("order/exception", "ShunfengController@cancel");
+    // 骑士撤单
+    Route::post("order/cancel_qishou", "ShunfengController@cancel");
+    // 授权回调
+    Route::post("order/auth", "ShunfengController@auth");
 });
 
 /**
