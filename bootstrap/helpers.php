@@ -221,9 +221,14 @@ function getShopDistanceV4($shop, $lng, $lat)
 
     $data = json_decode($str, true);
 
-    // $distance = $data['route']['paths'][0]['distance'] / 1000;
-    $distance = 3;
+    $distance = ($data['route']['paths'][0]['distance'] ?? 0) / 1000;
+    // $distance = 3;
 
+    // $url = "https://apis.map.qq.com/ws/direction/v1/bicycling/?from={$shop->shop_lng},{$shop->shop_lat}&to={$lng},{$lat}&key=SKUBZ-4G73K-EHXJ7-AUB5E-RD5X3-7CBA7";
+    // $str = file_get_contents($url);
+    // return $str;
+    // $data = json_decode($str, true);
+    // $distance = $data['routes']['paths'][0]['distance'] / 1000;
     \Log::info('Walking 获取距离结果：', [ $distance ]);
 
     return $distance;
