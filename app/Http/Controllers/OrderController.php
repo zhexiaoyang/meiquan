@@ -1812,7 +1812,7 @@ class OrderController extends Controller
                             // 用户余额日志
                             // 计算扣款
                             $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
                             // 当前用户
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
