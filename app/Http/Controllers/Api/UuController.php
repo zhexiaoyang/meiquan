@@ -272,6 +272,7 @@ class UuController extends Controller
                             'fn_status' => $order->fn_status < 20 ?: 7,
                             'ss_status' => $order->ss_status < 20 ?: 7,
                             'mqd_status' => $order->mqd_status < 20 ?: 7,
+                            'sf_status' => $order->sf_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
                             'peisong_id' => $order->uu_order_id,
                             'courier_name' => $name,
