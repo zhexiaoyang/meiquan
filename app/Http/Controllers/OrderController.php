@@ -1130,7 +1130,7 @@ class OrderController extends Controller
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     try {
-                        DB::transaction(function () use ($order) {
+                        DB::transaction(function () use ($order, $result) {
                             // 用户余额日志
                             // 计算扣款
                             $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
@@ -1808,7 +1808,7 @@ class OrderController extends Controller
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     try {
-                        DB::transaction(function () use ($order) {
+                        DB::transaction(function () use ($order, $result) {
                             // 用户余额日志
                             // 计算扣款
                             $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
