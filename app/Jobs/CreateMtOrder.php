@@ -28,6 +28,7 @@ class CreateMtOrder implements ShouldQueue
     protected $money_ss = 16;
     protected $money_dd = 8;
     protected $money_uu = 8;
+    protected $money_sf = 8;
     protected $log = "";
     protected $dada_order_id = '';
     protected $uu_order_id = '';
@@ -86,14 +87,16 @@ class CreateMtOrder implements ShouldQueue
             $mqd_switch = $setting->meiquanda;
             $dd_switch = $setting->dada;
             $uu_switch = $setting->uu;
+            $sf_switch = $setting->shunfeng;
         } else {
             $order_ttl = config("ps.shop_setting.delay_reset") * 60;
             $mt_switch = config("ps.shop_setting.meituan");
             $fn_switch = config("ps.shop_setting.fengniao");
             $ss_switch = config("ps.shop_setting.shansong");
             $mqd_switch = config("ps.shop_setting.meiquanda");
-            $uu_switch = config("ps.shop_setting.uu");
             $dd_switch = config("ps.shop_setting.dd");
+            $uu_switch = config("ps.shop_setting.uu");
+            $sf_switch = config("ps.shop_setting.sf");
         }
 
         Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -138,12 +141,46 @@ class CreateMtOrder implements ShouldQueue
         $money_mqd = 0;
         $money_dd = 0;
         $money_uu = 0;
+        $money_sf = 0;
         $money_uu_need = 0;
         $money_uu_total = 0;
         $ss_order_id = "";
         $price_token = '';
 
         $order = Order::query()->find($this->order->id);
+
+        // *****************************************
+        // 判断是否开启顺丰跑腿(是否存在顺丰的门店ID，设置是否打开，没用失败信息)
+        if ($shop->shop_id_sf && $sf_switch && !$this->order->fail_sf && ($order->sf_status === 0)) {
+            $sf = app("shunfeng");
+            $check_sf= $sf->precreateorder($this->order);
+            $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + 1;
+            if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
+                $this->money_sf = $money_sf;
+                $this->services['sf'] = $money_sf;
+            } else {
+                DB::table('orders')->where('id', $this->order->id)->update(['fail_sf' => $check_sf['error_msg'] ?? "顺丰校验订单请求失败"]);
+                Log::info($this->log."顺丰校验订单请求失败");
+            }
+
+            // 判断用户金额是否满足UU订单
+            if ($user->money < ($money_sf + $use_money)) {
+                if ($this->order->status < 20) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                }
+                dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                Log::info($this->log."用户金额不足发顺丰单");
+                return;
+            }
+        } else {
+            $log_arr = [
+                'shop_id' => $shop->shop_id,
+                'sf_status' => $order->sf_status,
+                'sf_switch' => $sf_switch,
+                'fail_sf' => $this->order->fail_sf
+            ];
+            Log::info($this->log."跳出顺丰发单", $log_arr);
+        }
 
         // *****************************************
         // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没用失败信息)
@@ -454,6 +491,9 @@ class CreateMtOrder implements ShouldQueue
         if ($price_token) {
             $money_arr["price_token"] = $price_token;
         }
+        if ($money_sf) {
+            $money_arr["money_sf"] = $money_sf;
+        }
         if ($ss_order_id) {
             $money_arr["ss_order_id"] = $ss_order_id;
         }
@@ -520,6 +560,15 @@ class CreateMtOrder implements ShouldQueue
                 Log::info($this->log."发送UU订单失败");
             }
             return;
+        } else if ($ps === "sf") {
+            if ($this->sf()) {
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
+                }
+            } else {
+                Log::info($this->log."发送顺丰订单失败");
+            }
+            return;
         }
         Log::info($this->log."发送订单失败，没有返回最小平台");
         // $this->dingTalk("发送订单失败", "没有返回最小平台");
@@ -575,6 +624,63 @@ class CreateMtOrder implements ShouldQueue
                 dispatch(new CreateMtOrder($this->order));
             } else {
                 Log::info($this->log."UU发送订单失败，没有平台了");
+            }
+        }
+
+        return false;
+    }
+
+    public function sf()
+    {
+        $order = Order::query()->find($this->order->id);
+
+        if ($order->status > 30) {
+            Log::info($this->log."不能发送顺丰订单，订单状态大于20，状态：{$order->status}");
+        }
+
+        if ($order->sf_status >= 20) {
+            Log::info($this->log."不能发送顺丰订单，达达状态不是0，状态：{$order->sf_status}");
+        }
+
+        if ($order->fail_sf) {
+            Log::info($this->log."不能发送顺丰订单，已有顺丰错误信息");
+            return false;
+        }
+
+        $sf = app("shunfeng");
+        // 发送顺丰订单
+        $result_sf = $sf->createOrder($order);
+        if ($result_sf['error_code'] === 0) {
+            // 订单发送成功
+            Log::info($this->log."发送顺丰订单成功，返回参数：", [$result_sf]);
+            // 写入订单信息
+            $money_sf = (($result_sf['result']['total_price'] ?? 0) / 100) + 1;
+            $update_info = [
+                'money_sf' => $money_sf,
+                'sf_order_id' => $result_sf['result']['sf_order_id'] ?? $this->order->order_id,
+                'sf_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 7,
+                'order_id' => $this->order->id,
+                'des' => '【顺丰】跑腿，发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            Log::info($this->log."顺丰更新创建订单状态成功");
+            $sf->notifyproductready($order);
+            return true;
+        } else {
+            $fail_sf = $result_sf['error_msg'] ?? "顺丰创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_sf' => $fail_sf, 'sf_status' => 3]);
+            Log::info($this->log."顺丰发送订单失败：{$fail_sf}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order));
+            } else {
+                Log::info($this->log."顺丰发送订单失败，没有平台了");
             }
         }
 

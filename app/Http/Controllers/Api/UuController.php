@@ -238,6 +238,25 @@ class UuController extends Controller
                     ]);
                     Log::info($log_prefix . '取消达达待接单订单成功');
                 }
+                // 取消顺丰订单
+                if ($order->sf_status === 20 || $order->sf_status === 30) {
+                    $sf = app("shunfeng");
+                    $result = $sf->cancelOrder($order);
+                    if ($result['error_code'] != 0) {
+                        // $logs = [
+                        //     "des" => "【UU订单回调】顺丰待接单取消失败",
+                        //     "id" => $order->id,
+                        //     "order_id" => $order->order_id
+                        // ];
+                        // $dingding->sendMarkdownMsgArray("【ERROR】顺丰待接单取消失败", $logs);
+                    }
+                    OrderLog::create([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '取消【顺丰】跑腿订单',
+                    ]);
+                    Log::info($log_prefix . '取消顺丰待接单订单成功');
+                }
                 // 更改信息，扣款
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
@@ -248,7 +267,7 @@ class UuController extends Controller
                             'profit' => 1,
                             'status' => 50,
                             'uu_status' => 50,
-                            'dd_status' => $order->mt_status < 20 ?: 7,
+                            'dd_status' => $order->dd_status < 20 ?: 7,
                             'mt_status' => $order->mt_status < 20 ?: 7,
                             'fn_status' => $order->fn_status < 20 ?: 7,
                             'ss_status' => $order->ss_status < 20 ?: 7,

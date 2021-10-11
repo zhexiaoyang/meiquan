@@ -130,6 +130,19 @@ class Api extends Request
         return $this->post('/open/api/external/cancelorder', $data);
     }
 
+    public function notifyproductready(Order $order)
+    {
+        $shop = Shop::query()->find($order->shop_id);
+        $data = [
+            'order_id' => $order->order_id,
+            'order_type' => 2,
+            "shop_id" => (string) intval($shop->citycode),
+            "shop_type" => 2,
+            "notice_ready_time" => time()
+        ];
+        return $this->post('/open/api/external/notifyproductready', $data);
+    }
+
     public function getshopaccountbalance()
     {
         $data = [
