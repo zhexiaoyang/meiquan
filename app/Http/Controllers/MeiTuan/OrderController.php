@@ -393,7 +393,7 @@ class OrderController
                                 'courier_phone' => $data['courier_phone'] ?? '',
                                 'mt_status' => 99
                             ];
-                            if (in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99])) {
+                            if (in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
                                 $update_data = [
                                     'courier_name' => $data['courier_name'] ?? '',
                                     'courier_phone' => $data['courier_phone'] ?? '',
