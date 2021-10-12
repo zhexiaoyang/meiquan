@@ -271,7 +271,7 @@ class ShopController extends Controller
             unset($shop->shop_id);
         }
 
-        $shop->status = 20;
+        $shop->status = 40;
         $shop->user_id = $user->id;
         $shop->own_id = $user->id;
 
