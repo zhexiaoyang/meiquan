@@ -187,7 +187,7 @@ class MtLogisticsSync implements ShouldQueue
 
                 if (!$access_token) {
                     $res = $meituan->waimaiAuthorize($shop->mt_shop_id);
-                    $access_token = $res['access_token'] ?? '';
+                    $access_token = $res['access_token'] ?? 'token_v9obbTdmzHzRyiBDl8JNMQ';
                     Cache::put($key, $access_token, ($res['expires_in'] ?? 11) - 10);
                     \Log::info("获取美团服务商AccessToken:{$access_token}");
                 }
