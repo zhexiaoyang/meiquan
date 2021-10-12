@@ -519,7 +519,7 @@ Route::namespace("Api")->prefix("shunfeng")->group(function () {
     // 顺丰原因取消
     Route::post("order/cancel", "ShunfengController@cancel");
     // 订单配送异常
-    Route::post("order/exception", "ShunfengController@cancel");
+    Route::post("order/exception", "ShunfengController@exceptionQishou");
     // 骑士撤单
     Route::post("order/cancel_qishou", "ShunfengController@cancelQishou");
     // 授权回调
