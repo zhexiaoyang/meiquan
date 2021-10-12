@@ -3,11 +3,13 @@
 namespace App\Jobs;
 
 use App\Models\Order;
+use App\Models\Shop;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 
 class MtLogisticsSync implements ShouldQueue
 {
@@ -132,6 +134,77 @@ class MtLogisticsSync implements ShouldQueue
             ];
             $result = $ele->deliveryStatus($params);
             \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-结束", compact("params", "result"));
+        } elseif ($this->order->type == 31) {
+
+            $meituan = app("meiquan");
+
+            $status = 5;
+
+            if ($this->order->status == 40) {
+                $status = 10;
+            }elseif ($this->order->status == 50) {
+                $status = 10;
+                $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
+                \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
+                // 同步其它状态
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 0
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 1
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                $params_tmp = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => 5
+                ];
+                $result = $meituan->logisticsSync($params_tmp);
+                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+
+            }elseif ($this->order->status == 60) {
+                $status = 20;
+            }elseif ($this->order->status == 70) {
+                $status = 40;
+            }
+
+            $shop = Shop::query()->select("id","mt_shop_id")->find($this->order->shop_id);
+
+            if ($shop->mt_shop_id) {
+                $key = 'mtwm:shop:auth:'.$shop->mt_shop_id;
+
+                $access_token = Cache::store('redis')->get($key, '');
+
+                if (!$access_token) {
+                    $res = $meituan->waimaiAuthorize($shop->mt_shop_id);
+                    $access_token = $res['access_token'] ?? '';
+                    Cache::put($key, $access_token, ($res['expires_in'] ?? 11) - 10);
+                    \Log::info("获取美团服务商AccessToken:{$access_token}");
+                }
+
+                $params = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => $status,
+                    "access_token" => $access_token,
+                    "app_poi_code" => $shop->mt_shop_id,
+                ];
+
+                \Log::info('美团外卖同步配送信息开始', []);
+                $result = $meituan->logisticsSync($params);
+                \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
+            }
         }
     }
 }
