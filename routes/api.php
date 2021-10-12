@@ -521,7 +521,7 @@ Route::namespace("Api")->prefix("shunfeng")->group(function () {
     // 订单配送异常
     Route::post("order/exception", "ShunfengController@cancel");
     // 骑士撤单
-    Route::post("order/cancel_qishou", "ShunfengController@cancel");
+    Route::post("order/cancel_qishou", "ShunfengController@cancelQishou");
     // 授权回调
     Route::post("order/auth", "ShunfengController@auth");
 });

@@ -524,4 +524,18 @@ class ShunfengController
 
         return json_encode($res);
     }
+
+    public function cancelQishou(Request $request)
+    {
+        $res = ["error_code" => 0, "error_msg" => "success"];
+        Log::info('顺丰跑腿回调-骑手撤单-全部参数', $request->all());
+        // 钉钉报警提醒
+        $dingding = app("ding");
+        $logs = [
+            "des" => "【顺丰订单回调】骑手撤单",
+            "request" => json_encode($request->all())
+        ];
+        $dingding->sendMarkdownMsgArray("顺丰跑腿回调-骑手撤单", $logs);
+        return json_encode($res);
+    }
 }
