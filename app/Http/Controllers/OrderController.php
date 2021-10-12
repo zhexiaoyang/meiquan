@@ -1334,7 +1334,7 @@ class OrderController extends Controller
                 }
             }
             if (in_array($order->sf_status, [20, 30])) {
-                $sf = app("sf");
+                $sf = app("shunfeng");
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     $order->status = 99;
