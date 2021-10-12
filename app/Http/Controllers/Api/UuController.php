@@ -58,7 +58,7 @@ class UuController extends Controller
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【UU】发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 6)) {
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 6) && $status > 0) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-开始');
                 $logs = [
                     "des" => "【UU订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【UU】发起取消-开始",
@@ -362,6 +362,7 @@ class UuController extends Controller
                 return json_encode($res);
             } elseif ($status == -1) {
                 if ($order->status >= 20 && $order->status < 70 ) {
+                    sleep(1);
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
                             if (($order->status == 50 || $order->status == 60) && $order->ps == 6) {
