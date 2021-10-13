@@ -57,7 +57,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
 
     public function map($order): array
     {
-        $ps = ["", "美团", "蜂鸟", "闪送", "美全达", "达达", "UU"];
+        $ps = ["", "美团", "蜂鸟", "闪送", "美全达", "达达", "UU", "顺丰"];
         return [
             "`".$order->order_id,
             $order->money,
