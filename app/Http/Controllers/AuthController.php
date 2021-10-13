@@ -39,6 +39,12 @@ class AuthController extends Controller
 
             $data = json_decode($token->getBody(), true);
 
+            if ($user = User::where("name", $request->get("username"))->first()) {
+                if ($user->status === 2) {
+                    return $this->error("用户禁止登录");
+                }
+            }
+
             return $this->success($data);
         } catch (\Exception $e) {
             return $this->error("用户名或密码错误", 422);
@@ -89,6 +95,10 @@ class AuthController extends Controller
             $user->assignRole('shop');
 
             \Log::info('验证码登录注册', ['phone' => $phone, 'password' => $password]);
+        }
+
+        if ($user->status === 2) {
+            return $this->error("用户禁止登录");
         }
 
         $result = $this->getBearerTokenByUser($user, '1', false);
@@ -145,6 +155,10 @@ class AuthController extends Controller
             $user->assignRole('shop');
 
             \Log::info('验证码登录注册', ['phone' => $phone, 'password' => $password]);
+        }
+
+        if ($user->status === 2) {
+            return $this->error("用户禁止登录");
         }
 
         $result = $this->getBearerTokenByUser($user, '1', false);
