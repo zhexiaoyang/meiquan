@@ -12,7 +12,7 @@ class CityManagerController extends Controller
     {
         $data = User::select("id", "nickname as name")->whereHas('roles', function ($query) {
             $query->where('name', 'city_manager');
-        })->where("id", ">", 2400)->get();
+        })->where("id", ">", 2400)->where("status", 1)->get();
 
         return $this->success($data);
     }
