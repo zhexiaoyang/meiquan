@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CityManager;
+use App\Models\User;
 use App\Models\OnlineShop;
 use App\Models\OnlineShopReason;
 use App\Models\Shop;
 use App\Models\ShopAuthentication;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -165,7 +164,7 @@ class OnlineController extends Controller
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
         // }
-        // if (!$manager = CityManager::query()->find($manager_id)) {
+        // if (!$manager = User::query()->find($manager_id)) {
         //     return $this->error("城市经理不存在");
         // }
         // $data["manager_id"] = $manager_id;
@@ -285,7 +284,7 @@ class OnlineController extends Controller
             return $this->error("选择门店不存在，稍后再试");
         }
         $data["manager_id"] = $shop->manager_id;
-        if ($manager = CityManager::query()->find($shop->manager_id)) {
+        if ($manager = User::query()->find($shop->manager_id)) {
             $data["manager_name"] = $manager->name;
             $data["manager_phone"] = $manager->phone;
         }
@@ -408,7 +407,7 @@ class OnlineController extends Controller
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
         // }
-        // if (!$manager = CityManager::query()->find($manager_id)) {
+        // if (!$manager = User::query()->find($manager_id)) {
         //     return $this->error("城市经理不存在");
         // }
         // $data["manager_id"] = $manager_id;

@@ -9,6 +9,7 @@ use App\Models\Deposit;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
 use App\Models\UserMoneyBalance;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -86,16 +87,25 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $name = $request->get('name', '');
         $phone = $request->get('phone', '');
+        $nickname = $request->get('nickname', '');
         $password = $request->get('password', '654321');
         $role = $request->get('role', '');
 
-        if (!$phone) {
+        if (!$name) {
             return $this->error("用户名不能为空");
         }
 
         if (!$password) {
             return $this->error("密码不能为空");
+        }
+        if ($phone && (strlen($phone) !== 11) || (substr($phone, 0, 1) != 1)) {
+            return $this->error("手机号格式不正确");
+        }
+
+        if (($role === 'shop') && !$phone) {
+            return $this->error("商户必须填写手机号");
         }
 
         if (strlen($password) < 6) {
@@ -106,22 +116,77 @@ class UserController extends Controller
             return $this->error("角色错误");
         }
 
-        if ($phone && $password) {
-            \DB::transaction(function () use ($phone, $password, $request, $role) {
-                $user = User::create([
-                    'name' => $phone,
-                    'phone' => $phone,
-                    'password' => bcrypt($password),
-                ]);
-                $user->assignRole($role);
-
-                if ($user->id && $role === 'city_manager') {
-                    $user->shops()->sync($request->user_shop);
-                }
-            });
-            return $this->success([]);
+        if (User::query()->where('name', $name)->first()) {
+            return $this->error("用户名已存在");
         }
 
-        return $this->error("创建失败");
+        if ($phone && User::query()->where('phone', $phone)->first()) {
+            return $this->error("手机号已存在");
+        }
+
+        \DB::transaction(function () use ($nickname, $name, $phone, $password, $request, $role) {
+            $data = [
+                'name' => $name,
+                'phone' => $phone,
+                'nickname' => $nickname,
+                'password' => bcrypt($password),
+            ];
+            $user = User::create($data);
+            $user->assignRole($role);
+
+            if ($user->id && $role === 'city_manager') {
+                $user->shops()->sync($request->user_shop);
+            }
+        });
+        return $this->success();
+
+        // return $this->error("创建失败");
+    }
+
+    public function disable(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+        $status = $request->get("status", 1);
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        $user->update(['status' => $status === 1 ? 2 : 1]);
+
+        if ($status === 1) {
+            // 禁用用户删除登录信息
+            DB::table("oauth_access_tokens")->where("user_id", $user_id)->delete();
+        }
+
+        return $this->success();
+    }
+
+    public function update(Request $request)
+    {
+        $user_id = $request->get("user_id", 0);
+        $phone = $request->get("phone", '');
+        $nickname = $request->get("nickname", '');
+        $shops = $request->get("shops", []);
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        if ($phone && User::where("phone", $phone)->first()) {
+            return $this->error("手机号已存在");
+        }
+
+        if (!is_array($shops)) {
+            return $this->error("参数错误");
+        }
+
+        $user->phone = $phone;
+        $user->nickname = $nickname;
+        $user->save();
+
+        $user->shops()->sync($shops);
+
+        return $this->success();
     }
 }

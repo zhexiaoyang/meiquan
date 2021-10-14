@@ -38,7 +38,7 @@ class Api extends Request
             "user_lat" => (string) $order->receiver_lat,
             "user_address" => $order->receiver_address,
             "city_name" => $shop->city,
-            "weight" => 3000,
+            "weight" => 1000,
             "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
             // 是否是预约单	0：非预约单；1：预约单
             "is_appoint" => 0,
@@ -95,7 +95,7 @@ class Api extends Request
             "order_detail" => [
                 "total_price" => $order->goods_value * 100,
                 "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
-                "weight_gram" => 3000,
+                "weight_gram" => 1000,
                 "product_num" => 1,
                 "product_type_num" => 1,
                 "product_detail" => [

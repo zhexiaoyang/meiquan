@@ -27,25 +27,57 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 15);
-        $date = $request->get("date", date("Y-m-d"));
+        $date = $request->get("end", date("Y-m-d"));
 
-        $search_key = $request->get('search_key', '');
-        $search_key_shop = $request->get('search_key_shop', '');
+        $role = $request->get('role');
+        $name = $request->get('name', '');
+        $status = $request->get('status');
+        $phone = $request->get('phone', '');
+        $nickname = $request->get('nickname', '');
+        $search_key_shop = $request->get('shop', '');
 
-        $query = User::with(['roles', 'my_shops'])
-            ->select("id","name","phone","money","frozen_money","created_at","is_chain","chain_name");
+        $query = User::with(['roles', 'my_shops', 'shops'])
+            ->select("id","name","phone","nickname","money","frozen_money","created_at","is_chain","chain_name","status");
 
-        if ($search_key) {
-            $query->where(function ($query) use ($search_key) {
-                $query->where('name', 'like', "%{$search_key}%")
-                    ->orWhere('phone', 'like', "%{$search_key}%");
-            });
+        if ($name) {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        if ($phone) {
+            $query->where('phone', 'like', "%{$phone}%");
+        }
+
+        if ($nickname) {
+            $query->where('nickname', 'like', "%{$nickname}%");
         }
 
         if ($search_key_shop) {
             $query->whereHas("my_shops", function ($query) use ($search_key_shop) {
                 $query->where('shop_name', 'like', "%{$search_key_shop}%");
             });
+        }
+
+        if (in_array($role, [1,2,3,4])) {
+            $query->whereHas('roles', function ($query) use ($role) {
+                switch ($role) {
+                    case 1:
+                        $query->where('name', 'super_man');
+                        break;
+                    case 2:
+                        $query->where('name', 'city_manager');
+                        break;
+                    case 3:
+                        $query->where('name', 'finance');
+                        break;
+                    case 4:
+                        $query->where('name', 'shop');
+                        break;
+                }
+            });
+        }
+
+        if (in_array($status, [1, 2])) {
+            $query->where('status', $status);
         }
 
         $users = $query->orderBy('id', 'desc')->paginate($page_size);
@@ -75,7 +107,14 @@ class UserController extends Controller
                     }
                 }
                 unset($user->my_shops);
-                $user->my_shops = $shops;
+                $shop_ids = [];
+                if (!empty($user->shops)) {
+                    foreach ($user->shops as $v) {
+                        $shop_ids[] = (string) $v->id;
+                    }
+                }
+                unset($user->shops);
+                $user->shops = $shop_ids;
             }
         }
 

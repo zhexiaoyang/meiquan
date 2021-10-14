@@ -51,6 +51,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("order/status/{order}", "OrderController@checkStatus");
         // 修改密码
         Route::post("user/reset_password", "AuthController@resetPassword");
+        // 修改密码
+        Route::post("user/reset_password_by_old", "AuthController@resetPasswordByOld");
         // 统计页面
         Route::get("statistics", "StatisticsController@index");
         // 统计导出-统计
@@ -85,7 +87,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("/h5/shop_success_all", "ShopController@runningAuthAll");
         // 【H5-跑腿】今日订单数量
         Route::get("/h5/order/today_count", "OrderController@todayCount");
-        // 城市经理列表
+        // 门店-城市经理列表
         Route::get("/city_manager", "CityManagerController@index");
 
         /**
@@ -209,6 +211,10 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("/user/balance/export", "UserController@balanceExport");
             // 用户管理-管理员创建用户
             Route::post("/user", "UserController@store");
+            Route::put("/user", "UserController@update");
+            // Route::resource("user", "UserController", ["only" => ["store", "update"]]);
+            // 用户管理-管理员-禁用用户
+            Route::post("user/disable", "UserController@disable");
 
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);

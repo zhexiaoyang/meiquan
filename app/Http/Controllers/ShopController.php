@@ -35,7 +35,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }]);
+        }, 'manager']);
 
         // 关键字搜索
         if ($search_key) {
@@ -129,6 +129,8 @@ class ShopController extends Controller
                 $tmp['ele_shop_id'] = $shop->ele_shop_id;
                 // 合同状态
                 $tmp['contract'] = $shop->online_shop->contract_status ?? 0;
+                // 城市经理
+                $tmp['manager'] = $shop->manager->nickname ?? '';
                 $data[] = $tmp;
             }
         }
@@ -312,8 +314,8 @@ class ShopController extends Controller
             "mtwm" => (bool) $shop->mtwm,
             "auto" => (bool) $shop->mt_shop_id,
             "status" => $shop->status,
-            "manager" => $shop->manager->name ?? '',
-            "manager_phone" => $shop->manager->phone ?? '',
+            "manager" => $shop->manager->nickname ?? '',
+            // "manager_phone" => $shop->manager->phone ?? '',
             "created_at" => date("Y-m-d H:i:s", strtotime($shop->created_at)),
         ];
 

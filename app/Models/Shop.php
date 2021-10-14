@@ -67,7 +67,7 @@ class Shop extends Model
 
     public function manager()
     {
-        return $this->belongsTo(CityManager::class, "manager_id", "id");
+        return $this->belongsTo(User::class, "manager_id", "id");
     }
 
     public function getStatusLabelAttribute()

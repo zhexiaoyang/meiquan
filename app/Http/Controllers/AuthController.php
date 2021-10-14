@@ -382,6 +382,33 @@ class AuthController extends Controller
         return $this->success();
     }
 
+    /**
+     * 修改密码
+     * @param Request $request
+     * @return mixed
+     */
+    public function resetPasswordByOld(Request $request)
+    {
+        $isCheck = Hash::check($request->get('old'), auth()->user()->password);
+
+        if (!$isCheck) {
+            return $this->error('旧密码错误');
+        }
+
+        $request->validate([
+            'old' => 'required',
+            'new' => 'required',
+        ], [], [
+            'old' => '旧密码',
+        ]);
+
+        auth()->user()->update([
+            'password' => bcrypt($request->get('new')),
+        ]);
+
+        return $this->success();
+    }
+
     public function sms_password(Request $request)
     {
         $phone = $request->user()->phone;
