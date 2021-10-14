@@ -47,7 +47,7 @@ class User extends Authenticatable
 //            $credentials['email'] = $username :
 //            $credentials['phone'] = $username;
 
-        return self::where(['phone' => $username])->first();
+        return self::where(['name' => $username])->first();
     }
 
     public function deposit()
