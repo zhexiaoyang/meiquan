@@ -121,6 +121,7 @@ return [
         'shansong' => 1,
         'shunfeng' => 1,
         'dada' => 1,
+        'dd' => 1,
         'uu' => 1,
         'meiquanda' => 1,
     ]
