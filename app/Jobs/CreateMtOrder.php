@@ -184,7 +184,7 @@ class CreateMtOrder implements ShouldQueue
 
         // *****************************************
         // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没用失败信息)
-        if (false && $shop->shop_id_uu && $uu_switch && !$this->order->fail_uu && ($order->uu_status === 0)) {
+        if ($shop->shop_id_uu && $uu_switch && !$this->order->fail_uu && ($order->uu_status === 0)) {
             $uu = app("uu");
             $check_uu= $uu->orderCalculate($this->order, $shop);
             $money_uu = (($check_uu['need_paymoney'] ?? 0)) + 1;
