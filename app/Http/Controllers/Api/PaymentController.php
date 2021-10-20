@@ -408,11 +408,10 @@ class PaymentController
                 if ($order->status == 0) {
                     \Log::info('商城订单-微信支付回调-将订单标记为已支付', [ $data, $order ]);
                     // 将订单标记为已支付
-                    $items = $order->items();
-                    $items_one = $items[0] ?? null;
+                    $items = $order->items;
                     foreach ($items as $item) {
                         \Log::info('商城订单-微信支付回调-合同订单', [ $items ]);
-                        if ($item->id === 739) {
+                        if ($item->product_id === 739) {
                             $insert_data = [];
                             for ($i = 0; $i < $item->amount; $i++) {
                                 $insert_data[] = [
@@ -425,7 +424,7 @@ class PaymentController
                             ContractOrder::insert($insert_data);
                         }
                     }
-                    if (count($items) === 1 && $items_one) {
+                    if (count($items) === 1 && $items[0]->product_id === 739) {
                         \Log::info('商城订单-微信支付回调-只有合同订单', [ $items ]);
                         $update_data = [
                             'paid_at'           => date('Y-m-d H:i:s'),
