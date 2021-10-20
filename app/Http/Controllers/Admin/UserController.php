@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Deposit;
 use App\Models\User;
+use App\Models\UserReturn;
 use App\Models\UserFrozenBalance;
 use App\Models\UserMoneyBalance;
 use Illuminate\Support\Facades\DB;
@@ -100,11 +101,11 @@ class UserController extends Controller
         if (!$password) {
             return $this->error("密码不能为空");
         }
-        if ($phone && (strlen($phone) !== 11) || (substr($phone, 0, 1) != 1)) {
-            return $this->error("手机号格式不正确");
-        }
 
         if (($role === 'shop') && !$phone) {
+            if ($phone && (strlen($phone) !== 11) || (substr($phone, 0, 1) != 1)) {
+                return $this->error("手机号格式不正确");
+            }
             return $this->error("商户必须填写手机号");
         }
 
@@ -188,5 +189,40 @@ class UserController extends Controller
         $user->shops()->sync($shops);
 
         return $this->success();
+    }
+
+    public function returnStore(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        $data = [
+            'user_id' => $user_id,
+            'running_type' => $request->get('running_type', 1),
+            'running_value1' => $request->get('running_value1', 0),
+            'running_value2' => $request->get('running_value2', 0),
+            'shop_type' => $request->get('shop_type', 1),
+            'shop_value1' => $request->get('running_value1', 0),
+            'shop_value2' => $request->get('running_value2', 0),
+        ];
+
+        if ($user_return = UserReturn::where("user_id", $user_id)->first()) {
+            $user_return->update($data);
+        } else {
+            UserReturn::create($data);
+        }
+
+        return $this->success();
+    }
+
+    public function returnShow(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+        $user_return = UserReturn::where("user_id", $user_id)->first();
+
+        return $this->success($user_return ?: []);
     }
 }
