@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class OnlineShop extends Model
 {
+    use Traits\OnlineShopHelper;
+
     protected $fillable = ["user_id","name","category","category_second","shop_lng","shop_lat","address","phone","contact_name",
         "contact_phone","mobile","business_hours","account_no","bank_user","bank_name","manager_name","manager_phone","manager_id",
         "city","citycode","remark","chang","sqwts","yyzz","ypjy","spjy","ylqx","sfz","wts","front","environmental",

@@ -89,6 +89,10 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("/h5/order/today_count", "OrderController@todayCount");
         // 门店-城市经理列表
         Route::get("/city_manager", "CityManagerController@index");
+        // 中台首页-卡片数据
+        Route::get("/card", "IndexController@card");
+        // 中台首页-电子合同剩余数量
+        Route::get("/contract", "IndexController@contract");
 
         /**
          * 订管管理
@@ -174,6 +178,13 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
+            /**
+             * 统计
+             */
+            // 首页-跑腿统计
+            Route::get("statistic/running", "RunningStatisticController@index")->name("admin.running.statistic.index");
+            // 首页-外卖资料统计
+            Route::get("statistic/online", "OnlineStatisticController@index")->name("admin.online.statistic.index");
             // 跑腿门店管理
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图
@@ -203,6 +214,9 @@ Route::middleware(["force-json"])->group(function() {
             // ERP管理-品库分类
             Route::get("/running/fundrecord", "RunningFundrecordController@index");
 
+            /**
+             * 用户
+             */
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
             // 用户管理-用户列表-余额消费明细
@@ -211,11 +225,14 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("/user/balance/export", "UserController@balanceExport");
             // 用户管理-管理员创建用户
             Route::post("/user", "UserController@store");
+            // 用户管理-管理员修改用户
             Route::put("/user", "UserController@update");
-            // Route::resource("user", "UserController", ["only" => ["store", "update"]]);
             // 用户管理-管理员-禁用用户
             Route::post("user/disable", "UserController@disable");
-
+            // 用户管理-管理员-设置分佣
+            Route::post("user/return", "UserController@returnStore");
+            // 用户管理-管理员-获取分佣
+            Route::get("user/return", "UserController@returnShow");
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
 

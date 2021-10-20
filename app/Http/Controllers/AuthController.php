@@ -296,9 +296,11 @@ class AuthController extends Controller
             'id' => $request->user()->phone ?? '',
             'name' => $request->user()->phone ?? '',
             'phone' => $request->user()->phone ?? '',
+            'nickname' => $request->user()->nickname ?? '',
             'money' => $request->user()->money ?? '',
             'frozen_money' => $request->user()->frozen_money ?? '',
             'operate_money' => $request->user()->operate_money ?? '',
+            'created_at' => isset($request->user()->created_at) ? date("Y年m月d日", strtotime($request->user()->created_at)) : '',
             'role' => $data,
         ];
         return $this->success($user);

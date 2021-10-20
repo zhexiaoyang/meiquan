@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\ContractOrder;
 use App\Models\Deposit;
 use App\Models\SupplierOrder;
 use App\Models\User;
@@ -407,12 +408,41 @@ class PaymentController
                 if ($order->status == 0) {
                     \Log::info('商城订单-微信支付回调-将订单标记为已支付', [ $data, $order ]);
                     // 将订单标记为已支付
-                    DB::table('supplier_orders')->where("id", $order->id)->update([
-                        'paid_at'           => date('Y-m-d H:i:s'),
-                        'payment_no'        => $data->transaction_id,
-                        'payment_method'    => 2,
-                        'status'            => 30
-                    ]);
+                    $items = $order->items();
+                    foreach ($items as $item) {
+                        \Log::info('商城订单-微信支付回调-合同订单', [ $items ]);
+                        if ($item->id === 739) {
+                            $insert_data = [];
+                            for ($i = 0; $i < $item->amount; $i++) {
+                                $insert_data[] = [
+                                    'user_id' => $order->user_id,
+                                    'order_id' => $order->id,
+                                    'created_at' => date("Y-m-d H:i:s"),
+                                    'updated_at' => date("Y-m-d H:i:s"),
+                                ];
+                            }
+                            ContractOrder::insert($insert_data);
+                        }
+                    }
+                    if (count($items) === 1 && $items[0]->id === 739) {
+                        \Log::info('商城订单-微信支付回调-只有合同订单', [ $items ]);
+                        $update_data = [
+                            'paid_at'           => date('Y-m-d H:i:s'),
+                            'deliver_at'           => date('Y-m-d H:i:s'),
+                            'completion_at'           => date('Y-m-d H:i:s'),
+                            'payment_no'        => $data->transaction_id,
+                            'payment_method'    => 2,
+                            'status'            => 70
+                        ];
+                    } else {
+                        $update_data = [
+                            'paid_at'           => date('Y-m-d H:i:s'),
+                            'payment_no'        => $data->transaction_id,
+                            'payment_method'    => 2,
+                            'status'            => 30
+                        ];
+                    }
+                    DB::table('supplier_orders')->where("id", $order->id)->update($update_data);
                 }
             }
 
