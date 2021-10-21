@@ -114,6 +114,7 @@ class UserController extends Controller
                     }
                 }
                 unset($user->shops);
+                $user->my_shops = $shops;
                 $user->shops = $shop_ids;
             }
         }
