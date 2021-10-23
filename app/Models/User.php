@@ -71,6 +71,11 @@ class User extends Authenticatable
         return $this->hasMany(SupplierCart::class);
     }
 
+    public function commission()
+    {
+        return $this->hasOne(UserReturn::class);
+    }
+
     public function getReceiveShopIdAttribute()
     {
         $shop_id = $this->shop_id ?? 0;

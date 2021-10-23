@@ -24,9 +24,10 @@ class RunningStatisticController extends Controller
             return $this->success($res);
         }
 
-        $query = Order::query()->select("id", "shop_id", "status", "money")->where("over_at", ">", $start_date)
+        $query = Order::query()->select("id", "shop_id", "status", "money")
+            ->where("status", 70)->where("over_at", ">", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
-        $cancel_query = Order::query()->where("cancel_at", ">", $start_date)
+        $cancel_query = Order::query()->where("cancel_at", ">=", $start_date)->where("status", 99)
             ->where("cancel_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
         // 判断可以查询的药店
         if (!$request->user()->hasRole('super_man')) {
@@ -51,9 +52,9 @@ class RunningStatisticController extends Controller
         if ($res['profit'] > 0 && !$request->user()->hasRole('super_man')) {
             if ($user_return = UserReturn::where("user_id", $request->user()->id)->first()) {
                 if ($user_return->running_type === 1) {
-                    $res['profit'] = $res['complete'] * $user_return['running_value1'];
+                    $res['profit'] = number_format($res['complete'] * $user_return['running_value1'], 2);
                 } else {
-                    $res['profit'] = $res['money'] * $user_return['running_value2'];
+                    $res['profit'] = number_format($res['money'] * $user_return['running_value2'],2);
                 }
             } else {
                 $res['profit'] = 0;

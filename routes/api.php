@@ -90,9 +90,15 @@ Route::middleware(["force-json"])->group(function() {
         // 门店-城市经理列表
         Route::get("/city_manager", "CityManagerController@index");
         // 中台首页-卡片数据
-        Route::get("/card", "IndexController@card");
+        Route::get("/index/card", "IndexController@card");
         // 中台首页-电子合同剩余数量
-        Route::get("/contract", "IndexController@contract");
+        Route::get("/index/contract", "IndexController@contract");
+        // 中台首页-订单数量统计
+        Route::get("/index/order", "IndexController@order");
+        // 中台首页-城市经理-跑腿门店
+        Route::get("/index/manager/running", "IndexController@city_manager_running");
+        // 中台首页-城市经理-跑腿门店
+        Route::get("/index/manager/online", "IndexController@city_manager_online");
 
         /**
          * 订管管理
