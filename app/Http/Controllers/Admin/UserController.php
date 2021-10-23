@@ -205,8 +205,8 @@ class UserController extends Controller
             'running_value1' => $request->get('running_value1', 0),
             'running_value2' => $request->get('running_value2', 0),
             'shop_type' => $request->get('shop_type', 1),
-            'shop_value1' => $request->get('running_value1', 0),
-            'shop_value2' => $request->get('running_value2', 0),
+            'shop_value1' => $request->get('shop_value1', 0),
+            'shop_value2' => $request->get('shop_value2', 0),
         ];
 
         if ($user_return = UserReturn::where("user_id", $user_id)->first()) {

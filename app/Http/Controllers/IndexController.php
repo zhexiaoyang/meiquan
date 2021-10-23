@@ -241,6 +241,7 @@ class IndexController extends Controller
                     'nickname' => $user->nickname,
                     'status' => $user->status,
                     'shop_count' => count($user->shops),
+                    'shop_add' => Shop::whereIn('id', $shop_ids)->where('created_at', '>', date("Y-m-1"))->count(),
                     'running_type' => $user->commission->running_type ?? 0,
                     'running_value1' => $user->commission->running_value1 ?? 0,
                     'running_value2' => $user->commission->running_value2 ?? 0,

@@ -281,6 +281,9 @@ class ShopController extends Controller
             $user->shops()->attach($shop->id);
             \Log::info("创建门店-自动审核");
             dispatch(new CreateMtShop($shop));
+            if ($shop->manager_id && ($manager = User::find($shop->manager_id))) {
+                $manager->shops()->attach($shop);
+            }
             return $this->success([]);
         }
 
