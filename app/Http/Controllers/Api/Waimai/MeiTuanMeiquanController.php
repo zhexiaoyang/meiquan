@@ -726,6 +726,34 @@ class MeiTuanMeiquanController extends Controller
                         ]);
                     }
                 }
+                if (in_array($order->uu_status, [20, 30])) {
+                    $uu = app("uu");
+                    $result = $uu->cancelOrder($order);
+                    if ($result['return_code'] == 'ok') {
+                        $order->status = 99;
+                        $order->uu_status = 99;
+                        $order->cancel_at = date("Y-m-d H:i:s");
+                        $order->save();
+                        OrderLog::create([
+                            "order_id" => $order->id,
+                            "des" => "（美团）取消【UU】跑腿订单"
+                        ]);
+                    }
+                }
+                if (in_array($order->sf_status, [20, 30])) {
+                    $sf = app("shunfeng");
+                    $result = $sf->cancelOrder($order);
+                    if ($result['error_code'] == 0) {
+                        $order->status = 99;
+                        $order->sf_status = 99;
+                        $order->cancel_at = date("Y-m-d H:i:s");
+                        $order->save();
+                        OrderLog::create([
+                            "order_id" => $order->id,
+                            "des" => "（美团）取消【顺丰】跑腿订单"
+                        ]);
+                    }
+                }
                 return json_encode(['data' => 'ok']);
             } else {
                 // 状态小于20，属于未发单，直接操作取消
