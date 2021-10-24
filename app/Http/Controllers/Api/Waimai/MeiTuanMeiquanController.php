@@ -787,7 +787,7 @@ class MeiTuanMeiquanController extends Controller
         $shop_id = $poi_info["appPoiCode"] ?? "";
         \Log::info("门店绑定授权-参数|类型：{$op_type}|门店ID：{$shop_id}|");
         if ($op_type && $shop_id) {
-            if (!Cache::lock("meiquan_$shop_id", 10)) {
+            if (!Cache::lock("meiquan_$shop_id", 5)) {
                 \Log::info("门店绑定授权-锁住了");
                 return $this->success(["data" => "ok"]);
             }
