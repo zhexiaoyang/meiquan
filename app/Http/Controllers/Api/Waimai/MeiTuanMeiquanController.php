@@ -11,6 +11,7 @@ use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -781,6 +782,29 @@ class MeiTuanMeiquanController extends Controller
     public function bind(Request $request)
     {
         \Log::info("门店绑定授权", $request->all());
+        $op_type = $request->get("op_type", 0);
+        $shop_id = $request->get("poi_info.appPoiCode");
+        \Log::info("门店绑定授权-参数|类型：{$op_type}|门店ID：{$shop_id}|");
+        if ($op_type && $shop_id) {
+            if ($op_type === 1) {
+                $meituan = app("meiquan");
+                $key = 'mtwm:shop:auth:' . $shop_id;
+                $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
+                $res = $meituan->waimaiAuthorize($shop_id);
+                if (!empty($res['access_token'])) {
+                    $access_token = $res['access_token'];
+                    $refresh_token = $res['refresh_token'];
+                    Cache::put($key, $access_token, $res['expires_in'] - 100);
+                    Cache::forever($key_ref, $refresh_token);
+                }
+            }
+            if ($op_type === 2) {
+                $key = 'mtwm:shop:auth:' . $shop_id;
+                $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
+                Cache::forget($key);
+                Cache::forget($key_ref);
+            }
+        }
     }
 
     public function refund(Request $request)
