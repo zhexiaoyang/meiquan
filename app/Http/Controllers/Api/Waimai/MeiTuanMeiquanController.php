@@ -789,6 +789,7 @@ class MeiTuanMeiquanController extends Controller
         if ($op_type && $shop_id) {
             if (!Cache::lock("meiquan_$shop_id", 5)->get()) {
                 \Log::info("门店绑定授权-锁住了");
+                return $this->success(["data" => "ok"]);
             }
             if ($op_type == 1) {
                 $meituan = app("meiquan");
