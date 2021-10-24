@@ -188,6 +188,15 @@ class MtLogisticsSync implements ShouldQueue
                 if (!$access_token) {
                     $key_ref = 'mtwm:shop:auth:ref:'.$shop->mt_shop_id;
                     $refresh_token = Cache::store('redis')->get($key_ref);
+                    if (!$refresh_token) {
+                        $dingding = app("dingding");
+                        $logs = [
+                            "des" => "刷新token不存在",
+                            "shop_iid" => $shop->mt_shop_id
+                        ];
+                        $dingding->sendMarkdownMsgArray("刷新token不存在", $logs);
+                        return;
+                    }
                     $res = $meituan->waimaiAuthorizeRef($refresh_token);
                     if (!empty($res['access_token'])) {
                         $access_token = $res['access_token'];
