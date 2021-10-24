@@ -462,4 +462,12 @@ class Api extends Request
         return $this->request_get('v1/oauth/authorize', $params);
     }
 
+    public function waimaiAuthorizeRef($refresh_token)
+    {
+        $params['refresh_token'] = $refresh_token;
+        $params['response_type'] = 'refresh_token';
+        // $params['version'] = "1.0";
+        return $this->request_get('v1/oauth/token', $params);
+    }
+
 }
