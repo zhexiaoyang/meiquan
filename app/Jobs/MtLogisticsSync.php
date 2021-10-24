@@ -189,7 +189,8 @@ class MtLogisticsSync implements ShouldQueue
                     $key_ref = 'mtwm:shop:auth:ref:'.$shop->mt_shop_id;
                     $refresh_token = Cache::store('redis')->get($key_ref);
                     if (!$refresh_token) {
-                        $dingding = app("dingding");
+                        \Log::info("刷新token不存在|{$shop->mt_shop_id}");
+                        $dingding = app("ding");
                         $logs = [
                             "des" => "刷新token不存在",
                             "shop_iid" => $shop->mt_shop_id
