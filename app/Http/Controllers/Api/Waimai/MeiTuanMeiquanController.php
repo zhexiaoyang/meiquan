@@ -787,7 +787,7 @@ class MeiTuanMeiquanController extends Controller
         $shop_id = $poi_info["appPoiCode"] ?? "";
         \Log::info("门店绑定授权-参数|类型：{$op_type}|门店ID：{$shop_id}|");
         if ($op_type && $shop_id) {
-            if ($op_type === 1) {
+            if ($op_type == 1) {
                 $meituan = app("meiquan");
                 $key = 'mtwm:shop:auth:' . $shop_id;
                 $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
@@ -799,7 +799,7 @@ class MeiTuanMeiquanController extends Controller
                     Cache::forever($key_ref, $refresh_token);
                 }
             }
-            if ($op_type === 2) {
+            if ($op_type == 2) {
                 $key = 'mtwm:shop:auth:' . $shop_id;
                 $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
                 Cache::forget($key);
