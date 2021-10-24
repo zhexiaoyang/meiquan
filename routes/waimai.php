@@ -16,6 +16,8 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
 Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Waimai')->group(function () {
     // 推送已支付订单回调
     Route::post('pay', "MeiTuanMeiquanController@pay");
+    // 推送已支付订单回调
+    Route::post('shop/bind ', "MeiTuanMeiquanController@bind");
     // 推送已确认订单回调
     Route::post('create', "MeiTuanMeiquanController@create");
     // 推送用户或客服取消订单回调

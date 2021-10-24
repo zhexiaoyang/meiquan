@@ -27,6 +27,7 @@ class MeiTuanMeiquanController extends Controller
         \Log::info("[外卖-美团服务商]-[推送已支付订单回调URL]-全部参数：", $request->all());
         return json_encode(['data' => 'ok']);
     }
+
     public function create(Request $request)
     {
         \Log::info("[外卖-美团服务商]-[推送已确认订单回调]-全部参数：", $request->all());
@@ -151,6 +152,7 @@ class MeiTuanMeiquanController extends Controller
         // return json_encode(['data' => 'ok']);
         Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-到底了");
     }
+
     public function cancel(Request $request)
     {
         \Log::info("[外卖-美团服务商]-[推送用户或客服取消订单回调]-全部参数：", $request->all());
@@ -774,6 +776,13 @@ class MeiTuanMeiquanController extends Controller
         }
         return json_encode(['data' => 'ok']);
     }
+
+    // 门店绑定授权
+    public function bind(Request $request)
+    {
+        \Log::info("门店绑定授权", $request->all());
+    }
+
     public function refund(Request $request)
     {
         \Log::info("[外卖-美团服务商]-[推送全额退款信息回调]-全部参数：", $request->all());
