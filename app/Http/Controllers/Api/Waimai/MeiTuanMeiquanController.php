@@ -787,27 +787,28 @@ class MeiTuanMeiquanController extends Controller
         $shop_id = $poi_info["appPoiCode"] ?? "";
         \Log::info("门店绑定授权-参数|类型：{$op_type}|门店ID：{$shop_id}|");
         if ($op_type && $shop_id) {
-            if (Cache::lock("meiquan_$shop_id", 5)->get()) {
-                if ($op_type == 1) {
-                    $meituan = app("meiquan");
-                    $key = 'mtwm:shop:auth:' . $shop_id;
-                    $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
-                    $res = $meituan->waimaiAuthorize($shop_id);
-                    if (!empty($res['access_token'])) {
-                        $access_token = $res['access_token'];
-                        $refresh_token = $res['refresh_token'];
-                        Cache::put($key, $access_token, $res['expires_in'] - 100);
-                        Cache::forever($key_ref, $refresh_token);
-                    }
-                }
-                if ($op_type == 2) {
-                    $key = 'mtwm:shop:auth:' . $shop_id;
-                    $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
-                    Cache::forget($key);
-                    Cache::forget($key_ref);
-                }
-                Cache::lock("meiquan_$shop_id")->release();
+            if (!Cache::lock("meiquan_$shop_id", 5)->get()) {
+                \Log::info("门店绑定授权-锁住了");
             }
+            if ($op_type == 1) {
+                $meituan = app("meiquan");
+                $key = 'mtwm:shop:auth:' . $shop_id;
+                $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
+                $res = $meituan->waimaiAuthorize($shop_id);
+                if (!empty($res['access_token'])) {
+                    $access_token = $res['access_token'];
+                    $refresh_token = $res['refresh_token'];
+                    Cache::put($key, $access_token, $res['expires_in'] - 100);
+                    Cache::forever($key_ref, $refresh_token);
+                }
+            }
+            if ($op_type == 2) {
+                $key = 'mtwm:shop:auth:' . $shop_id;
+                $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
+                Cache::forget($key);
+                Cache::forget($key_ref);
+            }
+            Cache::lock("meiquan_$shop_id")->release();
         }
 
         return $this->success(["data" => "ok"]);
