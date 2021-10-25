@@ -215,7 +215,7 @@ class IndexController extends Controller
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'city_manager');
-            })->where("status", 2)->get();
+            })->where("status", 1)->get();
 
         if (!empty($users)) {
             foreach ($users as $user) {
@@ -274,7 +274,7 @@ class IndexController extends Controller
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'city_manager');
-            })->where("status", 2)->get();
+            })->where("status", 1)->get();
 
         if (!empty($users)) {
             foreach ($users as $user) {
