@@ -9,7 +9,6 @@ use App\Models\Order;
 use App\Models\Shop;
 use App\Models\SupplierOrder;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -216,7 +215,7 @@ class IndexController extends Controller
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'city_manager');
-            })->get();
+            })->where("status", 2)->get();
 
         if (!empty($users)) {
             foreach ($users as $user) {
@@ -253,7 +252,7 @@ class IndexController extends Controller
             }
         }
 
-        return $this->success($result);
+        return $this->success(collect($result)->sortByDesc('shop_count')->values()->all());
     }
 
     /**
@@ -275,7 +274,7 @@ class IndexController extends Controller
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
                 $query->where('name', 'city_manager');
-            })->get();
+            })->where("status", 2)->get();
 
         if (!empty($users)) {
             foreach ($users as $user) {
@@ -327,6 +326,7 @@ class IndexController extends Controller
             }
         }
 
-        return $this->success($result);
+        // return $this->success($result);
+        return $this->success(collect($result)->sortByDesc('total')->values()->all());
     }
 }
