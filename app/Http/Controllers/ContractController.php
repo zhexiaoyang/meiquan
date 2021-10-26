@@ -116,7 +116,10 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        $order = ContractOrder::where("user_id", $user->id)->where("online_shop_id", 0)->first();
+
+        $order = ContractOrder::query()->where("user_id", $user->id)->where(function ($query) use ($shop) {
+            $query->where("online_shop_id", 0)->orWhere("online_shop_id", $shop->id);
+        })->orderBy("id")->first();
 
         if (!$order) {
             \Log::info("合同次数不足", array_merge($request->all(), ['user' => $user->id]));
@@ -129,9 +132,11 @@ class ContractController extends Controller
             $shop->applicant_phone = $applicant_phone;
             $shop->contract_auth = 1;
             $shop->save();
-            $order->shop_id = $shop->shop_id;
-            $order->online_shop_id = $shop->id;
-            $order->save();
+            if ($order->online_shop_id === 0) {
+                $order->shop_id = $shop->shop_id;
+                $order->online_shop_id = $shop->id;
+                $order->save();
+            }
         }
 
         $config = config('qiyuesuo');
