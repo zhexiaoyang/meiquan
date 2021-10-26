@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Libraries\QiYue\QiYue;
+use App\Models\ContractOrder;
 use App\Models\OnlineShop;
 use Illuminate\Http\Request;
 
@@ -112,12 +113,24 @@ class ContractController extends Controller
         if (!$shop = OnlineShop::find(intval($request->get("shop_id")))) {
             return $this->error("门店ID不能为空");
         }
+
+        $user = $request->user();
+
+        $order = ContractOrder::where("user_id", $user->id)->where("online_shop_id", 0)->first();
+
+        if (!$order) {
+            return $this->error("次数不足，请先去商城购买电子合同签章次数");
+        }
+
         if ($shop->contract_auth <= 1) {
             $shop->company_name = $company_name;
             $shop->applicant = $applicant;
             $shop->applicant_phone = $applicant_phone;
             $shop->contract_auth = 1;
             $shop->save();
+            $order->shop_id = $shop->shop_id;
+            $order->online_shop_id = $shop->id;
+            $order->save();
         }
 
         $config = config('qiyuesuo');
