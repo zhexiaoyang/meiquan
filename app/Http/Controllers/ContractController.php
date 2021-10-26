@@ -119,6 +119,7 @@ class ContractController extends Controller
         $order = ContractOrder::where("user_id", $user->id)->where("online_shop_id", 0)->first();
 
         if (!$order) {
+            \Log::info("合同次数不足", array_merge($request->all(), ['user' => $user->id]));
             return $this->error("次数不足，请先去商城购买电子合同签章次数");
         }
 
