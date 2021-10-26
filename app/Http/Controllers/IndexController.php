@@ -58,10 +58,7 @@ class IndexController extends Controller
      */
     public function contract(Request $request)
     {
-        $number = ContractOrder::where(
-            ["user_id" => $request->user()->id],
-            ['online_shop_id' => 0]
-        )->count();
+        $number = ContractOrder::where("user_id", $request->user()->id)->where("online_shop_id", 0)->count();
 
         return $this->status(compact("number"));
     }
