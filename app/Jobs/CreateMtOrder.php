@@ -361,8 +361,8 @@ class CreateMtOrder implements ShouldQueue
                         Log::info($this->log."蜂鸟可以，校验返回", [$check_fn_res]);
                         Log::info($this->log."蜂鸟可以，金额：{$money_fn}");
                     } else {
-                        DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $check_fn['msg'] ?? "蜂鸟校验请求失败"]);
-                        Log::info($this->log."蜂鸟校验请求失败：" . $check_fn['goods_infos'][0]['disable_reason'] ?? 0);
+                        DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $check_fn['goods_infos'][0]['disable_reason'] ?? "蜂鸟校验请求失败"]);
+                        Log::info($this->log."蜂鸟校验请求失败：" . $check_fn['goods_infos'][0]['disable_reason'] ?? '');
                     }
 
                     // 判断用户金额是否满足蜂鸟订单
