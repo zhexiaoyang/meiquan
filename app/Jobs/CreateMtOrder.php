@@ -151,7 +151,7 @@ class CreateMtOrder implements ShouldQueue
 
         // *****************************************
         // 判断是否开启顺丰跑腿(是否存在顺丰的门店ID，设置是否打开，没用失败信息)
-        if ($shop->shop_id_sf && $sf_switch && !$this->order->fail_sf && ($order->sf_status === 0)) {
+        if (false && $shop->shop_id_sf && $sf_switch && !$this->order->fail_sf && ($order->sf_status === 0)) {
             $sf = app("shunfeng");
             $check_sf= $sf->precreateorder($this->order);
             $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + 1;
