@@ -32,6 +32,11 @@ class Api extends Request
         return $this->post('getcitylist.ashx', []);
     }
 
+    public function money()
+    {
+        return $this->post('getbalancedetail.ashx', []);
+    }
+
     public function addOrder(Order $order, Shop $shop)
     {
         $data = [
