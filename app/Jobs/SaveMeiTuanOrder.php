@@ -88,8 +88,6 @@ class SaveMeiTuanOrder implements ShouldQueue
                         'quantity' => $product['quantity'],
                         'price' => $product['price'],
                         'spec' => $product['spec'],
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'updated_at' => date("Y-m-d H:i:s"),
                     ];
                 }
             }
