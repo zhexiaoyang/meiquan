@@ -16,7 +16,7 @@ class SendOrderToErp implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $request;
+    protected $data;
     protected $shop_id;
 
     /**
@@ -24,9 +24,9 @@ class SendOrderToErp implements ShouldQueue
      * @param $shop_id
      * @param MkOrder $order
      */
-    public function __construct(Request $request, $shop_id)
+    public function __construct($data, $shop_id)
     {
-        $this->request = $request;
+        $this->data = $data;
         $this->shop_id = $shop_id;
     }
 
@@ -37,7 +37,7 @@ class SendOrderToErp implements ShouldQueue
      */
     public function handle()
     {
-        $data = $this->request->all();
+        $data = $this->data;
         $products = json_decode(urldecode($data['detail']), true);
 
         $http = new Client();

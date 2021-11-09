@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Models\WmOrderItem;
-use Illuminate\Http\Request;
 use App\Models\WmOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -16,7 +15,7 @@ class SaveMeiTuanOrder implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $request;
+    private $data;
     private $platform;
     private $from_type;
 
@@ -25,9 +24,9 @@ class SaveMeiTuanOrder implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Request $request, int $platform, int $from_type)
+    public function __construct($data, int $platform, int $from_type)
     {
-        $this->request = $request;
+        $this->data = $data;
         $this->platform = $platform;
         $this->from_type = $from_type;
     }
@@ -39,7 +38,7 @@ class SaveMeiTuanOrder implements ShouldQueue
      */
     public function handle()
     {
-        $data = $this->request->all();
+        $data = $this->data;
 
         $mt_shop_id = $data['app_poi_code'];
         $mt_order_id = $data['wm_order_id_view'];
