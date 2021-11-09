@@ -28,7 +28,7 @@ class AccountMoneyCronJob extends CronJob
         // $dingding = app("ding");
         // $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
-        if ($h > 6 && $h < 21) {
+        if ($h > 7 && $h < 21) {
             // 闪送余额
             $ss = app("shansong");
             $ss_res = $ss->getUserAccount();

@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use Illuminate\Http\Request;
 use App\Models\MkOrder;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
@@ -15,7 +16,7 @@ class SendOrderToErp implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    protected $order;
+    protected $request;
     protected $shop_id;
 
     /**
@@ -23,9 +24,9 @@ class SendOrderToErp implements ShouldQueue
      * @param $shop_id
      * @param MkOrder $order
      */
-    public function __construct($shop_id, MkOrder $order)
+    public function __construct(Request $request, $shop_id)
     {
-        $this->order = $order;
+        $this->request = $request;
         $this->shop_id = $shop_id;
     }
 
@@ -36,39 +37,41 @@ class SendOrderToErp implements ShouldQueue
      */
     public function handle()
     {
+        $data = $this->request->all();
+        $products = json_decode(urldecode($data['detail']), true);
+
         $http = new Client();
         $detail = [];
-        $items = $this->order->items;
-        if (!empty($items)) {
-            foreach ($items as $item) {
+        if (!empty($products)) {
+            foreach ($products as $product) {
                 $detail[] = [
-                    "app_food_code" => $item->app_food_code,
-                    "food_name" => $item->food_name,
-                    "upc" => $item->upc,
-                    "price" => (float) $item->price,
-                    "quantity" => $item->quantity,
-                    "unit" => $item->unit,
-                    "spec" => $item->spec,
+                    "app_food_code" => $product['app_food_code'],
+                    "food_name" => $product['food_name'],
+                    "upc" => $product['upc'],
+                    "price" => (float) $product['price'],
+                    "quantity" => $product['quantity'],
+                    "unit" => $product['unit'],
+                    "spec" => $product['spec'],
                 ];
             }
         }
         $data = [
             "shop_id" => $this->shop_id,
-            "order_id" => $this->order->order_id,
-            "wm_order_id_view" => $this->order->wm_order_id_view,
-            "recipient_address" => $this->order->recipient_address,
-            "recipient_name" => $this->order->recipient_name,
-            "recipient_phone" => $this->order->recipient_phone,
-            "shipping_fee" => (float) $this->order->shipping_fee,
-            "total" => (float) $this->order->total,
-            "original_price" => (float) $this->order->original_price,
-            "caution" => $this->order->caution,
-            "status" => $this->order->status,
-            "invoice_title" => $this->order->invoice_title ?? "",
-            "delivery_time" => $this->order->delivery_time,
-            "latitude" => (float) $this->order->latitude,
-            "longitude" => (float) $this->order->longitude,
-            "day_seq" => $this->order->day_seq,
+            "order_id" => $data['wm_order_id_view'],
+            "wm_order_id_view" => $data['wm_order_id_view'],
+            "recipient_address" => urldecode($data['recipient_address']),
+            "recipient_name" => urldecode($data['recipient_name']) ?? "无名客人",
+            "recipient_phone" => $data['recipient_phone'],
+            "shipping_fee" => (float) $data['shipping_fee'],
+            "total" => (float) $data['total'],
+            "original_price" => (float) $data['original_price'],
+            "caution" => urldecode($data['caution']),
+            "status" => $data['status'],
+            "invoice_title" => $data['invoice_title'] ?? '',
+            "delivery_time" => $data['delivery_time'],
+            "latitude" => (float) $data['latitude'],
+            "longitude" => (float) $data['longitude'],
+            "day_seq" => $data['day_seq'],
             "detail" => $detail
         ];
         $params = [

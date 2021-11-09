@@ -4,10 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Jobs\SaveMeiTuanOrder;
 use App\Jobs\SendOrderToErp;
 use App\Models\ErpAccessShop;
-use App\Models\MkOrder;
-use App\Models\MkOrderItem;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Shop;
@@ -30,91 +29,6 @@ class MinKangController
             if (Order::query()->where("order_id", $mt_order_id)->first()) {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：民康平台异常-订单已存在");
                 return json_encode(['data' => 'ok']);
-            }
-            $order_data = [
-                "order_id" => $mt_order_id,
-                // "order_tag_list" => urldecode($request->get("order_tag_list", "")),
-                "wm_order_id_view" => $request->get("wm_order_id_view", ""),
-                "app_poi_code" => $mt_shop_id,
-                "wm_poi_name" => urldecode($request->get("wm_poi_name", "")),
-                "wm_poi_address" => urldecode($request->get("wm_poi_address", "")),
-                "wm_poi_phone" => $request->get("wm_poi_phone", ""),
-                "recipient_address" => urldecode($request->get("recipient_address", "")),
-                "recipient_phone" => $request->get("recipient_phone", ""),
-                // "backup_recipient_phone" => urldecode($request->get("backup_recipient_phone", "")),
-                "recipient_name" => urldecode($request->get("recipient_name", "")) ?? "无名客人",
-                "shipping_fee" => $request->get("shipping_fee", 0),
-                "total" => $request->get("total", 0),
-                "original_price" => $request->get("original_price", 0),
-                "caution" => urldecode($request->get("caution", "")),
-                "shipper_phone" => $request->get("shipper_phone", "") ?? "",
-                "status" => $request->get("status", 0),
-                "ctime" => $request->get("ctime", 0),
-                "utime" => $request->get("utime", 0),
-                "delivery_time" => $request->get("delivery_time", 0),
-                "is_third_shipping" => $request->get("is_third_shipping", 0) ?? 0,
-                "pick_type" => $request->get("pick_type", 0) ?? 0,
-                "latitude" => $request->get("latitude", 0),
-                "longitude" => $request->get("longitude", 0),
-                "invoice_title" => $request->get("invoice_title", "") ?? "",
-                "day_seq" => $request->get("day_seq", 0) ?? 0,
-                "logistics_code" => $request->get("logistics_code", "") ?? "",
-                "package_bag_money" => $request->get("package_bag_money", 0) ?? 0,
-                "package_bag_money_yuan" => $request->get("package_bag_money_yuan", "") ?? 0,
-                "total_weight" => $request->get("total_weight", 0) ?? 0,
-                "mt_created_at" => date("Y-m-d H:i:s", $request->get("ctime", 0)),
-                "mt_updated_at" => date("Y-m-d H:i:s", $request->get("utime", 0)),
-            ];
-
-            // 商家对账
-            $poi_receive_detail_yuan = $request->get("poi_receive_detail_yuan", "") ?? "";
-            if ($poi_receive_detail_yuan) {
-                $order_data["poi_receive_detail_yuan"] = urldecode($poi_receive_detail_yuan);
-            }
-            // 订单优惠信息
-            // $extras = $request->get("extras");
-            // if ($extras) {
-            //     $order_data["extras"] = urldecode($extras);
-            // }
-            // 商品优惠信息
-            // $sku_benefit_detail = $request->get("sku_benefit_detail");
-            // if ($sku_benefit_detail) {
-            //     $order_data["sku_benefit_detail"] = urldecode($sku_benefit_detail);
-            // }
-            // 订单商品信息
-            $detail = $request->get("detail");
-
-            // 创建订单
-            $mk_order = new MkOrder($order_data);
-            if ($mk_order->save() && $detail) {
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：订单信息创建完毕");
-                $products = json_decode(urldecode($detail), true);
-                if (!empty($products)) {
-                    // Log::info('民康-已确认订单-商品列表', $products);
-                    $goods_price = 0;
-                    $items = [];
-                    foreach ($products as $product) {
-                        $goods_price += $product['price'] * 100 * $product['quantity'];
-                        $tmp['order_id'] = $mk_order->id;
-                        $tmp['mt_order_id'] = $mt_order_id;
-                        $tmp['app_food_code'] = $product['app_food_code'];
-                        $tmp['food_name'] = $product['food_name'];
-                        $tmp['sku_id'] = $product['sku_id'];
-                        $tmp['upc'] = $product['upc'];
-                        $tmp['quantity'] = $product['quantity'];
-                        $tmp['price'] = $product['price'];
-                        $tmp['box_num'] = $product['box_num'];
-                        $tmp['box_price'] = $product['box_price'];
-                        $tmp['unit'] = $product['unit'];
-                        $tmp['spec'] = $product['spec'] ?? "";
-                        $tmp['weight'] = $product['weight'];
-                        $items[] = $tmp;
-                    }
-                }
-                $mk_order->goods_price = $goods_price / 100;
-                $mk_order->save();
-                MkOrderItem::query()->insert($items);
-                Log::info("【民康-推送已确认订单】（{$mt_order_id}）：商品信息创建完毕");
             }
 
             // 创建跑腿订单
@@ -221,19 +135,20 @@ class MinKangController
                 }
             } else {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：未开通自动接单");
-                return json_encode(['data' => 'ok']);
                 // Log::info('民康-推送已确认订单-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
             }
+
+            // 创建外卖订单
+            dispatch(new SaveMeiTuanOrder($request, 1, 1));
 
             // 推送ERP
             if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
                 if ($erp_shop->access_id === 4) {
                     Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
-                    dispatch(new SendOrderToErp($erp_shop->id, $mk_order));
+                    dispatch(new SendOrderToErp($request, $erp_shop->id));
                 }
             }
-            // return json_encode(['data' => 'ok']);
         }
-        // return 200;
+        return json_encode(['data' => 'ok']);
     }
 }
