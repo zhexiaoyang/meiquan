@@ -19,7 +19,7 @@ class MinKangOrderController extends Controller
                 $order->save();
             }
         }
-        \Log::info("[美团外卖-民康回调-订单配送状态回调-美配]", $request->all());
+        // \Log::info("[美团外卖-民康回调-订单配送状态回调-美配]", $request->all());
         return json_encode(['data' => 'ok']);
     }
 
@@ -34,7 +34,7 @@ class MinKangOrderController extends Controller
                 $order->save();
             }
         }
-        \Log::info("[美团外卖-民康回调-订单配送状态回调-自配]", $request->all());
+        // \Log::info("[美团外卖-民康回调-订单配送状态回调-自配]", $request->all());
         return json_encode(['data' => 'ok']);
     }
 
@@ -49,7 +49,7 @@ class MinKangOrderController extends Controller
                 $order->save();
             }
         }
-        \Log::info("[美团外卖-民康回调-订单完成]", $request->all());
+        // \Log::info("[美团外卖-民康回调-订单完成]", $request->all());
         return json_encode(['data' => 'ok']);
     }
 }
