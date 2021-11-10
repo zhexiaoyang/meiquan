@@ -10,6 +10,7 @@ use App\Libraries\MeiQuanDa\MeiQuanDa;
 use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Shunfeng\Shunfeng;
+use App\Libraries\TaoZi\TaoZi;
 use App\Libraries\Uu\Uu;
 use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
@@ -103,6 +104,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('shunfeng', function () {
             $config = config('ps.shunfeng');
             return new Shunfeng($config);
+        });
+        // 桃子
+        $this->app->singleton('taozi', function () {
+            $config = config('ps.taozi');
+            return new TaoZi($config);
         });
 
         // 钉钉通知

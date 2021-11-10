@@ -100,6 +100,12 @@ return [
         "app_key" => env("UU_APPKEY", ""),
         "url" => env("UU_URL", ""),
     ],
+    // 桃子
+    "taozi" => [
+        "access_key" => env("TAOZI_ACCESS_KEY", ""),
+        "secret_key" => env("TAOZI_SECRET_KEY", ""),
+        "url" => env("TAOZI_URL", ""),
+    ],
     "jieri" => [
         "2020-02-16",
         "2020-02-17",

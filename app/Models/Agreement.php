@@ -11,6 +11,7 @@ class Agreement extends Model
         'cover',
         'title',
         'url',
+        'sort',
         'status',
         'date'
     ];

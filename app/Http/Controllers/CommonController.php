@@ -69,7 +69,8 @@ class CommonController extends Controller
 
     public function agreement()
     {
-        $agreements = Agreement::query()->select('id','title','cover','url','date')->where('status', 1)->get();
+        $agreements = Agreement::query()->select('id','title','cover','url','date')->where('status', 1)
+            ->orderBy('sort')->get();
         return $this->success($agreements);
     }
 }

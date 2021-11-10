@@ -24,6 +24,9 @@ Route::middleware(["force-json"])->group(function() {
     // 服务协议
     Route::get("getAgreementList", "CommonController@agreement")->name("agreement");
 
+    /**
+     * 需要登录
+     */
     Route::middleware("multiauth:api")->group(function () {
         // *修改密码验证码
         Route::post("auth/code", "AuthController@sms_password")->name("sms_password");
@@ -181,9 +184,30 @@ Route::middleware(["force-json"])->group(function() {
         });
 
         /**
+         * 外卖管理
+         */
+        // *已开通处方单门店列表
+        Route::get("prescription/shops", "PrescriptionController@shops");
+        // *处方单列表
+        Route::get("prescription", "PrescriptionController@index");
+        // *处方单列表统计
+        Route::get("statistics", "PrescriptionController@statistics");
+        // *外卖订单列表
+        Route::get("takeout", "WmOrderController@index");
+        // *外卖订单-详情
+        Route::get("takeout/info", "WmOrderController@show");
+        // *外卖订单-打印
+        Route::get("takeout/print", "WmOrderController@print_order");
+
+        /**
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
+            /**
+             * 协议管理
+             */
+            // 资源路由
+            Route::resource("agreement", "AgreementController", ["only" => ["index","show","store","update","destroy"]]);
             /**
              * 统计
              */
@@ -561,6 +585,14 @@ Route::namespace("Api")->prefix("shunfeng")->group(function () {
 Route::namespace("Api")->prefix("waimai")->group(function () {
     // 结算订单
     Route::post("minkang/confirm", "MinKangController@confirm");
+});
+Route::namespace("Api\Waimai")->prefix("waimai/minkang")->group(function () {
+    // 订单配送状态-美配
+    Route::post("order/status/mp", "MinKangOrderController@statusMp");
+    // 订单配送状态-自配
+    Route::post("order/status/zp", "MinKangOrderController@statusZp");
+    // 订单完成
+    Route::post("order/complete", "MinKangOrderController@complete");
 });
 
 /**
