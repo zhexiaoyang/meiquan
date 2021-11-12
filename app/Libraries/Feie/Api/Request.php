@@ -32,7 +32,6 @@ class Request
         $time = time();
 
         $params = [
-            'apiname'=>'Open_printMsg',
             'user' => $this->user,
             'stime' => $time,
             'sig' => $this->signature($time),

@@ -74,7 +74,7 @@ class DepositController extends Controller
                 $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->scan($order);
             } else if ($type === 3){
                 $order['body'] = '美全运营充值';
-                $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->scan($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat_operate_money"))->scan($order);
             }
 
             $data = [
@@ -118,7 +118,7 @@ class DepositController extends Controller
                 $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->mp($order);
             } else if ($type === 3) {
                 $order['body'] = '美全运营充值';
-                $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->mp($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat_operate_money"))->mp($order);
             }
 
             \Log::info("公众号支付获取参数", [$wechatOrder]);

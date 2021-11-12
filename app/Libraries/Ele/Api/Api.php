@@ -15,6 +15,15 @@ class Api extends Request
         return $this->post('shop.get', $data);
     }
 
+    public function shopInfoByStoreId($shop_id)
+    {
+        $data = [
+            'shop_id' => $shop_id
+        ];
+
+        return $this->post('shop.get', $data);
+    }
+
     /**
      * 订单详情
      * @param $order_id

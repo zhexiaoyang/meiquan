@@ -248,6 +248,67 @@ class PaymentController
         return '';
     }
 
+    /**
+     * 微信运营充值回调
+     * @data 2021/11/12 8:59 上午
+     */
+    public function wechatNotifyOperate(Request $request)
+    {
+        // 校验回调参数是否正确
+        $data  = Pay::wechat(config("pay.wechat_operate_money"))->verify($request->getContent());
+        \Log::info("微信运营充值回调全部参数", is_array($data) ? $data : [$data]);
+        // 找到对应的订单
+        $order = Deposit::where('no', $data->out_trade_no)->where("status", 0)->first();
+
+        // 订单不存在
+        if (!$order) {
+            return $this->wechat();
+        }
+
+        // 订单已支付
+        if ($order->status == 1) {
+            return $this->wechat();
+        }
+
+        $status = DB::transaction(function () use ($data, $order) {
+            // 将订单标记为已支付
+            \Log::info("将订单标记为已支付开始");
+            DB::table('deposits')->where("id", $order->id)->update([
+                'paid_at'       => date('Y-m-d H:i:s'),
+                'pay_method'    => 2,
+                'status'        => 1,
+                'pay_no'        => $data->transaction_id,
+                'amount'        => $data->total_fee / 100,
+            ]);
+            \Log::info("将订单标记为已支付结束");
+            $user = User::query()->find($order->user_id);
+            if ($order->type === 3) {
+                \Log::info("运营余额充值-增加运营余额");
+                DB::table('users')->where("id", $order->user_id)->increment('operate_money', $order->amount);
+                \Log::info("记录运营余额日志");
+                $logs = new UserOperateBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->operate_money,
+                    "after_money" => ($user->operate_money * 100 + $order->amount * 100) / 100,
+                    "description" => "微信充值：{$data->transaction_id}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+                \Log::info("日志保存结束");
+            }
+            return true;
+        });
+
+        if ($status) {
+
+            return $this->wechat();
+        }
+
+        return '';
+    }
+
     public function wechat()
     {
         return '<xml><return_code><![CDATA[SUCCESS]]></return_code><return_msg><![CDATA[OK]]></return_msg></xml>';

@@ -26,12 +26,12 @@ class Http
         Log::debug('飞鹅打印请求参数:', compact('url', 'method', 'options'));
         $response = $this->getClient()->request($method, $url, $options);
         // var_dump($response);die;
-        // Log::debug('飞鹅打印响应参数:', [
-        //     'Status'  => $response->getStatusCode(),
-        //     'Reason'  => $response->getReasonPhrase(),
-        //     // 'Headers' => $response->getHeaders(),
-        //     'Body'    => strval($response->getBody()),
-        // ]);
+        Log::debug('飞鹅打印响应参数:', [
+            'Status'  => $response->getStatusCode(),
+            'Reason'  => $response->getReasonPhrase(),
+            // 'Headers' => $response->getHeaders(),
+            'Body'    => strval($response->getBody()),
+        ]);
         return $response;
     }
 

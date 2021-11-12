@@ -142,6 +142,10 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("rangeByShopId", "ShopController@rangeByShopId")->name("shop.rangeByShopId");
         // *绑定门店-自动发单
         Route::post("/shop/binding", "ShopController@binding")->name("shop.binding");
+        // *绑定门店-外卖订单
+        Route::post("/shop/binding/takeout", "ShopController@bindingTakeout")->name("shop.binding.takeout");
+        // *绑定门店-处方订单
+        Route::post("/shop/binding/chufang", "ShopController@bindingChufang")->name("shop.binding.chufang");
         // *关闭自动发单
         Route::post("/shop/closeAuto", "ShopController@closeAuto")->name("shop.closeAuto");
         // *资源路由-门店
@@ -198,6 +202,14 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("takeout/info", "WmOrderController@show");
         // *外卖订单-打印
         Route::get("takeout/print", "WmOrderController@print_order");
+        // *外卖订单-打印
+        Route::get("takeout/print/list", "WmOrderController@print_list");
+        // *外卖订单-打印
+        Route::post("takeout/print/add", "WmOrderController@print_add");
+        // *外卖订单-打印
+        Route::post("takeout/print/del", "WmOrderController@print_del");
+        // *外卖订单-可绑定门店
+        Route::get("takeout/print/shops", "WmOrderController@print_shops");
 
         /**
          * 管理员操作
@@ -312,6 +324,11 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("examine/auto", "ExamineShopController@autoList");
             // *自动接单-审核操作
             Route::post("examine/auto", "ExamineShopController@AutoStore");
+
+            // *处方订单-门店列表
+            Route::get("examine/auto/prescription", "ExamineShopController@prescriptionList");
+            // *处方订单-审核操作
+            Route::post("examine/auto/prescription", "ExamineShopController@prescriptionStore");
 
             // *外卖平台-门店列表
             Route::get("examine/platform/shops", "Admin\ShopPlatFormController@index");
@@ -511,6 +528,8 @@ Route::group(["namespace" => "Api"], function () {
     Route::post("payment/wechat/supplier/refund", "PaymentController@supplierRefund");
     Route::post("payment/wechat/notify_supplier", "PaymentController@wechatSupplierNotify");
     Route::post("payment/alipay/notify", "PaymentController@alipayNotify");
+    // 运营充值回调
+    Route::post("payment/wechat/notify/operate", "PaymentController@wechatNotifyOperate");
 });
 
 /**

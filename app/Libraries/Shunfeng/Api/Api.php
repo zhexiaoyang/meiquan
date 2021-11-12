@@ -146,8 +146,8 @@ class Api extends Request
     public function getshopaccountbalance()
     {
         $data = [
-            "shop_id" => "3261403060401",
-            "shop_type" => 1,
+            "shop_id" => "432",
+            "shop_type" => 2,
         ];
         return $this->post('/open/api/external/getshopaccountbalance', $data);
     }

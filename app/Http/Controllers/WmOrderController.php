@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Libraries\Feie\Feie;
+use App\Models\Shop;
 use App\Models\WmOrder;
+use App\Models\WmPrinter;
 use Illuminate\Http\Request;
 
 class WmOrderController extends Controller
@@ -16,7 +18,17 @@ class WmOrderController extends Controller
             $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
         }]);
 
-        $data = $query->paginate($page_size);
+        if ($order_id = $request->get('order_id', '')) {
+            $query->where('order_id', 'like', "%{$order_id}%");
+        }
+        if ($name = $request->get('name', '')) {
+            $query->where('recipient_name', $name);
+        }
+        if ($phone = $request->get('phone', '')) {
+            $query->where('recipient_phone', $phone);
+        }
+
+        $data = $query->orderByDesc('id')->paginate($page_size);
 
         return $this->page($data);
     }
@@ -28,6 +40,97 @@ class WmOrderController extends Controller
         }
 
         return $this->success($order);
+    }
+
+    public function print_list(Request $request)
+    {
+        $page_size = $request->get('page_size', '');
+
+        $query = WmPrinter::with(['shop' => function ($query) {
+            $query->select('id', 'shop_name');
+        }]);
+
+        if ($name = $request->get('name', '')) {
+            $query->where('name', 'like', "{$name}");
+        }
+        if ($sn = $request->get('sn', '')) {
+            $query->where('sn', $sn);
+        }
+
+        $data = $query->orderByDesc('id')->paginate($page_size);
+
+        return $this->page($data);
+    }
+
+    public function print_add(Request $request)
+    {
+        if (!$key = $request->get('key', 0)) {
+            return $this->error('打印机key不能为空');
+        }
+
+        if (!$sn = $request->get('sn', 0)) {
+            return $this->error('打印机sn不能为空');
+        }
+
+        if (!$platform = $request->get('platform', 0)) {
+            return $this->error('请选择打印机平台');
+        }
+
+        if (!$shop_id = $request->get('shop_id', 0)) {
+            return $this->error('门店不存在');
+        }
+
+        $name = $request->get('name', '');
+
+        $content = $sn . '#' . $key;
+
+        if ($name) {
+            $content .= '#' . $name;
+        }
+
+        $f = new Feie();
+        $res = $f->print_add($content);
+
+        if (!empty($res['data']['no']) && (count($res['data']['no']) > 0)) {
+            $message = $res['data']['no'][0];
+            $message = strstr($message, '错误：');
+            $message = mb_substr($message, 0, -1);
+            return $this->success([], $message, 422);
+        }
+
+        WmPrinter::query()->create(compact('shop_id', 'name', 'key', 'sn', 'platform'));
+
+        return $this->success();
+
+    }
+
+    public function print_del(Request $request)
+    {
+        if (!$printer = WmPrinter::find($request->get('id', 0))) {
+            return $this->error('打印机不存在');
+        }
+
+        $f = new Feie();
+        $res = $f->print_del($printer->sn);
+
+        if (!isset($res['ret']) || $res['ret'] !== 0) {
+            return $this->error('打印机删除失败');
+        }
+
+        $printer->delete();
+
+        return $this->success();
+    }
+
+    public function print_shops(Request $request)
+    {
+        $query = Shop::query()->select('id', 'shop_name')
+            ->where(function ($query) {
+                $query->where('waimai_mt', "<>", "")->orWhere('waimai_ele', "<>", "");
+            });
+        $query->whereIn('id', $request->user()->shops()->pluck('id'));
+
+        return $this->success($query->get());
     }
 
     public function print_order(Request $request)
