@@ -25,7 +25,7 @@ class PrescriptionController extends Controller
         if ($shop_id) {
             $query->where('storeID', $shop_id);
         } else {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $query->whereIn('storeID', $request->user()->shops()->pluck('mtwm_cf'));
         }
         if ($platform) {
             $query->where('platform', $platform);
