@@ -275,6 +275,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("user/return", "UserController@returnStore");
             // 用户管理-管理员-获取分佣
             Route::get("user/return", "UserController@returnShow");
+            // 用户管理-管理员-清空用户跑腿余额
+            Route::post("user/money/clear", "UserController@money_clear");
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
 

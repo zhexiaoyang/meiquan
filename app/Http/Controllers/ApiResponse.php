@@ -94,4 +94,15 @@ trait ApiResponse
         return $this->status(null, $message, $code, $http_code);
     }
 
+    /**
+     * @param $message
+     * @param $code
+     * @param int $http_code
+     * @return mixed
+     */
+    public function alert($message, $code=422, $http_code = 200)
+    {
+        return $this->status(null, $message, $code, $http_code);
+    }
+
 }

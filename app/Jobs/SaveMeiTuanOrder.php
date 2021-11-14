@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\WmOrderItem;
 use App\Models\WmOrder;
+use App\Models\WmPrinter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,17 +19,19 @@ class SaveMeiTuanOrder implements ShouldQueue
     private $data;
     private $platform;
     private $from_type;
+    private $shop_id;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data, int $platform, int $from_type)
+    public function __construct($data, int $platform, int $from_type, int $shop_id)
     {
         $this->data = $data;
         $this->platform = $platform;
         $this->from_type = $from_type;
+        $this->shop_id = $shop_id;
     }
 
     /**
@@ -48,8 +51,10 @@ class SaveMeiTuanOrder implements ShouldQueue
             return false;
         }
 
+        $status_filter = [1 => 1, 2 => 1, 4 => 4, 8 => 18, 9 => 30];
+
         $order_data = [
-            "shop_id" => 0,
+            "shop_id" => $this->shop_id,
             "order_id" => $mt_order_id,
             "wm_order_id_view" => $mt_order_id,
             "platform" => $this->platform,
@@ -66,7 +71,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "original_price" => $data['original_price'],
             "caution" => urldecode($data['caution']),
             "shipper_phone" => $data['shipper_phone'] ?? "",
-            "status" => $data['status'],
+            "status" => $status_filter[$data['status']] ?? 4,
             "ctime" => $data['ctime'],
             "utime" => $data['utime'],
             "delivery_time" => $data['delivery_time'],
@@ -74,7 +79,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "day_seq" => $data['day_seq'] ?? 0,
         ];
 
-        DB::transaction(function () use ($products, $order_data) {
+        $order = DB::transaction(function () use ($products, $order_data) {
             $items = [];
             $order = WmOrder::query()->create($order_data);
             if (!empty($products)) {
@@ -94,6 +99,12 @@ class SaveMeiTuanOrder implements ShouldQueue
             if (!empty($items)) {
                 WmOrderItem::query()->insert($items);
             }
+
+            return $order;
         });
+
+        if ($print = WmPrinter::where('shop_id', $this->shop_id)->first()) {
+            dispatch(new PrintWaiMaiOrder($order, $print));
+        }
     }
 }

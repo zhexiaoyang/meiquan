@@ -139,7 +139,9 @@ class MinKangController
             }
 
             // 创建外卖订单
-            dispatch(new SaveMeiTuanOrder($request->all(), 1, 1));
+            if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+                dispatch(new SaveMeiTuanOrder($request->all(), 1, 1, $shop->id));
+            }
 
             // 推送ERP
             if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)->first()) {

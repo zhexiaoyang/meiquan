@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\InvalidRequestException;
 use App\Exports\UserBalanceExport;
 use App\Http\Controllers\Controller;
+use App\Models\UserOperateBalance;
 use Illuminate\Http\Request;
 use App\Models\Deposit;
 use App\Models\User;
@@ -14,6 +16,9 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+    /**
+     * 用户管理-统计数据
+     */
     public function statistics()
     {
         $running_total = User::query()->sum("money");
@@ -50,6 +55,9 @@ class UserController extends Controller
         return $this->success($data);
     }
 
+    /**
+     * 用户管理-用户明细
+     */
     public function balance(Request $request)
     {
         $page_size = $request->get('page_size', 10);
@@ -81,11 +89,17 @@ class UserController extends Controller
         return $this->page($data);
     }
 
+    /**
+     * 用户管理-用户导出
+     */
     public function balanceExport(Request $request, UserBalanceExport $balanceExport)
     {
         return $balanceExport->withRequest($request);
     }
 
+    /**
+     * 用户管理-添加用户
+     */
     public function store(Request $request)
     {
         $name = $request->get('name', '');
@@ -144,6 +158,9 @@ class UserController extends Controller
         // return $this->error("创建失败");
     }
 
+    /**
+     * 用户管理-禁用用户
+     */
     public function disable(Request $request)
     {
         $user_id = $request->get("id", 0);
@@ -163,6 +180,9 @@ class UserController extends Controller
         return $this->success();
     }
 
+    /**
+     * 用户管理-更新用户
+     */
     public function update(Request $request)
     {
         $user_id = $request->get("user_id", 0);
@@ -191,6 +211,9 @@ class UserController extends Controller
         return $this->success();
     }
 
+    /**
+     * 用户管理-城市经理返佣
+     */
     public function returnStore(Request $request)
     {
         $user_id = $request->get("id", 0);
@@ -218,11 +241,128 @@ class UserController extends Controller
         return $this->success();
     }
 
+    /**
+     * 用户管理-城市经理返佣-显示
+     */
     public function returnShow(Request $request)
     {
         $user_id = $request->get("id", 0);
         $user_return = UserReturn::where("user_id", $user_id)->first();
 
         return $this->success($user_return ?: []);
+    }
+
+    /**
+     * 清空用户跑腿余额
+     * @data 2021/11/12 2:34 下午
+     */
+    public function money_clear(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+        $type = $request->get("type", 0);
+
+        if (!in_array($type, [1, 2, 3])) {
+            return $this->error('请选择清空的账户');
+        }
+
+        if (!$description = $request->get('description')) {
+            return $this->error('原因不能为空');
+        }
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        // 跑腿余额
+        if ($type === 1) {
+            if ($user->money == 0) {
+                return $this->alert('用户余额已经是 0 了！');
+            }
+
+            if ($user->money < 0) {
+                return $this->error('用户余额小于 0，不能清空！');
+            }
+
+            try {
+                DB::transaction(function () use ($user, $description) {
+                    if (!DB::table('users')->where('id', $user->id)->where('money', $user->money)->update(['money' => 0])) {
+                        throw new InvalidRequestException('操作失败，请稍后再试！', 422);
+                    }
+                    $log = [
+                        'user_id' => $user->id,
+                        'money' => $user->money,
+                        'type' => 2,
+                        'before_money' => $user->money,
+                        'after_money' => 0,
+                        'description' => $description
+                    ];
+                    UserMoneyBalance::create($log);
+                });
+            } catch (\Exception $e) {
+                return $this->alert('操作失败，请稍后再试！');
+            }
+        }
+
+        // 商城余额
+        if ($type === 2) {
+            if ($user->frozen_money == 0) {
+                return $this->alert('用户余额已经是 0 了！');
+            }
+
+            if ($user->frozen_money < 0) {
+                return $this->error('用户余额小于 0，不能清空！');
+            }
+
+            try {
+                DB::transaction(function () use ($user, $description) {
+                    if (!DB::table('users')->where('id', $user->id)->where('frozen_money', $user->frozen_money)->update(['frozen_money' => 0])) {
+                        throw new InvalidRequestException('操作失败，请稍后再试！', 422);
+                    }
+                    $log = [
+                        'user_id' => $user->id,
+                        'money' => $user->frozen_money,
+                        'type' => 2,
+                        'before_money' => $user->frozen_money,
+                        'after_money' => 0,
+                        'description' => $description
+                    ];
+                    UserFrozenBalance::create($log);
+                });
+            } catch (\Exception $e) {
+                return $this->alert('操作失败，请稍后再试！');
+            }
+        }
+
+        // 运营余额
+        if ($type === 3) {
+            if ($user->operate_money == 0) {
+                return $this->alert('用户余额已经是 0 了！');
+            }
+
+            if ($user->operate_money < 0) {
+                return $this->error('用户余额小于 0，不能清空！');
+            }
+
+            try {
+                DB::transaction(function () use ($user, $description) {
+                    if (!DB::table('users')->where('id', $user->id)->where('operate_money', $user->operate_money)->update(['operate_money' => 0])) {
+                        throw new InvalidRequestException('操作失败，请稍后再试！', 422);
+                    }
+                    $log = [
+                        'user_id' => $user->id,
+                        'money' => $user->operate_money,
+                        'type' => 2,
+                        'before_money' => $user->operate_money,
+                        'after_money' => 0,
+                        'description' => $description
+                    ];
+                    UserOperateBalance::create($log);
+                });
+            } catch (\Exception $e) {
+                return $this->alert('操作失败，请稍后再试！');
+            }
+        }
+
+        return $this->success('操作成功');
     }
 }
