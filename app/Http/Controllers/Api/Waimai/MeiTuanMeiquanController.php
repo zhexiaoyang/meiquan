@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waimai;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Jobs\SaveMeiTuanOrder;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
@@ -149,6 +150,13 @@ class MeiTuanMeiquanController extends Controller
         } else {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：未开通自动接单");
             // Log::info('外卖-美团服务商-未开通自动接单', ['shop_id' => $mt_shop_id, 'shop_name' => urldecode($request->get("wm_poi_name", ""))]);
+        }
+
+
+        // 创建外卖订单
+        if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+            Log::info("【外卖-美团服务商】（{$mt_order_id}）：集中接单");
+            dispatch(new SaveMeiTuanOrder($request->all(), 1, 2, $shop->id));
         }
         // return json_encode(['data' => 'ok']);
         Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-到底了");

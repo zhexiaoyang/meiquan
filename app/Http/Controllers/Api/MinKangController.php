@@ -140,6 +140,7 @@ class MinKangController
 
             // 创建外卖订单
             if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+                Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：集中接单");
                 dispatch(new SaveMeiTuanOrder($request->all(), 1, 1, $shop->id));
             }
 
