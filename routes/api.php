@@ -202,11 +202,13 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("takeout/info", "WmOrderController@show");
         // *外卖订单-打印
         Route::get("takeout/print", "WmOrderController@print_order");
-        // *外卖订单-打印
+        // *外卖订单-打印机-列表
         Route::get("takeout/print/list", "WmOrderController@print_list");
-        // *外卖订单-打印
+        // *外卖订单-打印机-添加
         Route::post("takeout/print/add", "WmOrderController@print_add");
-        // *外卖订单-打印
+        // *外卖订单-打印机-添加
+        Route::post("takeout/print/update", "WmOrderController@print_update");
+        // *外卖订单-打印机-删除
         Route::post("takeout/print/del", "WmOrderController@print_del");
         // *外卖订单-可绑定门店
         Route::get("takeout/print/shops", "WmOrderController@print_shops");

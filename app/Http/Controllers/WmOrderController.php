@@ -127,6 +127,35 @@ class WmOrderController extends Controller
 
     }
 
+    public function print_update(Request $request)
+    {
+        $number = $request->get('number', 1);
+        $name = $request->get('name', '');
+
+        if (!$shop_id = $request->get('shop_id', 0)) {
+            return $this->error('门店不存在');
+        }
+
+        if (!in_array($number, [1,2,3,4])) {
+            $number = 1;
+        }
+
+        if (!$printer = WmPrinter::find($request->get('id', 0))) {
+            return $this->error('参数错误，请稍后再试');
+        }
+
+        if (!Shop::where('id', $printer->shop_id)->where('own_id', $request->user()->id)->first()) {
+            return $this->error('参数错误，请稍后再试');
+        }
+
+        $printer->name = $name;
+        $printer->number = $number;
+        $printer->shop_id = $shop_id;
+        $printer->save();
+
+        return $this->success();
+    }
+
     public function print_del(Request $request)
     {
         if (!$printer = WmPrinter::find($request->get('id', 0))) {
@@ -165,5 +194,7 @@ class WmOrderController extends Controller
         if ($print = WmPrinter::where('shop_id', $order->shop_id)->first()) {
             dispatch(new PrintWaiMaiOrder($order, $print));
         }
+
+        return $this->success();
     }
 }
