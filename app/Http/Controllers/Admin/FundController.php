@@ -84,7 +84,7 @@ class FundController extends Controller
                     'cancel_fee' => $order->deduction,
                     'profit' => $order->profit,
                     'over_at' => $order->over_at,
-                    'expenditure' => $order->money - $order->profit
+                    'expenditure' => sprintf("%.2f", $order->money - $order->profit)
                 ];
             }
         }

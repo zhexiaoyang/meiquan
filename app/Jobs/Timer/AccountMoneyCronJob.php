@@ -73,7 +73,7 @@ class AccountMoneyCronJob extends CronJob
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
                 if ($uu_money < 500) {
                     app('easysms')->send('13843209606', [
-                        'template' => 'SMS_218028204',
+                        'template' => 'SMS_227743960',
                         'data' => [
                             'money' => $uu_money
                         ],
