@@ -682,9 +682,11 @@ class ShopController extends Controller
             $e = app('ele');
             $data = $e->shopInfo($ele);
             if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
-                $shop->ele_cf = $ele;
+                $shop->waimai_ele = $ele;
                 $shop->save();
                 return $this->error('该门店没有授权开放平台,请先授权');
+            } else {
+                return $this->error('绑定失败，请稍后再试');
             }
         }
 
