@@ -174,6 +174,22 @@ class WmOrderController extends Controller
         return $this->success();
     }
 
+    public function print_clear(Request $request)
+    {
+        if (!$printer = WmPrinter::find($request->get('id', 0))) {
+            return $this->error('打印机不存在');
+        }
+
+        $f = new Feie();
+        $res = $f->print_clear($printer->sn);
+
+        if (!isset($res['ret']) || $res['ret'] !== 0) {
+            return $this->error('清空待打印失败');
+        }
+
+        return $this->success();
+    }
+
     public function print_shops(Request $request)
     {
         $query = Shop::query()->select('id', 'shop_name')

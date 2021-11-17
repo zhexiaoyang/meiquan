@@ -210,6 +210,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("takeout/print/update", "WmOrderController@print_update");
         // *外卖订单-打印机-删除
         Route::post("takeout/print/del", "WmOrderController@print_del");
+        // *外卖订单-打印机-清除待打印订单
+        Route::post("takeout/print/clear", "WmOrderController@print_clear");
         // *外卖订单-可绑定门店
         Route::get("takeout/print/shops", "WmOrderController@print_shops");
 

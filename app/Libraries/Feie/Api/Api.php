@@ -26,6 +26,16 @@ class Api extends Request
         return $this->post('', $data);
     }
 
+    public function print_clear($sn = '')
+    {
+        $data = array(
+            'apiname'=>'Open_delPrinterSqs',
+            'sn' => $sn,
+        );
+
+        return $this->post('', $data);
+    }
+
     public function print_add($content)
     {
         $data = array(

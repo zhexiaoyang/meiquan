@@ -53,6 +53,20 @@ class SaveMeiTuanOrder implements ShouldQueue
 
         $status_filter = [1 => 1, 2 => 1, 4 => 4, 8 => 18, 9 => 30];
 
+        $logistics_code = isset($data['logistics_code']) ? intval($data['logistics_code']) : 0;
+
+        if ($logistics_code > 0) {
+            if ($logistics_code === 1001) {
+                $logistics_code = 1;
+            }
+            if ($logistics_code === 2002) {
+                $logistics_code = 2;
+            }
+            if ($logistics_code === 3001) {
+                $logistics_code = 3;
+            }
+        }
+
         $order_data = [
             "shop_id" => $this->shop_id,
             "order_id" => $mt_order_id,
@@ -77,6 +91,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "delivery_time" => $data['delivery_time'],
             "pick_type" => $data['pick_type'] ?? 0,
             "day_seq" => $data['day_seq'] ?? 0,
+            "logistics_code" => $logistics_code
         ];
 
         $order = DB::transaction(function () use ($products, $order_data) {

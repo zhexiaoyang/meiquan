@@ -8,6 +8,7 @@ use App\Models\UserOperateBalance;
 use App\Models\WmPrescription;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class GetPrescriptionOrders extends Command
 {
@@ -42,63 +43,82 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $switch = true;
-        $number = 1;
-        // $str = '1';
+        $start_date = '2021-11-01';
+        $last = WmPrescription::orderByDesc('id')->first();
+        if ($last) {
+            $start_date = $last->rpCreateTime;
+        }
+        $date_arr = [];
+        if (strtotime($start_date) >= (strtotime(date("Y-m-d"))) + 86400) {
+            Log::info("[拉取桃子处方订单]-失败：最后时间{$start_date}");
+            return false;
+        }
+        array_push($date_arr, $start_date);
+        while (strtotime($start_date) < strtotime(date("Y-m-d"))) {
+            $start_date = date("Y-m-d", strtotime($start_date) + 86400);
+            array_push($date_arr, $start_date);
+        }
+        Log::info("[拉取桃子处方订单]-所有拉取日期", $date_arr);
 
-        while ($switch) {
+        foreach ($date_arr as $date) {
+            Log::info("[拉取桃子处方订单]-拉取日期：{$date}");
             $taozi = app('taozi');
-            $res = $taozi->order($number);
-            $data = $res['data'] ?? [];
+            $switch = true;
+            $number = 1;
+            while ($switch) {
+                $res = $taozi->order($number, 100, $date);
+                $data = $res['data'] ?? [];
 
-            if (!empty($data)) {
-                foreach ($data as $v) {
-                    if (WmPrescription::query()->where('outOrderID', $v['outOrderID'])->exists()) {
-                        $switch = false;
-                        break;
-                    } else {
-                        $shop_id = $v['storeID'];
-                        $order_id = $v['outOrderID'];
-                        $v['platform'] = 1;
-                        if ($shop_id && $order_id) {
-                            if ($shop = Shop::query()->select('id','user_id')->where('chufang_mt', $shop_id)->first()) {
-                                DB::transaction(function () use ($v, $shop, $order_id) {
-                                    $v['shop_id'] = $shop->id;
-                                    $current_user = DB::table('users')->find($shop->user_id);
-                                    $money = 1.5;
-                                    $data = WmPrescription::query()->create($v);
-                                    UserOperateBalance::create([
-                                        "user_id" => $current_user->id,
-                                        "money" => $money,
-                                        "type" => 2,
-                                        "before_money" => $current_user->operate_money,
-                                        "after_money" => ($current_user->operate_money - $money),
-                                        "description" => "[美团]处方单审方：" . $order_id,
-                                        "shop_id" => $shop->id,
-                                        "tid" => $data->id,
-                                        'order_at' => $v['rpCreateTime']
-                                    ]);
-                                    // 减去用户运营余额
-                                    DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
-                                });
+                if (!empty($data)) {
+                    foreach ($data as $v) {
+                        if (WmPrescription::query()->where('outOrderID', $v['outOrderID'])->exists()) {
+                            $switch = false;
+                            break;
+                        } else {
+                            $shop_id = $v['storeID'];
+                            $order_id = $v['outOrderID'];
+                            $v['platform'] = 1;
+                            if ($shop_id && $order_id) {
+                                if ($shop = Shop::query()->select('id','user_id')->where('chufang_mt', $shop_id)->first()) {
+                                    DB::transaction(function () use ($v, $shop, $order_id) {
+                                        $v['shop_id'] = $shop->id;
+                                        $current_user = DB::table('users')->find($shop->user_id);
+                                        $money = 1.5;
+                                        $data = WmPrescription::query()->create($v);
+                                        if ($v['reviewStatus'] == '审核通过') {
+                                            UserOperateBalance::create([
+                                                "user_id" => $current_user->id,
+                                                "money" => $money,
+                                                "type" => 2,
+                                                "before_money" => $current_user->operate_money,
+                                                "after_money" => ($current_user->operate_money - $money),
+                                                "description" => "[美团]处方单审方：" . $order_id,
+                                                "shop_id" => $shop->id,
+                                                "tid" => $data->id,
+                                                'order_at' => $v['rpCreateTime']
+                                            ]);
+                                            // 减去用户运营余额
+                                            DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
+                                        }
+                                    });
+                                } else {
+                                    $v['status'] = 2;
+                                    $v['reason'] = '未开通处方';
+                                    WmPrescription::query()->create($v);
+                                }
                             } else {
                                 $v['status'] = 2;
-                                $v['reason'] = '未开通处方';
+                                $v['reason'] = '门店ID或订单号不存在';
                                 WmPrescription::query()->create($v);
                             }
-                        } else {
-                            $v['status'] = 2;
-                            $v['reason'] = '门店ID或订单号不存在';
-                            WmPrescription::query()->create($v);
                         }
                     }
                 }
-            }
-            $number++;
-            if (($number > 300) || empty($data)) {
-                $switch = false;
+                $number++;
+                if (($number > 300) || empty($data)) {
+                    $switch = false;
+                }
             }
         }
-        // \Log::info($str);
     }
 }
