@@ -110,6 +110,11 @@ class AppServiceProvider extends ServiceProvider
             $config = config('ps.taozi');
             return new TaoZi($config);
         });
+        // 桃子
+        $this->app->singleton('taozi_xia', function () {
+            $config = config('ps.taozi_xia');
+            return new TaoZi($config);
+        });
 
         // 钉钉通知
         $this->app->singleton('ding', function () {

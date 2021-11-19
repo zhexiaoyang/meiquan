@@ -194,6 +194,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("prescription/shops", "PrescriptionController@shops");
         // *处方单列表
         Route::get("prescription", "PrescriptionController@index");
+        // *处方-线下下单
+        Route::get("prescription/down", "PrescriptionController@down");
         // *处方单列表统计
         Route::get("prescription/statistics", "PrescriptionController@statistics");
         // *外卖订单列表

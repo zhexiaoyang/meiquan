@@ -15,4 +15,9 @@ class Tool
     {
         return md5($params['accessKey'] . $params['timestamp'] . $secret_key);
     }
+
+    public static function getSign2(array $params, string $secret_key)
+    {
+        return md5($secret_key . 'orgID' . $params['thirdOrgID'] . 'timestamp' .  $params['timestamp']);
+    }
 }

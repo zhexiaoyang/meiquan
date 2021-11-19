@@ -108,7 +108,6 @@ class Order extends Model
         });
     }
 
-
     public static function findAvailableNo()
     {
         // 订单流水号前缀

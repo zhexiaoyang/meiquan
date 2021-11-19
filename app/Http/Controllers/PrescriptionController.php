@@ -122,4 +122,25 @@ class PrescriptionController extends Controller
             ->get();
         return $this->success($shops);
     }
+
+    public function down(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $prescription = WmPrescription::query()->create([
+            'storeName' => $shop->shop_name,
+            'platform' => 3,
+        ]);
+
+        $t = app('taozi_xia');
+        $res = $t->create_order($request->user(), $shop, $prescription);
+
+        if (!isset($res['data']['url']) || empty($res['data']['url'])) {
+            return $this->alert('开方失败，请稍后再试');
+        }
+
+        return $this->success(['url' => $res['data']['url'] ?? '']);
+    }
 }

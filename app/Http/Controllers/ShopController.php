@@ -121,20 +121,28 @@ class ShopController extends Controller
                 $tmp['material'] = $shop->material;
                 // 商城
                 $tmp['shopping'] = $shop->auth;
+                // 三方ID
+                $tmp['mtwm'] = $shop->mtwm;
+                $tmp['mtwm_status'] = (bool) $shop->mtwm;
+                $tmp['ele'] = $shop->ele;
+                $tmp['ele_status'] = (bool) $shop->ele;
+                $tmp['jddj'] = $shop->jddj;
+                $tmp['jddj_status'] = (bool) $shop->jddj;
                 // 自动接单
-                $tmp['mtwm'] = (bool) $shop->mtwm;
-                $tmp['ele'] = (bool) $shop->ele;
-                $tmp['auto'] = (bool) $shop->mt_shop_id;
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
+                $tmp['mt_shop_id_status'] = (bool) $shop->mt_shop_id;
                 $tmp['ele_shop_id'] = $shop->ele_shop_id;
+                $tmp['ele_shop_id_status'] = (bool) $shop->ele_shop_id;
                 // 处方订单
-                $tmp['mtwm_cf'] = (bool) $shop->mtwm_cf;
-                $tmp['ele_cf'] = (bool) $shop->ele_cf;
                 $tmp['chufang_mt'] = $shop->chufang_mt;
+                $tmp['chufang_mt_status'] = (bool) $shop->mtwm_cf;
                 $tmp['chufang_ele'] = $shop->chufang_ele;
+                $tmp['chufang_ele_status'] = (bool) $shop->ele_cf;
                 // 外卖
                 $tmp['waimai_mt'] = $shop->waimai_mt;
+                $tmp['waimai_mt_status'] = (bool) $shop->waimai_mt;
                 $tmp['waimai_ele'] = $shop->waimai_ele;
+                $tmp['waimai_ele_status'] = (bool) $shop->waimai_ele;
                 // 合同状态
                 $tmp['contract'] = $shop->online_shop->contract_status ?? 0;
                 // 城市经理
@@ -270,6 +278,8 @@ class ShopController extends Controller
                 $result = json_decode($result, true);
                 if (!empty($result['status']) && $result['status'] == 1) {
                     // \Log::info("门店城市信息返回", [$result]);
+                    $shop->province = $result['regeocode']['addressComponent']['province'] ?? '';
+                    $shop->district = $result['regeocode']['addressComponent']['district'] ?? '';
                     $shop->city = $result['regeocode']['addressComponent']['city'] ?: $result['regeocode']['addressComponent']['province'];
                     $shop->citycode = $result['regeocode']['addressComponent']['citycode'];
                     $shop->area = $result['regeocode']['addressComponent']['district'] ?: '';
@@ -284,6 +294,8 @@ class ShopController extends Controller
         $shop->status = 40;
         $shop->user_id = $user->id;
         $shop->own_id = $user->id;
+
+        // return $this->success($shop);
 
         if ($shop->save()) {
             $user->shops()->attach($shop->id);
@@ -613,13 +625,47 @@ class ShopController extends Controller
         }
 
         if ($mtwm = $request->get("mtwm", '')) {
-            $shop->mtwm = $mtwm;
-            $shop->save();
+            if (Shop::where('mt_shop_id', $mtwm)->first()) {
+                return $this->error('该美团ID已经绑定门店，请核对后再试');
+            }
+            $status = false;
+            $params = ['app_poi_codes' => $mtwm];
+
+            $mk = app('minkang');
+            $mk_shops = $mk->getShops($params);
+            if (!$status && !empty($mk_shops['data'])) {
+                $shop->mt_shop_id = $mtwm;
+                $shop->save();
+                return $this->success();
+            }
+
+            $mq = app('meiquan');
+            $mq_shops = $mq->getShops($params);
+            if (!$status && !empty($mq_shops['data'])) {
+                $shop->mt_shop_id = $mtwm;
+                $shop->save();
+                return $this->success();
+            }
+
+            $qq = app('qinqu');
+            $qq_shops = $qq->getShops($params);
+            if (!$status && !empty($qq_shops['data'])) {
+                $shop->mt_shop_id = $mtwm;
+                $shop->save();
+                return $this->success();
+            }
+            return $this->error('该门店没有授权开放平台,请先授权。如是民康门店,请联系技术处理');
         }
 
         if ($ele = $request->get("ele", '')) {
-            $shop->ele = $ele;
-            $shop->save();
+            $e = app('ele');
+            $data = $e->shopInfo($ele);
+            if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                $shop->ele_shop_id = $ele;
+                $shop->save();
+                return $this->success();
+            }
+            return $this->error('该门店没有授权开放平台,请先授权');
         }
 
         return $this->success();

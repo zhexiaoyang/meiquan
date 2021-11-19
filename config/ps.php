@@ -106,6 +106,11 @@ return [
         "secret_key" => env("TAOZI_SECRET_KEY", ""),
         "url" => env("TAOZI_URL", ""),
     ],
+    "taozi_xia" => [
+        "access_key" => env("TAOZI_XIA_ACCESS_KEY", ""),
+        "secret_key" => env("TAOZI_XIA_SECRET_KEY", ""),
+        "url" => env("TAOZI_XIA_URL", ""),
+    ],
     "jieri" => [
         "2020-02-16",
         "2020-02-17",

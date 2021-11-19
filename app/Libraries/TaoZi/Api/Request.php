@@ -51,6 +51,31 @@ class Request
         return $result;
     }
 
+    public function post2(string $method, array $data)
+    {
+        $timestamp = time();
+
+        $params = [
+            'thirdOrgID' => $this->access_key,
+            "thirdOrgName" => "美全科技",
+            'timestamp' => $timestamp,
+        ];
+
+        $params = array_merge($data, $params);
+
+        $params['sign'] = Tool::getSign2($params, $this->secret_key);
+
+        $http = $this->getHttp();
+
+        $response = $http->post($this->url . $method, $params);
+
+        $result = json_decode(strval($response->getBody()), true);
+
+        $this->checkErrorAndThrow($result);
+
+        return $result;
+    }
+
     public function get(string $method, array $data)
     {
         $timestamp = time();

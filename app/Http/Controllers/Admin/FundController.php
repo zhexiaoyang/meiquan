@@ -225,6 +225,7 @@ class FundController extends Controller
         }
         $user_running = User::query()->sum("money");
         $user_shopping = User::query()->sum("frozen_money");
+        $user_operate = User::query()->sum("operate_money");
 
         // 支出
         if (!empty($running_orders)) {
@@ -252,6 +253,7 @@ class FundController extends Controller
         $res = [
             'user_running' => sprintf("%.2f", $user_running),
             'user_shopping' => sprintf("%.2f", $user_shopping),
+            'user_operate' => sprintf("%.2f", $user_operate),
             'total_income' => sprintf("%.2f", $total_income + $user_running + $user_shopping),
             'total_income_running' => sprintf("%.2f", $total_income_running + $user_running),
             'total_income_shop' => sprintf("%.2f", $total_income_shop + $user_shopping),
