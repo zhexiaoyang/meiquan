@@ -580,12 +580,14 @@ class CreateMtOrder implements ShouldQueue
         $shop = Shop::find($this->order->shop_id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送UU订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送UU订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->uu_status >= 20) {
-            Log::info($this->log."不能发送UU订单，达达状态不是0，状态：{$order->uu_status}");
-        }
+        // if ($order->uu_status >= 20) {
+        //     Log::info($this->log."不能发送UU订单，UU状态不是大于等于20，状态：{$order->uu_status}");
+        //     return false;
+        // }
 
         if ($order->fail_uu) {
             Log::info($this->log."不能发送UU订单，已有UU错误信息");
@@ -635,12 +637,14 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送顺丰订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送顺丰订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->sf_status >= 20) {
-            Log::info($this->log."不能发送顺丰订单，达达状态不是0，状态：{$order->sf_status}");
-        }
+        // if ($order->sf_status >= 20) {
+        //     Log::info($this->log."不能发送顺丰订单，达达状态不是0，状态：{$order->sf_status}");
+        //     return false;
+        // }
 
         if ($order->fail_sf) {
             Log::info($this->log."不能发送顺丰订单，已有顺丰错误信息");
@@ -692,12 +696,14 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发达达达订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发达达达订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->dd_status >= 20) {
-            Log::info($this->log."不能发送达达订单，达达状态不是0，状态：{$order->mqd_status}");
-        }
+        // if ($order->dd_status >= 20) {
+        //     Log::info($this->log."不能发送达达订单，达达状态不是0，状态：{$order->mqd_status}");
+        //     return false;
+        // }
 
         if ($order->fail_dd) {
             Log::info($this->log."不能发送达达订单，已有达达错误信息");
@@ -748,12 +754,13 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送美全达订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送美全达订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->mqd_status >= 20) {
-            Log::info($this->log."不能发送美全达订单，美团状态不是0，状态：{$order->mqd_status}");
-        }
+        // if ($order->mqd_status >= 20) {
+        //     Log::info($this->log."不能发送美全达订单，美团状态不是0，状态：{$order->mqd_status}");
+        // }
 
         if ($order->fail_mqd) {
             Log::info($this->log."不能发送美全达订单，已有美全达错误信息");
@@ -816,12 +823,13 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送美团订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送美团订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->mt_status >= 20) {
-            Log::info($this->log."不能发送美团订单，美团状态不是0，状态：{$order->mt_status}");
-        }
+        // if ($order->mt_status >= 20) {
+        //     Log::info($this->log."不能发送美团订单，美团状态不是0，状态：{$order->mt_status}");
+        // }
 
         if ($order->fail_mt) {
             Log::info($this->log."不能发送美团订单，已有美团错误信息");
@@ -882,12 +890,13 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送蜂鸟订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送蜂鸟订单，订单状态大于30，状态：{$order->status}");
+            return false;
         }
 
-        if ($order->fn_status >= 20) {
-            Log::info($this->log."不能发送蜂鸟订单，蜂鸟状态不是0，状态：{$order->fn_status}");
-        }
+        // if ($order->fn_status >= 20) {
+        //     Log::info($this->log."不能发送蜂鸟订单，蜂鸟状态不是0，状态：{$order->fn_status}");
+        // }
 
         if ($order->fail_fn) {
             Log::info($this->log."不能发送蜂鸟订单，已有蜂鸟错误信息");
@@ -952,14 +961,14 @@ class CreateMtOrder implements ShouldQueue
         $order = Order::query()->find($this->order->id);
 
         if ($order->status > 30) {
-            Log::info($this->log."不能发送闪送订单，订单状态大于20，状态：{$order->status}");
+            Log::info($this->log."不能发送闪送订单，订单状态大于30，状态：{$order->status}");
             return false;
         }
 
-        if ($order->ss_status >= 20) {
-            Log::info($this->log."不能发送闪送订单，闪送状态不是0，状态：{$order->ss_status}");
-            return false;
-        }
+        // if ($order->ss_status >= 20) {
+        //     Log::info($this->log."不能发送闪送订单，闪送状态不是0，状态：{$order->ss_status}");
+        //     return false;
+        // }
 
         if ($order->fail_ss) {
             Log::info($this->log."不能发送闪送订单，已有闪送错误信息");
