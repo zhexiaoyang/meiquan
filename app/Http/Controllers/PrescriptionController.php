@@ -18,14 +18,13 @@ class PrescriptionController extends Controller
         $etime = $request->get('etime', '');
 
         $query = WmPrescription::query();
+        $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 
         if ($order_id) {
             $query->where('outOrderID', $order_id);
         }
         if ($shop_id) {
-            $query->where('storeID', $shop_id);
-        } else {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $query->where('shop_id', $shop_id);
         }
         if ($platform) {
             $query->where('platform', $platform);

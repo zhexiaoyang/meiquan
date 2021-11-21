@@ -4,15 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
-use App\Models\ShopAuthentication;
 use App\Models\ShopRange;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Overtrue\EasySms\EasySms;
 
 class ShopController extends Controller
 {

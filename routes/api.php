@@ -233,6 +233,24 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("statistic/running", "RunningStatisticController@index")->name("admin.running.statistic.index");
             // 首页-外卖资料统计
             Route::get("statistic/online", "OnlineStatisticController@index")->name("admin.online.statistic.index");
+            /**
+             * 后台处方管理
+             */
+            // 处方后台-门店管理-门店列表
+            Route::get("prescription/shop", "PrescriptionController@shop")->name("admin.prescription.shop.index");
+            // 处方后台-门店管理-门店列表-所有
+            Route::get("prescription/shop/all", "PrescriptionController@shop_all")->name("admin.prescription.shop.all");
+            // 处方后台-门店管理-门店列表-导出
+            Route::get("prescription/shop/export", "PrescriptionController@shop_export")->name("admin.prescription.shop.export");
+            // 处方后台-门店管理-更新门店状态
+            Route::post("prescription/shop", "PrescriptionController@shop_update")->name("admin.prescription.shop.update");
+            // 处方后台-门店管理-门店统计
+            Route::get("prescription/shop/statistics", "PrescriptionController@shop_statistics")->name("admin.prescription.shop.statistics");
+            // 处方后台-处方管理-订单列表
+            Route::get("prescription", "PrescriptionController@index")->name("admin.prescription.index");
+            // 处方后台-处方管理-订单统计
+            Route::get("prescription/statistics", "PrescriptionController@statistics")->name("admin.prescription.statistics");
+
             // 跑腿门店管理
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图
