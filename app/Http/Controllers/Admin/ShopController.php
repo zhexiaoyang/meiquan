@@ -24,4 +24,19 @@ class ShopController extends Controller
 
         return $this->success($shops);
     }
+
+    public function update_three(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $shop->mtwm = $request->get('mtwm', '');
+        $shop->ele = $request->get('ele', '');
+        $shop->jddj = $request->get('jddj', '');
+
+        $shop->save();
+
+        return $this->success($shop);
+    }
 }

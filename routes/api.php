@@ -250,8 +250,12 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("prescription", "PrescriptionController@index")->name("admin.prescription.index");
             // 处方后台-处方管理-订单统计
             Route::get("prescription/statistics", "PrescriptionController@statistics")->name("admin.prescription.statistics");
-
-            // 跑腿门店管理
+            /**
+             * 门店管理
+             */
+            // 门店管理-更新门店三方ID
+            Route::post("shop/update/three", "ShopController@update_three")->name("admin.shop.update_three");
+            // 门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图
             Route::resource("banner", "BannerController", ["only" => ["index", "show", "store", "update", "destroy"]]);
