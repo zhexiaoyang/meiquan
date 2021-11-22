@@ -19,6 +19,8 @@ class WmOrderController extends Controller
             $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
         }]);
 
+        $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+
         if ($status = $request->get('status', 0)) {
             $query->where('status', $status);
         }
