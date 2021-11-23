@@ -31,9 +31,20 @@ class ShopController extends Controller
             return $this->error('门店不存在');
         }
 
-        $shop->mtwm = $request->get('mtwm', '');
-        $shop->ele = $request->get('ele', '');
-        $shop->jddj = $request->get('jddj', '');
+        $mtwm = $request->get('mtwm', '');
+        $ele = $request->get('ele', '');
+        $jddj = $request->get('jddj', '');
+
+        $shop->mtwm = $mtwm;
+        $shop->ele = $ele;
+        $shop->jddj = $jddj;
+
+        if ($mtwm) {
+            $shop->chufang_mt = $mtwm;
+        }
+        if ($ele) {
+            $shop->chufang_ele = $ele;
+        }
 
         $shop->save();
 
