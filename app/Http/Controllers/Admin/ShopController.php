@@ -41,9 +41,11 @@ class ShopController extends Controller
 
         if ($mtwm) {
             $shop->chufang_mt = $mtwm;
+            $shop->chufang_status = 2;
         }
         if ($ele) {
             $shop->chufang_ele = $ele;
+            $shop->chufang_status = 2;
         }
 
         $shop->save();
