@@ -35,7 +35,7 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
         $query = Shop::with(['own' => function ($query) {
             $query->select('id', 'phone', 'operate_money as money');
         }])->select('id','own_id','shop_name','mtwm','ele','jddj','chufang_status as status')->where(function ($query) {
-            $query->where('mtwm', '<>', '')->orWhere('ele', '<>', '')->orWhere('jddj', '<>', '');
+            $query->where('chufang_mt', '<>', '')->orWhere('chufang_ele', '<>', '')->orWhere('jddj', '<>', '');
         })->where('status', '>', 0);
 
         if ($phone = $request->get('phone')) {
