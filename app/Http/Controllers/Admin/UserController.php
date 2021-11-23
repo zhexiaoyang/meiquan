@@ -71,8 +71,10 @@ class UserController extends Controller
 
         if ($type == 1) {
             $query = UserMoneyBalance::query();
-        } else {
+        } elseif ($type == 2) {
             $query = UserFrozenBalance::query();
+        } elseif ($type == 3) {
+            $query = UserOperateBalance::query();
         }
 
         if ($start_date) {

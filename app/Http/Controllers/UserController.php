@@ -8,6 +8,7 @@ use App\Models\Shop;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
 use App\Models\UserMoneyBalance;
+use App\Models\UserOperateBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Yansongda\Pay\Pay;
@@ -37,7 +38,7 @@ class UserController extends Controller
         $search_key_shop = $request->get('shop', '');
 
         $query = User::with(['roles', 'my_shops', 'shops'])
-            ->select("id","name","phone","nickname","money","frozen_money","created_at","is_chain","chain_name","status");
+            ->select("id","name","phone","nickname","money","frozen_money","operate_money","created_at","is_chain","chain_name","status");
 
         if ($name) {
             $query->where('name', 'like', "%{$name}%");
@@ -128,6 +129,9 @@ class UserController extends Controller
                 $money = UserMoneyBalance::query()
                     ->where("user_id", $user->id)
                     ->where("created_at", "<", $date)->orderByDesc("id")->first();
+                $operate = UserOperateBalance::query()
+                    ->where("user_id", $user->id)
+                    ->where("created_at", "<", $date)->orderByDesc("id")->first();
                 if ($money) {
                     $user->after_money = $money->after_money;
                 } else {
@@ -137,6 +141,11 @@ class UserController extends Controller
                     $user->after_frozen_money = $frozen->after_money;
                 } else {
                     $user->after_frozen_money = $user->frozen_money;
+                }
+                if ($operate) {
+                    $user->after_operate_money = $operate->after_money;
+                } else {
+                    $user->after_operate_money = $user->operate_money;
                 }
             }
         }
