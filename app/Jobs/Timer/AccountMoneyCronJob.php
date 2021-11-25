@@ -42,12 +42,6 @@ class AccountMoneyCronJob extends CronJob
                             'money' => $ss_money
                         ],
                     ]);
-                    app('easysms')->send('18611683889', [
-                        'template' => 'SMS_218028146',
-                        'data' => [
-                            'money' => $ss_money
-                        ],
-                    ]);
                 }
             }
             // 达达余额
