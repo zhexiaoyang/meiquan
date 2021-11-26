@@ -28,7 +28,7 @@ class AuthController extends Controller
         }
 
         try {
-            $scope = new Scope('web');
+            // $scope = new Scope('web');
             $token = app(Client::class)->post(url('/oauth/token'), [
                 'form_params' => [
                     'grant_type' => 'password',
@@ -36,7 +36,7 @@ class AuthController extends Controller
                     'client_secret' => config('passport.clients.password.client_secret'),
                     'username' => $request->get('username'),
                     'password' => $request->get('password'),
-                    'scope' => 'web',
+                    'scope' => '',
                     "provider" => "users"
                 ],
             ]);
