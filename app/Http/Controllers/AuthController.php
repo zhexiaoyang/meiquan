@@ -26,6 +26,7 @@ class AuthController extends Controller
         if ($request->get("captcha")) {
             return $this->loginByMobile($request);
         }
+
         try {
             $token = app(Client::class)->post(url('/oauth/token'), [
                 'form_params' => [
@@ -34,7 +35,7 @@ class AuthController extends Controller
                     'client_secret' => config('passport.clients.password.client_secret'),
                     'username' => $request->get('username'),
                     'password' => $request->get('password'),
-                    'scope' => '',
+                    'scope' => 'web',
                     "provider" => "users"
                 ],
             ]);
@@ -103,7 +104,8 @@ class AuthController extends Controller
             return $this->error("用户禁止登录");
         }
 
-        $result = $this->getBearerTokenByUser($user, '1', false);
+        $scope = new Scope('web');
+        $result = $this->getBearerTokenByUser($user, '1', [$scope], false);
 
         \Cache::forget($phone);
 
