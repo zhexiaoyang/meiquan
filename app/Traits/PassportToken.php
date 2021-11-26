@@ -65,7 +65,7 @@ trait PassportToken
 
     protected function createPassportTokenByUser(User $user, $clientId)
     {
-        $accessToken = new AccessToken($user->id,[],new Client($clientId, null, null));
+        $accessToken = new AccessToken($user->id,[],new Client($clientId, 'mini-app', null));
         $iii = $this->generateUniqueIdentifier();
         $accessToken->setIdentifier($iii);
         $accessToken->setExpiryDateTime((new DateTimeImmutable())->add(Passport::tokensExpireIn()) );
