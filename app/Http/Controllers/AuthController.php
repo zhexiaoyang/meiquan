@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Passport\Bridge\Scope;
 use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
@@ -162,7 +163,8 @@ class AuthController extends Controller
             return $this->error("用户禁止登录");
         }
 
-        $result = $this->getBearerTokenByUser($user, '1', ['min-app'], false);
+        $scope = new Scope('min-app');
+        $result = $this->getBearerTokenByUser($user, '1', [$scope], false);
 
         \Cache::forget($phone);
 
