@@ -36,7 +36,7 @@ class AuthController extends Controller
                     'client_secret' => config('passport.clients.password.client_secret'),
                     'username' => $request->get('username'),
                     'password' => $request->get('password'),
-                    'scope' => $scope,
+                    'scope' => 'web',
                     "provider" => "users"
                 ],
             ]);
