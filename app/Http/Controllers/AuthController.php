@@ -355,7 +355,6 @@ class AuthController extends Controller
         $captcha = $request->get('code', '');
 
         $verifyData = \Cache::get($phone);
-        \Log::info("aaa", [$phone,$captcha,$verifyData]);
 
         if (!$verifyData) {
             return $this->error('验证码已失效');
@@ -370,6 +369,9 @@ class AuthController extends Controller
         ]);
 
         \Cache::forget($phone);
+
+        $token = DB::table("oauth_access_tokens")->orderByDesc('created_at')->first();
+        DB::table("oauth_access_tokens")->where("user_id", auth()->user()->id)->where('id', '<>', $token->id)->delete();
 
         return $this->success();
     }
@@ -400,8 +402,8 @@ class AuthController extends Controller
             'password' => bcrypt($request->get('new')),
         ]);
 
-        // $token = DB::table("oauth_access_tokens")
-        // DB::table("oauth_access_tokens")->where("user_id", $user_id)->delete();
+        $token = DB::table("oauth_access_tokens")->orderByDesc('created_at')->first();
+        DB::table("oauth_access_tokens")->where("user_id", $user->id)->where('id', '<>', $token->id)->delete();
 
         return $this->success();
     }
