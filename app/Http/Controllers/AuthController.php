@@ -7,6 +7,7 @@ use App\Traits\PassportToken;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
 
@@ -161,7 +162,7 @@ class AuthController extends Controller
             return $this->error("用户禁止登录");
         }
 
-        $result = $this->getBearerTokenByUser($user, '1', false);
+        $result = $this->getBearerTokenByUser($user, '1', ['min-app'], false);
 
         \Cache::forget($phone);
 
@@ -334,22 +335,6 @@ class AuthController extends Controller
      */
     public function resetPassword(Request $request)
     {
-        // $isCheck = Hash::check($request->get('old_password'), auth()->user()->password);
-        //
-        // if (!$isCheck) {
-        //     return $this->error('旧密码错误');
-        // }
-        //
-        // $request->validate([
-        //     'old_password' => 'required',
-        //     'password' => 'required|confirmed',
-        // ], [], [
-        //     'old_password' => '旧密码',
-        // ]);
-
-        // auth()->user()->update([
-        //     'password' => bcrypt($request->get('password')),
-        // ]);
 
         $password = $request->get('password');
 
@@ -391,7 +376,9 @@ class AuthController extends Controller
      */
     public function resetPasswordByOld(Request $request)
     {
-        $isCheck = Hash::check($request->get('old'), auth()->user()->password);
+        $user = auth()->user();
+
+        $isCheck = Hash::check($request->get('old'), $user->password);
 
         if (!$isCheck) {
             return $this->error('旧密码错误');
@@ -407,6 +394,9 @@ class AuthController extends Controller
         auth()->user()->update([
             'password' => bcrypt($request->get('new')),
         ]);
+
+        // $token = DB::table("oauth_access_tokens")
+        // DB::table("oauth_access_tokens")->where("user_id", $user_id)->delete();
 
         return $this->success();
     }

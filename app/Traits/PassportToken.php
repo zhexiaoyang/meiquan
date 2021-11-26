@@ -63,9 +63,9 @@ trait PassportToken
         }
     }
 
-    protected function createPassportTokenByUser(User $user, $clientId)
+    protected function createPassportTokenByUser(User $user, $clientId, $scopes = [])
     {
-        $accessToken = new AccessToken($user->id,[],new Client($clientId, 'mini-app', null));
+        $accessToken = new AccessToken($user->id,$scopes,new Client($clientId, null, null));
         $iii = $this->generateUniqueIdentifier();
         $accessToken->setIdentifier($iii);
         $accessToken->setExpiryDateTime((new DateTimeImmutable())->add(Passport::tokensExpireIn()) );
@@ -122,9 +122,9 @@ trait PassportToken
         return $response->generateHttpResponse(new Response);
     }
 
-    protected function getBearerTokenByUser(User $user, $clientId, $output = true)
+    protected function getBearerTokenByUser(User $user, $clientId, $scopes = [], $output = true)
     {
-        $passportToken = $this->createPassportTokenByUser($user, $clientId);
+        $passportToken = $this->createPassportTokenByUser($user, $clientId, $scopes);
         $bearerToken = $this->sendBearerTokenResponse($passportToken['access_token'], $passportToken['refresh_token']);
 
         if (! $output) {
