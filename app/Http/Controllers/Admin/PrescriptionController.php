@@ -122,9 +122,7 @@ class PrescriptionController extends Controller
 
     public function shop_statistics()
     {
-        $up = Shop::with('own')->where(function ($query) {
-            $query->where('chufang_mt', '<>', '')->orWhere('chufang_ele', '<>', '')->orWhere('jddj', '<>', '');
-        })->whereHas('own', function ($query) {
+        $up = Shop::with('own')->where('second_category', '200001')->whereHas('own', function ($query) {
             $query->where('operate_money', '<', 50);
         })->where('chufang_status', 1)->where('status', '>', 0)->count();
 
@@ -147,9 +145,8 @@ class PrescriptionController extends Controller
     {
         $query = Shop::with(['own' => function ($query) {
             $query->select('id', 'phone', 'operate_money as money');
-        }])->select('id','own_id','shop_name','mtwm','ele','jddj','chufang_status as status')->where(function ($query) {
-            $query->where('chufang_mt', '<>', '')->orWhere('chufang_ele', '<>', '')->orWhere('jddj', '<>', '');
-        })->where('status', '>', 0);
+        }])->select('id','own_id','shop_name','mtwm','ele','jddj','chufang_status as status')
+            ->where('second_category', '200001')->where('status', '>', 0);
 
         if ($phone = $request->get('phone')) {
             $query->whereHas('own', function ($query) use ($phone) {
@@ -181,7 +178,11 @@ class PrescriptionController extends Controller
             $query->where('shop_name', 'like', "%{$name}%");
         }
 
-        $data = $query->orderByDesc('id')->paginate($request->get('page_size', 10));
+        $query->whereHas('own', function ($query) use ($phone) {
+            $query->orderByDesc('operate_money');
+        });
+
+        $data = $query->paginate($request->get('page_size', 10));
 
         return $this->page($data);
     }

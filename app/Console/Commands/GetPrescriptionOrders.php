@@ -85,7 +85,7 @@ class GetPrescriptionOrders extends Command
                                         $current_user = DB::table('users')->find($shop->user_id);
                                         $money = 1.5;
                                         $data = WmPrescription::query()->create($v);
-                                        if ($v['reviewStatus'] == '审核通过') {
+                                        if ($v['orderStatus'] == '已完成') {
                                             UserOperateBalance::create([
                                                 "user_id" => $current_user->id,
                                                 "money" => $money,

@@ -116,7 +116,7 @@ class PrescriptionController extends Controller
     public function shops(Request $request)
     {
         $shops = Shop::query()->select('id', 'shop_name')
-            ->where('chufang_mt', '<>', '')
+            ->where('second_category', '200001')
             ->whereIn('id', $request->user()->shops()->pluck('id'))
             ->get();
         return $this->success($shops);
