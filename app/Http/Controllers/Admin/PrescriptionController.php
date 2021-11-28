@@ -148,7 +148,7 @@ class PrescriptionController extends Controller
         $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
                 'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
-        ->where('shops.user_id', '>', 0);
+        ->where('shops.user_id', '>', 0)->where('shops.second_category', '200001');
 
         if ($status = $request->get('status')) {
             if (in_array($status, [1, 2])) {
@@ -178,7 +178,6 @@ class PrescriptionController extends Controller
         $order_key = $request->get('order_key');
         $order = $request->get('order');
         if ($order_key && $order) {
-            \Log::info("aaa", [$order_key, $order_key == 'uid']);
             if ($order_key == 'uid') {
                 if ($order == 'descend') {
                     $query->orderByDesc('users.id');
@@ -188,7 +187,6 @@ class PrescriptionController extends Controller
             }
             if ($order_key == 'operate_money') {
                 if ($order == 'descend') {
-                    \Log::info("money-descend");
                     $query->orderByDesc('users.operate_money');
                 } else {
                     $query->orderBy('users.operate_money');

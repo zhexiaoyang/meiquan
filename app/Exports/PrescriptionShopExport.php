@@ -5,6 +5,7 @@ namespace App\Exports;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromQuery;
@@ -32,42 +33,57 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
     {
         $request = $this->request;
 
-        $query = Shop::with(['own' => function ($query) {
-            $query->select('id', 'phone', 'operate_money as money');
-        }])->select('id','own_id','shop_name','mtwm','ele','jddj','chufang_status as status')
-            ->where('second_category', '200001')->where('status', '>', 0);
 
-        if ($phone = $request->get('phone')) {
-            $query->whereHas('own', function ($query) use ($phone) {
-                $query->where('phone', 'like', "%{$phone}%");
-            });
-        }
-        if ($start = $request->get('start')) {
-            $query->whereHas('own', function ($query) use ($start) {
-                $query->where('operate_money', '>=', $start);
-            });
-        }
-        if ($end = $request->get('end')) {
-            $query->whereHas('own', function ($query) use ($end) {
-                $query->where('operate_money', '<', $end);
-            });
-        }
+        $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
+            ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
+                'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
+            ->where('shops.user_id', '>', 0)->where('shops.second_category', '200001');
+
         if ($status = $request->get('status')) {
             if (in_array($status, [1, 2])) {
-                $query->where('chufang_status', $status);
+                $query->where('shops.chufang_status', $status);
             }
             if ($status == 3) {
-                $query->where('chufang_status', '>', 0);
+                $query->where('shops.chufang_status', '>', 0);
             }
             if ($status == 4) {
-                $query->where('chufang_status', 0);
+                $query->where('shops.chufang_status', 0);
             }
         }
         if ($name = $request->get('name')) {
-            $query->where('shop_name', 'like', "%{$name}%");
+            $query->where('shops.shop_name', 'like', "%{$name}%");
         }
 
-        $query->orderByDesc('id');
+        if ($phone = $request->get('phone')) {
+            $query->where('users.phone', 'like', "%{$phone}%");
+        }
+        if ($start = $request->get('start')) {
+            $query->where('users.operate_money', '>=', $start);
+        }
+        if ($end = $request->get('end')) {
+            $query->where('users.operate_money', '<', $end);
+        }
+
+        $order_key = $request->get('order_key');
+        $order = $request->get('order');
+        if ($order_key && $order) {
+            if ($order_key == 'uid') {
+                if ($order == 'descend') {
+                    $query->orderByDesc('users.id');
+                } else {
+                    $query->orderBy('users.id');
+                }
+            }
+            if ($order_key == 'operate_money') {
+                if ($order == 'descend') {
+                    $query->orderByDesc('users.operate_money');
+                } else {
+                    $query->orderBy('users.operate_money');
+                }
+            }
+        } else {
+            $query->orderByDesc('shops.id');
+        }
 
         return $query;
     }
