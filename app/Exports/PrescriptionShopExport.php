@@ -96,9 +96,9 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
             $shop->ele ? "'" . $shop->ele : '',
             $shop->jddj ? "'" . $shop->jddj : '',
             $shop->shop_name,
-            $shop->own->id ?? '',
-            $shop->own->phone ?? '',
-            $shop->own->money ?? '',
+            $shop->uid ?? '',
+            $shop->phone ?? '',
+            $shop->operate_money ?? '',
             $shop->status == 1 ? '上线' : '下线',
         ];
     }
