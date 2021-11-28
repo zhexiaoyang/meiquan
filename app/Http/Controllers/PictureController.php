@@ -15,4 +15,19 @@ class PictureController extends Controller
         $res = $xf->xfyun($file);
         return $this->success($res);
     }
+
+    public function xunfei_yyzz(Request $request)
+    {
+        if (!$url = $request->get('url')) {
+            return $this->error('图片不能为空', 422);
+        }
+        $xf = new XunFei();
+        $res = $xf->yyzz($url);
+
+        $data = [
+            'name' => $res['data']['biz_license_company_name'] ?? '',
+            'code' => $res['data']['biz_license_credit_code'] ?? '',
+        ];
+        return $this->success($data);
+    }
 }

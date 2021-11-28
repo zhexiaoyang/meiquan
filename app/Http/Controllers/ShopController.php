@@ -262,9 +262,15 @@ class ShopController extends Controller
      */
     public function store(Request $request, Shop $shop)
     {
-        // \Log::info("创建门店全部参数", $request->all());
-        $user = Auth::user();
+        if (!$yyzz = $request->get('yyzz')) {
+            return $this->error('营业执照编号不能为空', 422);
+        }
 
+        if (Shop::where('yyzz', $yyzz)->first()) {
+            return $this->error('该营业执照已存在，请核对', 422);
+        }
+
+        $user = Auth::user();
         $shop->fill($request->all());
 
         if (!$request->get("city")) {

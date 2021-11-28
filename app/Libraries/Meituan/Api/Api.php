@@ -255,11 +255,17 @@ class Api extends Request
             ]
         ];
 
+        $second_category = $shop->second_category;
+
+        if ($second_category == '200902' || $second_category == '200903') {
+            $second_category = '200001';
+        }
+
         $params = [
             'shop_id' => $shop->id,
             'shop_name' => $shop->shop_name,
             'category' => $shop->category,
-            'second_category' => $shop->second_category,
+            'second_category' => $second_category,
             'contact_name' => (string) $shop->contact_name,
             'contact_phone' => $shop->contact_phone,
             'shop_address' => $shop->shop_address,

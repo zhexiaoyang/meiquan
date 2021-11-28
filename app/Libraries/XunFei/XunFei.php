@@ -126,6 +126,44 @@ class XunFei
     }
 
     /**
+     * 营业执照识别
+     */
+    public function yyzz($url)
+    {
+        // OCRwebapi接口地址
+        $api = "http://webapi.xfyun.cn/v1/service/v1/ocr/business_license";
+        // 应用APPID(必须为webapi类型应用,并开通营业执照识别服务,参考帖子如何创建一个webapi应用：http://bbs.xfyun.cn/forum.php?mod=viewthread&tid=36481)
+        $XAppid = "78b1fe5a";
+        // 接口密钥(webapi类型应用开通营业执照识别服务后,控制台--我的应用---营业执照识别---相应服务的apikey)
+        $Apikey = "ad3530c1e60fd18770def193d63026f0";
+        $XCurTime =time();
+        // 引擎类型
+        $Param= array(
+            "engine_type"=>"business_license",
+        );
+        // 图片上传地址
+        $image=file_get_contents($url);
+        $image=base64_encode($image);
+        $Post = array(
+            'image' => $image,
+        );
+        $XParam = base64_encode(json_encode($Param));
+        $XCheckSum = md5($Apikey.$XCurTime.$XParam);
+        // 组装http请求头
+        $headers = array();
+        $headers[] = 'X-CurTime:'.$XCurTime;
+        $headers[] = 'X-Param:'.$XParam;
+        $headers[] = 'X-Appid:'.$XAppid;
+        $headers[] = 'X-CheckSum:'.$XCheckSum;
+        $headers[] = 'Content-Type:application/x-www-form-urlencoded; charset=utf-8';
+        $res =  $this->http_request($api, $Post, $headers);
+        $res_data = json_decode($res, true);
+        \Log::info('讯飞-营业执照识别|结果：', $res_data);
+
+        return $res_data;
+    }
+
+    /**
      * 发送post请求
      * @param string $url 请求地址
      * @param array $post_data post键值对数据

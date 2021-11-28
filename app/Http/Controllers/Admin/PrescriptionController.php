@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\WmPrescription;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PrescriptionController extends Controller
 {
@@ -143,44 +144,61 @@ class PrescriptionController extends Controller
      */
     public function shop(Request $request)
     {
-        $query = Shop::with(['own' => function ($query) {
-            $query->select('id', 'phone', 'operate_money as money');
-        }])->select('id','own_id','shop_name','mtwm','ele','jddj','chufang_status as status')
-            ->where('second_category', '200001')->where('status', '>', 0);
 
-        if ($phone = $request->get('phone')) {
-            $query->whereHas('own', function ($query) use ($phone) {
-                $query->where('phone', 'like', "%{$phone}%");
-            });
-        }
-        if ($start = $request->get('start')) {
-            $query->whereHas('own', function ($query) use ($start) {
-                $query->where('operate_money', '>=', $start);
-            });
-        }
-        if ($end = $request->get('end')) {
-            $query->whereHas('own', function ($query) use ($end) {
-                $query->where('operate_money', '<', $end);
-            });
-        }
+        $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
+            ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
+                'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
+        ->where('shops.user_id', '>', 0);
+
         if ($status = $request->get('status')) {
             if (in_array($status, [1, 2])) {
-                $query->where('chufang_status', $status);
+                $query->where('shops.chufang_status', $status);
             }
             if ($status == 3) {
-                $query->where('chufang_status', '>', 0);
+                $query->where('shops.chufang_status', '>', 0);
             }
             if ($status == 4) {
-                $query->where('chufang_status', 0);
+                $query->where('shops.chufang_status', 0);
             }
         }
         if ($name = $request->get('name')) {
-            $query->where('shop_name', 'like', "%{$name}%");
+            $query->where('shops.shop_name', 'like', "%{$name}%");
         }
 
-        $query->whereHas('own', function ($query) use ($phone) {
-            $query->orderByDesc('operate_money');
-        });
+        if ($phone = $request->get('phone')) {
+            $query->where('users.phone', 'like', "%{$phone}%");
+        }
+        if ($start = $request->get('start')) {
+            $query->where('users.operate_money', '>=', $start);
+        }
+        if ($end = $request->get('end')) {
+            $query->where('users.operate_money', '<', $end);
+        }
+
+        $order_key = $request->get('order_key');
+        $order = $request->get('order');
+        if ($order_key && $order) {
+            \Log::info("aaa", [$order_key, $order_key == 'uid']);
+            if ($order_key == 'uid') {
+                if ($order == 'descend') {
+                    $query->orderByDesc('users.id');
+                } else {
+                    $query->orderBy('users.id');
+                }
+            }
+            if ($order_key == 'operate_money') {
+                if ($order == 'descend') {
+                    \Log::info("money-descend");
+                    $query->orderByDesc('users.operate_money');
+                } else {
+                    $query->orderBy('users.operate_money');
+                }
+            }
+        } else {
+            $query->orderByDesc('shops.id');
+        }
+
+        // $query->orderByDesc('shops.id');
 
         $data = $query->paginate($request->get('page_size', 10));
 
@@ -228,6 +246,23 @@ class PrescriptionController extends Controller
             Shop::query()->whereIn('id', $ids)->update(['chufang_status' => 1]);
         }
         // $shop->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 处方门店-关闭处方
+     * @data 2021/11/19 10:26 下午
+     */
+    public function shop_delete(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+        $shop->chufang_mt = '';
+        $shop->chufang_ele = '';
+        $shop->chufang_jddj = '';
+        $shop->save();
 
         return $this->success();
     }

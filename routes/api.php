@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(["force-json"])->group(function() {
 
     Route::post("picture/ticket", "PictureController@ticket")->name("picture.ticket");
+    Route::post("picture/xunfei/yyzz", "PictureController@xunfei_yyzz")->name("picture.xunfei_yyzz");
     // *注册、登录验证码
     Route::post("code", "CommonController@getVerifyCode")->name("code");
     // *中台注册
@@ -244,6 +245,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("prescription/shop/export", "PrescriptionController@shop_export")->name("admin.prescription.shop.export");
             // 处方后台-门店管理-更新门店状态
             Route::post("prescription/shop", "PrescriptionController@shop_update")->name("admin.prescription.shop.update");
+            // 处方后台-门店管理-关闭处方
+            Route::post("prescription/shop/delete", "PrescriptionController@shop_delete")->name("admin.prescription.shop.delete");
             // 处方后台-门店管理-门店统计
             Route::get("prescription/shop/statistics", "PrescriptionController@shop_statistics")->name("admin.prescription.shop.statistics");
             // 处方后台-处方管理-订单列表
