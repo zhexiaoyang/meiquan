@@ -262,6 +262,7 @@ class PrescriptionController extends Controller
         $shop->chufang_mt = '';
         $shop->chufang_ele = '';
         $shop->chufang_jddj = '';
+        $shop->chufang_status = 0;
         $shop->save();
 
         return $this->success();
