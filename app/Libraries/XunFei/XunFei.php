@@ -130,6 +130,7 @@ class XunFei
      */
     public function yyzz($url)
     {
+        \Log::info("讯飞-营业执照识别|开始识别：{$url}");
         // OCRwebapi接口地址
         $api = "http://webapi.xfyun.cn/v1/service/v1/ocr/business_license";
         // 应用APPID(必须为webapi类型应用,并开通营业执照识别服务,参考帖子如何创建一个webapi应用：http://bbs.xfyun.cn/forum.php?mod=viewthread&tid=36481)
