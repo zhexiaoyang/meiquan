@@ -128,8 +128,10 @@ class ShopController extends Controller
                 // 自动接单
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['mt_shop_id_status'] = (bool) $shop->mt_shop_id;
+                $tmp['mt_shop_id_auto_status'] = (bool) $shop->auto_mtwm;
                 $tmp['ele_shop_id'] = $shop->ele_shop_id;
                 $tmp['ele_shop_id_status'] = (bool) $shop->ele_shop_id;
+                $tmp['ele_shop_id_auto_status'] = (bool) $shop->auto_ele;
                 // 处方订单
                 $tmp['chufang_mt'] = $shop->chufang_mt;
                 $tmp['chufang_mt_status'] = (bool) $shop->mtwm_cf;
@@ -266,8 +268,8 @@ class ShopController extends Controller
             return $this->error('营业执照编号不能为空', 422);
         }
 
-        if (Shop::where('yyzz', $yyzz)->first()) {
-            return $this->error('该营业执照已存在，请核对', 422);
+        if ($_shop = Shop::where('yyzz', $yyzz)->first()) {
+            return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
         }
 
         $user = Auth::user();
@@ -618,13 +620,9 @@ class ShopController extends Controller
     }
 
     /**
-     * 绑定门店-自动发单
-     * @param Request $request
-     * @return mixed
-     * @author zhangzhen
-     * @data 2020/11/4 7:53 上午
+     * 绑定门店-外卖订单
      */
-    public function binding(Request $request)
+    public function bindingTakeout(Request $request)
     {
         if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
@@ -634,73 +632,6 @@ class ShopController extends Controller
             if (Shop::where('mt_shop_id', $mtwm)->first()) {
                 return $this->error('该美团ID已经绑定门店，请核对后再试');
             }
-            $status = false;
-            $params = ['app_poi_codes' => $mtwm];
-
-            $mk = app('minkang');
-            $mk_shops = $mk->getShops($params);
-            if (!$status && !empty($mk_shops['data'])) {
-                $shop->mt_shop_id = $mtwm;
-                $shop->save();
-                return $this->success();
-            }
-
-            $mq = app('meiquan');
-            $mq_shops = $mq->getShops($params);
-            if (!$status && !empty($mq_shops['data'])) {
-                $shop->mt_shop_id = $mtwm;
-                $shop->save();
-                return $this->success();
-            }
-
-            $qq = app('qinqu');
-            $qq_shops = $qq->getShops($params);
-            if (!$status && !empty($qq_shops['data'])) {
-                $shop->mt_shop_id = $mtwm;
-                $shop->save();
-                return $this->success();
-            }
-            return $this->error('该门店没有授权开放平台,请先授权。如是民康门店,请联系技术处理');
-        }
-
-        if ($ele = $request->get("ele", '')) {
-            $e = app('ele');
-            $data = $e->shopInfo($ele);
-            if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
-                $shop->ele_shop_id = $ele;
-                $shop->save();
-                return $this->success();
-            }
-            return $this->error('该门店没有授权开放平台,请先授权');
-        }
-
-        return $this->success();
-    }
-    public function bindingChufang(Request $request)
-    {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
-            return $this->error("门店不存在");
-        }
-
-        if ($mtwm = $request->get("mtwm", '')) {
-            $shop->mtwm_cf = $mtwm;
-            $shop->save();
-        }
-
-        if ($ele = $request->get("ele", '')) {
-            $shop->ele_cf = $ele;
-            $shop->save();
-        }
-
-        return $this->success();
-    }
-    public function bindingTakeout(Request $request)
-    {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
-            return $this->error("门店不存在");
-        }
-
-        if ($mtwm = $request->get("mtwm", '')) {
             $status = false;
             $params = ['app_poi_codes' => $mtwm];
 
@@ -739,6 +670,115 @@ class ShopController extends Controller
                 return $this->success();
             }
             return $this->error('该门店没有授权开放平台,请先授权');
+        }
+
+        return $this->success();
+    }
+
+    public function bindingChufang(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+            return $this->error("门店不存在");
+        }
+
+        if ($mtwm = $request->get("mtwm", '')) {
+            $shop->mtwm_cf = $mtwm;
+            $shop->save();
+        }
+
+        if ($ele = $request->get("ele", '')) {
+            $shop->ele_cf = $ele;
+            $shop->save();
+        }
+
+        return $this->success();
+    }
+
+    /**
+     * 绑定门店-自动接单
+     */
+    public function binding(Request $request)
+    {
+        $mtwm = $request->get("mtwm", '');
+        $ele = $request->get("ele", '');
+
+        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+            return $this->error("门店不存在");
+        }
+
+        if ($mtwm) {
+            if ($_shop = Shop::query()->where('mt_shop_id', $mtwm)->first()) {
+                return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+            if ($_shop = Shop::query()->where('auto_mtwm', $mtwm)->first()) {
+                return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+        }
+        if ($ele) {
+            if ($_shop = Shop::query()->where('ele_shop_id', $ele)->first()) {
+                return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+            if ($_shop = Shop::query()->where('auto_ele', $ele)->first()) {
+                return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+        }
+
+        if ((mb_strstr($shop->shop_name, '寝趣') !== false) || (mb_strstr($shop->shop_name, '唤趣') !== false)) {
+            if ($mtwm) {
+                $status = false;
+                $params = ['app_poi_codes' => $mtwm];
+
+                $mk = app('minkang');
+                $mk_shops = $mk->getShops($params);
+                if (!$status && !empty($mk_shops['data'])) {
+                    $shop->auto_mtwm = $mtwm;
+                    $shop->mt_shop_id = $mtwm;
+                    $shop->save();
+                    return $this->success();
+                }
+
+                $mq = app('meiquan');
+                $mq_shops = $mq->getShops($params);
+                if (!$status && !empty($mq_shops['data'])) {
+                    $shop->auto_mtwm = $mtwm;
+                    $shop->mt_shop_id = $mtwm;
+                    $shop->save();
+                    return $this->success();
+                }
+
+                $qq = app('qinqu');
+                $qq_shops = $qq->getShops($params);
+                if (!$status && !empty($qq_shops['data'])) {
+                    $shop->auto_mtwm = $mtwm;
+                    $shop->mt_shop_id = $mtwm;
+                    $shop->save();
+                    return $this->success();
+                }
+                return $this->error('该门店没有授权开放平台,请先授权。如是民康门店,请联系技术处理');
+            }
+
+            if ($ele) {
+                $e = app('ele');
+                $data = $e->shopInfo($ele);
+                if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                    $shop->auto_ele = $ele;
+                    $shop->ele_shop_id = $ele;
+                    $shop->save();
+                    return $this->success();
+                }
+                return $this->error('该门店没有授权开放平台,请先授权');
+            }
+        } else {
+
+            if ($mtwm) {
+                $shop->auto_mtwm = $mtwm;
+                $shop->save();
+            }
+
+            if ($ele) {
+                $shop->auto_ele = $ele;
+                $shop->save();
+            }
         }
 
         return $this->success();

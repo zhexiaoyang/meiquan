@@ -77,18 +77,18 @@ class ExamineShopController extends Controller
             $page_size = 10;
         }
 
-        $query = Shop::query()->select("id","mtwm","ele","shop_name","shop_address","category","second_category","contact_name",
+        $query = Shop::query()->select("id","auto_mtwm as mtwm","auto_ele as ele","shop_name","shop_address","category","second_category","contact_name",
             "contact_phone","shop_lng","shop_lat","status","created_at","mt_shop_id","ele_shop_id")
             ->where(function ($query) {
                 $query->where(
                     [
                         ['mt_shop_id', ""],
-                        ['mtwm', '<>', ""],
+                        ['auto_mtwm', '<>', ""],
                     ]
                 )->orWhere(
                     [
                         ['ele_shop_id', ""],
-                        ['ele', '<>', ""],
+                        ['auto_ele', '<>', ""],
                     ]
                 );
             });
@@ -123,17 +123,17 @@ class ExamineShopController extends Controller
         }
 
         if ($status === 1) {
-            if ($shop->mtwm) {
-                $shop->mt_shop_id = $shop->mtwm;
+            if ($shop->auto_mtwm) {
+                $shop->mt_shop_id = $shop->auto_mtwm;
             }
-            if ($shop->ele) {
-                $shop->ele_shop_id = $shop->ele;
+            if ($shop->auto_ele) {
+                $shop->ele_shop_id = $shop->auto_ele;
             }
         }
 
         if ($status === 2) {
-            $shop->mtwm = "";
-            $shop->ele = "";
+            $shop->auto_mtwm = "";
+            $shop->auto_ele = "";
         }
 
         $shop->save();
