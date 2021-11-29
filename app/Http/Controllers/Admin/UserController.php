@@ -23,8 +23,10 @@ class UserController extends Controller
     {
         $running_total = User::query()->sum("money");
         $shopping_total = User::query()->sum("frozen_money");
+        $operate_total = User::query()->sum("operate_money");
         $running_number = User::query()->where('money', '>', 0)->count();
         $shopping_number = User::query()->where('frozen_money', '>', 0)->count();
+        $operate_number = User::query()->where('operate_money', '>', 0)->count();
 
         $where_t = [
             ['status', 1],
@@ -38,18 +40,24 @@ class UserController extends Controller
         ];
         $today_running = Deposit::query()->where($where_t)->where("type", 1)->sum('amount');
         $today_shopping = Deposit::query()->where($where_t)->where("type", 2)->sum('amount');
+        $today_operate = Deposit::query()->where($where_t)->where("type", 3)->sum('amount');
         $yesterday_running = Deposit::query()->where($where_y)->where("type", 1)->sum('amount');
         $yesterday_shopping = Deposit::query()->where($where_y)->where("type", 2)->sum('amount');
+        $yesterday_operate = Deposit::query()->where($where_y)->where("type", 3)->sum('amount');
 
         $data = [
             'running_total' => $running_total,
             'shopping_total' => $shopping_total,
+            'operate_total' => $operate_total,
             'running_number' => $running_number,
             'shopping_number' => $shopping_number,
+            'operate_number' => $operate_number,
             'today_running' => $today_running,
             'today_shopping' => $today_shopping,
+            'today_operate' => $today_operate,
             'yesterday_running' => $yesterday_running,
             'yesterday_shopping' => $yesterday_shopping,
+            'yesterday_operate' => $yesterday_operate,
         ];
 
         return $this->success($data);
