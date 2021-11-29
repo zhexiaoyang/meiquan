@@ -329,12 +329,13 @@ class ShopAdminController extends Controller
                             // ]);
                             // $logs->save();
                             // 微信支付原路返回
+                            $pay_fee = SupplierOrder::where('pay_no', $order->pay_no)->sum('pay_fee');
                             if ($order->payment_no) {
                                 $order = [
                                     'transaction_id' => $order->payment_no,
                                     'out_refund_no' => $order->no,
                                     'refund_fee' => intval($order->pay_fee * 100),
-                                    'total_fee' => intval($order->pay_fee * 100),
+                                    'total_fee' => intval($pay_fee * 100),
                                     "refund_desc" => "取消订单"
                                 ];
                                 $config = config('pay.wechat_supplier');
