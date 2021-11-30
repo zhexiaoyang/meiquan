@@ -134,9 +134,9 @@ class ShopController extends Controller
                 $tmp['ele_shop_id_auto_status'] = (bool) $shop->auto_ele;
                 // 处方订单
                 $tmp['chufang_mt'] = $shop->chufang_mt;
-                $tmp['chufang_mt_status'] = (bool) $shop->mtwm_cf;
+                $tmp['chufang_mt_status'] = (bool) $shop->chufang_mt;
                 $tmp['chufang_ele'] = $shop->chufang_ele;
-                $tmp['chufang_ele_status'] = (bool) $shop->ele_cf;
+                $tmp['chufang_ele_status'] = (bool) $shop->chufang_ele;
                 // 外卖
                 $tmp['waimai_mt'] = $shop->waimai_mt;
                 $tmp['waimai_mt_status'] = (bool) $shop->waimai_mt;
