@@ -108,7 +108,7 @@ class CreateMtShop implements ShouldQueue
 
         if (!$this->shop->shop_id_sf) {
             $code = intval($this->shop->citycode);
-            if (in_array($code, [23,28,29,431,432,451,755,760])) {
+            if (in_array($code, [23,28,29,431,432,451,755,760,769,459,379,354])) {
                 $this->shop->shop_id_sf = $this->shop->id;
                 $this->shop->save();
             }
