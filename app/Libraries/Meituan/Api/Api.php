@@ -200,7 +200,7 @@ class Api extends Request
     {
         $params = [
             'shop_id' => (string) $shop->shop_id,
-            'delivery_service_code' => 100004,
+            'delivery_service_code' => 100005,
             'receiver_address' => $order->receiver_address,
             'receiver_lng' => $order->receiver_lng * 1000000,
             'receiver_lat' => $order->receiver_lat * 1000000,
@@ -272,7 +272,7 @@ class Api extends Request
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
             'coordinate_type' => 0,
-            'delivery_service_codes' => 100004,
+            'delivery_service_codes' => 100005,
             'business_hours' => json_encode($time),
         ];
 
