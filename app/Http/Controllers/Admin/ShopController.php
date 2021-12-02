@@ -55,12 +55,18 @@ class ShopController extends Controller
 
             if (($mtwm = $apply->mtwm) && !$shop->mtwm) {
                 $shop->mtwm = $mtwm;
+                $shop->chufang_mt = $mtwm;
+                // $shop->chufang_status = 2;
             }
             if (($ele = $apply->ele) && !$shop->ele) {
                 $shop->ele = $ele;
+                $shop->chufang_ele = $ele;
+                // $shop->chufang_status = 2;
             }
             if (($jddj = $apply->jddj) && !$shop->jddj) {
                 $shop->jddj = $jddj;
+                $shop->chufang_jddj = $ele;
+                // $shop->chufang_status = 2;
             }
 
             $shop->save();
