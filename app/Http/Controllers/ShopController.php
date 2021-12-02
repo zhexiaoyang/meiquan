@@ -637,8 +637,8 @@ class ShopController extends Controller
         }
 
         if ($mtwm = $request->get("mtwm", '')) {
-            if (Shop::where('mt_shop_id', $mtwm)->first()) {
-                return $this->error('该美团ID已经绑定门店，请核对后再试');
+            if ($_shop = Shop::where('waimai_mt', $mtwm)->first()) {
+                return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
             }
             $status = false;
             $params = ['app_poi_codes' => $mtwm];
@@ -670,6 +670,9 @@ class ShopController extends Controller
         }
 
         if ($ele = $request->get("ele", '')) {
+            if ($_shop = Shop::where('waimai_ele', $ele)->first()) {
+                return $this->error("饿了么ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
             $e = app('ele');
             $data = $e->shopInfo($ele);
             if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
