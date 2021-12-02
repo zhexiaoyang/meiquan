@@ -51,6 +51,19 @@ class Shop extends Model
         return $this->belongsTo(User::class, 'own_id', 'id');
     }
 
+    /**
+     * 申请三方ID记录
+     * @data 2021/12/1 2:21 下午
+     */
+    public function apply_three_id()
+    {
+        return $this->hasOne(ShopThreeId::class, "shop_id", "id");
+    }
+
+    /**
+     * 认证门店
+     * @data 2021/12/1 2:15 下午
+     */
     public function auth_shop()
     {
         return $this->hasOne(ShopAuthentication::class, "shop_id", "id");

@@ -26,24 +26,40 @@ class IndexController extends Controller
      */
     public function card(Request $request)
     {
-        $order_query = Order::query()->where("over_at", ">", date("Y-m-d"))->where("status", 70);
-        $shop_query = Shop::query()->where("status", 40);
-        $online_query = OnlineShop::query()->where("status", 40);
-        $supplier_query = SupplierOrder::query()->whereIn("status", [30, 50]);
+        $order_query = Order::where("over_at", ">", date("Y-m-d"))->where("status", 70);
+        $shop_query = Shop::where("user_id", '>', 0);
+        $shop_no_auto_query = Shop::where("user_id", '>', 0);
+        $online_query = OnlineShop::where("status", 40);
+        $supplier_query = SupplierOrder::whereIn("status", [30, 50]);
 
         // 判断可以查询的药店
         if (!$request->user()->hasRole('super_man')) {
             $order_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $shop_query->whereIn('id', $request->user()->shops()->pluck('id'));
+            $shop_no_auto_query->whereIn('id', $request->user()->shops()->pluck('id'));
             $online_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $supplier_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+
+        $supplier_new_orders = SupplierOrder::query()->select('receive_shop_id')->where('created_at', '>=', date("Y-m-01"))->get();
+        $old_ids = SupplierOrder::select('receive_shop_id')->where('created_at', '<', date("Y-m-01"))->pluck('receive_shop_id')->toArray();
+        $supplier_new = 0;
+        if (!empty($supplier_new_orders)) {
+            foreach ($supplier_new_orders as $supplier_new_order) {
+                if (!in_array($supplier_new_order->receive_shop_id, $old_ids)) {
+                    $supplier_new++;
+                }
+            }
         }
 
         $res = [
             "order" => $order_query->count(),
             "shop" => $shop_query->count(),
+            "shop_new" => $shop_query->where('created_at', '>=', date("Y-m-01"))->count(),
+            "shop_no_auth" => $shop_no_auto_query->where('auth', '<', 10)->count(),
             "online" => $online_query->count(),
             "supplier" => $supplier_query->count(),
+            "supplier_new" => $supplier_new,
         ];
 
         return $this->success($res);

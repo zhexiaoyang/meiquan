@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Exports\PrescriptionShopExport;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
-use Illuminate\Database\Query\Builder;
+use App\Models\ShopThreeId;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -25,6 +24,58 @@ class ShopController extends Controller
         return $this->success($shops);
     }
 
+    /**
+     * 审核管理-三方门店ID审核
+     * @data 2021/12/1 4:27 下午
+     */
+    public function apply_three_id_shops(Request $request)
+    {
+        $query = ShopThreeId::with(['shop' => function ($query) {
+            $query->select('id', 'shop_name', 'contact_name', 'contact_phone');
+        }]);
+
+        $data = $query->get();
+
+        return $this->success($data);
+    }
+
+    public function apply_three_id_save(Request $request)
+    {
+        $id = $request->get('id', 0);
+        $status = $request->get('status', 0);
+
+        if (!$apply = ShopThreeId::find($id)) {
+            return $this->error('门店不存在');
+        }
+
+        if ($status == 1) {
+            if (!$shop = Shop::query()->find($apply->shop_id)) {
+                return $this->error('门店不存在');
+            }
+
+            if (($mtwm = $apply->mtwm) && !$shop->mtwm) {
+                $shop->mtwm = $mtwm;
+            }
+            if (($ele = $apply->ele) && !$shop->ele) {
+                $shop->ele = $ele;
+            }
+            if (($jddj = $apply->jddj) && !$shop->jddj) {
+                $shop->jddj = $jddj;
+            }
+
+            $shop->save();
+            $apply->delete();
+        } else {
+            $apply->delete();
+        }
+
+        return $this->success();
+    }
+
+    /**
+     * 管理员修改三方ID（已作废）
+     * @data 2021/12/1 4:20 下午
+     */
     public function update_three(Request $request)
     {
         if (!$shop = Shop::query()->find($request->get('id', 0))) {

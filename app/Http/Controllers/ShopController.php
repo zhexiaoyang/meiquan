@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
 use App\Models\ShopRange;
+use App\Models\ShopThreeId;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -32,7 +33,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'manager']);
+        }, 'manager', 'apply_three_id']);
 
         // 关键字搜索
         if ($search_key) {
@@ -121,10 +122,16 @@ class ShopController extends Controller
                 // 三方ID
                 $tmp['mtwm'] = $shop->mtwm;
                 $tmp['mtwm_status'] = (bool) $shop->mtwm;
+                $tmp['mtwm_apply_id'] = $shop->apply_three_id->mtwm ?? '';
+                $tmp['mtwm_apply_status'] = (bool) ($shop->apply_three_id->mtwm ?? '');
                 $tmp['ele'] = $shop->ele;
                 $tmp['ele_status'] = (bool) $shop->ele;
+                $tmp['ele_apply_id'] = $shop->apply_three_id->ele ?? '';
+                $tmp['ele_apply_status'] = (bool) ($shop->apply_three_id->ele ?? '');
                 $tmp['jddj'] = $shop->jddj;
                 $tmp['jddj_status'] = (bool) $shop->jddj;
+                $tmp['jddj_apply_id'] = $shop->apply_three_id->jddj ?? '';
+                $tmp['jddj_apply_status'] = (bool) ($shop->apply_three_id->jddj ?? '');
                 // 自动接单
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['mt_shop_id_status'] = (bool) $shop->mt_shop_id;
@@ -137,6 +144,7 @@ class ShopController extends Controller
                 $tmp['chufang_mt_status'] = (bool) $shop->chufang_mt;
                 $tmp['chufang_ele'] = $shop->chufang_ele;
                 $tmp['chufang_ele_status'] = (bool) $shop->chufang_ele;
+                $tmp['chufang_status'] = $shop->chufang_status === 1;
                 // 外卖
                 $tmp['waimai_mt'] = $shop->waimai_mt;
                 $tmp['waimai_mt_status'] = (bool) $shop->waimai_mt;
@@ -865,5 +873,40 @@ class ShopController extends Controller
             ->where("user_id", $user->id)->get();
 
         return $this->success($data);
+    }
+
+    public function update_three_id(Request $request)
+    {
+        $shop_id = $request->get('id', 0);
+
+        if (!$shop = Shop::query()->find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            if ($shop->own_id != Auth::user()->id) {
+                return $this->error('门店不存在');
+            }
+        }
+
+        if (!$apply = ShopThreeId::where('shop_id', $shop_id)->first()) {
+            $apply = new ShopThreeId();
+            $apply->shop_id = $shop_id;
+        }
+
+        if (($mtwm = $request->get('mtwm', '')) && !$shop->mtwm) {
+            $apply->mtwm = $mtwm;
+        }
+        if (($ele = $request->get('ele', '')) && !$shop->ele) {
+            $apply->ele = $ele;
+        }
+        if (($jddj = $request->get('jddj', '')) && !$shop->jddj) {
+            $apply->jddj = $jddj;
+        }
+
+        $apply->save();
+
+        return $this->success($shop);
     }
 }

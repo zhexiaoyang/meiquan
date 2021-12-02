@@ -137,6 +137,8 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 门店管理
          */
+        // *门店列表-修改三方门店ID
+        Route::post("shop/update/three", "ShopController@update_three_id")->name("shop.update.three.id");
         // *门店地址加配送范围信息
         Route::get("shop/range/{shop}", "ShopController@range")->name("shop.range");
         // 根据门店ID获取门店地址加配送范围信息
@@ -232,6 +234,8 @@ Route::middleware(["force-json"])->group(function() {
              */
             // 首页-跑腿统计
             Route::get("statistic/running", "RunningStatisticController@index")->name("admin.running.statistic.index");
+            // 首页-商城统计
+            Route::get("statistic/shopping", "ShoppingStatisticController@index")->name("admin.shopping.statistic.index");
             // 首页-外卖资料统计
             Route::get("statistic/online", "OnlineStatisticController@index")->name("admin.online.statistic.index");
             /**
@@ -258,6 +262,10 @@ Route::middleware(["force-json"])->group(function() {
              */
             // 门店管理-更新门店三方ID
             Route::post("shop/update/three", "ShopController@update_three")->name("admin.shop.update_three");
+            // 审核管理-三方门店ID审核
+            Route::get("shop/example/three_id", "ShopController@apply_three_id_shops")->name("admin.shop.example.three_id");
+            // 审核管理-三方门店ID审核
+            Route::post("shop/example/three_id", "ShopController@apply_three_id_save")->name("admin.shop.example.three_id.save");
             // 门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图

@@ -84,7 +84,20 @@ class GetPrescriptionOrders extends Command
                                         $v['shop_id'] = $shop->id;
                                         $current_user = DB::table('users')->find($shop->user_id);
                                         $money = 1.5;
-                                        $data = WmPrescription::query()->create($v);
+                                        $_tmp = [
+                                            'clientID' => $v['clientID'] ?? '',
+                                            'clientName' => $v['clientName'] ?? '',
+                                            'storeID' => $v['storeID'] ?? '',
+                                            'storeName' => $v['storeName'] ?? '',
+                                            'outOrderID' => $v['outOrderID'] ?? '',
+                                            'outRpId' => $v['outRpId'] ?? '',
+                                            'outDoctorName' => $v['outDoctorName'] ?? '',
+                                            'orderStatus' => $v['orderStatus'] ?? '',
+                                            'reviewStatus' => $v['reviewStatus'] ?? '',
+                                            'orderCreateTime' => $v['orderCreateTime'] ?? '',
+                                            'rpCreateTime' => $v['rpCreateTime'] ?? '',
+                                        ];
+                                        $data = WmPrescription::query()->create($_tmp);
                                         if ($v['orderStatus'] == '已完成') {
                                             UserOperateBalance::create([
                                                 "user_id" => $current_user->id,
