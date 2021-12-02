@@ -95,12 +95,13 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 相关信息
-        $shop = Shop::query()->find($this->order->shop_id);
-        $user = User::query()->find($shop->user_id ?? 0);
         // 判断用户和门店是否存在
-        if (!$shop && !$user) {
-            // Log::info($this->log."用户和门店不存在,不能发单");
-            $this->log("用户或门店不存在，停止派单");
+        if (!$shop = Shop::query()->find($this->order->shop_id)) {
+            $this->log("门店不存在，停止派单|shop_id:{$this->order->shop_id}");
+            return;
+        }
+        if (!$user = User::query()->find($shop->user_id ?? 0)) {
+            $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
             return;
         }
 
