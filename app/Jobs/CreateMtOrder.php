@@ -800,7 +800,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $fail_mt = $result_mt['message'] ?? "美团创建订单失败";
             DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt, 'mt_status' => 3]);
-            $this->log("「美团」发送订单失败：{$fail_mt}");
+            $this->log("「美团」发送订单失败：{$fail_mt}|所有平台：", [$this->services]);
             if (count($this->services) > 1) {
                 dispatch(new CreateMtOrder($this->order));
             } else {
