@@ -86,7 +86,7 @@ class CreateMtOrder implements ShouldQueue
             return;
         }
 
-        $lock = Cache::lock("send_order_job:{$this->order->id}", 6);
+        $lock = Cache::lock("send_order_job:{$this->order->id}", 5);
 
         if (!$lock->get()) {
             // 获取锁定6秒...
@@ -580,7 +580,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $fail_uu, 'dd_status' => 3]);
             $this->log("「UU」发送订单失败：{$fail_uu}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「UU」发送订单失败，没有平台了");
             }
@@ -633,7 +633,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_sf' => $fail_sf, 'sf_status' => 3]);
             $this->log("「顺丰」发送订单失败：{$fail_sf}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「顺丰」发送订单失败，没有平台了");
             }
@@ -685,7 +685,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $fail_dd, 'dd_status' => 3]);
             $this->log("「达达」发送订单失败：{$fail_dd}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「达达」发送订单失败，没有平台了");
             }
@@ -741,7 +741,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_mqd' => $fail_mqd, 'mqd_status' => 3]);
             $this->log("「美全达」发送订单失败：{$fail_mqd}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「美全达」发送订单失败，没有平台了");
             }
@@ -803,7 +803,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => $fail_mt, 'mt_status' => 3]);
             $this->log("「美团」发送订单失败：{$fail_mt}|所有平台：", [$this->services]);
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「美团」发送订单失败，没有平台了");
             }
@@ -861,7 +861,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => $fail_fn, 'fn_status' => 3]);
             $this->log("「蜂鸟」发送订单失败：{$fail_fn}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「蜂鸟」发送订单失败，没有平台了");
             }
@@ -915,7 +915,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => $fail_ss, 'ss_status' => 3]);
             $this->log("「闪送」发送订单失败：{$fail_ss}");
             if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order));
+                dispatch(new CreateMtOrder($this->order, 6));
             } else {
                 $this->log("「闪送」发送订单失败，没有平台了");
             }
