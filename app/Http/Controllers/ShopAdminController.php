@@ -77,6 +77,15 @@ class ShopAdminController extends Controller
                 $query->select("id", "name");
             }]);
 
+        if ($status = $request->get('status')) {
+            if ($status == 1) {
+                $query->where('status', 20);
+            }
+            if ($status == 2) {
+                $query->where('status', 10);
+            }
+        }
+
         $products = $query->orderBy("sort_admin")->orderBy("sort_supplier")->paginate($page_size);
 
         $result = [];
@@ -513,6 +522,15 @@ class ShopAdminController extends Controller
         $search_key = trim($request->get("search_key", ""));
 
         $query = SupplierUser::where("is_auth", 1);
+
+        if ($status = $request->get('status')) {
+            if ($status == 1) {
+                $query->where('online', 1);
+            }
+            if ($status == 2) {
+                $query->where('online', 0);
+            }
+        }
 
         if ($search_key) {
             $query->where("name","like", "%{$search_key}%");

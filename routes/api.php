@@ -195,6 +195,8 @@ Route::middleware(["force-json"])->group(function() {
          */
         // *已开通处方单门店列表
         Route::get("prescription/shops", "PrescriptionController@shops");
+        // *处方单列表-导出
+        Route::get("prescription/export", "PrescriptionController@export");
         // *处方单列表
         Route::get("prescription", "PrescriptionController@index");
         // *处方-线下下单
@@ -241,6 +243,8 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * 后台处方管理
              */
+            // *处方单列表-重新结算
+            Route::get("prescription/again", "PrescriptionController@again");
             // 处方后台-门店管理-门店列表
             Route::get("prescription/shop", "PrescriptionController@shop")->name("admin.prescription.shop.index");
             // 处方后台-门店管理-门店列表-所有

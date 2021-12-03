@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\PrescriptionOrderExport;
 use App\Models\Shop;
 use App\Models\WmPrescription;
 use Illuminate\Http\Request;
@@ -39,6 +40,11 @@ class PrescriptionController extends Controller
         $data = $query->paginate($page_size);
 
         return $this->page($data);
+    }
+
+    public function export(Request $request, PrescriptionOrderExport $export)
+    {
+        return $export->withRequest($request);
     }
 
     public function statistics(Request $request)

@@ -2,16 +2,21 @@
 
 namespace App\Console\Commands;
 
+use App\Jobs\SendSms;
+use App\Jobs\SendSmsNew;
 use App\Models\Shop;
-use App\Models\User;
 use App\Models\UserOperateBalance;
 use App\Models\WmPrescription;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class GetPrescriptionOrders extends Command
 {
+    protected $money = 1.5;
+    protected $expend = 0.8;
+    protected $income = 0.7;
     /**
      * The name and signature of the console command.
      *
@@ -43,7 +48,7 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $start_date = '2021-11-01';
+        $start_date = '2021-12-01';
         $last = WmPrescription::orderByDesc('id')->first();
         if ($last) {
             $start_date = $last->rpCreateTime;
@@ -75,6 +80,9 @@ class GetPrescriptionOrders extends Command
                             $switch = false;
                             break;
                         } else {
+                            if ($v['clientName'] == '美全科技B2C') {
+                                continue;
+                            }
                             $shop_id = $v['storeID'];
                             $order_id = $v['outOrderID'];
                             $v['platform'] = 1;
@@ -83,8 +91,13 @@ class GetPrescriptionOrders extends Command
                                     DB::transaction(function () use ($v, $shop, $order_id) {
                                         $v['shop_id'] = $shop->id;
                                         $current_user = DB::table('users')->find($shop->user_id);
-                                        $money = 1.5;
                                         $_tmp = [
+                                            'money' => $this->money,
+                                            'expend' => $this->expend,
+                                            'income' => $this->income,
+                                            'status' => 1,
+                                            'platform' => 1,
+                                            'shop_id' => $shop->id,
                                             'clientID' => $v['clientID'] ?? '',
                                             'clientName' => $v['clientName'] ?? '',
                                             'storeID' => $v['storeID'] ?? '',
@@ -98,29 +111,53 @@ class GetPrescriptionOrders extends Command
                                             'rpCreateTime' => $v['rpCreateTime'] ?? '',
                                         ];
                                         $data = WmPrescription::query()->create($_tmp);
-                                        if ($v['orderStatus'] == '已完成') {
+                                        if ($v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
                                             UserOperateBalance::create([
                                                 "user_id" => $current_user->id,
-                                                "money" => $money,
+                                                "money" => $this->money,
                                                 "type" => 2,
                                                 "before_money" => $current_user->operate_money,
-                                                "after_money" => ($current_user->operate_money - $money),
-                                                "description" => "[美团]处方单审方：" . $order_id,
+                                                "after_money" => ($current_user->operate_money - $this->money),
+                                                "description" => "处方单审方：" . $order_id,
                                                 "shop_id" => $shop->id,
                                                 "tid" => $data->id,
                                                 'order_at' => $v['rpCreateTime']
                                             ]);
                                             // 减去用户运营余额
-                                            DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
+                                            DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $this->money);
+                                            $_user = DB::table('users')->find($current_user->id);
+                                            if ($_user->operate_money < 50) {
+                                                $phone = $_user->phone;
+                                                $lock = Cache::lock("send_sms_chufang:{$phone}", 3600);
+                                                if ($lock->get()) {
+                                                    Log::info("处方余额不足发送短信：{$phone}");
+                                                    dispatch(new SendSmsNew($phone, "SMS_227744641", ['money' => 50, 'phone' => '15843224429']));
+                                                } else {
+                                                    Log::info("今天已经发过短信了：{$phone}");
+                                                }
+                                            }
                                         }
                                     });
                                 } else {
-                                    $v['status'] = 2;
-                                    $v['reason'] = '未开通处方';
-                                    WmPrescription::query()->create($v);
+                                    if ($v['orderStatus'] == '已取消') {
+                                        $v['status'] = 1;
+                                        WmPrescription::query()->create($v);
+                                    } else {
+                                        $v['money'] = $this->money;
+                                        $v['expend'] = $this->expend;
+                                        $v['income'] = $this->income;
+                                        $v['status'] = 2;
+                                        $v['platform'] = 1;
+                                        $v['reason'] = '未开通处方';
+                                        WmPrescription::query()->create($v);
+                                    }
                                 }
                             } else {
+                                $v['money'] = $this->money;
+                                $v['expend'] = $this->expend;
+                                $v['income'] = $this->income;
                                 $v['status'] = 2;
+                                $v['platform'] = 1;
                                 $v['reason'] = '门店ID或订单号不存在';
                                 WmPrescription::query()->create($v);
                             }
