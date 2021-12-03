@@ -23,7 +23,7 @@ class ExamineShoppingController extends Controller
 
         $shops = [];
 
-        $query = Shop::with("auth_shop")->where("auth", 1);
+        $query = Shop::with("auth_shop")->where("auth", 1)->where('user_id', '>', 0);
 
         if ($search_key) {
             $query->where("shop_name", "like", "{$search_key}");
