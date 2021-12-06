@@ -303,6 +303,7 @@ class ShopAdminController extends Controller
                 DB::transaction(function () use ($order) {
                     DB::table('supplier_orders')->where("id", $order->id)->update([
                         'status' => 90,
+                        'cancel_at' => date("Y-m-d H:i:s"),
                         'cancel_reason' => '管理员取消'
                     ]);
                     if ($order->frozen_fee) {

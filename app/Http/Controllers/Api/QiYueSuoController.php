@@ -60,7 +60,7 @@ class QiYueSuoController extends Controller
         $id = $request->get("requestId", "");
         $status = intval($request->get("status", 0));
 
-        if ($status === 1) {
+        if ($status == 1) {
             Log::info("[契约锁回调-门店认证状态回调]-状态为：1");
             if ($shop = OnlineShop::query()->where("contract_auth_id", $id)->first()) {
                 Log::info("[契约锁回调-门店认证状态回调]-门店ID：{$shop->id}");

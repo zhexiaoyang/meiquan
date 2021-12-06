@@ -27,6 +27,7 @@ class SupplierOrder extends Model
         'ship_data',
         'extra',
         'status',
+        'cancel_at',
     ];
 
     protected $casts = [

@@ -58,7 +58,7 @@ class CloseOrder implements ShouldQueue
                         $logs->save();
                     }
                 }
-                $this->order->update(['status' => 90]);
+                $this->order->update(['status' => 90,'cancel_reason' => '超时未支付','cancel_at' => date("Y-m-d H:i:s"),]);
                 // 循环遍历订单中的商品 SKU，将订单中的数量加回到 SKU 的库存中去
                 foreach ($this->order->items as $item) {
                     $item->product->addStock($item->amount);

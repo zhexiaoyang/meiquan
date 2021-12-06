@@ -285,6 +285,7 @@ class OrderController extends Controller
                 DB::transaction(function () use ($order, $reason) {
                     DB::table('supplier_orders')->where("id", $order->id)->update([
                         'status' => 90,
+                        'cancel_at' => date("Y-m-d H:i:s"),
                         'cancel_reason' => $reason
                     ]);
                     if ($order->frozen_fee) {
