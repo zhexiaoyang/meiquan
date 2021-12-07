@@ -842,6 +842,14 @@ class ShopController extends Controller
         $shop->user_id = 0;
         $shop->own_id = 0;
         $shop->status = -1;
+        $shop->mt_shop_id = '';
+        $shop->ele_shop_id = '';
+        $shop->chufang_mt = '';
+        $shop->chufang_ele = '';
+        $shop->mtwm = '';
+        $shop->ele = '';
+        $shop->auto_mtwm = '';
+        $shop->auto_ele = '';
 
         if ($shop->save()) {
             DB::table("user_has_shops")->where("shop_id", $shop->id)->delete();
