@@ -17,3 +17,9 @@ Route::middleware(['force-json'])->prefix('qiyuesuo')->namespace('Api')->group(f
     // 门店合同状态回调
     // Route::post('shop/contract/status', "QiYueSuoController@shopContract");
 });
+
+// 桃子医院
+Route::middleware(['force-json'])->prefix('taozi')->namespace('Api\Callback')->group(function () {
+    // 企业认证回调
+    Route::post('order', "TaoziController@order");
+});
