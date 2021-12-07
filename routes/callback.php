@@ -20,6 +20,6 @@ Route::middleware(['force-json'])->prefix('qiyuesuo')->namespace('Api')->group(f
 
 // 桃子医院
 Route::middleware(['force-json'])->prefix('taozi')->namespace('Api\Callback')->group(function () {
-    // 企业认证回调
+    // 线下处方订单回调
     Route::post('order', "TaoziController@order");
 });
