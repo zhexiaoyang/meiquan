@@ -895,11 +895,11 @@ class ShopController extends Controller
         }
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
-            if ($shop->own_id != Auth::user()->id) {
-                return $this->error('门店不存在');
-            }
-        }
+        // if (!$request->user()->hasRole('super_man')) {
+        //     if ($shop->own_id != Auth::user()->id) {
+        //         return $this->error('门店不存在');
+        //     }
+        // }
 
         if (!$apply = ShopThreeId::where('shop_id', $shop_id)->first()) {
             $apply = new ShopThreeId();
