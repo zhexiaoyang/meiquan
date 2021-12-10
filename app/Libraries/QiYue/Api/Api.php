@@ -218,7 +218,7 @@ class Api extends Request
     public function shopContract(OnlineShop $shop, $contract_id)
     {
         $data = [
-            'contractId' => $shop->contract_id,
+            'contractId' => $contract_id,
             // "callbackUrl" => "http://psapi.meiquanda.com/api/callback/qiyuesuo/contract/status",
             'user' => [
                 'contact' => $shop->applicant_phone,
