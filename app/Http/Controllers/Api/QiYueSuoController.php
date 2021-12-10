@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\ContractOrder;
 use App\Models\OnlineShop;
 use App\Models\Shop;
 use App\Models\User;
@@ -44,9 +45,9 @@ class QiYueSuoController extends Controller
             if (isset($result['contractId']) && isset($result['contractStatus']) && ($result['contractStatus'] === 'COMPLETE')) {
                 Log::info("[契约锁回调-合同状态回调]-合同状态：COMPLETE");
                 $contract_id = $result['contractId'];
-                if ($shop = OnlineShop::query()->where("contract_id", $contract_id)->first()) {
+                if ($shop = ContractOrder::query()->where("three_contract_id", $contract_id)->first()) {
                     Log::info("[契约锁回调-合同状态回调]-合同状态，更改");
-                    $shop->contract_status = 1;
+                    $shop->status = 1;
                     $shop->save();
                 }
             }

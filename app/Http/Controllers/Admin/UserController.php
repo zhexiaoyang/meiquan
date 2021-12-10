@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Exceptions\InvalidRequestException;
 use App\Exports\UserBalanceExport;
 use App\Http\Controllers\Controller;
+use App\Models\Shop;
 use App\Models\UserOperateBalance;
 use Illuminate\Http\Request;
 use App\Models\Deposit;
@@ -210,6 +211,20 @@ class UserController extends Controller
 
         if (!is_array($shops)) {
             return $this->error("参数错误");
+        }
+
+        if ($user->hasRole('city_manager')) {
+            $manager_ids = User::whereHas("roles", function ($query) {
+                $query->where('name', 'city_manager');
+            })->orderByDesc('id')->pluck("id")->toArray();
+            $record = DB::table('user_has_shops')->whereIn('user_id', $manager_ids)
+                ->whereIn('shop_id', $shops)->where('user_id', '<>', $user->id)->first();
+            if ($record) {
+                $_shop = Shop::find($record->shop_id);
+                $_user = User::find($record->user_id);
+                $_name = $_user->nickname ?: $_user->name;
+                return $this->error("门店「{$_shop->shop_name}」已在经理「{$_name}」账号下，请核对再试", 422);
+            }
         }
 
         $user->phone = $phone;

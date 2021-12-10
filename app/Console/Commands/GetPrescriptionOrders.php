@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\SendSms;
 use App\Jobs\SendSmsNew;
 use App\Models\Shop;
 use App\Models\UserOperateBalance;
@@ -48,10 +47,10 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $start_date = '2021-12-01';
-        $last = WmPrescription::orderByDesc('id')->first();
+        $start_date = '2021-12-3';
+        $last = WmPrescription::where('platform', 1)->orderByDesc('id')->first();
         if ($last) {
-            $start_date = $last->rpCreateTime;
+            $start_date = substr($last->rpCreateTime, 0, 10);
         }
         $date_arr = [];
         if (strtotime($start_date) >= (strtotime(date("Y-m-d"))) + 86400) {
@@ -66,7 +65,12 @@ class GetPrescriptionOrders extends Command
         Log::info("[拉取桃子处方订单]-所有拉取日期", $date_arr);
 
         foreach ($date_arr as $date) {
-            Log::info("[拉取桃子处方订单]-拉取日期：{$date}");
+            $log = "[拉取桃子处方订单]-拉取日期：{$date}";
+            $this->info($log);
+            Log::info($log);
+            $i = 0;
+            $o2o = 0;
+            $b2c = 0;
             $taozi = app('taozi');
             $switch = true;
             $number = 1;
@@ -76,18 +80,21 @@ class GetPrescriptionOrders extends Command
 
                 if (!empty($data)) {
                     foreach ($data as $v) {
-                        if (WmPrescription::query()->where('outOrderID', $v['outOrderID'])->exists()) {
+                        if (WmPrescription::where('outOrderID', $v['outOrderID'])->exists()) {
                             $switch = false;
                             break;
                         } else {
+                            $i++;
                             if ($v['clientName'] == '美全科技B2C') {
+                                $b2c++;
                                 continue;
                             }
+                            $o2o++;
                             $shop_id = $v['storeID'];
                             $order_id = $v['outOrderID'];
                             $v['platform'] = 1;
                             if ($shop_id && $order_id) {
-                                if ($shop = Shop::query()->select('id','user_id')->where('chufang_mt', $shop_id)->first()) {
+                                if ($shop = Shop::select('id','user_id')->where('chufang_mt', $shop_id)->orderByDesc('id')->first()) {
                                     DB::transaction(function () use ($v, $shop, $order_id) {
                                         $v['shop_id'] = $shop->id;
                                         $current_user = DB::table('users')->find($shop->user_id);
@@ -110,7 +117,7 @@ class GetPrescriptionOrders extends Command
                                             'orderCreateTime' => $v['orderCreateTime'] ?? '',
                                             'rpCreateTime' => $v['rpCreateTime'] ?? '',
                                         ];
-                                        $data = WmPrescription::query()->create($_tmp);
+                                        $data = WmPrescription::create($_tmp);
                                         if ($v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
                                             UserOperateBalance::create([
                                                 "user_id" => $current_user->id,
@@ -141,7 +148,7 @@ class GetPrescriptionOrders extends Command
                                 } else {
                                     if ($v['orderStatus'] == '已取消') {
                                         $v['status'] = 1;
-                                        WmPrescription::query()->create($v);
+                                        WmPrescription::create($v);
                                     } else {
                                         $v['money'] = $this->money;
                                         $v['expend'] = $this->expend;
@@ -149,7 +156,7 @@ class GetPrescriptionOrders extends Command
                                         $v['status'] = 2;
                                         $v['platform'] = 1;
                                         $v['reason'] = '未开通处方';
-                                        WmPrescription::query()->create($v);
+                                        WmPrescription::create($v);
                                     }
                                 }
                             } else {
@@ -159,7 +166,7 @@ class GetPrescriptionOrders extends Command
                                 $v['status'] = 2;
                                 $v['platform'] = 1;
                                 $v['reason'] = '门店ID或订单号不存在';
-                                WmPrescription::query()->create($v);
+                                WmPrescription::create($v);
                             }
                         }
                     }
@@ -169,6 +176,9 @@ class GetPrescriptionOrders extends Command
                     $switch = false;
                 }
             }
+            $log = "[拉取桃子处方订单]-拉取日期：{$date}结束 | 一共：{$i} 条 | B2C：{$b2c}条 | O2O：{$o2o}条";
+            $this->info($log);
+            Log::info($log);
         }
     }
 }

@@ -29,6 +29,27 @@ Route::middleware(["force-json"])->group(function() {
      * 需要登录
      */
     Route::middleware("multiauth:api")->group(function () {
+        /**
+         * 城市经理收益
+         */
+        Route::resource("manager_profit", "ManagerProfitController")->only(["index"])->names("manager_profit");
+
+        /**
+         * 合同管理
+         */
+        Route::prefix("/contract")->group(function () {
+            // 可签署合同列表
+            Route::post("", "ContractController@index");
+            // Route::post("auth", "ContractController@auth");
+            // 门店认证
+            Route::post("shop_auth", "ContractController@shopAuth");
+            // 门店签署合同
+            Route::get("shop_sign", "ContractController@shopSign");
+            // 用户可签署合同
+            Route::get("shops", "ContractController@shops");
+        });
+
+
         // *修改密码验证码
         Route::post("auth/code", "AuthController@sms_password")->name("sms_password");
         // 退出
@@ -44,9 +65,9 @@ Route::middleware(["force-json"])->group(function() {
         // 个人中心-用户运营余额明细
         Route::get("user/operate/balance", "UserOperateBalanceController@index");
         // 首页-合同信息（认证状态、签署信息）
-        Route::get("user/contract", "AuthController@contractInfo");
+        // Route::get("user/contract", "AuthController@contractInfo");
         // 首页-合同信息（认证状态、签署信息）
-        Route::get("user/contract/sign", "ContractController@userSign");
+        // Route::get("user/contract/sign", "ContractController@userSign");
         // 门店所有跑腿平台状态
         Route::get("{shop}/platform", "ShopController@platform")->name("api.shop.platform");
         // 用户全部可发单药店
@@ -65,16 +86,6 @@ Route::middleware(["force-json"])->group(function() {
         // Route::get("statistics/export/detail", "StatisticsController@detail");
         // 分类 2021-02-23 新分类
         Route::get("meiquan/category", "CategoryController@index");
-        // 合同管理
-        Route::prefix("/contract")->group(function () {
-            Route::post("auth", "ContractController@auth");
-            // 门店认证
-            Route::post("shop_auth", "ContractController@shopAuth");
-            // 门店签署合同
-            Route::get("shop_sign", "ContractController@shopSign");
-            // 用户可签署合同
-            Route::get("shops", "ContractController@shops");
-        });
         // 前台-质量公告
         Route::resource("supplier/notice", "SupplierNoticeController", ["only" => ["show", "index"]]);
         // 【H5】轮播图

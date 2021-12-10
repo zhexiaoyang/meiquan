@@ -19,4 +19,9 @@ class OnlineShop extends Model
     {
         return $this->hasMany(OnlineShopReason::class, 'oid', 'id');
     }
+
+    public function contract()
+    {
+        return $this->hasMany(ContractOrder::class, 'online_shop_id', 'id');
+    }
 }
