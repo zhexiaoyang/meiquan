@@ -246,7 +246,7 @@ class ContractController extends Controller
             }
         }
 
-        $res = $q->shopContract($shop);
+        $res = $q->shopContract($shop, $order->three_contract_id);
 
         return $this->success(['url' => $res['result']['pageUrl']]);
     }
