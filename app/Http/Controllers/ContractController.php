@@ -227,6 +227,7 @@ class ContractController extends Controller
                 return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
+        $this->log("-[签署合同1]-[合同订单ID：{$order->id}]");
 
         $config = config('qiyuesuo');
         $q = new QiYue($config);
