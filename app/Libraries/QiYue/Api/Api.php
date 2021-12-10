@@ -107,7 +107,7 @@ class Api extends Request
     }
 
     /**
-     *
+     *  运营合同
      * @param OnlineShop $shop
      * @return mixed
      * @author zhangzhen
@@ -158,13 +158,64 @@ class Api extends Request
     }
 
     /**
-     * 门店签署
+     * 美团-桃子处方
+     * @data 2021/12/10 3:13 下午
+     */
+    public function shopDraft2(OnlineShop $shop)
+    {
+        $data = [
+            'send' => true,
+            'category' => [
+                'id' => '2906587212025962665'
+            ],
+            'signatories' => [
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => '吉林省美全科技有限责任公司'
+                ],
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => '四川桃子健康互联网医院管理有限公司'
+                ],
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => $shop->company_name,
+                    'receiver' => [
+                        'contact' => $shop->applicant_phone,
+                        'contactType' => 'MOBILE'
+                    ]
+                ]
+            ],
+            'templateParams' => [
+                [
+                    "name" => "甲方公司名称",
+                    "value" => $shop->company_name
+                ],
+                [
+                    "name" => "甲方公司地址",
+                    "value" => $shop->address
+                ],
+                [
+                    "name" => "联系人",
+                    "value" => $shop->applicant
+                ],
+                [
+                    "name" => "联系电话",
+                    "value" => $shop->applicant_phone
+                ]
+            ]
+        ];
+        return $this->post('/v2/contract/draft', $data);
+    }
+
+    /**
+     * 门店签署-获取签署链接
      * @param OnlineShop $shop
      * @return mixed
      * @author zhangzhen
      * @data 2021/4/20 3:21 下午
      */
-    public function shopContract(OnlineShop $shop)
+    public function shopContract(OnlineShop $shop, $contract_id)
     {
         $data = [
             'contractId' => $shop->contract_id,
