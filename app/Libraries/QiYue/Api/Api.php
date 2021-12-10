@@ -249,6 +249,6 @@ class Api extends Request
             // 'tenantName' => '四川桃子健康互联网医院管理有限公司',
             // 'sealId' => '四川桃子健康互联网医院管理有限公司',
         ];
-        return $this->post('/v2/contract/pageurl', $data);
+        return $this->post('/v2/contract/companysign', $data);
     }
 }
