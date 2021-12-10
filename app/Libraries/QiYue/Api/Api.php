@@ -177,7 +177,11 @@ class Api extends Request
                 ],
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '四川桃子健康互联网医院管理有限公司'
+                    'tenantName' => ' 邓彬',
+                    'receiver' => [
+                        'contact' => '15208474771',
+                        'contactType' => 'MOBILE'
+                    ]
                 ],
                 [
                     'tenantType' => 'COMPANY',
