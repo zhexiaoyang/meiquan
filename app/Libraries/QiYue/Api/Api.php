@@ -179,6 +179,7 @@ class Api extends Request
                     'tenantType' => 'COMPANY',
                     'tenantName' => ' 四川桃子健康互联网医院管理有限公司',
                     'receiver' => [
+                        'name' => '邓彬',
                         'contact' => '15208474771',
                         'contactType' => 'MOBILE'
                     ]
@@ -187,6 +188,7 @@ class Api extends Request
                     'tenantType' => 'COMPANY',
                     'tenantName' => $shop->company_name,
                     'receiver' => [
+                        'name' => $shop->applicant,
                         'contact' => $shop->applicant_phone,
                         'contactType' => 'MOBILE'
                     ]
