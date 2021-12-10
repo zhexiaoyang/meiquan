@@ -191,7 +191,7 @@ class ContractController extends Controller
             return $this->contract1($request);
         }
 
-        if ($contract == 2) {
+        if (($contract == 2) && $request->user()->id == 1) {
             return $this->contract2($request);
         }
 
