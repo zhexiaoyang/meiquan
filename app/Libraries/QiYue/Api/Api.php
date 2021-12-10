@@ -163,12 +163,13 @@ class Api extends Request
      * 美团-桃子处方
      * @data 2021/12/10 3:13 下午
      */
-    public function shopDraft2(OnlineShop $shop)
+    public function shopDraftTaozi(OnlineShop $shop, $type = 1)
     {
+        $ids = ['', '2906587212025962665', '2906900014720619502'];
         $data = [
             'send' => true,
             'category' => [
-                'id' => '2906587212025962665'
+                'id' => $ids[$type]
             ],
             'signatories' => [
                 [
@@ -238,19 +239,18 @@ class Api extends Request
     }
 
     /**
-     * 签署公章
+     * 签署公章-桃子医院盖章
      * @param $contract_id
      * @return mixed
      * @author zhangzhen
      * @data 2021/12/10 3:23 下午
      */
-    public function companysign($contract_id)
+    public function companysignTaozi($contract_id)
     {
         $data = [
             'contractId' => $contract_id,
             'tenantName' => '四川桃子健康互联网医院管理有限公司',
             'sealId' => '2906846343840530888'
-            // 'sealId' => '四川桃子健康互联网医院管理有限公司',
         ];
         return $this->post('/v2/contract/companysign', $data);
     }
