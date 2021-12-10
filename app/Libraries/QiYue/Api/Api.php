@@ -246,7 +246,7 @@ class Api extends Request
     {
         $data = [
             'contractId' => $contract_id,
-            // 'tenantName' => '四川桃子健康互联网医院管理有限公司',
+            'tenantName' => '四川桃子健康互联网医院管理有限公司',
             // 'sealId' => '四川桃子健康互联网医院管理有限公司',
         ];
         return $this->post('/v2/contract/companysign', $data);
