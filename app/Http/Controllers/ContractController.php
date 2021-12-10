@@ -240,7 +240,7 @@ class ContractController extends Controller
                 $order->three_contract_id = $res['result']['id'];
                 $order->shop_id = $shop->shop_id;
                 $order->online_shop_id = $shop->id;
-                $shop->save();
+                $order->save();
             } else {
                 return $this->error("系统错误，请稍后再试");
             }
