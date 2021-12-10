@@ -107,7 +107,8 @@ class Api extends Request
     }
 
     /**
-     *  运营合同
+     * 合同草稿
+     * 运营合同
      * @param OnlineShop $shop
      * @return mixed
      * @author zhangzhen
@@ -158,6 +159,7 @@ class Api extends Request
     }
 
     /**
+     * 合同草稿
      * 美团-桃子处方
      * @data 2021/12/10 3:13 下午
      */
@@ -211,9 +213,10 @@ class Api extends Request
     /**
      * 门店签署-获取签署链接
      * @param OnlineShop $shop
+     * @param $contract_id
      * @return mixed
      * @author zhangzhen
-     * @data 2021/4/20 3:21 下午
+     * @data 2021/12/10 3:23 下午
      */
     public function shopContract(OnlineShop $shop, $contract_id)
     {
@@ -224,6 +227,23 @@ class Api extends Request
                 'contact' => $shop->applicant_phone,
                 'contactType' => 'MOBILE'
             ]
+        ];
+        return $this->post('/v2/contract/pageurl', $data);
+    }
+
+    /**
+     * 签署公章
+     * @param $contract_id
+     * @return mixed
+     * @author zhangzhen
+     * @data 2021/12/10 3:23 下午
+     */
+    public function companysign($contract_id)
+    {
+        $data = [
+            'contractId' => $contract_id,
+            // 'tenantName' => '四川桃子健康互联网医院管理有限公司',
+            // 'sealId' => '四川桃子健康互联网医院管理有限公司',
         ];
         return $this->post('/v2/contract/pageurl', $data);
     }
