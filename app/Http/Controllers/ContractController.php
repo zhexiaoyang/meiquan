@@ -297,7 +297,7 @@ class ContractController extends Controller
             $res = $q->shopDraft2($shop);
             if (isset($res['code']) && $res['code'] === 0) {
                 $this->log("-[签署合同2-草稿成功]-[合同订单ID：{$order->id}]");
-                $order->contract_id = 1;
+                $order->contract_id = 2;
                 $order->three_contract_id = $res['result']['id'];
                 $order->shop_id = $shop->shop_id;
                 $order->online_shop_id = $shop->id;
@@ -307,6 +307,20 @@ class ContractController extends Controller
             }
             $res2 = $q->companysign($order->three_contract_id);
             if (isset($res2['code']) && $res2['code'] === 0) {
+                $order->three_sign = 1;
+                $order->save();
+                $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
+            } else {
+                return $this->error("系统错误，请稍后再试");
+            }
+            $this->log("-[签署公章返回]", [$res2]);
+        }
+
+        if ($order->three_sign === 0) {
+            $res2 = $q->companysign($order->three_contract_id);
+            if (isset($res2['code']) && $res2['code'] === 0) {
+                $order->three_sign = 1;
+                $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
                 return $this->error("系统错误，请稍后再试");
