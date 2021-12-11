@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Exceptions\HttpException;
 use App\Services\Delivery;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Order extends Model
 {
@@ -76,34 +77,14 @@ class Order extends Model
             if (!$model->delivery_id) {
                 $model->delivery_id = $model->order_id;
             }
-
             if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
-
                 $model->distance = getShopDistanceV4($shop, $model->receiver_lng, $model->receiver_lat);
+            }
+        });
 
-
-                // $distance = distanceMoney($shop, $model->receiver_lng, $model->receiver_lat);
-                //
-                // if ($distance == -2) {
-                //     return false;
-                // }
-                //
-                // if ($distance == -1) {
-                //     return false;
-                // }
-                //
-                //
-                // $base = baseMoney($shop->city_level ?: 9);
-                // $time = timeMoney();
-                // $date_money = dateMoney();
-                // $weight = weightMoney($model->goods_weight ?: 1);
-                //
-                // $model->base_money = $base;
-                // $model->distance_money = $distance;
-                // $model->weight_money = $weight;
-                // $model->time_money = $time;
-                // $model->date_money = $date_money;
-                // $model->money = $base + $time + $date_money + $distance + $weight;
+        static::saved(function ($order) {
+            if ($order->status === 70) {
+                Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
             }
         });
     }
