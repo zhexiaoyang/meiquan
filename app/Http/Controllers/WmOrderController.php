@@ -72,6 +72,8 @@ class WmOrderController extends Controller
             $query->where('sn', $sn);
         }
 
+        $query->whereIn('shop_id', Shop::where('own_id', $request->user()->id)->pluck('id'));
+
         $data = $query->orderByDesc('id')->paginate($page_size);
 
         return $this->page($data);
@@ -93,6 +95,10 @@ class WmOrderController extends Controller
 
         if (!$shop_id = $request->get('shop_id', 0)) {
             return $this->error('门店不存在');
+        }
+
+        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id'))) {
+            return $this->error('门店不存在！');
         }
 
         $number = $request->get('number', 1);
@@ -138,6 +144,10 @@ class WmOrderController extends Controller
             return $this->error('门店不存在');
         }
 
+        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id'))) {
+            return $this->error('门店不存在！');
+        }
+
         if (!in_array($number, [1,2,3,4])) {
             $number = 1;
         }
@@ -180,6 +190,10 @@ class WmOrderController extends Controller
     {
         if (!$printer = WmPrinter::find($request->get('id', 0))) {
             return $this->error('打印机不存在');
+        }
+
+        if (!in_array($printer->shop_id, Shop::where('own_id', $request->user()->id)->pluck('id'))) {
+            return $this->error('打印机不存在！');
         }
 
         $f = new Feie();
