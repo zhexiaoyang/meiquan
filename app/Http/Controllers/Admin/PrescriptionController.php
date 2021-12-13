@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Admin\PrescriptionOrderExport;
 use App\Exports\PrescriptionShopExport;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendSmsNew;
@@ -43,12 +44,17 @@ class PrescriptionController extends Controller
             $query->where('rpCreateTime', '>=', $stime);
         }
         if ($etime) {
-            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($stime) + 86400));
+            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
 
         $data = $query->paginate($page_size);
 
         return $this->page($data);
+    }
+
+    public function export(Request $request, PrescriptionOrderExport $export)
+    {
+        return $export->withRequest($request);
     }
 
     public function statistics(Request $request)
@@ -78,7 +84,7 @@ class PrescriptionController extends Controller
             $query->where('rpCreateTime', '>=', $stime);
         }
         if ($etime) {
-            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($stime) + 86400));
+            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
 
         $data = $query->get();

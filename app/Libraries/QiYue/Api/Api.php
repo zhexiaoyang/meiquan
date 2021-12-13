@@ -165,7 +165,7 @@ class Api extends Request
      */
     public function shopDraftTaozi(OnlineShop $shop, $type = 1)
     {
-        $ids = ['', '2906587212025962665', '2906900014720619502'];
+        $ids = ['', '2907910074598953069', '2907917307005113105', '2907925343920722421'];
         $data = [
             'send' => true,
             'category' => [

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Exports;
+namespace App\Exports\Admin;
 
 use App\Models\WmPrescription;
 use Illuminate\Http\Request;
@@ -17,7 +17,7 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
 {
     use Exportable;
 
-    private $fileName = '余额明细.xlsx';
+    private $fileName = '处方订单导出.xlsx';
 
     protected $request;
 
@@ -37,7 +37,6 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
         $etime = $request->get('etime', '');
 
         $query = WmPrescription::query();
-        $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 
         if ($order_id) {
             $query->where('outOrderID', $order_id);

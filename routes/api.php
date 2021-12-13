@@ -268,6 +268,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("prescription/shop/delete", "PrescriptionController@shop_delete")->name("admin.prescription.shop.delete");
             // 处方后台-门店管理-门店统计
             Route::get("prescription/shop/statistics", "PrescriptionController@shop_statistics")->name("admin.prescription.shop.statistics");
+            // *处方单列表-导出
+            Route::get("prescription/export", "PrescriptionController@export");
             // 处方后台-处方管理-订单列表
             Route::get("prescription", "PrescriptionController@index")->name("admin.prescription.index");
             // 处方后台-处方管理-订单统计
