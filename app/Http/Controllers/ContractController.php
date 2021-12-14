@@ -452,7 +452,7 @@ class ContractController extends Controller
         $q = new QiYue($config);
 
         if (!$order->three_contract_id) {
-            $res = $q->shopDraftTaozi($shop, 2);
+            $res = $q->shopDraftTaozi($shop, 3);
             if (isset($res['code']) && $res['code'] === 0) {
                 $this->log("-[签署合同4-草稿成功]-[合同订单ID：{$order->id}]");
                 $order->contract_id = 4;
