@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\PrescriptionOrderExport;
+use App\Models\ContractOrder;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\WmPrescription;
@@ -131,8 +132,18 @@ class PrescriptionController extends Controller
 
     public function down(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get('id', 0))) {
+        $shop_id = $request->get('id', 0);
+
+        if (!$shop = Shop::query()->find($shop_id)) {
             return $this->error('门店不存在');
+        }
+
+        if (!$contract = ContractOrder::where('shop_id', $shop_id)->first()) {
+            return $this->error('该门店未签署线下处方合同');
+        }
+
+        if ($contract->status != 1) {
+            return $this->error('该门店处方合同未签署完成');
         }
 
         $user = User::find($request->user()->id);
