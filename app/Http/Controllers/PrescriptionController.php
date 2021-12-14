@@ -138,7 +138,7 @@ class PrescriptionController extends Controller
             return $this->error('门店不存在');
         }
 
-        if (!$contract = ContractOrder::where('shop_id', $shop_id)->first()) {
+        if (!$contract = ContractOrder::where('shop_id', $shop_id)->where('contract_id', 4)->first()) {
             return $this->error('该门店未签署线下处方合同');
         }
 
