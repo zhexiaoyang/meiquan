@@ -13,9 +13,9 @@ use Illuminate\Support\Facades\Log;
 
 class TaoziController extends Controller
 {
-    protected $money = 1.5;
-    protected $expend = 0.8;
-    protected $income = 0.7;
+    protected $money = 1;
+    protected $expend = 0.6;
+    protected $income = 0.4;
 
     public function order(Request $request)
     {
