@@ -337,14 +337,17 @@ Route::middleware(["force-json"])->group(function() {
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
 
             /**
-             * 财务结算
+             * 财务管理
              */
             Route::prefix("finance")->group(function () {
+                // 平台资金
                 Route::get("shopping/store", "FundController@shops");
                 Route::get("supplier/store", "FundController@supplier");
                 Route::get("running_orders", "FundController@running_orders");
                 Route::get("shopping_orders", "FundController@shopping_orders");
                 Route::get("statistic", "FundController@statistic");
+                // 经理收益
+                Route::get("manager/profit", "ManagerProfitController@index");
             });
         });
         Route::middleware(["role:super_man|admin|finance|city_manager"])->group(function () {

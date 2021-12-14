@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\PrescriptionOrderExport;
 use App\Models\Shop;
+use App\Models\User;
 use App\Models\WmPrescription;
 use Illuminate\Http\Request;
 
@@ -134,9 +135,17 @@ class PrescriptionController extends Controller
             return $this->error('门店不存在');
         }
 
+        $user = User::find($request->user()->id);
+
+        if ($user->operate_money <= 1) {
+            return $this->error('处方余额不足，请先充值');
+        }
+
         $prescription = WmPrescription::query()->create([
+            'shop_id' => $shop->id,
             'storeName' => $shop->shop_name,
             'platform' => 3,
+            'orderCreateTime' => date("Y-m-d H:i:s"),
         ]);
 
         $t = app('taozi_xia');
