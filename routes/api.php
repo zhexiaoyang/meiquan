@@ -206,6 +206,7 @@ Route::middleware(["force-json"])->group(function() {
          */
         // *已开通处方单门店列表
         Route::get("prescription/shops", "PrescriptionController@shops");
+        Route::resource('pharmacist', 'PharmacistController')->only('store', 'destroy');
         // *处方单列表-导出
         Route::get("prescription/export", "PrescriptionController@export");
         // *处方单列表

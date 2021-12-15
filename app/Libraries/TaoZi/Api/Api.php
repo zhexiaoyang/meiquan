@@ -2,6 +2,7 @@
 
 namespace App\Libraries\TaoZi\Api;
 
+use App\Models\Pharmacist;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\WmPrescription;
@@ -21,14 +22,14 @@ class Api extends Request
         return $this->post('api/opendata/v1/meituan/rpOrderList', $data);
     }
 
-    public function create_order(User $user, Shop $shop, WmPrescription $prescription)
+    public function create_order(User $user, Shop $shop, Pharmacist $pharmacist)
     {
         $data = [
             "personInfo" => [
                 "thirdTypeID" => 0,
-                "thirdUniqueID" => $user->id,
-                "personName" => $shop->contact_name,
-                "phone" => $shop->contact_phone,
+                "thirdUniqueID" => $pharmacist->id,
+                "personName" => $pharmacist->name,
+                "phone" => $pharmacist->phone,
             ],
             "orgInfo" => [
                 "orgTypeID" => 9,

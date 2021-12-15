@@ -74,9 +74,31 @@ class Shop extends Model
         return $this->hasOne(ShopAuthenticationChange::class, "shop_id", "id");
     }
 
+    /**
+     * 外卖资料
+     * @data 2021/12/15 3:19 下午
+     */
     public function online_shop()
     {
         return $this->hasOne(OnlineShop::class, "shop_id", "id");
+    }
+
+    /**
+     * 签过线下处方合同的门店
+     * @data 2021/12/15 3:19 下午
+     */
+    public function prescription()
+    {
+        return $this->hasOne(ContractOrder::class, "shop_id", "id")->where('contract_id',4);
+    }
+
+    /**
+     * 签过线下处方合同的门店
+     * @data 2021/12/15 3:19 下午
+     */
+    public function pharmacists()
+    {
+        return $this->hasMany(Pharmacist::class, "shop_id", "id");
     }
 
     public function manager()

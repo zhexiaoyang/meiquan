@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\PrescriptionOrderExport;
 use App\Models\ContractOrder;
+use App\Models\Pharmacist;
 use App\Models\Shop;
 use App\Models\User;
 use App\Models\WmPrescription;
@@ -123,7 +124,7 @@ class PrescriptionController extends Controller
 
     public function shops(Request $request)
     {
-        $shops = Shop::query()->select('id', 'shop_name')
+        $shops = Shop::with('prescription', 'pharmacists')->select('id', 'shop_name')
             ->where('second_category', '200001')
             ->whereIn('id', $request->user()->shops()->pluck('id'))
             ->get();
@@ -132,7 +133,13 @@ class PrescriptionController extends Controller
 
     public function down(Request $request)
     {
-        $shop_id = $request->get('id', 0);
+        $id = $request->get('id', 0);
+
+        if (!$pharmacist = Pharmacist::query()->find($id)) {
+            return $this->error('药师不存在');
+        }
+
+        $shop_id = $pharmacist->shop_id;
 
         if (!$shop = Shop::query()->find($shop_id)) {
             return $this->error('门店不存在');
@@ -152,15 +159,15 @@ class PrescriptionController extends Controller
             return $this->error('处方余额不足，请先充值');
         }
 
-        $prescription = WmPrescription::query()->create([
-            'shop_id' => $shop->id,
-            'storeName' => $shop->shop_name,
-            'platform' => 3,
-            'orderCreateTime' => date("Y-m-d H:i:s"),
-        ]);
+        // $prescription = WmPrescription::query()->create([
+        //     'shop_id' => $shop->id,
+        //     'storeName' => $shop->shop_name,
+        //     'platform' => 3,
+        //     'orderCreateTime' => date("Y-m-d H:i:s"),
+        // ]);
 
         $t = app('taozi_xia');
-        $res = $t->create_order($request->user(), $shop, $prescription);
+        $res = $t->create_order($request->user(), $shop, $pharmacist);
 
         if (!isset($res['data']['url']) || empty($res['data']['url'])) {
             return $this->alert('开方失败，请稍后再试');
