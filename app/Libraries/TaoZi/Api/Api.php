@@ -27,8 +27,8 @@ class Api extends Request
             "personInfo" => [
                 "thirdTypeID" => 0,
                 "thirdUniqueID" => $user->id,
-                "personName" => $user->phone,
-                "phone" => $user->phone,
+                "personName" => $shop->contact_name,
+                "phone" => $shop->contact_phone,
             ],
             "orgInfo" => [
                 "orgTypeID" => 9,
