@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Admin\RunningFundrecordExport;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -71,5 +72,10 @@ class RunningFundrecordController extends Controller
         $res['list'] = $data;
 
         return $this->success($res);
+    }
+
+    public function export(Request $request, RunningFundrecordExport $export)
+    {
+        return $export->withRequest($request);
     }
 }

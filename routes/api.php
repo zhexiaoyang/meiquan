@@ -309,8 +309,10 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("deposit/export", "DepositController@export")->name("admin.deposit.export");
 
             // 跑腿订单结算
-            // ERP管理-品库分类
+            // 财务管理-跑腿订单结算
             Route::get("/running/fundrecord", "RunningFundrecordController@index");
+            // 财务管理-跑腿订单结算
+            Route::get("/running/fundrecord/export", "RunningFundrecordController@export");
 
             /**
              * 用户
