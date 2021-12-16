@@ -11,6 +11,7 @@ use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -120,6 +121,17 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 30) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【闪送接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
                 $before_time = time();
                 Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
                 sleep(1);

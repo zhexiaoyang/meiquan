@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -96,6 +97,17 @@ class OrderController
             }
 
             if ($status == 20) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【美团接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
                 // 已接单
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {

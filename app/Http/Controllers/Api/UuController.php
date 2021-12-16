@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -92,20 +93,31 @@ class UuController extends Controller
 
             // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
             if ($status == 3) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【UU接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
-                    $logs = [
-                        "des" => "【UU订单回调】接单回调，订单状态不正确，不能操作接单",
-                        "date" => date("Y-m-d H:i:s"),
-                        "mq_ps" => $order->ps,
-                        "mq_status" => $order->status,
-                        "uu_status" => $status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dingding->sendMarkdownMsgArray("【ERROR】【UU】不能操作接单", $logs);
+                    // $logs = [
+                    //     "des" => "【UU订单回调】接单回调，订单状态不正确，不能操作接单",
+                    //     "date" => date("Y-m-d H:i:s"),
+                    //     "mq_ps" => $order->ps,
+                    //     "mq_status" => $order->status,
+                    //     "uu_status" => $status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dingding->sendMarkdownMsgArray("【ERROR】【UU】不能操作接单", $logs);
                     return json_encode($res);
                 }
                 // 设置锁，防止其他平台接单

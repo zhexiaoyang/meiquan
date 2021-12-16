@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -91,6 +92,17 @@ class MeiQuanDaController extends Controller
             // 美全达跑腿状态【4：取单中(已接单，已抢单)，5：送单中(已取单)，6：送达订单 ，7：撤销订单】
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 4) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【美全达接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {

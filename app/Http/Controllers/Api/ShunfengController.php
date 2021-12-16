@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
@@ -84,20 +85,31 @@ class ShunfengController
             // 回调状态判断
             // 10-配送员确认;12:配送员到店;15:配送员配送中
             if ($status == 10) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【顺丰接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
                 // 配送员确认
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
                     Log::info($log_prefix . '接单回调，订单状态不正确，不能操作接单');
-                    $logs = [
-                        "des" => "【顺丰订单回调】接单回调，订单状态不正确，不能操作接单",
-                        "date" => date("Y-m-d H:i:s"),
-                        "mq_ps" => $order->ps,
-                        "mq_status" => $order->status,
-                        "sf_status" => $status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dingding->sendMarkdownMsgArray("【ERROR】【顺丰】不能操作接单", $logs);
+                    // $logs = [
+                    //     "des" => "【顺丰订单回调】接单回调，订单状态不正确，不能操作接单",
+                    //     "date" => date("Y-m-d H:i:s"),
+                    //     "mq_ps" => $order->ps,
+                    //     "mq_status" => $order->status,
+                    //     "sf_status" => $status,
+                    //     "id" => $order->id,
+                    //     "order_id" => $order->order_id
+                    // ];
+                    // $dingding->sendMarkdownMsgArray("【ERROR】【顺丰】不能操作接单", $logs);
                     return json_encode($res);
                 }
 
