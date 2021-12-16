@@ -89,7 +89,7 @@ class DaDaController extends Controller
 
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 2) {
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
                     $logs = [

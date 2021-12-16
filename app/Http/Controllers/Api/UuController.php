@@ -93,7 +93,7 @@ class UuController extends Controller
 
             // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
             if ($status == 3) {
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
                     $logs = [

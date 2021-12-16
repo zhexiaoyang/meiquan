@@ -85,7 +85,7 @@ class ShunfengController
             // 回调状态判断
             // 10-配送员确认;12:配送员到店;15:配送员配送中
             if ($status == 10) {
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
                     $logs = [

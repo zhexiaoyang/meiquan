@@ -121,7 +121,7 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 30) {
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
                     $logs = [
