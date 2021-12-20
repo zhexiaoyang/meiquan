@@ -17,7 +17,8 @@ class KuaiDiController extends Controller
         $this->log("全部参数", $request->all());
         $param = json_decode($request->get('param'), true);
         $data = $param['data'];
-        if (!$order = ExpressOrder::where('order_id', $request->get('orderId', ''))->first()) {
+        $order_id = $data['orderId'];
+        if (!$order = ExpressOrder::where('order_id', $order_id)->first()) {
             $this->log("订单不存在");
             return $this->status(null, 'success', 0);
         }
@@ -46,6 +47,7 @@ class KuaiDiController extends Controller
             }
         }
         $order->save();
+        return $order;
 
         return $this->status(null, 'success', 0);
     }
