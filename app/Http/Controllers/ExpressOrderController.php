@@ -51,8 +51,10 @@ class ExpressOrderController extends Controller
         $kuaidi = New KuaiDi(config('kuaidi'));
         $res = $kuaidi->create_order($order, $shop);
         if ($res['returnCode'] == 200) {
+            // ExpressOrder::where('id', $order->id)->update(['order_id' => $res['data']['orderId'], 'task_id' => $res['data']['taskId']]);
             $order->task_id = $res['data']['taskId'];
             $order->order_id = $res['data']['orderId'];
+            $order->save();
         } else {
             $order->delete();
         }
@@ -67,6 +69,8 @@ class ExpressOrderController extends Controller
         if ($res['returnCode'] != 200) {
             return $this->error($res['message'] ?? '取消失败');
         }
+
+        $expressOrder->update(['status' => 99]);
 
         return $this->success();
     }
