@@ -70,7 +70,7 @@ class ExpressOrderController extends Controller
             return $this->error($res['message'] ?? '取消失败');
         }
 
-        $expressOrder->update(['status' => 99]);
+        // $expressOrder->update(['status' => 99]);
 
         return $this->success();
     }
