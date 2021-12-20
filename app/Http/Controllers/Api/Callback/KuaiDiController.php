@@ -32,9 +32,13 @@ class KuaiDiController extends Controller
         }
         $order->status = $status;
         if ($status == 10) {
-            $order->freight = $freight;
-            User::where('id', $order->user_id)->decrement('money', $freight);
-            $this->log("减运费：{$freight} 元");
+            if ($freight != null) {
+                $order->freight = $freight;
+                User::where('id', $order->user_id)->decrement('money', $freight);
+                $this->log("减运费：{$freight} 元");
+            } else {
+                $this->log("运费为null");
+            }
         }
         $order->save();
 
