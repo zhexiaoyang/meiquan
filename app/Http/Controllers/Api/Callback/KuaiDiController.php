@@ -21,13 +21,16 @@ class KuaiDiController extends Controller
         }
         $status = $request->get('status', '');
         $freight = $request->get('freight', '');
-        if ($courier_name = $request->get('courierName')) {
+        $courier_name = $request->get('courierName');
+        if ($courier_name != null) {
             $order->courier_name = $courier_name;
         }
-        if ($courier_mobile = $request->get('courierMobile')) {
+        $courier_mobile = $request->get('courierMobile');
+        if ($courier_mobile != null) {
             $order->courier_mobile = $courier_mobile;
         }
-        if ($weight = $request->get('weight')) {
+        $weight = $request->get('weight');
+        if ($weight != null) {
             $order->weight = $weight;
         }
         $order->status = $status;
