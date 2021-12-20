@@ -19,7 +19,7 @@ class KuaiDiController extends Controller
             $this->log("订单不存在");
             return $this->status(null, 'success', 0);
         }
-        $status = $request->get('status', '');
+        $status = $request->get('status');
         $freight = $request->get('freight', '');
         $courier_name = $request->get('courierName');
         if ($courier_name != null) {
