@@ -14,6 +14,16 @@ class Tool
     {
         return strtoupper(md5(json_encode($para, JSON_UNESCAPED_UNICODE) . $key . $customer));
     }
+    /**
+     * 获取签名
+     * @param $para array 加密的参数数组
+     * @param $encKey string 加密的key
+     * @return bool|string 生产的签名 sign
+     */
+    public static function getOrderSign($para, $t, $key, $secret)
+    {
+        return strtoupper(md5(json_encode($para, JSON_UNESCAPED_UNICODE) . $t . $key . $secret));
+    }
 
     /**
      * @param $param  array 参数数组

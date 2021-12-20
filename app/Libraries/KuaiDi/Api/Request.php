@@ -48,4 +48,26 @@ class Request
         return $result;
     }
 
+
+    public function post_order(string $url, string $method, array $data)
+    {
+        $t = time();
+        $params = [
+            'method' => $method,
+            'key' => $this->key,
+            't' => $t,
+            'param' => json_encode($data, JSON_UNESCAPED_UNICODE)
+        ];
+
+        $params['sign'] = Tool::getOrderSign($data, $t, $this->key, $this->secret);
+
+        $http = $this->getHttp();
+
+        $response = $http->post($this->url . $url, $params);
+
+        $result = json_decode(strval($response->getBody()), true);
+
+        return $result;
+    }
+
 }

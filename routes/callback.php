@@ -23,3 +23,9 @@ Route::middleware(['force-json'])->prefix('taozi')->namespace('Api\Callback')->g
     // 线下处方订单回调
     Route::post('order', "TaoziController@order");
 });
+
+// 快递100
+Route::middleware(['force-json'])->prefix('kuaidi')->namespace('Api\Callback')->group(function () {
+    // 线下处方订单回调
+    Route::post('order', "KuaiDiController@order");
+});

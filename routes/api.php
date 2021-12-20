@@ -32,6 +32,10 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 城市经理收益
          */
+        Route::resource('express_order', 'ExpressOrderController')->only('index','store','destroy');
+        /**
+         * 城市经理收益
+         */
         Route::resource("manager_profit", "ManagerProfitController")->only(["index"])->names("manager_profit");
 
         /**
