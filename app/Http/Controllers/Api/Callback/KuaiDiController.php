@@ -15,7 +15,7 @@ class KuaiDiController extends Controller
     public function order(Request $request)
     {
         $this->log("全部参数", $request->all());
-        if (!$order = ExpressOrder::where('order_id', $request->get('orderId', ''))) {
+        if (!$order = ExpressOrder::where('order_id', $request->get('orderId', ''))->first()) {
             $this->log("订单不存在");
             return $this->status(null, 'success', 0);
         }
