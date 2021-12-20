@@ -30,7 +30,7 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
-         * 城市经理收益
+         * 快递订单
          */
         Route::resource('express_order', 'ExpressOrderController')->only('index','store','destroy');
         /**
