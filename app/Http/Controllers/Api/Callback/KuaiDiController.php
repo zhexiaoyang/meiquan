@@ -20,10 +20,10 @@ class KuaiDiController extends Controller
             return $this->status(null, 'success', 0);
         }
         $status = $request->get('status', '');
-        $freight = $request->get('freight', '');
-        $order->courier_name = $request->get('courierName', '');
-        $order->courier_mobile = $request->get('courierMobile', '');
-        $order->weight = $request->get('weight', '');
+        $freight = $request->get('freight', '') ?: '';
+        $order->courier_name = $request->get('courierName', '') ?: '';
+        $order->courier_mobile = $request->get('courierMobile', '') ?: '';
+        $order->weight = $request->get('weight', '') ?: '';
         $order->status = $status;
         if ($status == 10) {
             $order->freight = $freight;
