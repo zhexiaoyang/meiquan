@@ -15,21 +15,22 @@ class KuaiDiController extends Controller
     public function order(Request $request)
     {
         $this->log("全部参数", $request->all());
+        $data = json_decode($request->get('data'), true);
         if (!$order = ExpressOrder::where('order_id', $request->get('orderId', ''))->first()) {
             $this->log("订单不存在");
             return $this->status(null, 'success', 0);
         }
-        $status = $request->get('status');
-        $freight = $request->get('freight', '');
-        $courier_name = $request->get('courierName');
+        $status = $data['status'];
+        $freight = $data['freight'];
+        $courier_name = $data['courierName'];
         if ($courier_name != null) {
             $order->courier_name = $courier_name;
         }
-        $courier_mobile = $request->get('courierMobile');
+        $courier_mobile = $data['courierMobile'];
         if ($courier_mobile != null) {
             $order->courier_mobile = $courier_mobile;
         }
-        $weight = $request->get('weight');
+        $weight = $data['weight'];
         if ($weight != null) {
             $order->weight = $weight;
         }
