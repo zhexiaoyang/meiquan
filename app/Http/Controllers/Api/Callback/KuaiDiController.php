@@ -22,7 +22,7 @@ class KuaiDiController extends Controller
         $status = $request->get('status', '');
         $freight = $request->get('freight', '');
         $order->courier_name = $request->get('courierName', '');
-        $order->courier_mobile = $request->get('courierMobile');
+        $order->courier_mobile = $request->get('courierMobile', '');
         $order->weight = $request->get('weight');
         $order->status = $status;
         if ($status == 10) {
