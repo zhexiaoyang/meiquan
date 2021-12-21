@@ -527,70 +527,6 @@ class ProductController extends Controller
             return $this->error("参数错误：timestamp有误", 701);
         }
 
-        $receive_params = $request->get("params");
-
-        if (!isset($receive_params['shop_id'])) {
-            return $this->error("参数错误：shop_id不存在", 701);
-        }
-
-        if (!isset($receive_params['data'])) {
-            return $this->error("参数错误：data不存在", 701);
-        }
-
-        $shop_id = $receive_params['shop_id'];
-        $data = $receive_params['data'];
-
-        if (empty($data)) {
-            return $this->error("参数错误：data不能为空", 701);
-        }
-
-        if (count($data) > 200) {
-            return $this->error("参数错误：data内容不能超过200组", 701);
-        }
-
-
-        $medicine_data = [];
-
-        foreach ($data as $v) {
-            if (isset($v['code']) && isset($v['stock'])) {
-                $tmp['app_poi_code'] = $shop_id;
-                $tmp['app_medicine_code'] = $v['code'];
-                $tmp['stock'] = $v['stock'];
-                $medicine_data[] = $tmp;
-            }
-        }
-
-        if (empty($medicine_data)) {
-            return $this->error("参数错误：data内容错误", 701);
-        }
-
-        $params['app_poi_code'] = $shop_id;
-        $params['medicine_data'] = json_encode($medicine_data);
-
-        \Log::info("[ERP接口]-[测试同步库存]-请求参数", $params);
-
-        return $this->success();
-    }
-
-    public function testAdd(Request $request)
-    {
-        \Log::info("[ERP接口]-[测试添加商品]-全部参数", $request->all());
-        if (!$access_key = $request->get("access_key")) {
-            return $this->error("参数错误：access_key必传", 701);
-        }
-
-        if (!$signature = $request->get("signature")) {
-            return $this->error("参数错误：signature必传", 701);
-        }
-
-        if (!$timestamp = $request->get("timestamp")) {
-            return $this->error("参数错误：timestamp必传", 701);
-        }
-
-        if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
-            return $this->error("参数错误：timestamp有误", 701);
-        }
-
         if (!$shop_id = $request->get("shop_id")) {
             return $this->error("参数错误：shop_id不存在", 701);
         }
@@ -635,7 +571,68 @@ class ProductController extends Controller
             }
         }
 
-        \Log::info("[ERP接口]-[测试添加商品]-组合参数", $medicine_data);
+        \Log::info("[ERP接口]-[测试同步库存]-请求参数", $medicine_data);
+
+        return $this->success();
+    }
+
+    public function testAdd(Request $request)
+    {
+        \Log::info("[ERP接口]-[测试添加商品]-全部参数", $request->all());
+        if (!$access_key = $request->get("access_key")) {
+            return $this->error("参数错误：access_key必传", 701);
+        }
+
+        if (!$signature = $request->get("signature")) {
+            return $this->error("参数错误：signature必传", 701);
+        }
+
+        if (!$timestamp = $request->get("timestamp")) {
+            return $this->error("参数错误：timestamp必传", 701);
+        }
+
+        if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
+            return $this->error("参数错误：timestamp有误", 701);
+        }
+
+        $receive_params = $request->get("data");
+
+        $data = [];
+
+        if (!empty($receive_params)) {
+            foreach ($receive_params as $receive_param) {
+
+                if (!isset($receive_param['shop_id'])) {
+                    return $this->error("参数错误：shop_id不存在", 701);
+                }
+
+                if (!isset($receive_param['app_medicine_code'])) {
+                    return $this->error("参数错误：app_medicine_code不存在", 701);
+                }
+
+                if (!isset($receive_param['upc'])) {
+                    return $this->error("参数错误：upc不存在", 701);
+                }
+
+                if (!isset($receive_param['price'])) {
+                    return $this->error("参数错误：price不存在", 701);
+                }
+
+                if (!isset($receive_param['stock'])) {
+                    return $this->error("参数错误：stock不存在", 701);
+                }
+
+                $data[] = [
+                    'app_poi_code' => $receive_param['shop_id'],
+                    'app_medicine_code' => $receive_param['app_medicine_code'],
+                    'upc' => $receive_param['upc'],
+                    'price' => $receive_param['price'],
+                    'stock' => $receive_param['stock'],
+                ];
+            }
+        }
+
+        \Log::info("[ERP接口]-[测试添加商品]-组合参数", $data);
 
         return $this->success();
     }
