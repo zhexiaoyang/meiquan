@@ -10,4 +10,14 @@ class ShopThreeId extends Model
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
     }
+
+    public function conflict_mt()
+    {
+        return $this->belongsTo(Shop::class, 'mtwm', 'mtwm');
+    }
+
+    public function conflict_ele()
+    {
+        return $this->belongsTo(Shop::class, 'ele', 'ele');
+    }
 }

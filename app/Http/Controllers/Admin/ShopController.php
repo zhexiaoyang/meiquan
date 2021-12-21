@@ -32,6 +32,10 @@ class ShopController extends Controller
     {
         $query = ShopThreeId::with(['shop' => function ($query) {
             $query->select('id', 'shop_name', 'contact_name', 'contact_phone');
+        },'conflict_mt' => function ($query) {
+            $query->select('id', 'mtwm', 'shop_name', 'contact_name', 'contact_phone')->where('mtwm', '<>', '');
+        },'conflict_ele' => function ($query) {
+            $query->select('id', 'ele', 'shop_name', 'contact_name', 'contact_phone')->where('ele', '<>', '');
         }]);
 
         $data = $query->get();
@@ -54,11 +58,17 @@ class ShopController extends Controller
             }
 
             if (($mtwm = $apply->mtwm) && !$shop->mtwm) {
+                if ($mtwm && ($_shop = Shop::query()->where('mtwm', $mtwm)->first())) {
+                    return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                }
                 $shop->mtwm = $mtwm;
                 $shop->chufang_mt = $mtwm;
                 // $shop->chufang_status = 2;
             }
             if (($ele = $apply->ele) && !$shop->ele) {
+                if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
+                    return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                }
                 $shop->ele = $ele;
                 $shop->chufang_ele = $ele;
                 // $shop->chufang_status = 2;
@@ -79,30 +89,48 @@ class ShopController extends Controller
     }
 
     /**
-     * 管理员修改三方ID（已作废）
+     * 管理员修改三方ID
      * @data 2021/12/1 4:20 下午
      */
     public function update_three(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get('id', 0))) {
+        $shop_id = $request->get('id', 0);
+
+        if (!$shop = Shop::query()->find($shop_id)) {
             return $this->error('门店不存在');
         }
 
-        $mtwm = $request->get('mtwm', '');
-        $ele = $request->get('ele', '');
-        $jddj = $request->get('jddj', '');
 
-        $shop->mtwm = $mtwm;
-        $shop->ele = $ele;
-        $shop->jddj = $jddj;
-
-        if ($mtwm) {
-            $shop->chufang_mt = $mtwm;
-            $shop->chufang_status = 2;
+        if (ShopThreeId::where('shop_id', $shop_id)->first()) {
+            return $this->error('该门店有待审核ID，请先审核');
         }
-        if ($ele) {
-            $shop->chufang_ele = $ele;
-            $shop->chufang_status = 2;
+
+        $mtwm = $request->get('mtwm');
+        $ele = $request->get('ele');
+        $jddj = $request->get('jddj');
+
+        if (!is_null($mtwm)) {
+            if ($mtwm && ($_shop = Shop::query()->where('mtwm', $mtwm)->first())) {
+                return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+            $shop->mtwm = $mtwm;
+            if ($shop->second_category == 200001) {
+                $shop->chufang_mt = $mtwm;
+                $shop->chufang_status = 2;
+            }
+        }
+        if (!is_null($ele)) {
+            if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
+                return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+            }
+            $shop->ele = $ele;
+            if ($shop->second_category == 200001) {
+                $shop->chufang_ele = $ele;
+                $shop->chufang_status = 2;
+            }
+        }
+        if (!is_null($jddj)) {
+            $shop->jddj = $jddj;
         }
 
         $shop->save();

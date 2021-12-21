@@ -18,7 +18,7 @@ class ErpAdminAccessKeyController extends Controller
             $query->where("title", "like", "%{$search_key}%");
         }
 
-        $data = $query->paginate($page_size);
+        $data = $query->orderByDesc('id')->paginate($page_size);
 
         return $this->page($data);
     }
