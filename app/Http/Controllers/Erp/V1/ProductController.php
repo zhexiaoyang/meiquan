@@ -543,28 +543,28 @@ class ProductController extends Controller
             return $this->error("参数错误：data内容不能超过200组", 701);
         }
 
-        // if (!$access = ErpAccessKey::query()->where("access_key", $access_key)->first()) {
-        //     return $this->error("参数错误：access_key错误", 701);
-        // }
+        if (!$access = ErpAccessKey::query()->where("access_key", $access_key)->first()) {
+            return $this->error("参数错误：access_key错误", 701);
+        }
 
-        // if (!$access_shop = ErpAccessShop::query()->where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
-        //     return $this->error("参数错误：shop_id错误", 701);
-        // }
+        if (!$access_shop = ErpAccessShop::query()->where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
+            return $this->error("参数错误：shop_id错误", 701);
+        }
 
-        // if (!$mt_shop_id = $access_shop->mt_shop_id) {
-        //     return $this->error("系统错误", 701);
-        // }
+        if (!$mt_shop_id = $access_shop->mt_shop_id) {
+            return $this->error("系统错误", 701);
+        }
 
-        // if (!$this->checkSing($request->only("access_key", "timestamp", "shop_id", "data", "signature"), $access->access_secret)) {
-        //     return $this->error("签名错误", 703);
-        // }
+        if (!$this->checkSing($request->only("access_key", "timestamp", "shop_id", "data", "signature"), $access->access_secret)) {
+            return $this->error("签名错误", 703);
+        }
 
 
         $medicine_data = [];
 
         foreach ($data as $v) {
             if (isset($v['code']) && isset($v['stock'])) {
-                // $tmp['app_poi_code'] = $mt_shop_id;
+                $tmp['app_poi_code'] = $mt_shop_id;
                 $tmp['app_medicine_code'] = $v['code'];
                 $tmp['stock'] = $v['stock'];
                 $medicine_data[] = $tmp;
