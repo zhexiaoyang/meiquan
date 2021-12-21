@@ -47,8 +47,7 @@ class KuaiDiController extends Controller
             }
         }
         $order->save();
-        return $order;
 
-        return $this->status(null, 'success', 0);
+        return $this->status(['result' => true, 'returnCode' => '200', 'message' => '成功']);
     }
 }
