@@ -44,7 +44,7 @@ class OrderController extends Controller
             'uu_status','money_uu','fail_uu',
             'sf_status','money_sf','fail_sf',
             'courier_name','courier_phone',
-            'send_at','created_at','over_at','cancel_at','receive_at','take_at',
+            'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
         // 关键字搜索
