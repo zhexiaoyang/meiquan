@@ -63,6 +63,7 @@ class Api extends Request
             } elseif ($order->platform === 11) {
                 $data['ordersource'] = 3;
                 $data['shortordernum'] = "取货码" . $order->goods_pickup_info;
+                $data['note'] = "取货码" . $order->goods_pickup_info . ',' . $order->note;
             }
         }
 
