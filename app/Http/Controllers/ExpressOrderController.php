@@ -12,8 +12,8 @@ class ExpressOrderController extends Controller
     public function index(Request $request)
     {
         $query = ExpressOrder::with(['shop' => function($query) {
-            $query->select('id', 'shop_name');
-        }])->where('user_id', $request->user()->id);
+            $query->select('id', 'shop_name', 'contact_name', 'contact_phone', 'shop_address');
+        }, 'logs'])->where('user_id', $request->user()->id);
 
         if ($order_id = $request->get('order_id')) {
             $query->where('order_id', 'like', "%{$order_id}%");
