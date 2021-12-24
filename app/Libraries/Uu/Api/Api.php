@@ -39,13 +39,14 @@ class Api extends Request
 
     public function addOrder(Order $order, Shop $shop)
     {
+        $note = $order->note ?: "";
         $data = [
             'price_token' => $order->price_token,
             'order_price' => (string) $order->money_uu_total,
             'balance_paymoney' => (string) $order->money_uu_need,
             'receiver' => $order->receiver_name,
             'receiver_phone' => $order->receiver_phone,
-            'note' => $order->note ?: "",
+            'note' => $note,
             'callback_url' => 'http://psapi.meiquanda.com/api/waimai/uu/order',
             'push_type' => 0,
             // 'push_type' => 2,
@@ -63,7 +64,7 @@ class Api extends Request
             } elseif ($order->platform === 11) {
                 $data['ordersource'] = 3;
                 $data['shortordernum'] = "取货码" . $order->goods_pickup_info;
-                $data['note'] = "取货码" . $order->goods_pickup_info . ',' . $order->note;
+                $data['note'] = "取货码" . $order->goods_pickup_info . ',' . $note;
             }
         }
 
