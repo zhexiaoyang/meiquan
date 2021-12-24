@@ -304,6 +304,10 @@ class ShopController extends Controller
             unset($shop->shop_id);
         }
 
+        if ($shop->citycode == '1433') {
+            $shop->citycode = '0433';
+        }
+
         $shop->status = 40;
         $shop->user_id = $user->id;
         $shop->own_id = $user->id;
