@@ -159,7 +159,7 @@ class PrescriptionController extends Controller
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
                 'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
             ->where('shops.user_id', '>', 0)
-            ->where('shops.chufang_status', '>', 0)
+            // ->where('shops.chufang_status', '>', 0)
             ->where('shops.second_category', '200001');
 
         if ($status = $request->get('status')) {
