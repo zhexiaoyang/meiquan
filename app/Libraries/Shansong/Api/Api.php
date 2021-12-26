@@ -20,7 +20,7 @@ class Api extends Request
         $data = [
             "storeName" => $shop->shop_name,
             "cityName" => $shop->city,
-            "address" => $shop->shop_address,
+            "address" => $shop->shop_address . ',' . $shop->shop_name,
             "addressDetail" => "-",
             "latitude" => $jwd['lat'],
             "longitude" => $jwd['lng'],
@@ -42,7 +42,7 @@ class Api extends Request
             "storeId" => $shop->shop_id_ss,
             "storeName" => $shop->shop_name,
             "cityName" => $shop->city,
-            "address" => $shop->shop_address,
+            "address" => $shop->shop_address . ',' . $shop->shop_name,
             "addressDetail" => "-",
             "latitude" => $jwd['lat'],
             "longitude" => $jwd['lng'],

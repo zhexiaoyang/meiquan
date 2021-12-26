@@ -20,7 +20,7 @@ class Api extends Request
             'business' => 20,
             'city_name' => $shop->city,
             'area_name' => $shop->area,
-            'station_address' => $shop->shop_address,
+            'station_address' => $shop->shop_address . ',' . $shop->shop_name,
             'lng' => (float) $shop->shop_lng,
             'lat' => (float) $shop->shop_lat,
             'contact_name' => $shop->contact_name,
@@ -35,7 +35,7 @@ class Api extends Request
         $data = [
             'origin_shop_id' => (string) $shop->id,
             'station_name' => $shop->shop_name,
-            'station_address' => $shop->shop_address,
+            'station_address' => $shop->shop_address . ',' . $shop->shop_name,
             'lng' => (float) $shop->shop_lng,
             'lat' => (float) $shop->shop_lat,
             'contact_name' => $shop->contact_name,

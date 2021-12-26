@@ -14,7 +14,7 @@ class Api extends Request
         $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
         $data = [
             'origin_id' => $order->order_id,
-            'from_address' => $shop->shop_address,
+            'from_address' => $shop->shop_address . ',' . $shop->shop_name,
             'to_address' => $order->receiver_address,
             'city_name' => $shop->city,
             'send_type' => 0,

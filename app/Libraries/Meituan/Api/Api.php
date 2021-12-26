@@ -268,7 +268,7 @@ class Api extends Request
             'second_category' => $second_category,
             'contact_name' => (string) $shop->contact_name,
             'contact_phone' => $shop->contact_phone,
-            'shop_address' => $shop->shop_address,
+            'shop_address' => $shop->shop_address . ',' . $shop->shop_name,
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
             'coordinate_type' => 0,
@@ -285,7 +285,7 @@ class Api extends Request
             'shop_id' => $shop->shop_id,
             'contact_name' => (string) $shop->contact_name,
             'contact_phone' => $shop->contact_phone,
-            'shop_address' => $shop->shop_address,
+            'shop_address' => $shop->shop_address . ',' . $shop->shop_name,
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
         ];

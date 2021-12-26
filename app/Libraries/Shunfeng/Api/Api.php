@@ -27,7 +27,7 @@ class Api extends Request
         $shop_info = [
             "shop_name" => $shop->shop_name,
             "shop_phone" => $shop->contact_phone,
-            "shop_address" => $shop->shop_address,
+            "shop_address" => $shop->shop_address . ',' . $shop->shop_name,
             "shop_lng" => $shop->shop_lng,
             "shop_lat" => $shop->shop_lat,
         ];
@@ -63,7 +63,7 @@ class Api extends Request
         $shop_info = [
             "shop_name" => $shop->shop_name,
             "shop_phone" => $shop->contact_phone,
-            "shop_address" => $shop->shop_address,
+            "shop_address" => $shop->shop_address . ',' . $shop->shop_name,
             "shop_lng" => $shop->shop_lng,
             "shop_lat" => $shop->shop_lat,
         ];
