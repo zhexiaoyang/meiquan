@@ -173,22 +173,32 @@ class ShopController extends Controller
         if ($id != $shop->id) {
             return $this->error("参数错误");
         }
+
+        if (!$shop_name = trim($request->get("shop_name", ""))){
+            return $this->error("门店名称不能为空");
+        }
+        $shop->shop_name = $shop_name;
+
         if (!$contact_name = trim($request->get("contact_name", ""))){
             return $this->error("联系人不能为空");
         }
         $shop->contact_name = $contact_name;
+
         if (!$contact_phone = trim($request->get("contact_phone", ""))){
             return $this->error("联系人电话不能为空");
         }
         $shop->contact_phone = $contact_phone;
+
         if (!$shop_address = trim($request->get("shop_address", ""))){
             return $this->error("门店地址不能为空");
         }
         $shop->shop_address = $shop_address;
+
         if (!$shop_lng = trim($request->get("shop_lng", ""))){
             return $this->error("经度不能为空");
         }
         $shop->shop_lng = $shop_lng;
+
         if (!$shop_lat = trim($request->get("shop_lat", ""))){
             return $this->error("纬度不能为空");
         }

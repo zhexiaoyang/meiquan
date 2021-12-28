@@ -50,7 +50,7 @@ class Api extends Request
     {
         $data = [
             "chain_store_code" => $shop->shop_id_fn,
-            // "chain_store_name" => $shop->shop_name,
+            "chain_store_name" => $shop->shop_name,
             "contact_phone" => $shop->contact_phone,
             "address" => $shop->shop_address . ',' . $shop->shop_name,
             "position_source" => 3,

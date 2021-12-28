@@ -283,6 +283,7 @@ class Api extends Request
     {
         $params = [
             'shop_id' => $shop->shop_id,
+            'shop_name' => (string) $shop->shop_name,
             'contact_name' => (string) $shop->contact_name,
             'contact_phone' => $shop->contact_phone,
             'shop_address' => $shop->shop_address . ',' . $shop->shop_name,
