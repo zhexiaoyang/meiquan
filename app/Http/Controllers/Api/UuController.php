@@ -332,7 +332,7 @@ class UuController extends Controller
                     return ['code' => 'error'];
                 }
                 // 同步美团外卖配送信息
-                $order = Order::where('order_id', $order_id)->first();
+                $order = Order::where('delivery_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 5) {
