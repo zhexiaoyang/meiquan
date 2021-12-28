@@ -46,7 +46,7 @@ class UuController extends Controller
         $dingding = app("ding");
 
         // 查找订单
-        if ($order = Order::where('order_id', $order_id)->first()) {
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
             $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
             if ($order->status == 99) {
