@@ -24,4 +24,14 @@ class OnlineShop extends Model
     {
         return $this->hasMany(ContractOrder::class, 'online_shop_id', 'id');
     }
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
+    }
 }
