@@ -31,13 +31,14 @@ class KuaiDiController extends Controller
 
         // 获取参数
         $status = intval($data['status']);
+        // $order_id = $data['orderId'] ?? '';
         $freight = $data['freight'] ?? '';
         $courier_name = $data['courierName'] ?? '';
         $courier_mobile = $data['courierMobile'] ?? '';
         $weight = $data['weight'] ?? '';
         $kuaidinum = $param['kuaidinum'] ?? '';
         // 判断日志是否存在
-        if (ExpressOrderLog::query()->where(['name' => $courier_name, 'status' => $status])->exists()) {
+        if (ExpressOrderLog::query()->where(['order_id' => $order->id, 'name' => $courier_name, 'status' => $status])->exists()) {
             $this->log("日志已存在");
             return $this->success($res);
         }
