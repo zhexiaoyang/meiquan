@@ -436,4 +436,17 @@ class AuthController extends Controller
 
         return $this->success();
     }
+
+    public function update(Request $request)
+    {
+        if (!$nick = $request->get('nickname')) {
+            return $this->error('昵称不能为空', 422);
+        }
+
+        $user = $request->user();
+        $user->nickname = $nick;
+        $user->save();
+
+        return $this->success();
+    }
 }
