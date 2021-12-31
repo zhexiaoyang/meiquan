@@ -748,7 +748,8 @@ class ShopController extends Controller
             }
         }
 
-        if ((mb_strstr($shop->shop_name, '寝趣') !== false) || (mb_strstr($shop->shop_name, '唤趣') !== false)) {
+        // if ((mb_strstr($shop->shop_name, '寝趣') !== false) || (mb_strstr($shop->shop_name, '唤趣') !== false)) {
+        if ((mb_strstr($shop->shop_name, '寝趣') !== false)) {
             if ($mtwm) {
                 $status = false;
                 $params = ['app_poi_codes' => $mtwm];
