@@ -826,10 +826,10 @@ class ShopController extends Controller
         $platform = $request->get("platform", 1);
 
         if ($platform == 1) {
-            $shop->mtwm = '';
+            $shop->auto_mtwm = '';
             $shop->mt_shop_id = '';
         } else {
-            $shop->ele = '';
+            $shop->auto_ele = '';
             $shop->ele_shop_id = '';
         }
 
