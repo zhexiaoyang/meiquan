@@ -35,6 +35,9 @@ class UuController extends Controller
         $order_id = $data['origin_id'] ?? '';
         // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
         $status = $data['state'] ?? '';
+        $state_text = $data['state_text'] ?? '';
+        // \Log::info('$status:' . $status);
+        // \Log::info('$state_text:' . $state_text);
         // 配送员姓名
         $name = $data['driver_name'] ?? '';
         // 配送员手机号
@@ -354,23 +357,25 @@ class UuController extends Controller
                 ]);
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-            } elseif ($status == 10) {
+            } elseif (($status == 10) || ($status == 6 && $state_text == '已送达')) {
                 // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
-                $order->status = 70;
-                $order->uu_status = 70;
-                $order->over_at = date("Y-m-d H:i:s");
-                $order->courier_name = $name;
-                $order->courier_phone = $phone;
-                $order->save();
-                // 记录订单日志
-                OrderLog::create([
-                    'ps' => 6,
-                    "order_id" => $order->id,
-                    "des" => "【UU】跑腿，已送达",
-                    'name' => $name,
-                    'phone' => $phone,
-                ]);
-                dispatch(new MtLogisticsSync($order));
+                if ($order->status != 70) {
+                    $order->status = 70;
+                    $order->uu_status = 70;
+                    $order->over_at = date("Y-m-d H:i:s");
+                    $order->courier_name = $name;
+                    $order->courier_phone = $phone;
+                    $order->save();
+                    // 记录订单日志
+                    OrderLog::create([
+                        'ps' => 6,
+                        "order_id" => $order->id,
+                        "des" => "【UU】跑腿，已送达",
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                    dispatch(new MtLogisticsSync($order));
+                }
                 return json_encode($res);
             } elseif ($status == -1) {
                 if ($order->status >= 20 && $order->status < 70 ) {
