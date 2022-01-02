@@ -248,7 +248,7 @@ class ContractController extends Controller
                 $order->online_shop_id = $shop->id;
                 $order->save();
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
         }
 
@@ -305,7 +305,7 @@ class ContractController extends Controller
                 $order->online_shop_id = $shop->id;
                 $order->save();
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
             $res2 = $q->companysignTaozi($order->three_contract_id);
             if (isset($res2['code']) && $res2['code'] === 0) {
@@ -313,7 +313,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
@@ -325,7 +325,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
@@ -383,7 +383,7 @@ class ContractController extends Controller
                 $order->online_shop_id = $shop->id;
                 $order->save();
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
             $res2 = $q->companysignTaozi($order->three_contract_id);
             if (isset($res2['code']) && $res2['code'] === 0) {
@@ -391,7 +391,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
@@ -403,7 +403,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
@@ -461,7 +461,7 @@ class ContractController extends Controller
                 $order->online_shop_id = $shop->id;
                 $order->save();
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
             $res2 = $q->companysignTaozi($order->three_contract_id);
             if (isset($res2['code']) && $res2['code'] === 0) {
@@ -469,7 +469,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
@@ -481,7 +481,7 @@ class ContractController extends Controller
                 $order->save();
                 $this->log("-[签署合同2-公章成功]-[合同订单ID：{$order->id}]");
             } else {
-                return $this->error("系统错误，请稍后再试");
+                return $this->error($res2['message'] ?? "系统错误，请稍后再试");
             }
             $this->log("-[签署公章返回]", [$res2]);
         }
