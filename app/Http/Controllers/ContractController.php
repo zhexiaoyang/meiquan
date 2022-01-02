@@ -145,16 +145,16 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        $order = ContractOrder::query()->where("user_id", $user->id)->where(function ($query) use ($shop) {
-            $query->where("online_shop_id", 0)->orWhere("online_shop_id", $shop->id);
-        })->orderBy("id")->first();
+        // $order = ContractOrder::query()->where("user_id", $user->id)->where(function ($query) use ($shop) {
+        //     $query->where("online_shop_id", 0)->orWhere("online_shop_id", $shop->id);
+        // })->orderBy("id")->first();
 
         // if (!$order) {
         //     $this->log("-[门店认证-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
         //     return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
         // }
 
-        if ($shop->contract_auth <= 1) {
+        if ($shop->contract_auth <= 2) {
             $shop->company_name = $company_name;
             $shop->applicant = $applicant;
             $shop->applicant_phone = $applicant_phone;
