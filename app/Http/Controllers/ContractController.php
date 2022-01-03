@@ -254,11 +254,11 @@ class ContractController extends Controller
 
         $res = $q->shopContract($shop, $order->three_contract_id);
 
-        if (empty($res['message']['pageUrl'])) {
+        if (empty($res['result']['pageUrl'])) {
             return $this->error($res['message']);
         }
 
-        return $this->success(['url' => $res['message']['pageUrl'] ?? '']);
+        return $this->success(['url' => $res['result']['pageUrl'] ?? '']);
     }
 
     /**
