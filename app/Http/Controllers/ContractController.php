@@ -171,7 +171,7 @@ class ContractController extends Controller
         }
 
         $code = $res['code'] ?? 99999;
-        $message = $res['messageg'] ?? '认证错误';
+        $message = $res['message'] ?? '认证错误';
 
         if (($code != 0) || ($code != 1605)) {
             return $this->error($message);
