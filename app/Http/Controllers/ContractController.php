@@ -173,16 +173,14 @@ class ContractController extends Controller
         $code = $res['code'] ?? 99999;
         $message = $res['message'] ?? '认证错误';
 
-        if (($code != 0) && ($code != 1605)) {
-            return $this->error($message);
-        }
-
         if ($code == 0) {
             $shop->contract_auth_id = $res['result']['requestId'];
             $shop->save();
+
+            return $this->success($res);
         }
 
-        return $this->success($res);
+        return $this->error($message);
     }
 
     /**
