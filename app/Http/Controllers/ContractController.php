@@ -166,12 +166,21 @@ class ContractController extends Controller
         $q = new QiYue($config);
         $res = $q->shopAuth($shop);
 
-        if (!isset($res['code']) || ($res['code'] !== 0)) {
-            return $this->error("认证失败，请稍后再试");
+        if (!isset($res['code'])) {
+            return $this->error("请求失败，请稍后再试");
         }
 
-        $shop->contract_auth_id = $res['result']['requestId'];
-        $shop->save();
+        $code = $res['code'] ?? 99999;
+        $message = $res['messageg'] ?? '认证错误';
+
+        if (($code != 0) || ($code != 1605)) {
+            return $this->error($message);
+        }
+
+        if ($code == 0) {
+            $shop->contract_auth_id = $res['result']['requestId'];
+            $shop->save();
+        }
 
         return $this->success($res);
     }
