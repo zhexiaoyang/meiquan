@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Admin\ShopExport;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\ShopThreeId;
@@ -22,6 +23,15 @@ class ShopController extends Controller
         $shops = $query->orderByDesc("id")->get();
 
         return $this->success($shops);
+    }
+
+    public function export(Request $request, ShopExport $export)
+    {
+        $user = $request->user();
+        if (!in_array($user->id, [1,32])) {
+            return $this->error('没有权限');
+        }
+        return $export->withRequest();
     }
 
     /**

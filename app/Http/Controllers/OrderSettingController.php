@@ -103,7 +103,8 @@ class OrderSettingController extends Controller
      */
     public function shops()
     {
-        $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+        $shops = Shop::select("id", "shop_name as name","province","city","area","shop_address as address","contact_name as user","contact_phone as phone")
+            ->where("own_id", Auth::id())->get();
 
         return $this->success($shops);
     }

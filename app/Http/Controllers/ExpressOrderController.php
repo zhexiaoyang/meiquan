@@ -26,7 +26,10 @@ class ExpressOrderController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'shop_id' => 'required',
+            // 'shop_id' => 'required',
+            'send_name' => 'required',
+            'send_phone' => 'required',
+            'send_address' => 'required',
             'receive_name' => 'required',
             'receive_phone' => 'required',
             'province' => 'required',
@@ -34,7 +37,10 @@ class ExpressOrderController extends Controller
             'area' => 'required',
             'address' => 'required',
         ], [], [
-            'shop_id' => '发单门店',
+            // 'shop_id' => '发单门店',
+            'send_name' => '寄件人',
+            'send_phone' => '寄件人电话',
+            'send_address' => '寄件地址',
             'receive_name' => '收货人',
             'receive_phone' => '收货人电话',
             'province' => '地区',
@@ -42,14 +48,18 @@ class ExpressOrderController extends Controller
             'area' => '地区',
             'address' => '详细地址',
         ]);
-        $data = $request->only('shop_id','receive_name','receive_phone','province','city','area','address','goods','platform');
-        if (!$shop = Shop::find($data['shop_id'] ?? 0)) {
-            return $this->error('门店不存在');
+        $user = $request->user();
+        if ($user->money < 20) {
+            return $this->error('跑腿余额小于20元，不能发单');
         }
-        $data['user_id'] = $shop->own_id;
+        $data = $request->only('shop_id','receive_name','receive_phone','province','city','area','address','goods','platform','send_name','send_phone','send_address');
+        // if (!$shop = Shop::find($data['shop_id'] ?? 0)) {
+        //     return $this->error('门店不存在');
+        // }
+        $data['user_id'] = $user->id;
         $order = ExpressOrder::create($data);
         $kuaidi = New KuaiDi(config('kuaidi'));
-        $res = $kuaidi->create_order($order, $shop);
+        $res = $kuaidi->create_order($order);
         if ($res['returnCode'] == 200) {
             // ExpressOrder::where('id', $order->id)->update(['order_id' => $res['data']['orderId'], 'task_id' => $res['data']['taskId']]);
             $order->task_id = $res['data']['taskId'];

@@ -284,6 +284,8 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * 门店管理
              */
+            // 门店导出
+            Route::get("shop/export", "ShopController@export")->name("admin.shop.export");
             // 门店管理-更新门店三方ID
             Route::post("shop/update/three", "ShopController@update_three")->name("admin.shop.update_three");
             // 审核管理-三方门店ID审核
