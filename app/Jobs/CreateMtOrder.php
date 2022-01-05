@@ -310,6 +310,7 @@ class CreateMtOrder implements ShouldQueue
             $check_mqd = $meiquanda->orderCalculate($shop, $order);
             $money_mqd = $check_mqd['data']['pay_fee'] ?? 0;
             if ($money_mqd > 1) {
+                $money_mqd += 1;
                 // 判断用户金额是否满足美全达订单
                 if ($user->money < ($money_mqd + $use_money)) {
                     if ($order->status < 20) {
@@ -319,7 +320,7 @@ class CreateMtOrder implements ShouldQueue
                     $this->log("用户金额不足发「美全达」订单，停止派单");
                     return;
                 }
-                $order->money_mqd = $money_mqd;
+                // $order->money_mqd = $money_mqd;
                 $this->services['meiquanda'] = $money_mqd;
             } else {
                 $mqd_error_msg = $check_mqd['msg'] ?? "美全达校验订单失败";
