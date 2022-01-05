@@ -86,7 +86,7 @@ class Api extends Request
      * 商家寄件-创建订单
      * @data 2021/12/16 5:08 下午
      */
-    public function create_order(ExpressOrder $order, Shop $shop)
+    public function create_order(ExpressOrder $order)
     {
         $type = ['','jtexpress','yuantong','shentong','jd','debangkuaidi'];
         $platform = $type[$order->platform] ?? '';
@@ -95,9 +95,9 @@ class Api extends Request
             'recManName' => $order->receive_name,
             'recManMobile' => $order->receive_phone,
             'recManPrintAddr' => $order->province . $order->city . $order->area . $order->address,
-            'sendManName' => $shop->contact_name,
-            'sendManMobile' => $shop->contact_phone,
-            'sendManPrintAddr' => $shop->shop_address,
+            'sendManName' => $order->send_name,
+            'sendManMobile' => $order->send_phone,
+            'sendManPrintAddr' => $order->send_address,
             'callBackUrl' => "http://psapi.meiquanda.com/api/callback/kuaidi/order",
         ];
         if ($order->goods) {
