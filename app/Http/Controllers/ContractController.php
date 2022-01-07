@@ -154,7 +154,7 @@ class ContractController extends Controller
         //     return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
         // }
 
-        if ($shop->contract_auth <= 2) {
+        if ($shop->contract_auth < 2) {
             $shop->company_name = $company_name;
             $shop->applicant = $applicant;
             $shop->applicant_phone = $applicant_phone;
