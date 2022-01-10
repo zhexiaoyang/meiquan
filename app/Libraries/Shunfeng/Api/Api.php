@@ -20,9 +20,9 @@ class Api extends Request
         "330" => 99,
     ];
 
-    public function precreateorder(Order $order)
+    public function precreateorder(Order $order, Shop $shop)
     {
-        $shop = Shop::query()->find($order->shop_id);
+        // $shop = Shop::query()->find($order->shop_id);
         $time = time();
         $shop_info = [
             "shop_name" => $shop->shop_name,
@@ -55,10 +55,10 @@ class Api extends Request
         return $this->post('/open/api/external/precreateorder', $data);
     }
 
-    public function createOrder(Order $order)
+    public function createOrder(Order $order, Shop $shop)
     {
         $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
-        $shop = Shop::query()->find($order->shop_id);
+        // $shop = Shop::query()->find($order->shop_id);
         $time = time();
         $shop_info = [
             "shop_name" => $shop->shop_name,

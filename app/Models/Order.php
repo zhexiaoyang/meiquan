@@ -41,6 +41,10 @@ class Order extends Model
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
     }
 
+    public function warehouse() {
+        return $this->belongsTo(Shop::class, 'warehouse_id', 'id');
+    }
+
     public function items()
     {
         return $this->hasMany(OrderDetail::class, "order_id", "id");

@@ -1,6 +1,38 @@
 <?php
 
 /**
+ * @param $stime '20:00'
+ * @param $etime '06:00'
+ * @param string $current '12:00'
+ * @return bool
+ * @author zhangzhen
+ * @data 2022/1/9 9:28 上午
+ */
+function in_time_status($stime, $etime, $current = '') {
+    $current_time = time();
+    if ($current) {
+        $current_time = strtotime($current);
+    }
+
+    $s_time = strtotime($stime);
+    $e_time = strtotime($etime);
+
+    if ($e_time > $s_time) {
+        if (($current_time >= $s_time) && ($current_time <= $e_time)) {
+            return true;
+        }
+    }
+
+    if ($e_time < $s_time) {
+        if (($current_time <= $e_time) || ($current_time >= $s_time)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * 获取蜂鸟配送token
  * @return mixed
  */

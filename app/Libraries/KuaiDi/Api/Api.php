@@ -97,7 +97,7 @@ class Api extends Request
             'recManPrintAddr' => $order->province . $order->city . $order->area . $order->address,
             'sendManName' => $order->send_name,
             'sendManMobile' => $order->send_phone,
-            'sendManPrintAddr' => $order->send_address,
+            'sendManPrintAddr' => $order->send_province . $order->send_city . $order->send_area . $order->send_address,
             'callBackUrl' => "http://psapi.meiquanda.com/api/callback/kuaidi/order",
         ];
         if ($order->goods) {

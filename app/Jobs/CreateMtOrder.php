@@ -48,6 +48,8 @@ class CreateMtOrder implements ShouldQueue
     protected $money_sf = 0;
     // 日志格式
     protected $log = "";
+    // 仓库ID
+    protected $warehouse = 0;
 
     /**
      * Create a new job instance.
@@ -103,11 +105,11 @@ class CreateMtOrder implements ShouldQueue
 
         // 相关信息
         // 判断用户和门店是否存在
-        if (!$shop = Shop::query()->find($this->order->shop_id)) {
+        if (!$shop = Shop::find($this->order->shop_id)) {
             $this->log("门店不存在，停止派单|shop_id:{$this->order->shop_id}");
             return;
         }
-        if (!$user = User::query()->find($shop->user_id ?? 0)) {
+        if (!$user = User::find($shop->user_id ?? 0)) {
             $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
             return;
         }
@@ -133,6 +135,18 @@ class CreateMtOrder implements ShouldQueue
             $dd_switch = $setting->dada;
             $uu_switch = $setting->uu;
             $sf_switch = $setting->shunfeng;
+
+            if ($setting->warehouse && $setting->warehouse_time) {
+                $time_data = explode('-', $setting->warehouse_time);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        // DB::table('orders')->where('id', $this->order->id)->update(['warehouse_id' => $setting->warehouse]);
+                        $this->warehouse = $setting->warehouse;
+                        $shop = Shop::find($setting->warehouse);
+                        $this->log("仓库转发 | 仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                    }
+                }
+            }
         }
 
         // Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -167,7 +181,7 @@ class CreateMtOrder implements ShouldQueue
         }
         $this->log("用户冻结金额：{$use_money}");
 
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         // **********************************************************************************
         // ******************************  顺  丰  跑  腿  ***********************************
@@ -185,7 +199,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("门店关闭「顺丰」跑腿，停止「顺丰」派单");
         } else {
             $sf = app("shunfeng");
-            $check_sf= $sf->precreateorder($order);
+            $check_sf= $sf->precreateorder($order, $shop);
             $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + 1;
             if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
                 // 判断用户金额是否满足顺丰订单
@@ -453,6 +467,12 @@ class CreateMtOrder implements ShouldQueue
             }
         }
 
+        // 仓库ID
+        $order->warehouse_id = $this->warehouse;
+
+        // 保存订单信息
+        $order->save();
+
         // 没有配送服务商
         if (empty($this->services)) {
             if (
@@ -469,9 +489,6 @@ class CreateMtOrder implements ShouldQueue
             $this->log("暂无运力，停止派单");
             return;
         }
-
-        // 保存订单信息
-        $order->save();
 
         $ps = $this->getService();
 
@@ -547,7 +564,8 @@ class CreateMtOrder implements ShouldQueue
     public function uu()
     {
         $order = Order::find($this->order->id);
-        $shop = Shop::find($this->order->shop_id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
 
         if ($order->status > 30) {
             $this->log("不能发送「UU」订单，订单状态：{$order->status},大于30，停止派单");
@@ -599,7 +617,9 @@ class CreateMtOrder implements ShouldQueue
 
     public function sf()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
 
         if ($order->status > 30) {
             $this->log("不能发送「顺丰」订单，订单状态：{$order->status},大于30，停止派单");
@@ -612,7 +632,7 @@ class CreateMtOrder implements ShouldQueue
 
         $sf = app("shunfeng");
         // 发送顺丰订单
-        $result_sf = $sf->createOrder($order);
+        $result_sf = $sf->createOrder($order, $shop);
         if ($result_sf['error_code'] === 0) {
             // 订单发送成功
             $this->log("发送「顺丰」订单成功|返回参数", [$result_sf]);
@@ -652,7 +672,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function dada()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         if ($order->status > 30) {
             $this->log("不能发送「达达」订单，订单状态：{$order->status},大于30，停止派单");
@@ -704,7 +724,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function meiquanda()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         if ($order->status > 30) {
             $this->log("不能发送「美全达」订单，订单状态：{$order->status},大于30，停止派单");
@@ -714,7 +734,9 @@ class CreateMtOrder implements ShouldQueue
             $this->log("已有「美全达」错误信息，停止派单");
             return false;
         }
-        $shop = Shop::query()->find($this->order->shop_id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
+        // $shop = Shop::find($this->order->shop_id);
 
         $meiquanda = app("meiquanda");
         // 发送美全达订单
@@ -760,7 +782,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function meituan()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         if ($order->status > 30) {
             $this->log("不能发送「美团」订单，订单状态：{$order->status},大于30，停止派单");
@@ -770,7 +792,9 @@ class CreateMtOrder implements ShouldQueue
             $this->log("已有「美团」错误信息，停止派单");
             return false;
         }
-        $shop = Shop::query()->find($this->order->shop_id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
+        // $shop = Shop::find($this->order->shop_id);
 
         $meituan = app("meituan");
         $distance = distanceMoney($this->order->distance);
@@ -822,7 +846,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function fengniao()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         if ($order->status > 30) {
             $this->log("不能发送「蜂鸟」订单，订单状态：{$order->status},大于30，停止派单");
@@ -833,7 +857,9 @@ class CreateMtOrder implements ShouldQueue
             return false;
         }
 
-        $shop = Shop::query()->find($this->order->shop_id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
+        // $shop = Shop::find($this->order->shop_id);
 
         $fengniao = app("fengniao");
         $result_fn = $fengniao->createOrder($shop, $this->order);
@@ -880,7 +906,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function shansong()
     {
-        $order = Order::query()->find($this->order->id);
+        $order = Order::find($this->order->id);
 
         if ($order->status > 30) {
             $this->log("不能发送「闪送」订单，订单状态：{$order->status},大于30，停止派单");

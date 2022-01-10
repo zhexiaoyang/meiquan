@@ -32,7 +32,10 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 快递订单
          */
-        Route::resource('express_order', 'ExpressOrderController')->only('index','store','destroy');
+        // 快递门店列表
+        Route::get('express_order/shops', 'ExpressOrderController@shops');
+        // 资源路由
+        Route::resource('express_order', 'ExpressOrderController')->only('index','show','store','destroy');
         /**
          * 城市经理收益
          */

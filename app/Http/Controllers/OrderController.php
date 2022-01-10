@@ -34,6 +34,8 @@ class OrderController extends Controller
         $status = $request->get('status');
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
+        }, 'warehouse' => function($query) {
+            $query->select('id', 'shop_id', 'shop_name');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
             'receiver_address','tool','ps',
             'mt_status','money_mt','fail_mt',
@@ -43,7 +45,7 @@ class OrderController extends Controller
             'dd_status','money_dd','fail_dd',
             'uu_status','money_uu','fail_uu',
             'sf_status','money_sf','fail_sf',
-            'courier_name','courier_phone',
+            'courier_name','courier_phone','warehouse_id',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
@@ -105,6 +107,11 @@ class OrderController extends Controller
                 } else {
                     $order->shop_name = "";
                 }
+                if (isset($order->warehouse->shop_name)) {
+                    $order->warehouse_name = $order->warehouse->shop_name;
+                } else {
+                    $order->warehouse = "";
+                }
                 $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
                 $number = 0;
                 if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
@@ -120,6 +127,7 @@ class OrderController extends Controller
                 }
                 $order->number = $number;
                 unset($order->shop);
+                unset($order->warehouse);
             }
         }
         return $this->success($orders);

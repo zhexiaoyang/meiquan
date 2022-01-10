@@ -65,6 +65,18 @@ class OrderSettingController extends Controller
         $setting->uu = intval($request->get("uu")) ? 1 : 0;
         $setting->shunfeng = intval($request->get("shunfeng")) ? 1 : 0;
 
+        $warehouse = $request->get('warehouse');
+        if ($warehouse) {
+            if (($stime = $request->get('stime')) && ($etime = $request->get('etime'))) {
+                $setting->warehouse = $warehouse;
+                $setting->warehouse_time = $stime . '-' . $etime;
+            }
+        }
+        if ($warehouse == 0) {
+            $setting->warehouse = 0;
+            $setting->warehouse_time = '';
+        }
+
         $setting->save();
 
         $tool = intval($request->get("tool"));
@@ -103,8 +115,7 @@ class OrderSettingController extends Controller
      */
     public function shops()
     {
-        $shops = Shop::select("id", "shop_name as name","province","city","area","shop_address as address","contact_name as user","contact_phone as phone")
-            ->where("own_id", Auth::id())->get();
+        $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
 
         return $this->success($shops);
     }
