@@ -184,7 +184,7 @@ class ContractController extends Controller
             $shop->contract_auth = 2;
             $shop->save();
 
-            return $this->success([], '该公司已完成认证', 444);
+            return $this->success([], '该公司已完成认证', 1605);
         }
 
         return $this->error($message);
