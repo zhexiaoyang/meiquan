@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SupplierOrder;
+use App\Models\UserReturn;
 use Illuminate\Http\Request;
 
 class ShoppingStatisticController extends Controller
@@ -47,6 +48,18 @@ class ShoppingStatisticController extends Controller
         }
         $res['money'] /= 100;
         $res['profit'] /= 100;
+
+        if ($res['profit'] > 0 && !$request->user()->hasRole('super_man')) {
+            if ($user_return = UserReturn::where("user_id", $request->user()->id)->first()) {
+                if ($user_return->shopping_type === 1) {
+                    $res['profit'] = number_format($res['complete'] * $user_return['shopping_value1'], 2);
+                } else {
+                    $res['profit'] = number_format($res['profit'] * $user_return['shopping_value2'],2);
+                }
+            } else {
+                $res['profit'] = 0;
+            }
+        }
 
         return $this->success($res);
     }
