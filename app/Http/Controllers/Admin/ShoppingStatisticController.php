@@ -51,10 +51,10 @@ class ShoppingStatisticController extends Controller
 
         if ($res['profit'] > 0 && !$request->user()->hasRole('super_man')) {
             if ($user_return = UserReturn::where("user_id", $request->user()->id)->first()) {
-                if ($user_return->shopping_type === 1) {
-                    $res['profit'] = number_format($res['complete'] * $user_return['shopping_value1'], 2);
+                if ($user_return->shop_type === 1) {
+                    $res['profit'] = number_format($res['complete'] * $user_return['shop_value1'], 2);
                 } else {
-                    $res['profit'] = number_format($res['profit'] * $user_return['shopping_value2'],2);
+                    $res['profit'] = number_format($res['profit'] * $user_return['shop_value2'],2);
                 }
             } else {
                 $res['profit'] = 0;
