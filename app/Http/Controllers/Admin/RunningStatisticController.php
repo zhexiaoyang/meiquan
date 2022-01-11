@@ -54,7 +54,7 @@ class RunningStatisticController extends Controller
                 if ($user_return->running_type === 1) {
                     $res['profit'] = number_format($res['complete'] * $user_return['running_value1'], 2);
                 } else {
-                    $res['profit'] = number_format($res['money'] * $user_return['running_value2'],2);
+                    $res['profit'] = number_format($res['money'] * $user_return['running_value2'] / 100,2);
                 }
             } else {
                 $res['profit'] = 0;
