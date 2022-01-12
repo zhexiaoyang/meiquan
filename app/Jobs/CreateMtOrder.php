@@ -407,7 +407,6 @@ class CreateMtOrder implements ShouldQueue
             $check_fn_res = $fengniao->preCreateOrderNew($shop, $this->order);
             $check_fn = json_decode($check_fn_res['business_data'], true);
             $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + 100 ) / 100;
-            $money_fn += 1;
             if ($money_fn > 1) {
                 // 判断用户金额是否满足蜂鸟订单
                 if ($user->money < ($money_fn + $use_money)) {
