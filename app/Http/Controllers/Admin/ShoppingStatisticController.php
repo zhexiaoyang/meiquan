@@ -11,8 +11,8 @@ class ShoppingStatisticController extends Controller
 {
     public function index(Request $request)
     {
-        $start_date = $request->get("start_date", date("Y-m-d"));
-        $end_date = $request->get("end_date", date("Y-m-d"));
+        $start_date = $request->get("start_date", date("Y-m-") . 1);
+        $end_date = $request->get("end_date", date("Y-m-d", time() - 86400));
         $res = [
             'complete' => 0,
             'cancel' => 0,
