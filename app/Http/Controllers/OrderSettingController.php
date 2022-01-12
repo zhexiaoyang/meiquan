@@ -113,9 +113,42 @@ class OrderSettingController extends Controller
      * @author zhangzhen
      * @data 2021/5/3 10:06 下午
      */
-    public function shops()
+    public function shops(Request $request)
     {
-        $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+        $name = $request->get('name');
+        if ($request->user()->hasRole('super_man')) {
+            if ($name) {
+                $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->get();
+            } else {
+                $shops = [];
+            }
+        } else {
+            if ($name) {
+                $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("own_id", Auth::id())->get();
+            } else {
+                $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+            }
+        }
+
+        return $this->success($shops);
+    }
+
+    public function warehouse_shops(Request $request)
+    {
+        $name = $request->get('name');
+        if ($request->user()->hasRole('super_man')) {
+            if ($name) {
+                $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->get();
+            } else {
+                $shops = [];
+            }
+        } else {
+            if ($name) {
+                $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("own_id", Auth::id())->get();
+            } else {
+                $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+            }
+        }
 
         return $this->success($shops);
     }

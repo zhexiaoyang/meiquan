@@ -153,6 +153,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("order_setting", "OrderSettingController@store")->name("order_setting.store");
         Route::post("order_setting/reset", "OrderSettingController@reset")->name("order_setting.reset");
         Route::get("order_setting/shops", "OrderSettingController@shops")->name("order_setting.shops");
+        Route::get("order_setting/warehouse_shops", "OrderSettingController@warehouse_shops")->name("order_setting.warehouse_shops");
 
         /**
          * 门店管理

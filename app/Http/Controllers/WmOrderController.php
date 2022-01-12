@@ -97,7 +97,7 @@ class WmOrderController extends Controller
             return $this->error('门店不存在');
         }
 
-        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id'))) {
+        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id')->toArray())) {
             return $this->error('门店不存在！');
         }
 
@@ -107,26 +107,26 @@ class WmOrderController extends Controller
             $number = 1;
         }
 
-        if (WmPrinter::query()->where('key',$key)->orWhere('sn', $sn)->first()) {
-            return $this->error('KEY或者SN已经存在，不能重复添加！');
-        }
-
         $name = $request->get('name', '');
 
-        $content = $sn . '#' . $key;
+        if (!WmPrinter::query()->where('key',$key)->orWhere('sn', $sn)->first()) {
+            // return $this->error('KEY或者SN已经存在，不能重复添加！');
 
-        if ($name) {
-            $content .= '#' . $name;
-        }
+            $content = $sn . '#' . $key;
 
-        $f = new Feie();
-        $res = $f->print_add($content);
+            if ($name) {
+                $content .= '#' . $name;
+            }
 
-        if (!empty($res['data']['no']) && (count($res['data']['no']) > 0)) {
-            $message = $res['data']['no'][0];
-            $message = strstr($message, '错误：');
-            $message = mb_substr($message, 0, -1);
-            return $this->success([], $message, 422);
+            $f = new Feie();
+            $res = $f->print_add($content);
+
+            if (!empty($res['data']['no']) && (count($res['data']['no']) > 0)) {
+                $message = $res['data']['no'][0];
+                $message = strstr($message, '错误：');
+                $message = mb_substr($message, 0, -1);
+                return $this->success([], $message, 422);
+            }
         }
 
         WmPrinter::query()->create(compact('shop_id', 'name', 'key', 'sn', 'platform', 'number'));
@@ -144,7 +144,7 @@ class WmOrderController extends Controller
             return $this->error('门店不存在');
         }
 
-        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id'))) {
+        if (!in_array($shop_id, Shop::where('own_id', $request->user()->id)->pluck('id')->toArray())) {
             return $this->error('门店不存在！');
         }
 
@@ -174,11 +174,13 @@ class WmOrderController extends Controller
             return $this->error('打印机不存在');
         }
 
-        $f = new Feie();
-        $res = $f->print_del($printer->sn);
+        if (WmPrinter::query()->where('key',$printer->key)->count() === 1) {
+            $f = new Feie();
+            $res = $f->print_del($printer->sn);
 
-        if (!isset($res['ret']) || $res['ret'] !== 0) {
-            return $this->error('打印机删除失败');
+            if (!isset($res['ret']) || $res['ret'] !== 0) {
+                return $this->error('打印机删除失败');
+            }
         }
 
         $printer->delete();
