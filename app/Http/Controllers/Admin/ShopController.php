@@ -121,7 +121,9 @@ class ShopController extends Controller
 
         if (!is_null($mtwm)) {
             if ($mtwm && ($_shop = Shop::query()->where('mtwm', $mtwm)->first())) {
-                return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                if ($_shop->id != $shop_id) {
+                    return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                }
             }
             $shop->mtwm = $mtwm;
             if ($shop->second_category == 200001) {
@@ -131,7 +133,9 @@ class ShopController extends Controller
         }
         if (!is_null($ele)) {
             if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
-                return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                if ($_shop->id != $shop_id) {
+                    return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
+                }
             }
             $shop->ele = $ele;
             if ($shop->second_category == 200001) {
