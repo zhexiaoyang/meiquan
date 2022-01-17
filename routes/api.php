@@ -30,11 +30,13 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
-         * 快递订单
+         * 【快递订单】
          */
-        // 快递门店列表
+        // 【快递门店列表】
         Route::get('express_order/shops', 'ExpressOrderController@shops');
-        // 资源路由
+        // 【快递价格计算】
+        Route::get('express_order/pre_order', 'ExpressOrderController@pre_order');
+        // 【资源路由】
         Route::resource('express_order', 'ExpressOrderController')->only('index','show','store','destroy');
         /**
          * 城市经理收益
@@ -248,6 +250,13 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
+            /**
+             * 【外卖订单管理】
+             */
+            // *外卖订单-列表
+            Route::get("takeout", "WmOrderController@index");
+            // *外卖订单-详情
+            Route::get("takeout/info", "WmOrderController@show");
             /**
              * 协议管理
              */

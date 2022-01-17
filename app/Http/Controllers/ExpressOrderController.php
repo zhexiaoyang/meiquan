@@ -7,6 +7,7 @@ use App\Models\ExpressOrder;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ExpressOrderController extends Controller
 {
@@ -139,5 +140,77 @@ class ExpressOrderController extends Controller
         }
 
         return $this->success($shops);
+    }
+
+    public function pre_order(Request $request)
+    {
+        $platform = $request->get('platform');
+        $send = $request->get('send');
+        $receive = $request->get('receive');
+        $weight = $request->get('weight', 1);
+
+        $res = [
+            'money' => 0,
+            'disabled' => true,
+            'display' => true,
+            'msg' => ''
+        ];
+
+
+        if (empty($send) || empty($receive)) {
+            return $this->success($res);
+        }
+
+        if ($platform == 1) {
+            $city = DB::table('express_cities')
+                ->where('send_province', str_replace(['市','省'], '', $send[0]))
+                ->where('receive_province', str_replace(['市','省'], '', $receive[0]))
+                ->where('platform', 1)
+                ->first();
+            if (!empty($city->v1)) {
+                $v1 = $city->v1;
+                $v2 = $city->v2;
+                $v3 = $city->v3;
+                $weight = $weight < 1 ? 1 : $weight;
+                if ($weight <= 1) {
+                    $res['money'] = $v1;
+                    $res['msg'] = "1kg以内首重{$v1}元";
+                } elseif ($weight > 1 && $weight <= 3) {
+                    $res['money'] = $v2;
+                    $res['msg'] = "3kg以内首重{$v2}元";
+                } elseif ($weight >= 3) {
+                    $res['money'] = $v2 + ($weight - 3) * $v3;
+                    $res['msg'] = "3kg以内首重{$v2}元，续重 {$v3}元/kg";
+                }
+
+                $res['disabled'] = false;
+            } else {
+                $res['disabled'] = true;
+                $res['display'] = false;
+            }
+        } elseif ($platform == 4) {
+            $city = DB::table('express_cities')
+                ->where('send_city', str_replace(['市','省'], '', $send[1] == '市辖区' ? $send[0] : $send[1]))
+                ->where('receive_city', str_replace(['市','省'], '', $receive[1] == '市辖区' ? $receive[0] : $receive[1]))
+                ->where('platform', 4)
+                ->first();
+            if (!empty($city->v1)) {
+                $v1 = $city->v1;
+                $v2 = $city->v2;
+
+                $res['money'] = $v1 + ($weight - 1) * $v2;
+                $res['msg'] = "首重{$v1}元，续重 {$v2}元/kg";
+
+                $res['disabled'] = false;
+            } else {
+                $res['disabled'] = true;
+                $res['display'] = false;
+            }
+        } else {
+            $res['disabled'] = false;
+            $res['display'] = false;
+        }
+
+        return $this->success($res);
     }
 }
