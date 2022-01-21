@@ -18,7 +18,7 @@ class WmOrderController extends Controller
 
         $query = WmOrder::with(['items' => function ($query) {
             $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
-        }]);
+        }])->where('shop_id', '>', 0);
 
         // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 

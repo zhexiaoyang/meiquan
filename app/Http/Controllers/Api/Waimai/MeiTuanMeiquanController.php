@@ -11,6 +11,7 @@ use App\Models\OrderDeduction;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
+use App\Models\WmOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +48,50 @@ class MeiTuanMeiquanController extends Controller
 
         // 创建跑腿订单
         if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
+            // 药柜订单是否创建成功，1 非药柜订单，10 药柜下单成功，30 药柜下单失败，创建失败跑腿不发单
+            $g_status = 1;
+            $g_order_id = '';
+            $take_code = '';
+            $g_error = '';
+
+            if (in_array($mt_shop_id, ['13684118'])) {
+                $g_no = [ '13684118' => '000076'];
+                // 去药柜下单
+                $products = json_decode(urldecode($request->get('detail')), true);
+                $g_details = [];
+                if (!empty($products)) {
+                    foreach ($products as $product) {
+                        $_tmp['num'] = $product['quantity'];
+                        $_tmp['salePrice'] = $product['price'];
+                        $_tmp['barcode'] = $product['upc'];
+                        $g_details[] = $_tmp;
+                    }
+                    $g_data = [
+                        'orderNo' => $mt_order_id,
+                        'terminalNo' => $g_no[$mt_shop_id],
+                        'recipientName' => urldecode($request->get("recipient_name", "")) ?? "无名客人",
+                        'detail' => $g_details
+                    ];
+                    $y = app('yaogui');
+                    $g_res = $y->create_order($g_data);
+
+                    if (!empty($g_res['code'])) {
+                        if ($g_res['code'] == 200) {
+                            // 下单成功
+                            // 取货码
+                            $g_status = 10;
+                            $take_code = substr($mt_order_id, -6);
+                            // 药柜订单号
+                            $g_order_id = $g_res['data'];
+                        } else {
+                            // 下单失败
+                            $g_status = 30;
+                            $g_error = $g_res['message'] ?? '下单失败：未知原因';
+                        }
+                    }
+                }
+            }
+
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：正在创建跑腿订单");
             $mt_status = $request->get("status", 0);
             $pick_type = $request->get("pick_type", 0);
@@ -97,7 +142,9 @@ class MeiTuanMeiquanController extends Controller
                 'platform' => 1,
                 'type' => 31,
                 'status' => $status,
-                'order_type' => 0
+                'order_type' => 0,
+                'goods_pickup_info' => $take_code,
+                'g_order_id' => $g_order_id,
             ];
 
             // 判断是否预约单
@@ -125,7 +172,9 @@ class MeiTuanMeiquanController extends Controller
                             $qu = 1800;
                         }
 
-                        dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                        if ($g_status < 30) {
+                            dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                        }
                         Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团创建预约订单成功");
                         // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);
 
@@ -143,7 +192,9 @@ class MeiTuanMeiquanController extends Controller
                         $order->send_at = date("Y-m-d H:i:s");
                         $order->status = 8;
                         $order->save();
-                        dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
+                        if ($g_status < 30) {
+                            dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
+                        }
                     }
                 }
             }
@@ -156,7 +207,7 @@ class MeiTuanMeiquanController extends Controller
         // 创建外卖订单
         if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：集中接单");
-            dispatch(new SaveMeiTuanOrder($request->all(), 1, 2, $shop->id));
+            dispatch(new SaveMeiTuanOrder($request->all(), 1, 2, $shop->id, $g_status, $g_order_id, $g_error));
         }
         // return json_encode(['data' => 'ok']);
         Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-到底了");
@@ -781,6 +832,21 @@ class MeiTuanMeiquanController extends Controller
                 ]);
                 \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-未配送");
                 return json_encode(['data' => 'ok']);
+            }
+        }
+
+        if ($wm_order = WmOrder::where('order_id', $order_id)->first()) {
+            if (in_array($wm_order->app_poi_code, ['13684118'])) {
+                $y = app('yaogui');
+                $g_res = $y->create_order($wm_order->ware_order_id);
+                if (!empty($g_res['code'])) {
+                    if ($g_res['code'] == 200) {
+                        // 取消成功
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-药柜取消成功");
+                        // 取消失败
+                        \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-药柜取消失败");
+                    }
+                }
             }
         }
         return json_encode(['data' => 'ok']);

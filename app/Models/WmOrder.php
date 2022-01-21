@@ -7,9 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class WmOrder extends Model
 {
     //
-    protected $fillable = ["shop_id","order_id","wm_order_id_view","platform","from_type","app_poi_code","wm_shop_name",
-        "recipient_name","recipient_phone","recipient_address","latitude","longitude","shipping_fee","total","logistics_code",
-        "original_price","caution","shipper_phone","status","ctime","utime","delivery_time","pick_type","day_seq"];
+    protected $fillable = [
+        "shop_id","order_id","wm_order_id_view","platform","from_type","app_poi_code","wm_shop_name","recipient_name",
+        "recipient_phone","recipient_address","latitude","longitude","shipping_fee","total","logistics_code",
+        "original_price","caution","shipper_phone","status","ctime","utime","delivery_time","pick_type","day_seq",
+        "ware_order_id","ware_status","ware_error","ware_take_code"
+    ];
 
     public function items()
     {
