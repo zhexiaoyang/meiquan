@@ -710,7 +710,7 @@ class MeiTuanMeiquanController extends Controller
                         $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消顺丰订单返回失败", $logs);
                     }
                 }
-                return json_encode(['data' => 'ok']);
+                // return json_encode(['data' => 'ok']);
             } elseif (in_array($order->status, [20, 30])) {
                 // 没有骑手接单，取消订单
                 if (in_array($order->mt_status, [20, 30])) {
@@ -816,7 +816,7 @@ class MeiTuanMeiquanController extends Controller
                         ]);
                     }
                 }
-                return json_encode(['data' => 'ok']);
+                // return json_encode(['data' => 'ok']);
             } else {
                 // 状态小于20，属于未发单，直接操作取消
                 if ($order->status < 0) {
@@ -831,7 +831,7 @@ class MeiTuanMeiquanController extends Controller
                     "des" => "（美团）取消跑腿订单"
                 ]);
                 \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order_id}]-未配送");
-                return json_encode(['data' => 'ok']);
+                // return json_encode(['data' => 'ok']);
             }
         }
 
