@@ -31,6 +31,10 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     // 推送美配订单配送状态回调
     Route::post('test', "MeiTuanMeiquanController@test");
 });
+Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Waimai\MeiQuan')->group(function () {
+    // 推送美配订单配送状态回调
+    Route::post('order/status/own_delivery', "OrderStatusController@own_delivery");
+});
 
 // 美全达跑腿
 Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(function () {
