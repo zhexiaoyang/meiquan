@@ -61,8 +61,9 @@ class SyncCodeWanXiang extends Command
                     $params['app_poi_code'] = $shop_id;
                     $params['medicine_data'] = json_encode($code_data);
 
-                    $res = $meituan->medicineCodeUpdate($params);
-                    Log::info("万祥门店：{$shop_id}，绑定编码返回结果", [$res]);
+                    $meituan->medicineCodeUpdate($params);
+                    // $res = $meituan->medicineCodeUpdate($params);
+                    // Log::info("万祥门店：{$shop_id}，绑定编码返回结果", [$res]);
                 }
             }
         }

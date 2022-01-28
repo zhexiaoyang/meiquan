@@ -64,8 +64,9 @@ class SyncStockWanXiang extends Command
                     $params['app_poi_code'] = $shop_id;
                     $params['medicine_data'] = json_encode($stock_data);
 
-                    $res = $meituan->medicineStock($params);
-                    Log::info("万祥门店：{$shop_id}，同步库存返回结果", [$res]);
+                    $meituan->medicineStock($params);
+                    // $res = $meituan->medicineStock($params);
+                    // Log::info("万祥门店：{$shop_id}，同步库存返回结果", [$res]);
                 }
             }
         }
