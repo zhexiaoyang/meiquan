@@ -49,6 +49,12 @@ class SyncCodeWanXiang extends Command
             $meituan = app("minkang");
             foreach ($data as $items) {
                 $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->id,
+                    ];
+                }
 
                 // 绑定商品编码
                 foreach ($shop_ids as $shop_id) {
@@ -56,7 +62,7 @@ class SyncCodeWanXiang extends Command
                     $params['medicine_data'] = json_encode($code_data);
 
                     $res = $meituan->medicineCodeUpdate($params);
-                    Log::info("[任务]万祥门店：{$shop_id}，绑定编码返回结果", [$res]);
+                    Log::info("万祥门店：{$shop_id}，绑定编码返回结果", [$res]);
                 }
             }
         }
