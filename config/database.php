@@ -78,14 +78,14 @@ return [
             'sslmode' => 'prefer',
         ],
 
-        'sqlsrv' => [
+        'wanxiang_haidian' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', 'localhost'),
-            'port' => env('DB_PORT', '1433'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
+            'host' => '218.62.65.254',
+            'port' => '4433',
+            'database' => 'hydee_new',
+            'username' => 'hydee',
+            'password' => 'wx888',
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
