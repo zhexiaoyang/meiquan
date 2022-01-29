@@ -47,7 +47,7 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $start_date = '2022-01-25';
+        $start_date = '2022-01-26';
         // $last = WmPrescription::where('platform', 1)->orderByDesc('id')->first();
         // if ($last) {
         //     $last_date = substr($last->rpCreateTime, 0, 10);
