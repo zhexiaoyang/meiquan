@@ -47,21 +47,22 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $start_date = '2021-12-3';
-        $last = WmPrescription::where('platform', 1)->orderByDesc('id')->first();
-        if ($last) {
-            $start_date = substr($last->rpCreateTime, 0, 10);
-        }
+        $start_date = '2022-01-25';
+        // $last = WmPrescription::where('platform', 1)->orderByDesc('id')->first();
+        // if ($last) {
+        //     $last_date = substr($last->rpCreateTime, 0, 10);
+        //     $start_date = date('Y-m-d', strtotime($last_date) + 86400);
+        // }
         $date_arr = [];
-        if (strtotime($start_date) >= (strtotime(date("Y-m-d"))) + 86400) {
-            Log::info("[拉取桃子处方订单]-失败：最后时间{$start_date}");
-            return false;
-        }
+        // if (strtotime($start_date) >= (strtotime(date("Y-m-d"))) + 86400) {
+        //     Log::info("[拉取桃子处方订单]-失败：最后时间{$start_date}");
+        //     return false;
+        // }
         array_push($date_arr, $start_date);
-        while (strtotime($start_date) < strtotime(date("Y-m-d"))) {
-            $start_date = date("Y-m-d", strtotime($start_date) + 86400);
-            array_push($date_arr, $start_date);
-        }
+        // while (strtotime($start_date) < strtotime(date("Y-m-d"))) {
+        //     $start_date = date("Y-m-d", strtotime($start_date) + 86400);
+        //     array_push($date_arr, $start_date);
+        // }
         Log::info("[拉取桃子处方订单]-所有拉取日期", $date_arr);
 
         foreach ($date_arr as $date) {
@@ -115,7 +116,7 @@ class GetPrescriptionOrders extends Command
                                             'orderStatus' => $v['orderStatus'] ?? '',
                                             'reviewStatus' => $v['reviewStatus'] ?? '',
                                             'orderCreateTime' => $v['orderCreateTime'] ?? '',
-                                            'rpCreateTime' => $v['rpCreateTime'] ?? '',
+                                            'rpCreateTime' => isset($v['rpCreateTime']) ? substr($v['rpCreateTime'], 0, 19) : null,
                                         ];
                                         $data = WmPrescription::create($_tmp);
                                         if ($v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
