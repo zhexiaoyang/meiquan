@@ -272,6 +272,10 @@ Route::middleware(["force-json"])->group(function() {
             // 首页-外卖资料统计
             Route::get("statistic/online", "OnlineStatisticController@index")->name("admin.online.statistic.index");
             /**
+             * 后台外卖管理
+             */
+            Route::resource("express", "ExpressOrderController", ["only" => ["index"]]);
+            /**
              * 后台处方管理
              */
             // *处方单列表-重新结算

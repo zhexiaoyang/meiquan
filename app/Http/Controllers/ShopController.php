@@ -266,11 +266,13 @@ class ShopController extends Controller
     {
         $query = Shop::query()->select('id','shop_id','shop_name')->where('status', 40);
 
-        if ($request->user()->hasRole('super_man')) {
-            $shop = $query->get();
-        } else {
-            $shop = $query->whereIn("id", $request->user()->shops()->pluck("id"))->get();
-        }
+        // if ($request->user()->hasRole('super_man')) {
+        //     $shop = $query->get();
+        // } else {
+        //     $shop = $query->whereIn("id", $request->user()->shops()->pluck("id"))->get();
+        // }
+        $shop = $query->whereIn("id", $request->user()->shops()->pluck("id"))->get();
+
         return $this->success($shop);
     }
 

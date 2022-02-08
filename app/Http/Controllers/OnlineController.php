@@ -121,30 +121,30 @@ class OnlineController extends Controller
         $data["is_jddj"] = intval($request->get("is_jddj", 0));
         $data["is_btoc"] = intval($request->get("is_btoc", 0));
 
-        if (!$phone = $request->get("phone")) {
-            return $this->error("客服电话不能为空");
-        }
-        $data["phone"] = $phone;
+        // if (!$phone = $request->get("phone")) {
+        //     return $this->error("客服电话不能为空");
+        // }
+        // $data["phone"] = $phone;
 
         if (!$contact_name = $request->get("contact_name")) {
             return $this->error("门店联系人不能为空");
         }
         $data["contact_name"] = $contact_name;
 
-        if (!$contact_phone = $request->get("contact_phone")) {
-            return $this->error("门店联系人电话不能为空");
-        }
-        $data["contact_phone"] = $contact_phone;
+        // if (!$contact_phone = $request->get("contact_phone")) {
+        //     return $this->error("门店联系人电话不能为空");
+        // }
+        // $data["contact_phone"] = $contact_phone;
 
-        if (!$mobile = $request->get("mobile")) {
-            return $this->error("接收短信验证码手机号不能为空");
-        }
-        $data["mobile"] = $mobile;
+        // if (!$mobile = $request->get("mobile")) {
+        //     return $this->error("接收短信验证码手机号不能为空");
+        // }
+        // $data["mobile"] = $mobile;
 
-        if (!$business_hours = $request->get("business_hours")) {
-            return $this->error("营业时间不能为空");
-        }
-        $data["business_hours"] = $business_hours;
+        // if (!$business_hours = $request->get("business_hours")) {
+        //     return $this->error("营业时间不能为空");
+        // }
+        // $data["business_hours"] = $business_hours;
 
         if (!$account_no = $request->get("account_no")) {
             return $this->error("打款账号不能为空");
@@ -160,6 +160,11 @@ class OnlineController extends Controller
             return $this->error("开户行不能为空");
         }
         $data["bank_name"] = $bank;
+
+        if (!$mobile = $request->get("bank_phone")) {
+            return $this->error("银行开户预留电话不能为空");
+        }
+        $data["bank_phone"] = $mobile;
 
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
@@ -190,10 +195,11 @@ class OnlineController extends Controller
         }
         $data["ypjy"] = $ypjy;
 
-        if (!$spjy = $request->get("spjy")) {
-            return $this->error("食品经营许可证不能为空");
-        }
-        $data["spjy"] = $spjy;
+        // if (!$spjy = $request->get("spjy")) {
+        //     return $this->error("食品经营许可证不能为空");
+        // }
+        // $data["spjy"] = $spjy;
+        $data["spjy"] = $spjy = $request->get("spjy", '');
 
         if (!$ylqx = $request->get("ylqx")) {
             return $this->error("医疗器械许可证不能为空");
@@ -260,15 +266,21 @@ class OnlineController extends Controller
         }
         $data["ypjy_end_time"] = $ypjy_end_time;
 
-        if (!$spjy_start_time = $request->get("spjy_start_time")) {
-            return $this->error("食品经营许可证开始时间不能为空");
+        // if (!$spjy_start_time = $request->get("spjy_start_time")) {
+        //     return $this->error("食品经营许可证开始时间不能为空");
+        // }
+        // $data["spjy_start_time"] = $spjy_start_time;
+        //
+        // if (!$spjy_end_time = $request->get("spjy_end_time")) {
+        //     return $this->error("食品经营许可证结束时间不能为空");
+        // }
+        // $data["spjy_end_time"] = $spjy_end_time;
+        if ($spjy_start_time = $request->get("spjy_start_time")) {
+            $data["spjy_start_time"] = $spjy_start_time;
         }
-        $data["spjy_start_time"] = $spjy_start_time;
-
-        if (!$spjy_end_time = $request->get("spjy_end_time")) {
-            return $this->error("食品经营许可证结束时间不能为空");
+        if ($spjy_end_time = $request->get("spjy_end_time")) {
+            $data["spjy_end_time"] = $spjy_end_time;
         }
-        $data["spjy_end_time"] = $spjy_end_time;
 
         if (!$ylqx_start_time = $request->get("ylqx_start_time")) {
             return $this->error("医疗器械许可证开始时间不能为空");
@@ -364,30 +376,35 @@ class OnlineController extends Controller
         }
         $data["address"] = $address;
 
-        if (!$phone = $request->get("phone")) {
-            return $this->error("客服电话不能为空");
-        }
-        $data["phone"] = $phone;
+        // if (!$phone = $request->get("phone")) {
+        //     return $this->error("客服电话不能为空");
+        // }
+        // $data["phone"] = $phone;
 
         if (!$contact_name = $request->get("contact_name")) {
             return $this->error("门店联系人不能为空");
         }
         $data["contact_name"] = $contact_name;
 
-        if (!$contact_phone = $request->get("contact_phone")) {
-            return $this->error("门店联系人电话不能为空");
-        }
-        $data["contact_phone"] = $contact_phone;
+        // if (!$contact_phone = $request->get("contact_phone")) {
+        //     return $this->error("门店联系人电话不能为空");
+        // }
+        // $data["contact_phone"] = $contact_phone;
+        //
+        // if (!$mobile = $request->get("mobile")) {
+        //     return $this->error("接收短信验证码手机号不能为空");
+        // }
+        // $data["mobile"] = $mobile;
 
-        if (!$mobile = $request->get("mobile")) {
-            return $this->error("接收短信验证码手机号不能为空");
+        if (!$mobile = $request->get("bank_phone")) {
+            return $this->error("银行开户预留电话不能为空");
         }
-        $data["mobile"] = $mobile;
+        $data["bank_phone"] = $mobile;
 
-        if (!$business_hours = $request->get("business_hours")) {
-            return $this->error("营业时间不能为空");
-        }
-        $data["business_hours"] = $business_hours;
+        // if (!$business_hours = $request->get("business_hours")) {
+        //     return $this->error("营业时间不能为空");
+        // }
+        // $data["business_hours"] = $business_hours;
 
         if (!$account_no = $request->get("account_no")) {
             return $this->error("打款账号不能为空");
@@ -422,9 +439,9 @@ class OnlineController extends Controller
         //     $data["manager_phone"] = $manager_phone;
         // }
 
-        if ($remark = $request->get("remark")) {
-            $data["remark"] = $remark;
-        }
+        // if ($remark = $request->get("remark")) {
+        //     $data["remark"] = $remark;
+        // }
 
         if (!$sqwts = $request->get("sqwts")) {
             return $this->error("授权委托书不能为空");
@@ -441,10 +458,13 @@ class OnlineController extends Controller
         }
         $data["ypjy"] = $ypjy;
 
-        if (!$spjy = $request->get("spjy")) {
-            return $this->error("食品经营许可证不能为空");
+        // if (!$spjy = $request->get("spjy")) {
+        //     return $this->error("食品经营许可证不能为空");
+        // }
+        // $data["spjy"] = $spjy;
+        if ($spjy = $request->get("spjy")) {
+            $data["spjy"] = $spjy;
         }
-        $data["spjy"] = $spjy;
 
         if (!$ylqx = $request->get("ylqx")) {
             return $this->error("医疗器械许可证不能为空");
@@ -511,15 +531,21 @@ class OnlineController extends Controller
         }
         $data["ypjy_end_time"] = $ypjy_end_time;
 
-        if (!$spjy_start_time = $request->get("spjy_start_time")) {
-            return $this->error("食品经营许可证开始时间不能为空");
+        // if (!$spjy_start_time = $request->get("spjy_start_time")) {
+        //     return $this->error("食品经营许可证开始时间不能为空");
+        // }
+        // $data["spjy_start_time"] = $spjy_start_time;
+        //
+        // if (!$spjy_end_time = $request->get("spjy_end_time")) {
+        //     return $this->error("食品经营许可证结束时间不能为空");
+        // }
+        // $data["spjy_end_time"] = $spjy_end_time;
+        if ($spjy_start_time = $request->get("spjy_start_time")) {
+            $data["spjy_start_time"] = $spjy_start_time;
         }
-        $data["spjy_start_time"] = $spjy_start_time;
-
-        if (!$spjy_end_time = $request->get("spjy_end_time")) {
-            return $this->error("食品经营许可证结束时间不能为空");
+        if ($spjy_end_time = $request->get("spjy_end_time")) {
+            $data["spjy_end_time"] = $spjy_end_time;
         }
-        $data["spjy_end_time"] = $spjy_end_time;
 
         if (!$ylqx_start_time = $request->get("ylqx_start_time")) {
             return $this->error("医疗器械许可证开始时间不能为空");
@@ -570,7 +596,7 @@ class OnlineController extends Controller
             $query->where("status", $status);
         }
 
-        $shops = $query->paginate($page_size);
+        $shops = $query->orderByDesc("reason_at")->orderByDesc("id")->paginate($page_size);
 
         return $this->page($shops);
     }
@@ -618,6 +644,7 @@ class OnlineController extends Controller
 
         if ($status == 20) {
             $onlineShop->status = 20;
+            $onlineShop->reason_at = date("Y-m-d H:i:s");
             $onlineShop->reason = $reason;
             $onlineShop->save();
             $shop->material = 3;
