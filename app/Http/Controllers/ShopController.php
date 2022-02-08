@@ -264,7 +264,8 @@ class ShopController extends Controller
     // 返回用户下所有可发单的门店
     public function all(Request $request)
     {
-        $query = Shop::query()->select('id','shop_id','shop_name')->where('status', 40);
+        $query = Shop::query()->select('id','shop_id','shop_name','contact_name','contact_phone','shop_address')
+            ->where('status', 40);
 
         // if ($request->user()->hasRole('super_man')) {
         //     $shop = $query->get();
