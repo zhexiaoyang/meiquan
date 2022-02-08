@@ -37,7 +37,7 @@ class PrescriptionController extends Controller
             $query->where('rpCreateTime', '>=', $stime);
         }
         if ($etime) {
-            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($stime) + 86400));
+            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
 
         $data = $query->paginate($page_size);
@@ -75,7 +75,7 @@ class PrescriptionController extends Controller
             $query->where('rpCreateTime', '>=', $stime);
         }
         if ($etime) {
-            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($stime) + 86400));
+            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
 
         $data = $query->get();
