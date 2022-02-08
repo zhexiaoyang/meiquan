@@ -92,23 +92,25 @@ class PrescriptionController extends Controller
         if (!empty($data)) {
             foreach ($data as $v) {
                 $total_num++;
-                $total_money += 1.5;
                 if ($v->platform === 1) {
                     $mt_num++;
                     if ($v->orderStatus != '已取消') {
                         $mt_money += 1.5;
+                        $total_money += 1.5;
                     }
                 }
                 if ($v->platform === 2) {
                     $ele_num++;
                     if ($v->orderStatus != '已取消') {
                         $ele_money += 1.5;
+                        $total_money += 1.5;
                     }
                 }
                 if ($v->platform === 3) {
                     $xx_num++;
                     if ($v->reviewStatus == '审方通过' || $v->reviewStatus == '处方签章完成') {
                         $xx_money += 1;
+                        $total_money += 1;
                     }
                 }
             }
