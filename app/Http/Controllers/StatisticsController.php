@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\OrdersExport;
 use App\Exports\OrderStatisticsExport;
 use App\Models\Order;
 use Illuminate\Http\Request;
@@ -200,9 +201,9 @@ class StatisticsController extends Controller
         return $this->success($res);
     }
 
-    public function export(Request $request, OrderStatisticsExport $orderStatisticsExport)
+    public function export(Request $request, OrdersExport $ordersExport)
     {
-        return $orderStatisticsExport->withRequest($request);
+        return $ordersExport->withRequest($request);
     }
 
     // public function detail(Request $request, OrdersExport $ordersExport)
