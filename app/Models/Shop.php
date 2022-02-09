@@ -26,6 +26,11 @@ class Shop extends Model
         40 => '上线可发单'
     ];
 
+    public function setting()
+    {
+        return $this->hasOne(OrderSetting::class);
+    }
+
     public function range()
     {
         return $this->hasOne(ShopRange::class);
@@ -109,5 +114,10 @@ class Shop extends Model
     public function getStatusLabelAttribute()
     {
         return $this->status_data[$this->status] ?? '状态错误';
+    }
+
+    public function contract()
+    {
+        return $this->hasMany(ContractOrder::class, 'shop_id', 'id');
     }
 }

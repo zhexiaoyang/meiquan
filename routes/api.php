@@ -310,6 +310,10 @@ Route::middleware(["force-json"])->group(function() {
             // 审核管理-三方门店ID审核
             Route::post("shop/example/three_id", "ShopController@apply_three_id_save")->name("admin.shop.example.three_id.save");
             // 门店管理-门店列表
+            Route::get("shop/all", "ShopController@all");
+            // 门店管理-保存仓库设置
+            Route::post("shop/warehouse", "ShopController@warehouse");
+            // 门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             // 商城轮播图
             Route::resource("banner", "BannerController", ["only" => ["index", "show", "store", "update", "destroy"]]);
