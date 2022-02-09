@@ -44,9 +44,9 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             $end_date = date('Y-m-t', strtotime('-1 month'));
         }
 
-        $query = Order::with("shop")->select("id","order_id","shop_id","ps","money","created_at")->where("status", 70)
-            ->where("created_at", ">=", $start_date)
-            ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
+        $query = Order::with("shop")->select("id","order_id","shop_id","ps","money","over_at")->where("status", 70)
+            ->where("over_at", ">=", $start_date)
+            ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         if (!$this->request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $this->request->user()->shops()->pluck('id'));
@@ -65,7 +65,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             $order->shop->mt_shop_id ?? '',
             $order->shop->city ?? '',
             $ps[$order->ps],
-            $order->created_at,
+            $order->over_at,
         ];
     }
 
@@ -78,7 +78,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             '美团门店ID',
             '城市',
             '配送平台',
-            '创建时间',
+            '完成时间',
         ];
     }
 
