@@ -74,6 +74,7 @@ class OnlineController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info("外卖资料创建全部参数：", $request->all());
         $shop_id = $request->get("shop_id", 0);
         if (!$shop_id) {
             return $this->error("请选择门店");
@@ -328,6 +329,7 @@ class OnlineController extends Controller
 
     public function update(Request $request)
     {
+        \Log::info("外卖资料修改全部参数：", $request->all());
         $user = $request->user();
         $data = [];
         $data['user_id'] = $user->id;

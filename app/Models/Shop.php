@@ -49,6 +49,16 @@ class Shop extends Model
     }
 
     /**
+     * 能看此门店的所有人
+     * @data 2022/2/13 7:39 下午
+     */
+    public function users()
+    {
+        // return $this->hasMany(Shop::class);
+        return $this->belongsToMany(User::class, "user_has_shops", "shop_id", "user_id");
+    }
+
+    /**
      * 门店所属用户
      */
     public function own()

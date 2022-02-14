@@ -4,11 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Exports\Admin\ShopExport;
 use App\Http\Controllers\Controller;
+use App\Models\Contract;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\ShopThreeId;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ShopController extends Controller
 {
@@ -21,7 +24,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'manager', 'apply_three_id', 'setting.shop']);
+        }, 'apply_three_id', 'setting.shop', 'contract','users']);
 
         // 搜索条件
         if ($shop_id = $request->get('shop_id')) {
@@ -38,6 +41,9 @@ class ShopController extends Controller
         }
         if ($contact_phone = $request->get('contact_phone')) {
             $query->where('contact_phone', 'like', "%{$contact_phone}%");
+        }
+        if ($manager = $request->get('manager')) {
+            $query->whereIn('shop_id', DB::table('user_has_shops')->where('user_id', $manager)->pluck('shop_id'));
         }
         // 合同状态搜索
         if (in_array($contract_status, [1, 2])) {
@@ -78,6 +84,10 @@ class ShopController extends Controller
                 $query->where('auth',  10);
             }
         }
+        // 城市经理
+        $managers = User::select('id')->whereHas('roles', function ($query)  {
+            $query->where('name', 'city_manager');
+        })->where('status', 1)->where('id', '>', 2000)->get()->pluck('id')->toArray();
 
         $shops = $query->where("status", ">=", 0)->orderBy('id', 'desc')->paginate($page_size);
 
@@ -85,6 +95,7 @@ class ShopController extends Controller
         $data = [];
 
         if (!empty($shops)) {
+            $contracts = Contract::select('id', 'name')->get()->toArray();
             foreach ($shops as $shop) {
                 $tmp['id'] = $shop->id;
                 $tmp['shop_name'] = $shop->shop_name;
@@ -142,7 +153,7 @@ class ShopController extends Controller
                 // 合同状态
                 $tmp['contract'] = $shop->online_shop->contract_status ?? 0;
                 // 城市经理
-                $tmp['manager'] = $shop->manager->nickname ?? '';
+                // $tmp['manager'] = $shop->manager->nickname ?? '';
                 // 仓库
                 if (!empty($shop->setting->shop)) {
                     $warehouse_time = explode('-', $shop->setting->warehouse_time);
@@ -153,6 +164,29 @@ class ShopController extends Controller
                 } else {
                     $tmp['warehouse'] = false;
                 }
+                // 合同
+                $contract_data = $contracts;
+                foreach ($contract_data as $k => $v) {
+                    $contract_data[$k]['status'] = 0;
+                    if (!empty($shop->contract)) {
+                        foreach ($shop->contract as $item) {
+                            if ($v['id'] === $item->contract_id) {
+                                $contract_data[$k]['status'] = $item->status;
+                            }
+                        }
+                    }
+                }
+                unset($shop->contract);
+                $tmp['contract'] = $contract_data;
+                // 城市经理
+                if (!empty($shop->users)) {
+                    foreach ($shop->users as $user) {
+                        if (in_array($user->id, $managers)) {
+                            $tmp['manager'] = $user->nickname ?: $user->username;
+                        }
+                    }
+                }
+                // 赋值
                 $data[] = $tmp;
             }
         }
