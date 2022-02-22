@@ -314,7 +314,7 @@ class ShopController extends Controller
 
 
         // $contact_phone = str_replace(' ', '', $contact_phone);
-        $shop->contact_phone = str_replace(' ', '', $shop->contact_phone);
+        // $shop->contact_phone = str_replace(' ', '', $shop->contact_phone);
 
         if (!$request->get("city")) {
             $lng = $request->get("shop_lng");
