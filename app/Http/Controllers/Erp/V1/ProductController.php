@@ -124,7 +124,7 @@ class ProductController extends Controller
      */
     public function codeUpdate(Request $request)
     {
-        \Log::info("[ERP接口]-[更新商品编码]-全部参数", $request->all());
+        // \Log::info("[ERP接口]-[更新商品编码]-全部参数", $request->all());
         if (!$access_key = $request->get("access_key")) {
             return $this->error("参数错误：access_key必传", 701);
         }
@@ -209,7 +209,7 @@ class ProductController extends Controller
         $res = $meituan->medicineCodeUpdate($params);
 
         if ($res['data'] != 'ok') {
-            \Log::info("[ERP接口]-[美团返回异常]-全部参数", $res);
+            // \Log::info("[ERP接口]-[美团返回异常]-全部参数", $res);
             return $this->error($res['error']['msg'] ?? "", 3004);
         }
 
@@ -225,7 +225,7 @@ class ProductController extends Controller
      */
     public function add(Request $request)
     {
-        \Log::info("[ERP接口]-[添加商品]-全部参数", $request->all());
+        // \Log::info("[ERP接口]-[添加商品]-全部参数", $request->all());
         if (!$access_key = $request->get("access_key")) {
             return $this->error("参数错误：access_key必传", 701);
         }
@@ -306,7 +306,7 @@ class ProductController extends Controller
             $upc_pluck = ErpDepot::whereIn("upc", $upcs)->pluck("second_code", "upc");
             foreach ($data as $shop_id => $v) {
                 if (!$access_shop = ErpAccessShop::where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
-                    \Log::info("[ERP接口]-[添加商品]-shop_id错误: {$shop_id}");
+                    // \Log::info("[ERP接口]-[添加商品]-shop_id错误: {$shop_id}");
                     continue;
                 }
 
@@ -324,12 +324,12 @@ class ProductController extends Controller
                 } elseif ($type === 5) {
                     $meituan = app("qinqu");
                 } else {
-                    \Log::info("[ERP接口]-[添加商品]-门店 type 错误: {$type}");
+                    // \Log::info("[ERP接口]-[添加商品]-门店 type 错误: {$type}");
                     continue;
                 }
 
                 if (!$category = ErpShopCategory::where("shop_id", $access_shop->id)->first()) {
-                    \Log::info("[ERP接口]-[添加商品]-没有分类");
+                    // \Log::info("[ERP接口]-[添加商品]-没有分类");
 
                     $erp_category_data = config("erp.categories");
 
@@ -341,7 +341,7 @@ class ProductController extends Controller
                             "sequence" => 100,
                         ];
                         $log = $meituan->medicineCatSave($category_params);
-                        \Log::info("[ERP接口]-[添加商品]-[创建门店分类返回]: " . json_encode($log, JSON_UNESCAPED_UNICODE));
+                        // \Log::info("[ERP接口]-[添加商品]-[创建门店分类返回]: " . json_encode($log, JSON_UNESCAPED_UNICODE));
                     }
 
                     $c = new ErpShopCategory(
@@ -422,12 +422,12 @@ class ProductController extends Controller
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
                     ];
-                    \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
+                    // \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
-                    \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
-                    \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
+                    // \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
+                    // \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
                     $update_log = $meituan->medicineBatchUpdate($params_update);
-                    \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
+                    // \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
 
                     $msg = '';
                     if ($create_log['data'] === 'ok') {
@@ -435,24 +435,24 @@ class ProductController extends Controller
                     } else {
                         $msg = $create_log['error']['msg'] ?? '';
                     }
-                    \Log::info("[ERP接口]-[添加商品]-[MSG]: " . $msg);
+                    // \Log::info("[ERP接口]-[添加商品]-[MSG]: " . $msg);
                     if ($msg) {
                         $msg = str_replace('批量添加药品结果：','',$msg);
-                        \Log::info("[ERP接口]-[添加商品]-[MSG2]: " . $msg);
+                        // \Log::info("[ERP接口]-[添加商品]-[MSG2]: " . $msg);
                         $msg_arr = json_decode($msg, true);
-                        \Log::info("[ERP接口]-[添加商品]-[MSG-ARR]: ", [$msg_arr]);
+                        // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR]: ", [$msg_arr]);
 
                         if (!empty($msg_arr)) {
                             foreach ($msg_arr as $arr) {
                                 if (mb_strpos($arr['error_msg'], '编码在该店中已存在') !== false) {
                                     $res_data_items[$arr['app_medicine_code']]['status'] = 2;
                                     $res_data_items[$arr['app_medicine_code']]['msg'] = '条码已存在';
-                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                    // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
                                 }
                                 if (mb_strpos($arr['error_msg'], '标品库中没有此药品') !== false) {
                                     $res_data_items[$arr['app_medicine_code']]['status'] = 2;
                                     $res_data_items[$arr['app_medicine_code']]['msg'] = '美团标品库中没有此药品';
-                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                    // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
                                 }
                             }
                         }
@@ -471,7 +471,7 @@ class ProductController extends Controller
             }
         }
 
-        \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
+        // \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
         return $this->success();
     }
 
