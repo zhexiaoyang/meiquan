@@ -24,15 +24,15 @@ class Http
     {
         $method = strtoupper($method);
 //        $options = array_merge(self::$defaults, $options);
-        Log::debug('美团配送请求参数:', compact('url', 'method', 'options'));
+//         Log::debug('美团配送请求参数:', compact('url', 'method', 'options'));
 //        $options['handler'] = $this->getHandler();
         $response = $this->getClient()->request($method, $url, $options);
-        Log::debug('美团配送响应参数:', [
-            'Status'  => $response->getStatusCode(),
-            // 'Reason'  => $response->getReasonPhrase(),
-            // 'Headers' => $response->getHeaders(),
-            'Body'    => strval($response->getBody()),
-        ]);
+        // Log::debug('美团配送响应参数:', [
+        //     'Status'  => $response->getStatusCode(),
+        //     // 'Reason'  => $response->getReasonPhrase(),
+        //     // 'Headers' => $response->getHeaders(),
+        //     'Body'    => strval($response->getBody()),
+        // ]);
         return $response;
     }
 
