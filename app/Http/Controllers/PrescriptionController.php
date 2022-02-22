@@ -136,6 +136,12 @@ class PrescriptionController extends Controller
             ->where('second_category', '200001')
             ->whereIn('id', $request->user()->shops()->pluck('id'))
             ->get();
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                unset($shop->prescription);
+                $shop->prescription = [];
+            }
+        }
         return $this->success($shops);
     }
 
@@ -153,13 +159,13 @@ class PrescriptionController extends Controller
             return $this->error('门店不存在');
         }
 
-        if (!$contract = ContractOrder::where('shop_id', $shop_id)->where('contract_id', 4)->first()) {
-            return $this->error('该门店未签署线下处方合同');
-        }
-
-        if ($contract->status != 1) {
-            return $this->error('该门店处方合同未签署完成');
-        }
+        // if (!$contract = ContractOrder::where('shop_id', $shop_id)->where('contract_id', 4)->first()) {
+        //     return $this->error('该门店未签署线下处方合同');
+        // }
+        //
+        // if ($contract->status != 1) {
+        //     return $this->error('该门店处方合同未签署完成');
+        // }
 
         $user = User::find($request->user()->id);
 
