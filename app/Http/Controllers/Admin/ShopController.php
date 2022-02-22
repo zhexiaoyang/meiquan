@@ -159,8 +159,10 @@ class ShopController extends Controller
                     $warehouse_time = explode('-', $shop->setting->warehouse_time);
                     $tmp['warehouse']['stime'] = $warehouse_time[0];
                     $tmp['warehouse']['etime'] = $warehouse_time[1];
+                    $tmp['warehouse']['print'] = $shop->setting->print;
                     $tmp['warehouse']['id'] = $shop->setting->shop->id;
                     $tmp['warehouse']['name'] = $shop->setting->shop->shop_name;
+                    $tmp['warehouse']['print'] = (bool) $shop->setting->warehouse_print;
                 } else {
                     $tmp['warehouse'] = false;
                 }
@@ -233,14 +235,18 @@ class ShopController extends Controller
             return $this->error('结束时间不能为空');
         }
 
+        $print = $request->get('print', false);
+
         if ($setting = OrderSetting::query()->where("shop_id", $shop_id)->first()) {
             $setting->warehouse = $warehouse;
+            $setting->warehouse_print = (bool) $print;
             $setting->warehouse_time = $stime . '-' . $etime;
             $setting->save();
         } else {
             $data = config('ps.shop_setting');
             $data['shop_id'] = $shop_id;
             $data['warehouse'] = $warehouse;
+            $data['warehouse_print'] =  (bool) $print;
             $data['warehouse_time'] = $stime . '-' . $etime;
             OrderSetting::create($data);
             // OrderSetting::query()->create([
