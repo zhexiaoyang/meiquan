@@ -20,7 +20,7 @@ class MinKangController
         if ($request->get('order_id')) {
             $mt_shop_id = $request->get("app_poi_code", "");
             $mt_order_id = $request->get("wm_order_id_view", "");
-            Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：开始", $request->all());
+            Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：开始");
 
             if (!$mt_shop_id || !$mt_order_id) {
                 return json_encode(['data' => 'ok']);
