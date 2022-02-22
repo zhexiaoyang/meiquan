@@ -210,10 +210,10 @@ class WmOrderController extends Controller
 
     public function print_shops(Request $request)
     {
-        $query = Shop::query()->select('id', 'shop_name')
-            ->where(function ($query) {
-                $query->where('waimai_mt', "<>", "")->orWhere('waimai_ele', "<>", "");
-            });
+        $query = Shop::query()->select('id', 'shop_name');
+            // ->where(function ($query) {
+            //     $query->where('waimai_mt', "<>", "")->orWhere('waimai_ele', "<>", "");
+            // });
         $query->whereIn('id', $request->user()->shops()->pluck('id'));
 
         return $this->success($query->get());

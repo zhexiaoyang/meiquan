@@ -109,10 +109,10 @@ class CreateMtOrder implements ShouldQueue
             $this->log("门店不存在，停止派单|shop_id:{$this->order->shop_id}");
             return;
         }
-        if (!$user = User::find($shop->user_id ?? 0)) {
-            $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
-            return;
-        }
+        // if (!$user = User::find($shop->user_id ?? 0)) {
+        //     $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
+        //     return;
+        // }
 
         // 默认设置
         $default_settimg = config("ps.shop_setting");
@@ -147,6 +147,12 @@ class CreateMtOrder implements ShouldQueue
                     }
                 }
             }
+        }
+
+        // 判断用户
+        if (!$user = User::find($shop->user_id ?? 0)) {
+            $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
+            return;
         }
 
         // Log::info($this->log."检查重新发送时间：{{ $order_ttl }} 秒");
@@ -471,6 +477,7 @@ class CreateMtOrder implements ShouldQueue
         $order->warehouse_id = $this->warehouse;
 
         // 保存订单信息
+        $order->user_id = $user->id;
         $order->save();
 
         // 没有配送服务商

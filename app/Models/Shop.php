@@ -108,7 +108,7 @@ class Shop extends Model
     }
 
     /**
-     * 签过线下处方合同的门店
+     * 线下处方药店药师
      * @data 2021/12/15 3:19 下午
      */
     public function pharmacists()

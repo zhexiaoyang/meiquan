@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\OrderSetting;
 use App\Models\WmOrderItem;
 use App\Models\WmOrder;
 use App\Models\WmPrinter;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SaveMeiTuanOrder implements ShouldQueue
 {
@@ -116,13 +118,13 @@ class SaveMeiTuanOrder implements ShouldQueue
                 foreach ($products as $product) {
                     $items[] = [
                         'order_id' => $order->id,
-                        'app_food_code' => $product['app_food_code'],
-                        'food_name' => $product['food_name'],
-                        'unit' => $product['unit'],
-                        'upc' => $product['upc'],
-                        'quantity' => $product['quantity'],
-                        'price' => $product['price'],
-                        'spec' => $product['spec'],
+                        'app_food_code' => $product['app_food_code'] ?? '',
+                        'food_name' => $product['food_name'] ?? '',
+                        'unit' => $product['unit'] ?? '',
+                        'upc' => $product['upc'] ?? '',
+                        'quantity' => $product['quantity'] ?? 0,
+                        'price' => $product['price'] ?? 0,
+                        'spec' => $product['spec'] ?? '',
                     ];
                 }
             }
@@ -135,6 +137,25 @@ class SaveMeiTuanOrder implements ShouldQueue
 
         if ($print = WmPrinter::where('shop_id', $this->shop_id)->first()) {
             dispatch(new PrintWaiMaiOrder($order, $print));
+        }
+
+        // 转仓库打印
+        Log::info("[保存外卖订单]-[转单打印]-[shop_id：{$this->shop_id}");
+        if ($setting = OrderSetting::where('shop_id', $this->shop_id)->first()) {
+            Log::info("[保存外卖订单]-[转单打印]-[setting：{$setting->id}", [$setting]);
+            if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
+                $time_data = explode('-', $setting->warehouse_time);
+                Log::info("[保存外卖订单]-[转单打印]-[time_data", [$time_data]);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        Log::info("[保存外卖订单]-[转单打印]-[仓库ID：{$setting->warehouse}");
+                        if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
+                            Log::info("[保存外卖订单]-[转单打印]-[订单ID：{$order->id}，订单号：{$order->order_id}，门店ID：{$order->shop_id}，仓库ID：{$setting->warehouse}]");
+                            dispatch(new PrintWaiMaiOrder($order, $print));
+                        }
+                    }
+                }
+            }
         }
     }
 }
