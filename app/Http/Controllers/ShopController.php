@@ -198,7 +198,9 @@ class ShopController extends Controller
         }
         $shop->contact_name = $contact_name;
 
-        if (!$contact_phone = trim($request->get("contact_phone", ""))){
+        $contact_phone = trim($request->get("contact_phone", ""));
+        $contact_phone = str_replace(' ', '', $contact_phone);
+        if (!$contact_phone){
             return $this->error("联系人电话不能为空");
         }
         $shop->contact_phone = $contact_phone;
@@ -310,6 +312,10 @@ class ShopController extends Controller
         $user = Auth::user();
         $shop->fill($request->all());
 
+
+        // $contact_phone = str_replace(' ', '', $contact_phone);
+        $shop->contact_phone = str_replace(' ', '', $shop->contact_phone);
+
         if (!$request->get("city")) {
             $lng = $request->get("shop_lng");
             $lat = $request->get("shop_lat");
@@ -340,6 +346,7 @@ class ShopController extends Controller
         $shop->own_id = $user->id;
 
         // return $this->success($shop);
+        $shop->contact_phone = str_replace(' ', '', $shop->contact_phone);
 
         if ($shop->save()) {
             $user->shops()->attach($shop->id);
