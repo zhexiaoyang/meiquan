@@ -11,13 +11,11 @@ class OrderController extends Controller
 
     public function create(Request $request)
     {
-        $this->prefix .= '-[创建]';
-
         if ($order_id = $request->get("order_id", "")) {
             // $this->log('全部参数', $request->all());
             $meituan = app("minkang");
             $res = $meituan->orderConfirm($order_id);
-            $this->log('操作接单返回信息', $res);
+            $this->log('create|操作接单返回信息', $res);
         }
 
         return json_encode(['data' => 'ok']);
