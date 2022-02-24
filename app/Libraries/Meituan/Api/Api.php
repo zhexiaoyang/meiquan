@@ -362,6 +362,14 @@ class Api extends Request
         return $this->request_get('v1/ecommerce/order/syncEstimateArrivalTime', $params);
     }
 
+    public function orderConfirm($order_id)
+    {
+        $params = [
+            'order_id' => $order_id,
+        ];
+        return $this->request_get('v1/ecommerce/order/confirm', $params);
+    }
+
     /**
      * 同步库存
      * @param array $params

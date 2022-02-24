@@ -12,7 +12,39 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
     Route::post('order', "EleOrderController@order");
 });
 
-// 美全科技-美团-服务商
+/**
+ * 美全科技-美团三方开发者-餐饮服务商
+ */
+Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Waimai\MinKang')->group(function () {
+    // 推送美配订单配送状态回调
+    // https://psapi.meiquanda.com/api/waimai/meituan/minkang/order/create
+    // 推送已支付订单
+    Route::post('order/create', "OrderController@create");
+    // 推送已确认订单
+    // Route::post('order/confirm', "OrderController@confirm");
+    // 推送用户或客服取消订单
+    // Route::post('order/cancel', "OrderController@cancel");
+    // 推送全额退款信息
+    // Route::post('order/refund', "OrderController@refund");
+    // 推送美配订单配送状态
+    // Route::post('order/rider', "OrderController@rider");
+    // 推送已完成订单
+    // Route::post('order/finish', "OrderController@finish");
+    // 推送部分退款信息
+    // Route::post('order/partrefund', "OrderController@partrefund");
+    // 推送催单消息
+    // Route::post('order/remind', "OrderController@remind");
+    // 隐私号降级通知
+    // Route::post('order/down', "OrderController@down");
+    // 门店绑定
+    // Route::post('shop/bind', "ShopController@bind");
+    // 门店解绑
+    // Route::post('shop/unbound', "ShopController@unbound");
+});
+
+/**
+ * 美团外卖-闪购-服务商
+ */
 Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Waimai')->group(function () {
     // 推送已支付订单回调
     Route::post('pay', "MeiTuanMeiquanController@pay");
@@ -36,13 +68,12 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     Route::post('order/status/own_delivery', "OrderStatusController@own_delivery");
 });
 
-
-
-
-
-// 美全科技-美团三方开发者-餐饮服务商
+/**
+ * 美全科技-美团三方开发者-餐饮服务商
+ */
 Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Waimai\MeiTuanSanFang')->group(function () {
     // 推送美配订单配送状态回调
+    // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/order/cancel
     Route::post('order/create', "OrderController@create");
     Route::post('order/confirm', "OrderController@confirm");
     Route::post('order/cancel', "OrderController@cancel");
@@ -58,22 +89,23 @@ Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Wai
     Route::post('shop/unbound', "ShopController@unbound");
 });
 
-
-
-
-
-
-// 美全达跑腿
+/**
+ * 美全达跑腿
+ */
 Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(function () {
     Route::post('order', "MeiQuanDaController@order_status");
 });
 
-// 达达跑腿
+/**
+ * 达达跑腿
+ */
 Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(function () {
     Route::post('order', "DaDaController@order_status");
 });
 
-// UU跑腿
+/**
+ * UU跑腿
+ */
 Route::middleware(['force-json'])->prefix('uu')->namespace('Api')->group(function () {
     Route::post('order', "UuController@order_status");
 });
