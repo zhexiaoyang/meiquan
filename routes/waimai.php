@@ -36,6 +36,32 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
     Route::post('order/status/own_delivery', "OrderStatusController@own_delivery");
 });
 
+
+
+
+
+// 美全科技-美团三方开发者-餐饮服务商
+Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Waimai\MeiTuanSanFang')->group(function () {
+    // 推送美配订单配送状态回调
+    Route::post('order/create', "OrderController@create");
+    Route::post('order/cancel', "OrderController@cancel");
+    Route::post('order/refund', "OrderController@refund");
+    Route::post('order/rider', "OrderController@rider");
+    Route::post('order/finish', "OrderController@finish");
+    Route::post('order/partrefund', "OrderController@partrefund");
+    Route::post('order/remind', "OrderController@remind");
+    Route::post('order/down', "OrderController@down");
+    // 门店绑定
+    Route::post('shop/bind', "ShopController@bind");
+    // 门店解绑
+    Route::post('shop/unbound', "ShopController@unbound");
+});
+
+
+
+
+
+
 // 美全达跑腿
 Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(function () {
     Route::post('order', "MeiQuanDaController@order_status");
