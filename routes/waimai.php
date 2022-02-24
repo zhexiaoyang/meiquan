@@ -44,6 +44,7 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
 Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Waimai\MeiTuanSanFang')->group(function () {
     // 推送美配订单配送状态回调
     Route::post('order/create', "OrderController@create");
+    Route::post('order/confirm', "OrderController@confirm");
     Route::post('order/cancel', "OrderController@cancel");
     Route::post('order/refund', "OrderController@refund");
     Route::post('order/rider', "OrderController@rider");
