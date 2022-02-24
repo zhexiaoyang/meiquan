@@ -367,7 +367,7 @@ class Api extends Request
         $params = [
             'order_id' => $order_id,
         ];
-        return $this->request_get('order/confirm', $params);
+        return $this->request_get('v1/order/confirm', $params);
     }
 
     /**
