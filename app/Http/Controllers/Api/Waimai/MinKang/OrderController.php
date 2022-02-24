@@ -15,7 +15,7 @@ class OrderController extends Controller
             // $this->log('全部参数', $request->all());
             $meituan = app("minkang");
             $res = $meituan->orderConfirm($order_id);
-            $this->log('create|操作接单返回信息', $res);
+            $this->log("create|订单号：{$order_id}|操作接单返回信息", $res);
         }
 
         return json_encode(['data' => 'ok']);
