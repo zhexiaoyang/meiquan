@@ -14,7 +14,7 @@ class OrderController extends Controller
         $this->prefix .= '-[创建]';
 
         if ($order_id = $request->get("order_id", "")) {
-            $this->log('全部参数', $request->all());
+            // $this->log('全部参数', $request->all());
             $meituan = app("minkang");
             $res = $meituan->orderConfirm($order_id);
             $this->log('操作接单返回信息', $res);
