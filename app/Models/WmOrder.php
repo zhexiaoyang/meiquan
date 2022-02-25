@@ -8,10 +8,13 @@ class WmOrder extends Model
 {
     //
     protected $fillable = [
-        "shop_id","order_id","wm_order_id_view","platform","from_type","app_poi_code","wm_shop_name","recipient_name",
-        "recipient_phone","recipient_address","latitude","longitude","shipping_fee","total","logistics_code",
-        "original_price","caution","shipper_phone","status","ctime","utime","delivery_time","pick_type","day_seq",
-        "ware_order_id","ware_status","ware_error","ware_take_code"
+        'shop_id','order_id','wm_order_id_view','ware_order_id','from_type','platform','channel','way','app_poi_code',
+        'wm_shop_name','recipient_name','recipient_address','recipient_address_detail','recipient_phone','latitude',
+        'longitude','shipping_fee','total','original_price','goods_price','package_bag_money_yuan','service_fee',
+        'logistics_fee','online_payment','poi_receive','rebate_fee','caution','shipper_phone','status','invoice_title',
+        'taxpayer_id','ware_status','ware_error','ware_take_code','ctime','utime','delivery_time',
+        'estimate_arrival_time','pick_type','day_seq','logistics_code','is_favorites','is_poi_first_order',
+        'is_pre_sale_order','is_prescription'
     ];
 
     public function items()
