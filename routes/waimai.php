@@ -29,7 +29,7 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送美配订单配送状态
     // Route::post('order/rider', "OrderController@rider");
     // 推送已完成订单
-    // Route::post('order/finish', "OrderController@finish");
+    Route::post('order/finish', "OrderController@finish");
     // 推送部分退款信息
     // Route::post('order/partrefund', "OrderController@partrefund");
     // 推送催单消息
