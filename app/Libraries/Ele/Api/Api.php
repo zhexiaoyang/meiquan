@@ -57,7 +57,7 @@ class Api extends Request
     }
 
     /**
-     * 确认订单
+     * 拣货完成
      * @param $order_id
      * @return mixed
      * @author zhangzhen
@@ -73,7 +73,7 @@ class Api extends Request
     }
 
     /**
-     * 确认订单
+     * 订单送达
      * @param $order_id
      * @return mixed
      * @author zhangzhen
@@ -89,7 +89,7 @@ class Api extends Request
     }
 
     /**
-     * 确认订单
+     * 订单送出
      * @param $order_id
      * @return mixed
      * @author zhangzhen

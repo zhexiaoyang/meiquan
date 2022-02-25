@@ -134,6 +134,12 @@ class MtLogisticsSync implements ShouldQueue
             ];
             $result = $ele->deliveryStatus($params);
             \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-结束", compact("params", "result"));
+            if (in_array($this->order->status, [40, 50, 60])) {
+                $res = $ele->sendoutOrder($this->order->order_id);
+            } elseif ($this->order->status == 70) {
+                $res = $ele->completeOrder($this->order->order_id);
+            }
+            \Log::info("[同步配送订单状态-饿了么]-[订单号:{$this->order->order_id}]-结果", [$res]);
         } elseif ($this->order->type == 31) {
 
             $meituan = app("meiquan");
