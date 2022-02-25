@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\OrderSetting;
 use App\Models\WmOrderItem;
 use App\Models\WmOrder;
+use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -125,7 +126,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "ware_take_code" => substr($mt_order_id, -6),
         ];
 
-        $order = DB::transaction(function () use ($products, $order_data) {
+        $order = DB::transaction(function () use ($products, $order_data, $poi_receive_detail_yuan) {
             $items = [];
             $order = WmOrder::query()->create($order_data);
             if (!empty($products)) {
@@ -144,6 +145,36 @@ class SaveMeiTuanOrder implements ShouldQueue
             }
             if (!empty($items)) {
                 WmOrderItem::query()->insert($items);
+            }
+            $receives = [];
+            if (!empty($poi_receive_detail_yuan['actOrderChargeByMt'])) {
+                foreach ($poi_receive_detail_yuan['actOrderChargeByMt'] as $receive) {
+                    if ($receive['money'] > 0) {
+                        $receives[] = [
+                            'type' => 1,
+                            'order_id' => $order->id,
+                            'comment' => $receive['comment'],
+                            'fee_desc' => $receive['feeTypeDesc'],
+                            'money' => $receive['money'],
+                        ];
+                    }
+                }
+            }
+            if (!empty($poi_receive_detail_yuan['actOrderChargeByPoi'])) {
+                foreach ($poi_receive_detail_yuan['actOrderChargeByPoi'] as $receive) {
+                    if ($receive['money'] > 0) {
+                        $receives[] = [
+                            'type' => 2,
+                            'order_id' => $order->id,
+                            'comment' => $receive['comment'],
+                            'fee_desc' => $receive['feeTypeDesc'],
+                            'money' => $receive['money'],
+                        ];
+                    }
+                }
+            }
+            if (!empty($receives)) {
+                WmOrderReceive::query()->insert($receives);
             }
 
             return $order;
@@ -165,7 +196,7 @@ class SaveMeiTuanOrder implements ShouldQueue
                         Log::info("[保存外卖订单]-[转单打印]-[仓库ID：{$setting->warehouse}");
                         if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
                             Log::info("[保存外卖订单]-[转单打印]-[订单ID：{$order->id}，订单号：{$order->order_id}，门店ID：{$order->shop_id}，仓库ID：{$setting->warehouse}]");
-                            dispatch(new PrintWaiMaiOrder($order, $print));
+                            // dispatch(new PrintWaiMaiOrder($order, $print));
                         }
                     }
                 }

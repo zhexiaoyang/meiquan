@@ -21,4 +21,9 @@ class WmOrder extends Model
     {
         return $this->hasMany(WmOrderItem::class, 'order_id');
     }
+
+    public function receive()
+    {
+        return $this->hasMany(WmOrderReceive::class, 'order_id');
+    }
 }
