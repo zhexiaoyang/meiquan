@@ -45,6 +45,12 @@ class WmOrderController extends Controller
 
         $data = $query->orderByDesc('id')->paginate($page_size);
 
+        if (!empty($data)) {
+            foreach ($data as $order) {
+                $order->ctime = date("Y-m-d H:i:s", $order->ctime);
+            }
+        }
+
         return $this->page($data);
     }
 
