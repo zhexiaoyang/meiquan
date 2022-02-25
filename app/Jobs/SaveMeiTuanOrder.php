@@ -59,6 +59,8 @@ class SaveMeiTuanOrder implements ShouldQueue
         $mt_shop_id = $data['app_poi_code'];
         $mt_order_id = $data['wm_order_id_view'];
         $products = json_decode(urldecode($data['detail']), true);
+        $poi_receive_detail_yuan = json_decode(urldecode($data['poi_receive_detail_yuan']), true);
+        $order_tag_list = json_decode(urldecode($data['order_tag_list']), true);
 
         if (!$mt_order_id || !$mt_shop_id) {
             return false;
@@ -91,11 +93,18 @@ class SaveMeiTuanOrder implements ShouldQueue
             "recipient_name" => urldecode($data['recipient_name']) ?? "无名客人",
             "recipient_phone" => $data['recipient_phone'],
             "recipient_address" => urldecode($data['recipient_address']),
+            "recipient_address_detail" => urldecode($data['recipient_address_detail']  ?? ''),
             "latitude" => $data['latitude'],
             "longitude" => $data['longitude'],
             "shipping_fee" => $data['shipping_fee'],
             "total" => $data['total'],
             "original_price" => $data['original_price'],
+            "package_bag_money_yuan" => $data['package_bag_money_yuan'] ?? 0,
+            "service_fee" => $poi_receive_detail_yuan['foodShareFeeChargeByPoi'] ?? 0,
+            "logistics_fee" => $poi_receive_detail_yuan['logisticsFee'] ?? 0,
+            "online_payment" => $poi_receive_detail_yuan['onlinePayment'] ?? 0,
+            "poi_receive" => $poi_receive_detail_yuan['poiReceive'] ?? 0,
+            "rebate_fee" => $poi_receive_detail_yuan['agreementCommissionRebateAmount'] ?? 0,
             "caution" => urldecode($data['caution']),
             "shipper_phone" => $data['shipper_phone'] ?? "",
             "status" => $status_filter[$data['status']] ?? 4,
@@ -104,6 +113,11 @@ class SaveMeiTuanOrder implements ShouldQueue
             "delivery_time" => $data['delivery_time'],
             "pick_type" => $data['pick_type'] ?? 0,
             "day_seq" => $data['day_seq'] ?? 0,
+            "invoice_title" => $data['invoice_title'] ?? '',
+            "taxpayer_id" => $data['taxpayer_id'] ?? '',
+            "is_prescription" => in_array(8, $order_tag_list) ? 1 : 0,
+            "is_favorites" => intval($data['is_favorites'] ?? 0),
+            "is_poi_first_order" => intval($data['is_poi_first_order'] ?? 0),
             "logistics_code" => $logistics_code,
             "ware_order_id" => $this->g_no,
             "ware_status" => $this->g_status,
