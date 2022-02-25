@@ -110,6 +110,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "shipper_phone" => $data['shipper_phone'] ?? "",
             "status" => $status_filter[$data['status']] ?? 4,
             "ctime" => $data['ctime'],
+            "estimate_arrival_time" => $data['estimate_arrival_time'] ?? 0,
             "utime" => $data['utime'],
             "delivery_time" => $data['delivery_time'],
             "pick_type" => $data['pick_type'] ?? 0,
