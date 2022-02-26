@@ -163,6 +163,8 @@ class UserController extends Controller
             if ($user->id && $role === 'city_manager') {
                 $user->shops()->sync($request->user_shop);
             }
+
+            Shop::whereIn('id', $request->user_shop)->update(['manager_id' => $user->id]);
         });
         return $this->success();
 
@@ -187,6 +189,27 @@ class UserController extends Controller
             // 禁用用户删除登录信息
             DB::table("oauth_access_tokens")->where("user_id", $user_id)->delete();
         }
+
+        return $this->success();
+    }
+
+    /**
+     * 用户管理-设置运营经理
+     */
+    public function operate(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+        $status = $request->get("status", 0);
+
+        if (!in_array($status, [0, 1])) {
+            return $this->error('状态不正确');
+        }
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        $user->update(['is_operate' => $status]);
 
         return $this->success();
     }
@@ -232,6 +255,8 @@ class UserController extends Controller
         $user->save();
 
         $user->shops()->sync($shops);
+        Shop::where('manager_id', $user->id)->update(['manager_id' => 0]);
+        Shop::whereIn('id', $shops)->update(['manager_id' => $user->id]);
 
         return $this->success();
     }
