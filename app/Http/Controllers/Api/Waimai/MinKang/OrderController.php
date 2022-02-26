@@ -66,6 +66,7 @@ class OrderController extends Controller
         $time = $request->get('time', 0);
         $name = $request->get('dispatcher_name', '');
         $phone = $request->get('dispatcher_mobile', '');
+        $this->log('美配订单状态回调全部参数', $request->all());
 
         if ($order_id && $status) {
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
