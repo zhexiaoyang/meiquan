@@ -69,7 +69,7 @@ class OrderController extends Controller
 
         if ($order_id && $status) {
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
-                if (in_array($status, [10, 20, 40])) {
+                if (in_array($status, [10, 20, 40]) && $order->status < 16) {
                     if ($status == 10) {
                         $order->status = 12;
                     } elseif ($status == 20) {
