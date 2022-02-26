@@ -17,7 +17,7 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
  */
 Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Waimai\MinKang')->group(function () {
     // 推送美配订单配送状态回调
-    // https://psapi.meiquanda.com/api/waimai/meituan/minkang/order/create
+    // https://psapi.meiquanda.com/api/waimai/meituan/minkang/order/refund
     // 推送已支付订单
     Route::post('order/create', "OrderController@create");
     // 推送已确认订单
@@ -25,13 +25,13 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送用户或客服取消订单
     // Route::post('order/cancel', "OrderController@cancel");
     // 推送全额退款信息
-    // Route::post('order/refund', "OrderController@refund");
+    Route::post('order/refund', "OrderController@refund");
+    // 推送部分退款信息
+    Route::post('order/partrefund', "OrderController@partrefund");
     // 推送美配订单配送状态
     Route::post('order/rider', "OrderController@rider");
     // 推送已完成订单
     Route::post('order/finish', "OrderController@finish");
-    // 推送部分退款信息
-    // Route::post('order/partrefund', "OrderController@partrefund");
     // 推送催单消息
     // Route::post('order/remind', "OrderController@remind");
     // 隐私号降级通知

@@ -43,17 +43,20 @@ class OrderController extends Controller
     //
     //     return json_encode(['data' => 'ok']);
     // }
-    //
-    // public function refund(Request $request)
-    // {
-    //     $this->prefix .= '-[退款]';
-    //
-    //     if ($order_id = $request->get("order_id", "")) {
-    //         $this->log('全部参数', $request->all());
-    //     }
-    //
-    //     return json_encode(['data' => 'ok']);
-    // }
+
+    public function refund(Request $request)
+    {
+        $this->log('全部退款全部参数', $request->all());
+
+        return json_encode(['data' => 'ok']);
+    }
+
+    public function partrefund(Request $request)
+    {
+        $this->log('部分退款全部参数', $request->all());
+
+        return json_encode(['data' => 'ok']);
+    }
 
     /**
      * 美配订单状态回调
@@ -147,17 +150,6 @@ class OrderController extends Controller
         }
         return json_encode(['data' => 'ok']);
     }
-
-    // public function partrefund(Request $request)
-    // {
-    //     $this->prefix .= '-[部分退款]';
-    //
-    //     if ($order_id = $request->get("order_id", "")) {
-    //         $this->log('全部参数', $request->all());
-    //     }
-    //
-    //     return json_encode(['data' => 'ok']);
-    // }
     //
     // public function remind(Request $request)
     // {
