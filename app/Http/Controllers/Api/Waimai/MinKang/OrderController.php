@@ -46,14 +46,18 @@ class OrderController extends Controller
 
     public function refund(Request $request)
     {
-        $this->log('全部退款全部参数', $request->all());
+        if ($order_id = $request->get("order_id", "")) {
+            $this->log('全部退款全部参数', $request->all());
+        }
 
         return json_encode(['data' => 'ok']);
     }
 
     public function partrefund(Request $request)
     {
-        $this->log('部分退款全部参数', $request->all());
+        if ($order_id = $request->get("order_id", "")) {
+            $this->log('部分退款全部参数', $request->all());
+        }
 
         return json_encode(['data' => 'ok']);
     }
