@@ -27,7 +27,7 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送全额退款信息
     // Route::post('order/refund', "OrderController@refund");
     // 推送美配订单配送状态
-    // Route::post('order/rider', "OrderController@rider");
+    Route::post('order/rider', "OrderController@rider");
     // 推送已完成订单
     Route::post('order/finish', "OrderController@finish");
     // 推送部分退款信息
@@ -36,6 +36,8 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // Route::post('order/remind', "OrderController@remind");
     // 隐私号降级通知
     // Route::post('order/down', "OrderController@down");
+    // 自配订单配送状态
+    Route::post('order/status/self', "OrderController@status_self");
     // 门店绑定
     // Route::post('shop/bind', "ShopController@bind");
     // 门店解绑
