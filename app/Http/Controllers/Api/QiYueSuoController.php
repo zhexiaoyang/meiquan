@@ -34,7 +34,7 @@ class QiYueSuoController extends Controller
 
     public function contractStatus(Request $request)
     {
-        $keys = ['', 'Al9xUegalRL8eZI7', 'gXTCCrBJyFE2fuuE', 'FS3IYyuYX2q14KM8', 'QTfGGOUwX1kbv9Ik'];
+        $keys = ['', 'Al9xUegalRL8eZI7', 'gXTCCrBJyFE2fuuE', 'FS3IYyuYX2q14KM8', 'QTfGGOUwX1kbv9Ik', 'VSEsAT6DXOyXYmxj'];
         Log::info("[契约锁回调-合同状态回调]-全部参数：", $request->all());
         $content = $request->get("content", "");
         $type = $request->get("contract", 1);
