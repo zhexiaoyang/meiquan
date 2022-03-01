@@ -96,6 +96,7 @@ class VipProductController extends Controller
         }
 
         for ($i = 2; $i <= $total_page; $i++) {
+            $params['offset'] = $i;
             $data = $mt->medicineList($params);
             $products = $data['data'];
             if (!empty($products)) {
