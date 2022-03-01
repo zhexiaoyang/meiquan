@@ -370,6 +370,14 @@ class Api extends Request
         return $this->request_get('v1/order/confirm', $params);
     }
 
+    public function orderPicking($order_id)
+    {
+        $params = [
+            'order_id' => $order_id,
+        ];
+        return $this->request_get('v1/order/preparationMealComplete', $params);
+    }
+
     /**
      * 同步库存
      * @param array $params
