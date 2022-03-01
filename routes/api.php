@@ -251,6 +251,10 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
+             * VIP订单
+             */
+            Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
+            /**
              * VIP门店
              */
             Route::get("vip_shop/all", "VipShopController@all");

@@ -26,13 +26,14 @@ class SaveMeiTuanOrder implements ShouldQueue
     private $g_status;
     private $g_no;
     private $g_error;
+    private $vip;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($data, int $platform, int $from_type, int $shop_id, int $g_status = 1, string $g_no = '', string $g_error = '')
+    public function __construct($data, int $platform, int $from_type, int $shop_id, int $g_status = 1, string $g_no = '', string $g_error = '', int $vip = 0)
     {
         $this->data = $data;
         // 平台
@@ -46,6 +47,8 @@ class SaveMeiTuanOrder implements ShouldQueue
         // 药柜订单号
         $this->g_no = $g_no;
         $this->g_error = $g_error;
+        // 是否VIP门店订单
+        $this->vip = $vip;
     }
 
     /**
@@ -125,6 +128,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "ware_status" => $this->g_status,
             "ware_error" => $this->g_error,
             "ware_take_code" => substr($mt_order_id, -6),
+            "is_vip" => $this->vip,
         ];
 
         $order = DB::transaction(function () use ($products, $order_data, $poi_receive_detail_yuan) {
