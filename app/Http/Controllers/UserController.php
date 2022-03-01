@@ -38,7 +38,8 @@ class UserController extends Controller
         $search_key_shop = $request->get('shop', '');
 
         $query = User::with(['roles', 'my_shops', 'shops'])
-            ->select("id","name","phone","nickname","money","frozen_money","operate_money","created_at","is_chain","chain_name","status");
+            ->select("id","name","phone","nickname","money","frozen_money","operate_money","created_at",
+                "is_operate","is_chain","chain_name","status");
 
         if ($name) {
             $query->where('name', 'like', "%{$name}%");

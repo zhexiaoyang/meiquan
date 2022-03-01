@@ -121,6 +121,11 @@ class Shop extends Model
         return $this->belongsTo(User::class, "manager_id", "id");
     }
 
+    public function operate()
+    {
+        return $this->belongsTo(User::class, "operate_id", "id");
+    }
+
     public function getStatusLabelAttribute()
     {
         return $this->status_data[$this->status] ?? '状态错误';

@@ -57,7 +57,8 @@ return [
             | Available options: none|slug|custom
             |
             */
-            'formatter' => 'slug',
+            'formatter' => 'none',
+            // 'formatter' => 'slug',
         ],
 
         /*

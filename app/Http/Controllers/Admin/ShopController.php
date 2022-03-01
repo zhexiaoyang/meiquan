@@ -204,7 +204,7 @@ class ShopController extends Controller
     {
         $search_key = $request->get("search_key", "");
 
-        $query = Shop::select("id", "shop_name", "city");
+        $query = Shop::select("id", "shop_name", "city","mtwm","ele");
 
         if ($search_key) {
             $query->where("shop_name", "like", "%{$search_key}%");

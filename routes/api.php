@@ -251,6 +251,17 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
+             * VIP门店
+             */
+            Route::get("vip_shop/all", "VipShopController@all");
+            Route::resource('vip_shop', 'VipShopController', ["only" => ["index","store"]]);
+            /**
+             * VIP商品
+             */
+            Route::post('vip_product/import', 'VipProductController@import');
+            Route::get('vip_product/export', 'VipProductController@export');
+            Route::resource('vip_product', 'VipProductController', ["only" => ["index","store"]]);
+            /**
              * 【外卖订单管理】
              */
             // *外卖订单-列表
@@ -375,6 +386,9 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("user/money/clear", "UserController@money_clear");
             // 城市经理
             Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
+            // 用户管理-管理员-运营经理
+            Route::post("user/operate", "UserController@operate_update");
+            Route::get("user/operate", "UserController@operate_index");
 
             /**
              * 财务管理

@@ -409,6 +409,10 @@ class Api extends Request
     {
         return $this->request_post('v1/medicine/batchupdate', $params);
     }
+    public function medicineList(array $params)
+    {
+        return $this->request_get('v1/medicine/list', $params);
+    }
 
     /**
      * 创建药品分类

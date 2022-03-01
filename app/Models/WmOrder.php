@@ -14,7 +14,7 @@ class WmOrder extends Model
         'logistics_fee','online_payment','poi_receive','rebate_fee','caution','shipper_phone','status','invoice_title',
         'taxpayer_id','ware_status','ware_error','ware_take_code','ctime','utime','delivery_time',
         'estimate_arrival_time','pick_type','day_seq','logistics_code','is_favorites','is_poi_first_order',
-        'is_pre_sale_order','is_prescription','send_at','finish_at','shipper_phone'
+        'is_pre_sale_order','is_prescription','send_at','finish_at','shipper_phone','is_vip'
     ];
 
     public function items()

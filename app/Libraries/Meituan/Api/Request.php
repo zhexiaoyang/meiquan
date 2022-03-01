@@ -128,8 +128,8 @@ class Request
 
     private function checkErrorAndThrow($result)
     {
-        if (!$result || $result['code'] != 0) {
+        // if (!$result || $result['code'] != 0) {
 //            throw new MeituanDispatchException($result['message'], $result['code']);
-        }
+//         }
     }
 }

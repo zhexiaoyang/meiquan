@@ -196,22 +196,30 @@ class UserController extends Controller
     /**
      * 用户管理-设置运营经理
      */
-    public function operate(Request $request)
+    public function operate_update(Request $request)
     {
         $user_id = $request->get("id", 0);
-        $status = $request->get("status", 0);
-
-        if (!in_array($status, [0, 1])) {
-            return $this->error('状态不正确');
-        }
 
         if (!$user = User::find($user_id)) {
             return $this->error("用户不存在");
         }
 
-        $user->update(['is_operate' => $status]);
+        if ($user->is_operate == 1) {
+            if (Shop::where('operate_id', $user->id)->count() > 0) {
+                return $this->error("该运营经理有运营门店不能取消角色");
+            }
+        }
+
+        $user->update(['is_operate' => $user->is_operate == 1 ? 0 : 1]);
 
         return $this->success();
+    }
+
+    public function operate_index(Request $request)
+    {
+        $users = User::query()->select('id','name','nickname','phone')->where('is_operate',1)->get();
+
+        return $this->success($users);
     }
 
     /**
