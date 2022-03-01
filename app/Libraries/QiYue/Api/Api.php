@@ -218,6 +218,57 @@ class Api extends Request
     }
 
     /**
+     * VIP合同
+     * @param OnlineShop $shop
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/3/1 8:52 下午
+     */
+    public function shopDraftVip(OnlineShop $shop)
+    {
+        $data = [
+            'send' => true,
+            'category' => [
+                // 'id' => '2822634020993504105'
+                'id' => '2822639597698159022'
+            ],
+            'signatories' => [
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => '吉林省美全科技有限责任公司'
+                ],
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => $shop->company_name,
+                    'receiver' => [
+                        'contact' => $shop->applicant_phone,
+                        'contactType' => 'MOBILE'
+                    ]
+                ]
+            ],
+            'templateParams' => [
+                [
+                    "name" => "甲方公司名称",
+                    "value" => $shop->company_name
+                ],
+                [
+                    "name" => "甲方开户名称",
+                    "value" => $shop->bank_user
+                ],
+                [
+                    "name" => "甲方回款账号",
+                    "value" => $shop->account_no
+                ],
+                [
+                    "name" => "甲方开户银行",
+                    "value" => $shop->bank_name
+                ]
+            ]
+        ];
+        return $this->post('/v2/contract/draft', $data);
+    }
+
+    /**
      * 门店签署-获取签署链接
      * @param OnlineShop $shop
      * @param $contract_id
@@ -253,5 +304,10 @@ class Api extends Request
             'sealId' => '2906846343840530888'
         ];
         return $this->post('/v2/contract/companysign', $data);
+    }
+
+    public function download($id)
+    {
+        return $this->post('/v2/document/download', ['documentId' => $id]);
     }
 }
