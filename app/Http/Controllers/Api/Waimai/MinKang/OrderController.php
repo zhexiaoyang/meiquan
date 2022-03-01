@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MinKang;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\MeiTuanWaiMaiPicking;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
 
@@ -17,6 +18,7 @@ class OrderController extends Controller
             $meituan = app("minkang");
             $res = $meituan->orderConfirm($order_id);
             $this->log("create|订单号：{$order_id}|操作接单返回信息", $res);
+            dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
         }
 
         return json_encode(['data' => 'ok']);
