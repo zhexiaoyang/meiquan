@@ -55,15 +55,15 @@ class VipProductController extends Controller
             return $this->error('门店不存在');
         }
         $mt = app("minkang");
-        $page = 1;
 
         $params = [
-            'offset' => $page,
+            'offset' => 0,
             'limit' => 200,
-            'app_poi_code' => '13971220'
+            'app_poi_code' => $shop->mtwm
         ];
 
         $data = $mt->medicineList($params);
+        // return $data;
         $total = $data['extra_info']['total_count'] ?? 0;
         $total_page = ceil($total / 200);
 
@@ -95,8 +95,8 @@ class VipProductController extends Controller
             VipProduct::insert($tmp);
         }
 
-        for ($i = 2; $i <= $total_page; $i++) {
-            $params['offset'] = $i;
+        for ($i = 1; $i < $total_page; $i++) {
+            $params['offset'] = $i * 200;
             $data = $mt->medicineList($params);
             $products = $data['data'];
             if (!empty($products)) {
