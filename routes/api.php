@@ -30,6 +30,20 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * VIP订单
+         */
+        Route::get("vip_order/statistic", "VipOrderController@statistic");
+        Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
+        /**
+         * VIP门店
+         */
+        Route::get("vip_shop/all", "VipShopController@all");
+        Route::resource('vip_shop', 'VipShopController', ["only" => ["index"]]);
+        /**
+         * VIP商品
+         */
+        Route::resource('vip_product', 'VipProductController', ["only" => ["index"]]);
+        /**
          * 【快递订单】
          */
         // 【快递门店列表】
