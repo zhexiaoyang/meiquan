@@ -303,7 +303,6 @@ class ProductController extends Controller
             return $this->error("数据不存在");
         }
 
-        \Log::info("aaa", [$product]);
         $product->sale_type = $product->sale_type === 2 ? 1 : 2;
         $product->save();
 
