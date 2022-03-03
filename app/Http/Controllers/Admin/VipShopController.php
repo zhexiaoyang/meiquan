@@ -16,8 +16,10 @@ class VipShopController extends Controller
             $query->select('id', 'nickname');
         },'manager' => function($query) {
             $query->select('id', 'nickname');
+        },'internal' => function($query) {
+            $query->select('id', 'nickname');
         }])->select('id','shop_name','contact_name','contact_phone','vip_logistics','vip_commission',
-            'vip_commission_manager','vip_commission_operate','manager_id',
+            'vip_commission_manager','vip_commission_operate','manager_id','internal_id','vip_commission_internal',
             'vip_settlement','vip_at','operate_id','vip_mt','vip_ele','mtwm','ele');
 
         $query->where('vip_status', 1);
@@ -58,6 +60,7 @@ class VipShopController extends Controller
         }
         $commission_manager = $request->get('commission_manager', 0);
         $commission_operate = $request->get('commission_operate', 0);
+        $commission_internal = $request->get('commission_internal', 0);
         if (!$commission = $request->get('commission', 0)) {
             return $this->error('抽佣不能为 0');
         }
@@ -70,15 +73,20 @@ class VipShopController extends Controller
         if (!$operate = $request->get('operate')) {
             return $this->error('业务经理不能为空');
         }
+        if (!$internal = $request->get('internal')) {
+            return $this->error('内勤经理不能为空');
+        }
         if (!$shop = Shop::find($request->get('shop_id',0))) {
             return $this->error('门店不存在');
         }
 
         $shop->operate_id = $operate;
+        $shop->internal_id = $internal;
         $shop->vip_settlement = $settlement;
         $shop->vip_commission = $commission;
         $shop->vip_commission_manager = $commission_manager;
         $shop->vip_commission_operate = $commission_operate;
+        $shop->vip_commission_internal = $commission_internal;
         $shop->vip_logistics = $logistics;
 
         $mt = false;
