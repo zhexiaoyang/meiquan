@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\OrderSetting;
+use App\Models\VipProduct;
 use App\Models\WmOrderItem;
 use App\Models\WmOrder;
 use App\Models\WmOrderReceive;
@@ -132,8 +133,14 @@ class SaveMeiTuanOrder implements ShouldQueue
         ];
 
         $order = DB::transaction(function () use ($products, $order_data, $poi_receive_detail_yuan) {
+            // 商品信息
             $items = [];
+            // VIP成本价
+            $cost_money = 0;
+            $cost_data = 0;
+            // 保存订单
             $order = WmOrder::query()->create($order_data);
+            // 组合商品数组，计算成本价
             if (!empty($products)) {
                 foreach ($products as $product) {
                     $items[] = [
@@ -146,10 +153,24 @@ class SaveMeiTuanOrder implements ShouldQueue
                         'price' => $product['price'] ?? 0,
                         'spec' => $product['spec'] ?? '',
                     ];
+                    if ($this->vip) {
+                        $cost = VipProduct::select('cost')->where(['upc' => $product['upc'], 'shop_id' => $this->shop_id])->first();
+                        if (!is_null($cost->cost) && $cost->cost > 0) {
+                            $cost_money += $cost->cost;
+                            $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                        }
+                    } else {
+                        $upc = $product['upc'];
+                        Log::info("[保存外卖订单]-[成本价小于等于零]-[shop_id：{$this->shop_id}|upc：{$upc}]");
+                    }
                 }
             }
             if (!empty($items)) {
+                $order->vip_cost = $cost_money;
+                $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
+                $order->save();
                 WmOrderItem::query()->insert($items);
+                Log::info("[保存外卖订单]-[成本价计算：{$cost_money}]-[shop_id：{$this->shop_id},order_id：{$order->order_id}]");
             }
             $receives = [];
             if (!empty($poi_receive_detail_yuan['actOrderChargeByMt'])) {
