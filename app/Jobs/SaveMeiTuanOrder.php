@@ -158,10 +158,10 @@ class SaveMeiTuanOrder implements ShouldQueue
                         if (!is_null($cost->cost) && $cost->cost > 0) {
                             $cost_money += $cost->cost;
                             $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                        } else {
+                            $upc = $product['upc'];
+                            Log::info("[保存外卖订单]-[成本价小于等于零]-[shop_id：{$this->shop_id}|upc：{$upc}]");
                         }
-                    } else {
-                        $upc = $product['upc'];
-                        Log::info("[保存外卖订单]-[成本价小于等于零]-[shop_id：{$this->shop_id}|upc：{$upc}]");
                     }
                 }
             }
