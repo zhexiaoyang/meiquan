@@ -39,7 +39,7 @@ class UserController extends Controller
 
         $query = User::with(['roles', 'my_shops', 'shops'])
             ->select("id","name","phone","nickname","money","frozen_money","operate_money","created_at",
-                "is_operate","is_chain","chain_name","status");
+                "is_operate","is_internal","is_chain","chain_name","status");
 
         if ($name) {
             $query->where('name', 'like', "%{$name}%");

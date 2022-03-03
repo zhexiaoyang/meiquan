@@ -208,9 +208,34 @@ class UserController extends Controller
             if (Shop::where('operate_id', $user->id)->count() > 0) {
                 return $this->error("该运营经理有运营门店不能取消角色");
             }
+            $user->update(['is_operate' => 0]);
+        } else {
+            $user->update(['is_operate' => 1]);
         }
 
-        $user->update(['is_operate' => $user->is_operate == 1 ? 0 : 1]);
+
+        return $this->success();
+    }
+
+    /**
+     * 用户管理-设置内勤经理
+     */
+    public function internal_update(Request $request)
+    {
+        $user_id = $request->get("id", 0);
+
+        if (!$user = User::find($user_id)) {
+            return $this->error("用户不存在");
+        }
+
+        if ($user->is_internal == 1) {
+            if (Shop::where('internal_id', $user->id)->count() > 0) {
+                return $this->error("该内勤经理有VIP门店不能取消角色");
+            }
+            $user->update(['is_internal' => 0]);
+        } else {
+            $user->update(['is_internal' => 1]);
+        }
 
         return $this->success();
     }
@@ -218,6 +243,13 @@ class UserController extends Controller
     public function operate_index(Request $request)
     {
         $users = User::query()->select('id','name','nickname','phone')->where('is_operate',1)->get();
+
+        return $this->success($users);
+    }
+
+    public function internal_index(Request $request)
+    {
+        $users = User::query()->select('id','name','nickname','phone')->where('is_internal',1)->get();
 
         return $this->success($users);
     }

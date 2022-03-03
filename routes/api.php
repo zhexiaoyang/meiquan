@@ -407,6 +407,9 @@ Route::middleware(["force-json"])->group(function() {
             // 用户管理-管理员-运营经理
             Route::post("user/operate", "UserController@operate_update");
             Route::get("user/operate", "UserController@operate_index");
+            // 用户管理-管理员-内勤经理
+            Route::post("user/internal", "UserController@internal_update");
+            Route::get("user/internal", "UserController@internal_index");
 
             /**
              * 财务管理
