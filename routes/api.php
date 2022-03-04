@@ -267,6 +267,8 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * VIP订单
              */
+            Route::get('vip_order/export_order', 'VipOrderController@export_order');
+            Route::get('vip_order/export_product', 'VipOrderController@export_product');
             Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
             /**
              * VIP门店

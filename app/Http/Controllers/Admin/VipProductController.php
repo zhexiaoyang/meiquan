@@ -69,40 +69,12 @@ class VipProductController extends Controller
 
         $products = $data['data'];
         if (!empty($products)) {
-            VipProduct::where('shop_id', $shop->id)->delete();
-            $tmp = [];
+            // VipProduct::where('shop_id', $shop->id)->delete();
+            // $tmp = [];
             foreach ($products as $product) {
-                $tmp[] = [
-                    'platform_id' => $shop->mtwm,
-                    'shop_id' => $shop->id,
-                    'shop_name' => $shop->shop_name,
-                    'app_medicine_code' => $product['app_medicine_code'],
-                    'name' => $product['name'],
-                    'upc' => $product['upc'],
-                    'medicine_no' => $product['medicine_no'] ?? '',
-                    'spec' => $product['spec'],
-                    'price' => $product['price'],
-                    'sequence' => $product['sequence'],
-                    'category_name' => $product['category_name'],
-                    'stock' => $product['stock'],
-                    'ctime' => $product['ctime'],
-                    'utime' => $product['utime'],
-                    'platform' => 1,
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'updated_at' => date("Y-m-d H:i:s"),
-                ];
-            }
-            VipProduct::insert($tmp);
-        }
-
-        for ($i = 1; $i < $total_page; $i++) {
-            $params['offset'] = $i * 200;
-            $data = $mt->medicineList($params);
-            $products = $data['data'];
-            if (!empty($products)) {
-                $tmp = [];
-                foreach ($products as $product) {
-                    $tmp[] = [
+                if (!$_p = VipProduct::where(['shop_id' => $shop->id, 'upc' => $product['upc']])->first()) {
+                    // return $_p;
+                    $tmp = [
                         'platform_id' => $shop->mtwm,
                         'shop_id' => $shop->id,
                         'shop_name' => $shop->shop_name,
@@ -118,11 +90,58 @@ class VipProductController extends Controller
                         'ctime' => $product['ctime'],
                         'utime' => $product['utime'],
                         'platform' => 1,
-                        'created_at' => date("Y-m-d H:i:s"),
-                        'updated_at' => date("Y-m-d H:i:s"),
                     ];
+                    VipProduct::create($tmp);
+                } else {
+                    VipProduct::where('id', $_p->id)->update([
+                        'app_medicine_code' => $product['app_medicine_code'],
+                        'medicine_no' => $product['medicine_no'] ?? '',
+                        'price' => $product['price'],
+                        'stock' => $product['stock'],
+                        'utime' => $product['utime'],
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
                 }
-                VipProduct::insert($tmp);
+            }
+        }
+
+        for ($i = 1; $i < $total_page; $i++) {
+            $params['offset'] = $i * 200;
+            $data = $mt->medicineList($params);
+            $products = $data['data'];
+            if (!empty($products)) {
+                // $tmp = [];
+                foreach ($products as $product) {
+                    if (!$_p = VipProduct::where(['shop_id' => $shop->id, 'upc' => $product['upc']])->first()) {
+                        $tmp = [
+                            'platform_id' => $shop->mtwm,
+                            'shop_id' => $shop->id,
+                            'shop_name' => $shop->shop_name,
+                            'app_medicine_code' => $product['app_medicine_code'],
+                            'name' => $product['name'],
+                            'upc' => $product['upc'],
+                            'medicine_no' => $product['medicine_no'] ?? '',
+                            'spec' => $product['spec'],
+                            'price' => $product['price'],
+                            'sequence' => $product['sequence'],
+                            'category_name' => $product['category_name'],
+                            'stock' => $product['stock'],
+                            'ctime' => $product['ctime'],
+                            'utime' => $product['utime'],
+                            'platform' => 1,
+                        ];
+                        VipProduct::create($tmp);
+                    } else {
+                        VipProduct::where('id', $_p->id)->update([
+                            'app_medicine_code' => $product['app_medicine_code'],
+                            'medicine_no' => $product['medicine_no'] ?? '',
+                            'price' => $product['price'],
+                            'stock' => $product['stock'],
+                            'utime' => $product['utime'],
+                            'updated_at' => date("Y-m-d H:i:s"),
+                        ]);
+                    }
+                }
             }
         }
 

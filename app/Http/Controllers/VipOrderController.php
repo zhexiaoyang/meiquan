@@ -12,7 +12,7 @@ class VipOrderController extends Controller
         $page_size = $request->get('page_size', 10);
 
         $query = WmOrder::with(['items' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
+            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc','vip_cost');
         }, 'receives'])->where('is_vip', 1);
 
         $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));

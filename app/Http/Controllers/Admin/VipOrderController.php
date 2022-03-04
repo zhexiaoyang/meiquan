@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Admin\VipOrderExport;
+use App\Exports\Admin\VipOrderProductExport;
 use App\Http\Controllers\Controller;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
@@ -13,7 +15,7 @@ class VipOrderController extends Controller
         $page_size = $request->get('page_size', 10);
 
         $query = WmOrder::with(['items' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
+            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc','vip_cost');
         }, 'receives'])->where('is_vip', 1);
 
         // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
@@ -38,6 +40,12 @@ class VipOrderController extends Controller
         }
         if ($phone = $request->get('phone', '')) {
             $query->where('recipient_phone', $phone);
+        }
+        if ($stime = $request->get('stime', '')) {
+            $query->where('finish_at', '>=', $stime);
+        }
+        if ($etime = $request->get('etime', '')) {
+            $query->where('finish_at', '<', date("Y-m-d H:i:s", strtotime($etime) + 86400));
         }
 
         $data = $query->orderByDesc('id')->paginate($page_size);
@@ -74,5 +82,15 @@ class VipOrderController extends Controller
         $vip_order->load('items');
 
         return $this->success($vip_order);
+    }
+
+    public function export_order(Request $request, VipOrderExport $export)
+    {
+        return $export->withRequest($request);
+    }
+
+    public function export_product(Request $request, VipOrderProductExport $export)
+    {
+        return $export->withRequest($request);
     }
 }
