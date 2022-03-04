@@ -236,7 +236,7 @@ class MtLogisticsSync implements ShouldQueue
             if ($wm = WmOrder::where('order_id', $this->order->order_id)->first()) {
                 $kou = OrderDeduction::query()->where('order_id', $this->order->id)->sum('money');
                 $running_money = $kou + $this->order->money;
-                $wm->runnming_money = $running_money;
+                $wm->running_money = $running_money;
                 $wm->save();
                 $this->log('同步跑腿价格到外卖订单', "外卖订单号:{$this->order->order_id}");
             }
