@@ -2,14 +2,17 @@
 
 namespace App\Jobs;
 
+use App\Models\OrderDeduction;
 use App\Models\Order;
 use App\Models\Shop;
+use App\Models\WmOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 
 class MtLogisticsSync implements ShouldQueue
 {
@@ -18,7 +21,7 @@ class MtLogisticsSync implements ShouldQueue
     protected $order;
 
     /**
-     * Create a new job instance.
+     * 跑腿订单状态变更，异步任务
      *
      * @return void
      */
@@ -227,5 +230,21 @@ class MtLogisticsSync implements ShouldQueue
                 \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
             }
         }
+
+        // 同步外卖订单跑腿费用
+        if ($this->order->status == 70) {
+            if ($wm = WmOrder::where('order_id', $this->order->order_id)->first()) {
+                $kou = OrderDeduction::query()->where('order_id', $this->order->id)->sum('money');
+                $running_money = $kou + $this->order->money;
+                $wm->runnming_money = $running_money;
+                $wm->save();
+                $this->log('同步跑腿价格到外卖订单', "外卖订单号:{$this->order->order_id}");
+            }
+        }
+    }
+
+    public function log($name, $text, $data = [])
+    {
+        Log::info("[JOB跑腿订单状态变更|$name]-$text", $data);
     }
 }

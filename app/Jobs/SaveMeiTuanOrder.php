@@ -130,6 +130,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "ware_error" => $this->g_error,
             "ware_take_code" => substr($mt_order_id, -6),
             "is_vip" => $this->vip,
+            "prescription_fee" => 1.5,
         ];
 
         $order = DB::transaction(function () use ($products, $order_data, $poi_receive_detail_yuan) {
