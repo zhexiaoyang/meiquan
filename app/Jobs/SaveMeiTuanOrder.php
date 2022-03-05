@@ -153,6 +153,7 @@ class SaveMeiTuanOrder implements ShouldQueue
                         'quantity' => $product['quantity'] ?? 0,
                         'price' => $product['price'] ?? 0,
                         'spec' => $product['spec'] ?? '',
+                        'vip_cost' => 0
                     ];
                     if ($this->vip) {
                         $cost = VipProduct::select('cost')->where(['upc' => $product['upc'], 'shop_id' => $this->shop_id])->first();
