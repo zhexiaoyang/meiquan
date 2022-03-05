@@ -234,8 +234,8 @@ class MtLogisticsSync implements ShouldQueue
         // 同步外卖订单跑腿费用
         if ($this->order->status == 70) {
             if ($wm = WmOrder::where('order_id', $this->order->order_id)->first()) {
-                $kou = OrderDeduction::query()->where('order_id', $this->order->id)->sum('money');
-                $running_money = $kou + $this->order->money;
+                $reduce = OrderDeduction::where('order_id', $this->order->id)->sum('money');
+                $running_money = $reduce + $this->order->money;
                 $wm->running_fee = $running_money;
                 $wm->save();
                 $this->log('同步跑腿价格到外卖订单', "外卖订单号:{$this->order->order_id}");

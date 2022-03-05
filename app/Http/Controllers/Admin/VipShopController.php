@@ -56,14 +56,14 @@ class VipShopController extends Controller
             return $this->error('开通平台不能为空');
         }
         if (!$commission = $request->get('commission', 0)) {
-            return $this->error('抽佣不能为 0');
+            return $this->error('公司抽佣不能为 0');
         }
         $commission_manager = $request->get('commission_manager', 0);
         $commission_operate = $request->get('commission_operate', 0);
         $commission_internal = $request->get('commission_internal', 0);
-        if (!$commission = $request->get('commission', 0)) {
-            return $this->error('抽佣不能为 0');
-        }
+        // if (!$commission = $request->get('commission', 0)) {
+        //     return $this->error('抽佣不能为 0');
+        // }
         if (!$settlement = $request->get('settlement')) {
             return $this->error('结算周期不能为空');
         }

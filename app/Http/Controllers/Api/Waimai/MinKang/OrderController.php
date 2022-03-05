@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Waimai\MinKang;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\MeiTuanWaiMaiPicking;
+use App\Jobs\VipOrderSettlement;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
 
@@ -147,6 +148,10 @@ class OrderController extends Controller
                     $order->finish_at = date("Y-m-d H:i:s");
                     $order->save();
                     $this->log("finish|订单号：{$order_id}|操作完成");
+                    if ($order->is_vip) {
+                        // 如果是VIP订单，触发JOB
+                        dispatch(new VipOrderSettlement($order));
+                    }
                 } else {
                     $this->log("finish|订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                 }
