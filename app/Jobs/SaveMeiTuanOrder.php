@@ -156,8 +156,8 @@ class SaveMeiTuanOrder implements ShouldQueue
                     ];
                     if ($this->vip) {
                         $cost = VipProduct::select('cost')->where(['upc' => $product['upc'], 'shop_id' => $this->shop_id])->first();
-                        if (!is_null($cost->cost) && $cost->cost > 0) {
-                            $cost_money += $cost->cost;
+                        if (isset($cost->cost)) {
+                            $cost_money += $cost->cost ?? 0;
                             $_tmp['vip_cost'] = $cost->cost;
                             $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
                         } else {
