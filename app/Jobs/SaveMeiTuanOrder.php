@@ -138,7 +138,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             $items = [];
             // VIP成本价
             $cost_money = 0;
-            $cost_data = 0;
+            $cost_data = [];
             // 保存订单
             $order = WmOrder::query()->create($order_data);
             // 组合商品数组，计算成本价
