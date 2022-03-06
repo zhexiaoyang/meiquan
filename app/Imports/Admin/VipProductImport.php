@@ -24,7 +24,7 @@ class VipProductImport implements ToArray
                     //     'id' => $item[0],
                     //     'cost' => $item[7],
                     // ];
-                    VipProduct::where('id', $item[0])->update(['cost' => $item[7]]);
+                    VipProduct::where('id', $item[0])->update(['cost' => $item[7], 'updated_at' => date("Y-m-d H:i:s")]);
                 }
             }
         }
