@@ -87,6 +87,14 @@ class SaveMeiTuanOrder implements ShouldQueue
             }
         }
 
+        $is_prescription = 0;
+        $prescription_fee = 0;
+        if (in_array(8, $order_tag_list)) {
+            $is_prescription = 1;
+            $prescription_fee = 1.5;
+        }
+
+
         $order_data = [
             "shop_id" => $this->shop_id,
             "order_id" => $mt_order_id,
@@ -121,7 +129,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "day_seq" => $data['day_seq'] ?? 0,
             "invoice_title" => $data['invoice_title'] ?? '',
             "taxpayer_id" => $data['taxpayer_id'] ?? '',
-            "is_prescription" => in_array(8, $order_tag_list) ? 1 : 0,
+            "is_prescription" =>  $is_prescription,
             "is_favorites" => intval($data['is_favorites'] ?? 0),
             "is_poi_first_order" => intval($data['is_poi_first_order'] ?? 0),
             "logistics_code" => $logistics_code,
@@ -130,7 +138,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "ware_error" => $this->g_error,
             "ware_take_code" => substr($mt_order_id, -6),
             "is_vip" => $this->vip,
-            "prescription_fee" => 1.5,
+            "prescription_fee" => $prescription_fee,
         ];
 
         $order = DB::transaction(function () use ($products, $order_data, $poi_receive_detail_yuan) {
