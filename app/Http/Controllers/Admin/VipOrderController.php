@@ -42,10 +42,10 @@ class VipOrderController extends Controller
             $query->where('recipient_phone', $phone);
         }
         if ($stime = $request->get('stime', '')) {
-            $query->where('finish_at', '>=', $stime);
+            $query->where('created_at', '>=', $stime);
         }
         if ($etime = $request->get('etime', '')) {
-            $query->where('finish_at', '<', date("Y-m-d H:i:s", strtotime($etime) + 86400));
+            $query->where('created_at', '<', date("Y-m-d H:i:s", strtotime($etime) + 86400));
         }
 
         $data = $query->orderByDesc('id')->paginate($page_size);
