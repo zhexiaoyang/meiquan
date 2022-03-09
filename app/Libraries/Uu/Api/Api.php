@@ -80,4 +80,13 @@ class Api extends Request
 
         return $this->post('cancelorder.ashx', $data);
     }
+
+    public function getOrderInfo($order_id)
+    {
+        $data = [
+            'origin_id' => $order_id,
+        ];
+
+        return $this->post('getorderdetail.ashx', $data);
+    }
 }
