@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 
 class Handler extends ExceptionHandler
 {
@@ -34,6 +36,20 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
+        $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+        $fe = FlattenException::create($exception);
+        $StatusCode = $fe->getStatusCode();
+        if ( $StatusCode != 404 && $StatusCode !=401 && $StatusCode != 405){
+            $logs = [
+                "\n\n错误编码" => $fe->getStatusCode(),
+                "\n\n错误内容" => $fe->getMessage(),
+                "\n\n文件名" => $fe->getFile(),
+                "\n\n报错行" => $fe->getLine(),
+                "\n\n时间" => date("Y-m-d H:i:s"),
+            ];
+            $dingding->sendMarkdownMsgArray("中台异常", $logs);
+        }
+
         parent::report($exception);
     }
 
