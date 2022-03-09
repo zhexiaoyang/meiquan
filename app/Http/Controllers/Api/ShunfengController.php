@@ -32,6 +32,10 @@ class ShunfengController
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
 
+        if (in_array($status, [10, 15])) {
+            Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
+        }
+
         if ($order = Order::where('order_id', $order_id)->first()) {
             // 日志前缀
             $log_prefix = "[顺丰跑腿回调-订单状态变更|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
@@ -266,7 +270,7 @@ class ShunfengController
 
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $rider_lng, $rider_lat) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 7,
@@ -284,6 +288,8 @@ class ShunfengController
                             'peisong_id' => $order->sf_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $rider_lng,
+                            'courier_lat' => $rider_lat,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -338,6 +344,8 @@ class ShunfengController
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $rider_lng;
+                $order->courier_lat = $rider_lat;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
@@ -370,6 +378,7 @@ class ShunfengController
         $rider_lat = $request->get("rider_lat", "");
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
+        Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
 
         $receipt_type = $request->get("receipt_type", 1);
 
@@ -404,6 +413,8 @@ class ShunfengController
             $order->over_at = date("Y-m-d H:i:s");
             $order->courier_name = $name;
             $order->courier_phone = $phone;
+            $order->courier_lng = $order->receiver_lng;
+            $order->courier_lat = $order->receiver_lat;
             $order->save();
             // 记录订单日志
             OrderLog::create([
