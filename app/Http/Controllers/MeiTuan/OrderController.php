@@ -5,6 +5,7 @@ namespace App\Http\Controllers\MeiTuan;
 use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -50,7 +51,11 @@ class OrderController
                     $latitude = $position['data']['lat'] / 1000000;
                     Log::info("美团跑腿配送员坐标|order_id:{$delivery_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
                 } else {
-                    Log::info("美团跑腿配送员坐标-没有|order_id:{$delivery_id}，status:{$status}");
+                    $shop = Shop::select('shop_lng', 'shop_lat')->find($order->shop_id);
+                    $locations = rider_location($shop->shop_lng, $shop->lat);
+                    $longitude = $locations['lng'];
+                    $latitude = $locations['lat'];
+                    Log::info("美团跑腿配送员坐标-没有|order_id:{$delivery_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
                 }
             }
 
