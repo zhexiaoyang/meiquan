@@ -6,6 +6,7 @@ namespace App\Http\Controllers\FengNiao;
 use App\Jobs\MtLogisticsSync;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -284,6 +285,8 @@ class OrderController
                 // 更改信息，扣款
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
+                        $shop = Shop::select('shop_lng', 'shop_lat')->find($order->shop_id);
+                        $locations = rider_location($shop->shop_lng, $shop->lat);
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 2,
@@ -300,6 +303,8 @@ class OrderController
                             'peisong_id' => $order->fn_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $locations['lng'] ?? 0,
+                            'courier_lat' => $locations['lat'] ?? 0,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -353,12 +358,15 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 2) {
+                $shop = Shop::select('shop_lng', 'shop_lat')->find($order->shop_id);
                 // 配送中
                 $order->status = 60;
                 $order->fn_status = 60;
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $shop->shop_lng;
+                $order->courier_lat = $shop->shop_lat;
                 $order->exception_descr = $description;
                 $order->save();
                 // 记录订单日志
@@ -379,6 +387,8 @@ class OrderController
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $order->receiver_lng;
+                $order->courier_lat = $order->receiver_lat;
                 $order->exception_descr = $description;
                 $order->save();
                 // 记录订单日志
