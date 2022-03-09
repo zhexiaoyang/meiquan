@@ -39,7 +39,7 @@ class Handler extends ExceptionHandler
         $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
         $fe = FlattenException::create($exception);
         $StatusCode = $fe->getStatusCode();
-        if ( $StatusCode != 404 && $StatusCode !=401 && $StatusCode != 405){
+        if ( $StatusCode != 401 && $StatusCode !=403 && $StatusCode != 404 && $StatusCode != 405){
             $logs = [
                 "\n\n错误编码" => $fe->getStatusCode(),
                 "\n\n错误内容" => $fe->getMessage(),
