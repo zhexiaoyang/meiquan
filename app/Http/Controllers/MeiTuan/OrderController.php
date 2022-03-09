@@ -44,9 +44,13 @@ class OrderController
             if (in_array($status, [20, 30])) {
                 $meituan_app = app("meituan");
                 $position = $meituan_app->riderLocation($order->order_id, $order->peisong_id);
-                $longitude = $position['data']['lng'] / 1000000;
-                $latitude = $position['data']['lat'] / 1000000;
-                Log::info("美团跑腿配送员坐标|order_id:{$delivery_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+                if (isset($position['data']['lng'])) {
+                    $longitude = $position['data']['lng'] / 1000000;
+                    $latitude = $position['data']['lat'] / 1000000;
+                    Log::info("美团跑腿配送员坐标|order_id:{$delivery_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+                } else {
+                    Log::info("美团跑腿配送员坐标-没有|order_id:{$delivery_id}，status:{$status}");
+                }
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【美团】发起取消
