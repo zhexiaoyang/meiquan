@@ -406,8 +406,8 @@ class OrderController
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
-                $order->courier_lng = $locations['lng'] ?? '';
-                $order->courier_lat = $locations['lat'] ?? '';
+                $order->courier_lng = $order->receiver_lng;
+                $order->courier_lat = $order->receiver_lat;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
