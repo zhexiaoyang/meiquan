@@ -392,10 +392,6 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("/user/balance", "UserController@balance");
             // 用户管理-用户列表-余额消费明细
             Route::get("/user/balance/export", "UserController@balanceExport");
-            // 用户管理-管理员创建用户
-            Route::post("/user", "UserController@store");
-            // 用户管理-管理员修改用户
-            Route::put("/user", "UserController@update");
             // 用户管理-管理员-禁用用户
             Route::post("user/disable", "UserController@disable");
             // 用户管理-管理员-设置分佣
@@ -412,6 +408,10 @@ Route::middleware(["force-json"])->group(function() {
             // 用户管理-管理员-内勤经理
             Route::post("user/internal", "UserController@internal_update");
             Route::get("user/internal", "UserController@internal_index");
+            // 用户管理-管理员创建用户
+            Route::post("/user", "UserController@store");
+            // 用户管理-管理员修改用户
+            Route::put("/user", "UserController@update");
 
             /**
              * 财务管理
