@@ -44,8 +44,18 @@ function fengNiaoToken() {
     });
 }
 
+function rider_location ($lng,$lat) {
+
+    $lng *= 1000000;
+    $lat *= 1000000;
+    $data['lng'] = ($lng + 10000) / 1000000;
+    $data['lat'] = ($lat + 10000) / 1000000;
+
+    return $data;
+}
+
 /**
- *
+ * 百度转高德
  */
 function gd2bd($lng,$lat)
 {
@@ -62,6 +72,24 @@ function gd2bd($lng,$lat)
         $y = $lat;
         $z = sqrt($x * $x +$y * $y) - 0.00002 * sin($y * $x_pi);
         $theta = atan2($y, $x) - 0.000003 * cos($x * $x_pi);
+        $data['lng'] = $z * cos($theta) + 0.0065;
+        $data['lat'] = $z * sin($theta) + 0.006;
+    }
+    return $data;
+}
+
+function bd2gd($lng,$lat)
+{
+    $url = "https://api.map.baidu.com/geoconv/v1/?coords={$lng},{$lat}&from=5&to=3&ak=fL3camAQGEm7or6773IUG0K2dmPdTEYb";
+    $res = file_get_contents($url);
+    $res = json_decode($res, true);
+    if (isset($res['result'][0]['x'])) {
+        $data['lng'] = $res['result'][0]['x'];
+        $data['lat'] = $res['result'][0]['y'];
+        // \Log::info("百度地图坐标转换");
+    } else {
+        $z = sqrt($lng * $lng + $lat * $lat) + 0.00002 * sin($lat * 52.35987755982988);
+        $theta = atan2($lat, $lng) + 0.000003 * cos($lng * 52.35987755982988);
         $data['lng'] = $z * cos($theta) + 0.0065;
         $data['lat'] = $z * sin($theta) + 0.006;
     }

@@ -123,4 +123,13 @@ class Api extends Request
     {
         return $this->post('/api/balance/query', ['category' => 1]);
     }
+
+    /**
+     * 订单信息
+     * @data 2022/3/9 9:24 上午
+     */
+    public function getOrderInfo($order_id)
+    {
+        return $this->post('/api/order/status/query', ['order_id' => $order_id]);
+    }
 }

@@ -35,10 +35,12 @@ class OrderController
         $name = $data['courier']['name'] ?? '';
         // 配送员手机号
         $phone = $data['courier']['mobile'] ?? '';
-        // 配送员经度
+        // 闪送员位置经度（百度坐标系）
         $longitude = $data['courier']['longitude'] ?? '';
-        // 配送员纬度
+        // 闪送员位置纬度（百度坐标系）
         $latitude = $data['courier']['latitude'] ?? '';
+        $locations = bd2gd($longitude, $latitude);
+        Log::log("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
         // 取消类型
         $abort_type = $data['abortType'] ?? 0;
 
@@ -322,6 +324,8 @@ class OrderController
                             'peisong_id' => $order->ss_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $locations['lng'] ?? 0,
+                            'courier_lat' => $locations['lat'] ?? 0,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -376,6 +380,8 @@ class OrderController
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $locations['lng'] ?? '';
+                $order->courier_lat = $locations['lat'] ?? '';
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
@@ -393,6 +399,8 @@ class OrderController
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $locations['lng'] ?? '';
+                $order->courier_lat = $locations['lat'] ?? '';
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([

@@ -8,6 +8,15 @@ use App\Models\Shop;
 
 class Api extends Request
 {
+    public function riderLocation($order_id, $mt_peisong_id)
+    {
+        $params = [
+            'delivery_id' => $order_id,
+            'mt_peisong_id' => $mt_peisong_id
+        ];
+
+        return $this->request('order/rider/location', $params);
+    }
 
     /**
      * 订单创建(门店方式)
