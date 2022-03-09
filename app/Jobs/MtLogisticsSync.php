@@ -37,10 +37,11 @@ class MtLogisticsSync implements ShouldQueue
      */
     public function handle()
     {
+        // 10001-顺丰, 10002-达达, 10003-闪送, 10004-蜂鸟, 10005 UU跑腿,10017-其他,10032-美团跑腿。
+        $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
         if (in_array($this->order->type, [1,2,3,4,5])) {
-
+            // 同步民康-订单状态
             $type = $this->order->type;
-
             if ($type === 1) {
                 $meituan = app("yaojite");
             } elseif ($type === 2) {
@@ -54,56 +55,108 @@ class MtLogisticsSync implements ShouldQueue
             }
 
             $status = 5;
-
-            if ($this->order->status == 40) {
-                $status = 10;
-            }elseif ($this->order->status == 50) {
+            // logistics_provider_code
+            if ($this->order->status == 40 || $this->order->status == 50) {
                 $status = 10;
                 $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
-                \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
+                \Log::info('美团外卖民康同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
                 // 同步其它状态
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 0
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 1
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 5
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "third_carrier_order_id" => $this->order->peisong_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 0
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "third_carrier_order_id" => $this->order->peisong_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 1
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "third_carrier_order_id" => $this->order->peisong_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 5
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
 
+                $params = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => $status,
+                    "third_carrier_order_id" => $this->order->peisong_id,
+                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'latitude' => $this->order->courier_lat,
+                    'longitude' => $this->order->courier_lng,
+                ];
+                $result = $meituan->logisticsSync($params);
+                \Log::info('美团外卖民康同步配送信息结束|骑手接单', compact("params", "result"));
             }elseif ($this->order->status == 60) {
+                $status = 15;
+                $params = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => $status,
+                    "third_carrier_order_id" => $this->order->peisong_id,
+                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'latitude' => $this->order->courier_lat,
+                    'longitude' => $this->order->courier_lng,
+                ];
+                $result = $meituan->logisticsSync($params);
+                \Log::info('美团外卖民康同步配送信息结束|骑手到店', compact("params", "result"));
+                sleep(2);
                 $status = 20;
+                $params = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => $status,
+                    "third_carrier_order_id" => $this->order->peisong_id,
+                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'latitude' => $this->order->courier_lat,
+                    'longitude' => $this->order->courier_lng,
+                ];
+                $result = $meituan->logisticsSync($params);
+                \Log::info('美团外卖民康同步配送信息结束|骑手取货', compact("params", "result"));
             }elseif ($this->order->status == 70) {
                 $status = 40;
+                $params = [
+                    "order_id" => $this->order->order_id,
+                    "courier_name" => $this->order->courier_name,
+                    "courier_phone" => $this->order->courier_phone,
+                    "logistics_status" => $status,
+                    "third_carrier_order_id" => $this->order->peisong_id,
+                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'latitude' => $this->order->courier_lat,
+                    'longitude' => $this->order->courier_lng,
+                ];
+                $result = $meituan->logisticsSync($params);
+                \Log::info('美团外卖民康同步配送信息结束|骑手送达', compact("params", "result"));
             }
 
-            $params = [
-                "order_id" => $this->order->order_id,
-                "courier_name" => $this->order->courier_name,
-                "courier_phone" => $this->order->courier_phone,
-                "logistics_status" => $status
-            ];
-
-            \Log::info('美团外卖同步配送信息开始', []);
-            $result = $meituan->logisticsSync($params);
-            \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
+            // $params = [
+            //     "order_id" => $this->order->order_id,
+            //     "courier_name" => $this->order->courier_name,
+            //     "courier_phone" => $this->order->courier_phone,
+            //     "logistics_status" => $status
+            // ];
+            //
+            // \Log::info('美团外卖同步配送信息开始', []);
+            // $result = $meituan->logisticsSync($params);
+            // \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
         } elseif ($this->order->type == 11) {
+            // 同步药柜订单状态
             $yaogui = app("yaogui");
 
             $status = 5;
@@ -128,6 +181,7 @@ class MtLogisticsSync implements ShouldQueue
             $result = $yaogui->logisticsOrder($params);
             \Log::info('药柜同步配送信息结束', compact("params", "result"));
         } elseif ($this->order->type == 21) {
+            // 同步饿了么订单状态
             \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-开始");
             $ele = app("ele");
             $params = [
@@ -144,7 +198,7 @@ class MtLogisticsSync implements ShouldQueue
             }
             \Log::info("[同步配送订单状态-饿了么]-[订单号:{$this->order->order_id}]-结果", [$res]);
         } elseif ($this->order->type == 31) {
-
+            // 同步美团服务商-订单状态
             $meituan = app("meiquan");
 
             $status = 5;
@@ -156,30 +210,30 @@ class MtLogisticsSync implements ShouldQueue
                 $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
                 \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
                 // 同步其它状态
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 0
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 1
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
-                $params_tmp = [
-                    "order_id" => $this->order->order_id,
-                    "courier_name" => $this->order->courier_name,
-                    "courier_phone" => $this->order->courier_phone,
-                    "logistics_status" => 5
-                ];
-                $result = $meituan->logisticsSync($params_tmp);
-                \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 0
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 1
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
+                // $params_tmp = [
+                //     "order_id" => $this->order->order_id,
+                //     "courier_name" => $this->order->courier_name,
+                //     "courier_phone" => $this->order->courier_phone,
+                //     "logistics_status" => 5
+                // ];
+                // $result = $meituan->logisticsSync($params_tmp);
+                // \Log::info('美团外卖同步配送信息结束-其它状态', compact("params_tmp", "result"));
 
             }elseif ($this->order->status == 60) {
                 $status = 20;
@@ -223,11 +277,14 @@ class MtLogisticsSync implements ShouldQueue
                     "logistics_status" => $status,
                     "access_token" => $access_token,
                     "app_poi_code" => $shop->mt_shop_id,
+                    "third_carrier_order_id" => $this->order->peisong_id,
+                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'latitude' => $this->order->courier_lat,
+                    'longitude' => $this->order->courier_lng,
                 ];
 
-                \Log::info('美团外卖同步配送信息开始', []);
                 $result = $meituan->logisticsSync($params);
-                \Log::info('美团外卖同步配送信息结束', compact("params", "result"));
+                \Log::info('美团外卖服务商同步配送信息结束', compact("params", "result"));
             }
         }
 
