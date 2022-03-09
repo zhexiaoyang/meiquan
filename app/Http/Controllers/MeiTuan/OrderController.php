@@ -36,6 +36,18 @@ class OrderController
                 Log::info($log_prefix . '订单已是完成');
                 return json_encode(['code' => 0]);
             }
+            // 经度
+            $longitude = '';
+            // 纬度
+            $latitude = '';
+
+            if (in_array($status, [20, 30])) {
+                $meituan_app = app("meituan");
+                $position = $meituan_app->riderLocation($order->order_id, $order->peisong_id);
+                $longitude = $position['data']['lng'] / 1000000;
+                $latitude = $position['data']['lat'] / 1000000;
+                Log::info("美团跑腿配送员坐标|order_id:{$delivery_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+            }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【美团】发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 1)) {
@@ -265,7 +277,7 @@ class OrderController
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $data) {
+                    DB::transaction(function () use ($order, $data, $longitude, $latitude) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 1,
@@ -283,6 +295,8 @@ class OrderController
                             'receive_at' => date("Y-m-d H:i:s"),
                             'courier_name' => $data['courier_name'] ?? '',
                             'courier_phone' => $data['courier_phone'] ?? '',
+                            'courier_lng' => $longitude,
+                            'courier_lat' => $latitude,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -336,6 +350,8 @@ class OrderController
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $data['courier_name'] ?? '';
                 $order->courier_phone = $data['courier_phone'] ?? '';
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
                 $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
                 $order->cancel_reason = $data['cancel_reason'] ?? '';
                 $order->save();
@@ -357,6 +373,8 @@ class OrderController
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $data['courier_name'] ?? '';
                 $order->courier_phone = $data['courier_phone'] ?? '';
+                $order->courier_lng = $order->receiver_lng;
+                $order->courier_lat = $order->receiver_lat;
                 $order->cancel_reason_id = $data['cancel_reason_id'] ?? 0;
                 $order->cancel_reason = $data['cancel_reason'] ?? '';
                 $order->save();
