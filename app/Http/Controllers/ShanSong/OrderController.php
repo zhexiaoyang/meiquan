@@ -42,7 +42,7 @@ class OrderController
         // $locations = bd2gd($longitude, $latitude);
         $locations['lat'] = $latitude;
         $locations['log'] = $longitude;
-        Log::log("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
+        // Log::log("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
         // 取消类型
         $abort_type = $data['abortType'] ?? 0;
 
