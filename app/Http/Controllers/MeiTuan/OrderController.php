@@ -44,6 +44,7 @@ class OrderController
             if (in_array($status, [20, 30])) {
                 $meituan_app = app("meituan");
                 $position = $meituan_app->riderLocation($order->order_id, $order->peisong_id);
+                Log::info("美团跑腿配送员坐标-获取|order_id:{$delivery_id}，status:{$status}", [$position]);
                 if (isset($position['data']['lng'])) {
                     $longitude = $position['data']['lng'] / 1000000;
                     $latitude = $position['data']['lat'] / 1000000;
