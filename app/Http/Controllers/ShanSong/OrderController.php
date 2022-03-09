@@ -39,7 +39,7 @@ class OrderController
         $longitude = $data['courier']['longitude'] ?? '';
         // 闪送员位置纬度（百度坐标系）
         $latitude = $data['courier']['latitude'] ?? '';
-        if (in_array($status, [30,40,50])) {
+        if (in_array($status, [30,40])) {
             if ($longitude && $latitude) {
                 $locations = bd2gd($longitude, $latitude);
             } else {

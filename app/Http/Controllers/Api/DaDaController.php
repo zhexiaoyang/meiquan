@@ -45,7 +45,7 @@ class DaDaController extends Controller
         if ($order = Order::where('order_id', $order_id)->first()) {
             // 获取达达配送员坐标
             // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
-            if (in_array($status, [2,3,4])) {
+            if (in_array($status, [2,3])) {
                 $dada_app = app("dada");
                 $dada_info = $dada_app->getOrderInfo($order_id);
                 $longitude = $dada_info['result']['transporterLng'] ?? '';
