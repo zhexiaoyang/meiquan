@@ -36,6 +36,10 @@ class MeiQuanDaController extends Controller
         $longitude = $courier_tag[0] ?? '';
         // 配送员纬度
         $latitude = $courier_tag[1] ?? '';
+        if (in_array($status, [4,5])) {
+            // 美全达跑腿状态【4：取单中(已接单，已抢单)，5：送单中(已取单)，6：送达订单 ，7：撤销订单】
+            Log::info("美全达配送员坐标|order_id:{$trade_no}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+        }
 
         // 定义日志格式
         $log_prefix = "[美全达跑腿回调-订单|订单号:{$trade_no}]-";
@@ -270,7 +274,7 @@ class MeiQuanDaController extends Controller
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 4,
@@ -287,6 +291,8 @@ class MeiQuanDaController extends Controller
                             'peisong_id' => $order->mqd_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $longitude,
+                            'courier_lat' => $latitude,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -342,6 +348,8 @@ class MeiQuanDaController extends Controller
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
@@ -359,6 +367,8 @@ class MeiQuanDaController extends Controller
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $order->receiver_lng;
+                $order->courier_lat = $order->receiver_lat;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
