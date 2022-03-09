@@ -32,6 +32,9 @@ class DaDaController extends Controller
         $name = $data['dm_name'] ?? '';
         // 配送员手机号
         $phone = $data['dm_mobile'] ?? '';
+        $longitude = '';
+        $latitude = '';
+
 
         // 定义日志格式
         $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}]-";
@@ -40,6 +43,16 @@ class DaDaController extends Controller
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 获取达达配送员坐标
+            // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
+            if (in_array($status, [2,3,4])) {
+                $dada_app = app("dada");
+                $dada_info = $dada_app->getOrderInfo($order_id);
+                $longitude = $dada_info['result']['transporterLng'] ?? '';
+                $latitude = $dada_info['result']['transporterLat'] ?? '';
+                Log::info("达达配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+            }
+            // 日志格式
             $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
             if ($order->status == 99) {
@@ -267,7 +280,7 @@ class DaDaController extends Controller
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 5,
@@ -285,6 +298,8 @@ class DaDaController extends Controller
                             'peisong_id' => $order->dd_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $longitude,
+                            'courier_lat' => $latitude,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -341,6 +356,8 @@ class DaDaController extends Controller
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
@@ -358,6 +375,8 @@ class DaDaController extends Controller
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $order->receiver_lng;
+                $order->courier_lat = $order->receiver_lat;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
