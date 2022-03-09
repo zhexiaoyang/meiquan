@@ -29,7 +29,7 @@ class OrderController
         // 商家订单号
         $ss_order_id = $data['issOrderNo'] ?? '';
         $order_id = $data['orderNo'] ?? '';
-        // 状态： 1：订单支付，派单中，2：配送员接单，待取件，3：配送员就位，已到店，4：配送员取货，配送中，5：配送员送件完成，已完成
+        // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
         $status = $data['status'] ?? '';
         // 配送员姓名
         $name = $data['courier']['name'] ?? '';
@@ -39,10 +39,15 @@ class OrderController
         $longitude = $data['courier']['longitude'] ?? '';
         // 闪送员位置纬度（百度坐标系）
         $latitude = $data['courier']['latitude'] ?? '';
-        // $locations = bd2gd($longitude, $latitude);
-        $locations['lat'] = $latitude;
-        $locations['log'] = $longitude;
-        Log::info("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
+        if (in_array($status, [30,40,50])) {
+            if ($longitude && $latitude) {
+                $locations = bd2gd($longitude, $latitude);
+            } else {
+                $locations['log'] = $longitude;
+                $locations['lat'] = $latitude;
+            }
+            Log::info("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
+        }
         // 取消类型
         $abort_type = $data['abortType'] ?? 0;
 
