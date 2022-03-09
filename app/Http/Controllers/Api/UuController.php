@@ -42,6 +42,8 @@ class UuController extends Controller
         $name = $data['driver_name'] ?? '';
         // 配送员手机号
         $phone = $data['driver_mobile'] ?? '';
+        $longitude = '';
+        $latitude = '';
 
         // 定义日志格式
         $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}]-";
@@ -50,6 +52,20 @@ class UuController extends Controller
 
         // 查找订单
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            // UU配送员坐标
+            // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
+            if (in_array($status, [3,5])) {
+                $uu_app = app("uu");
+                $uu_app_res = $uu_app->getOrderInfo($order_id);
+                // 配送员坐标
+                $driver_lastloc = explode(",", $uu_app_res['driver_lastloc'] ?? "");
+                // 配送员经度
+                $longitude = $driver_lastloc[0] ?? '';
+                // 配送员纬度
+                $latitude = $driver_lastloc[1] ?? '';
+                Log::info("UU配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
+            }
+            // 日志格式
             $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
             if ($order->status == 99) {
@@ -274,7 +290,7 @@ class UuController extends Controller
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 6,
@@ -292,6 +308,8 @@ class UuController extends Controller
                             'peisong_id' => $order->uu_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
+                            'courier_lng' => $longitude,
+                            'courier_lat' => $latitude,
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -346,6 +364,8 @@ class UuController extends Controller
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
@@ -365,6 +385,8 @@ class UuController extends Controller
                     $order->over_at = date("Y-m-d H:i:s");
                     $order->courier_name = $name;
                     $order->courier_phone = $phone;
+                    $order->courier_lng = $order->receiver_lng;
+                    $order->courier_lat = $order->receiver_lat;
                     $order->save();
                     // 记录订单日志
                     OrderLog::create([
