@@ -154,9 +154,9 @@ class PrescriptionController extends Controller
      */
     public function shop(Request $request)
     {
-
         $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
+                'prescription_cost', 'prescription_channel',
                 'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
             ->where('shops.user_id', '>', 0)
             ->where('shops.chufang_status', '>', 0)
@@ -176,7 +176,10 @@ class PrescriptionController extends Controller
         if ($name = $request->get('name')) {
             $query->where('shops.shop_name', 'like', "%{$name}%");
         }
-
+        $channel = $request->get('channel', '');
+        if ($channel) {
+            $query->where('prescription_channel', $channel);
+        }
         if ($phone = $request->get('phone')) {
             $query->where('users.phone', 'like', "%{$phone}%");
         }
@@ -323,6 +326,18 @@ class PrescriptionController extends Controller
         $shop->chufang_ele = '';
         $shop->chufang_jddj = '';
         $shop->chufang_status = 0;
+        $shop->save();
+
+        return $this->success();
+    }
+
+    public function shop_cost(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+        $shop->prescription_cost = floatval($request->get('cost', 0));
+        $shop->prescription_channel = intval($request->get('channel', 0));
         $shop->save();
 
         return $this->success();

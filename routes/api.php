@@ -321,6 +321,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("prescription/shop", "PrescriptionController@shop_update")->name("admin.prescription.shop.update");
             // 处方后台-门店管理-关闭处方
             Route::post("prescription/shop/delete", "PrescriptionController@shop_delete")->name("admin.prescription.shop.delete");
+            // 处方后台-门店管理-设置处方费用
+            Route::post("prescription/shop/cost", "PrescriptionController@shop_cost")->name("admin.prescription.shop.cost");
             // 处方后台-门店管理-门店统计
             Route::get("prescription/shop/statistics", "PrescriptionController@shop_statistics")->name("admin.prescription.shop.statistics");
             // *处方单列表-导出
