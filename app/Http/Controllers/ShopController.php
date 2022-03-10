@@ -889,6 +889,7 @@ class ShopController extends Controller
         $shop->ele = '';
         $shop->auto_mtwm = '';
         $shop->auto_ele = '';
+        $shop->yyzz = '';
 
         if ($shop->save()) {
             DB::table("user_has_shops")->where("shop_id", $shop->id)->delete();
