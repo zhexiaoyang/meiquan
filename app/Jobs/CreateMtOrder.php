@@ -757,7 +757,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                'money_mqd' => $money,
+                // 'money_mqd' => $money,
                 'mqd_order_id' => $result_mqd['data']['trade_no'],
                 'mqd_status' => 20,
                 'status' => 20,
@@ -804,13 +804,13 @@ class CreateMtOrder implements ShouldQueue
         // $shop = Shop::find($this->order->shop_id);
 
         $meituan = app("meituan");
-        $distance = distanceMoney($this->order->distance);
-        $base = baseMoney($shop->city_level ?: 9);
-        $time_money = timeMoney();
-        $date_money = dateMoney();
-        $weight_money = weightMoney($this->order->goods_weight);
+        // $distance = distanceMoney($this->order->distance);
+        // $base = baseMoney($shop->city_level ?: 9);
+        // $time_money = timeMoney();
+        // $date_money = dateMoney();
+        // $weight_money = weightMoney($this->order->goods_weight);
 
-        $money = $base + $time_money + $date_money + $distance + $weight_money;
+        // $money = $base + $time_money + $date_money + $distance + $weight_money;
         // 发送美团订单
         $result_mt = $meituan->createByShop($shop, $this->order);
         if ($result_mt['code'] === 0) {
@@ -821,7 +821,7 @@ class CreateMtOrder implements ShouldQueue
             }
             // 写入订单信息
             $update_info = [
-                'money_mt' => $money,
+                // 'money_mt' => $money,
                 'mt_order_id' => $result_mt['data']['mt_peisong_id'],
                 'mt_status' => 20,
                 'status' => 20,
