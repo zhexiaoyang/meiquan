@@ -340,7 +340,7 @@ class CreateMtOrder implements ShouldQueue
                     $this->log("用户金额不足发「美全达」订单，停止派单");
                     return;
                 }
-                // $order->money_mqd = $money_mqd;
+                $order->money_mqd = $money_mqd;
                 $this->services['meiquanda'] = $money_mqd;
             } else {
                 $mqd_error_msg = $check_mqd['msg'] ?? "美全达校验订单失败";
