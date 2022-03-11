@@ -42,11 +42,12 @@ class OrderController
         if (in_array($status, [30,40])) {
             if ($longitude && $latitude) {
                 $locations = bd2gd($longitude, $latitude);
+                Log::info("闪送配送员坐标-转换后|order_id:{$order_id}，status:{$status}", $locations);
             } else {
-                $locations['log'] = $longitude;
+                $locations['lng'] = $longitude;
                 $locations['lat'] = $latitude;
+                Log::info("闪送配送员坐标-未转换|order_id:{$order_id}，status:{$status}", $locations);
             }
-            Log::info("闪送配送员坐标|order_id:{$order_id}，status:{$status}", $locations);
         }
         // 取消类型
         $abort_type = $data['abortType'] ?? 0;
@@ -331,8 +332,8 @@ class OrderController
                             'peisong_id' => $order->ss_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
-                            'courier_lng' => $locations['lng'] ?? 0,
-                            'courier_lat' => $locations['lat'] ?? 0,
+                            'courier_lng' => $locations['lng'] ?? '',
+                            'courier_lat' => $locations['lat'] ?? '',
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
