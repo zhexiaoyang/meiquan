@@ -39,13 +39,12 @@ class OrderController
         $longitude = $data['courier']['longitude'] ?? '';
         // 闪送员位置纬度（百度坐标系）
         $latitude = $data['courier']['latitude'] ?? '';
+        $locations = ['lng' => $longitude, 'lat' => $latitude];
         if (in_array($status, [30,40])) {
             if ($longitude && $latitude) {
                 $locations = bd2gd($longitude, $latitude);
                 Log::info("闪送配送员坐标-转换后|order_id:{$order_id}，status:{$status}", $locations);
             } else {
-                $locations['lng'] = $longitude;
-                $locations['lat'] = $latitude;
                 Log::info("闪送配送员坐标-未转换|order_id:{$order_id}，status:{$status}", $locations);
             }
         }
@@ -314,7 +313,7 @@ class OrderController
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $locations) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 3,
