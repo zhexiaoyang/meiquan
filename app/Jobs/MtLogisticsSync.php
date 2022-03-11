@@ -109,7 +109,7 @@ class MtLogisticsSync implements ShouldQueue
                     "courier_phone" => $this->order->courier_phone,
                     "logistics_status" => $status,
                     "third_carrier_order_id" => $this->order->peisong_id,
-                    'logistics_provider_code' => $codes[$this->order->ps ?: '10017'],
+                    'logistics_provider_code' => $codes[$this->order->ps ?: 4],
                     'latitude' => $this->order->courier_lat,
                     'longitude' => $this->order->courier_lng,
                 ];
