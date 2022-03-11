@@ -70,7 +70,7 @@ class OrderController
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【闪送】发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3)) {
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3) && ($status != 60)) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-开始');
                 // $logs = [
                 //     "des" => "【闪送订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-开始",
