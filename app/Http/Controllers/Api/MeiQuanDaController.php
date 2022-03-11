@@ -61,7 +61,7 @@ class MeiQuanDaController extends Controller
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【美全达】发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 4)) {
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 4) && ($status != 7)) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-开始');
                 // $logs = [
                 //     "des" => "【美全达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【美全达】发起取消-开始",
