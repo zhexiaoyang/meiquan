@@ -62,7 +62,7 @@ class MtLogisticsSync implements ShouldQueue
                 $longitude = $this->order->courier_lng;
                 if (!$latitude || !$longitude) {
                     $shop = Shop::select('shop_lng', 'shop_lat')->find($this->order->shop_id);
-                    $locations = rider_location($shop->shop_lng, $shop->lat);
+                    $locations = rider_location($shop->shop_lng, $shop->shop_lat);
                     $longitude = $locations['lng'];
                     $latitude = $locations['lat'];
                 }

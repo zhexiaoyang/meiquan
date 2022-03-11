@@ -286,7 +286,7 @@ class OrderController
                 try {
                     DB::transaction(function () use ($order, $name, $phone) {
                         $shop = Shop::select('shop_lng', 'shop_lat')->find($order->shop_id);
-                        $locations = rider_location($shop->shop_lng, $shop->lat);
+                        $locations = rider_location($shop->shop_lng, $shop->shop_lat);
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 2,
