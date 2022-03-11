@@ -65,7 +65,7 @@ class DaDaController extends Controller
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【达达】发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5)) {
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5) && ($status != 5)) {
                 Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始');
                 // $logs = [
                 //     "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始",
