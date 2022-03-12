@@ -45,9 +45,10 @@ class CheckSendStatus implements ShouldQueue
         //     "status" => $this->order->status,
         //     "ps" => $this->order->ps
         // ];
+        $order = Order::find($this->order->id);
 
-        if ($this->order->status >= 40) {
-            \Log::info("[检查发单]-[订单ID：{$this->order->id}-订单号：{$this->order->order_id}]-状态：{$this->order->status},跳过检查");
+        if ($order->status >= 40) {
+            \Log::info("[检查发单]-[订单ID：{$order->id}-订单号：{$order->order_id}]-状态：{$order->status},跳过检查");
             return;
         }
 
@@ -56,7 +57,7 @@ class CheckSendStatus implements ShouldQueue
 
         // -30 未付款，-20 等待发送，-10 发送失败，0 订单未发送，5：余额不足，10 暂无运力，
         // 20 待接单，30 平台已接单，40 已分配骑手，50 取货中，60 已取货，70 已送达，80 异常，99 已取消，
-        if ($this->order->status == 20 || $this->order->status == 30) {
+        if ($order->status == 20 || $order->status == 30) {
             // $res = $ding_notice->sendMarkdownMsgArray("重新发送订单", $logs);
             // $shop = Shop::query()->find($this->order->shop_id);
             // \Log::info('钉钉日志发送状态-重新发送订单', [$res]);
