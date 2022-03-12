@@ -78,17 +78,20 @@ class CreateMtOrder implements ShouldQueue
     public function handle()
     {
         $this->log("开始");
-        if ((strtotime($this->order->created_at) + 86400 * 2) < time()) {
+
+        $order = Order::find($this->order->id);
+
+        if ((strtotime($order->created_at) + 86400 * 2) < time()) {
             $this->log("订单创建时间超出两天，停止派单");
             return;
         }
 
-        if ($this->order->status > 30) {
-            $this->log("订单状态:{$this->order->status}，大于30，停止派单");
+        if ($order->status > 30) {
+            $this->log("订单状态:{$order->status}，大于30，停止派单");
             return;
         }
 
-        $lock = Cache::lock("send_order_job:{$this->order->id}", 5);
+        $lock = Cache::lock("send_order_job:{$order->id}", 5);
 
         if (!$lock->get()) {
             // 获取锁定6秒...
@@ -96,7 +99,7 @@ class CreateMtOrder implements ShouldQueue
             return;
         }
 
-        $jiedan_lock = Cache::lock("jiedan_lock:{$this->order->id}", 2);
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 2);
         if (!$jiedan_lock->get()) {
             // 获取锁定5秒...
             $this->log("已经操作接单，停止派单");
@@ -105,8 +108,8 @@ class CreateMtOrder implements ShouldQueue
 
         // 相关信息
         // 判断用户和门店是否存在
-        if (!$shop = Shop::find($this->order->shop_id)) {
-            $this->log("门店不存在，停止派单|shop_id:{$this->order->shop_id}");
+        if (!$shop = Shop::find($order->shop_id)) {
+            $this->log("门店不存在，停止派单|shop_id:{$order->shop_id}");
             return;
         }
         // if (!$user = User::find($shop->user_id ?? 0)) {
@@ -166,8 +169,8 @@ class CreateMtOrder implements ShouldQueue
 
         // 判断用户金额是否满足最小订单
         if ($user->money <= 5.2) {
-            if ($this->order->status < 20) {
-                DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+            if ($order->status < 20) {
+                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
             }
             dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 5]));
             // Log::info($this->log."用户金额不足5.2元,不能发单");
@@ -186,8 +189,6 @@ class CreateMtOrder implements ShouldQueue
             }
         }
         $this->log("用户冻结金额：{$use_money}");
-
-        $order = Order::find($this->order->id);
 
         // **********************************************************************************
         // ******************************  顺  丰  跑  腿  ***********************************
