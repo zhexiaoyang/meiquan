@@ -66,7 +66,7 @@ class CreateMtOrder implements ShouldQueue
 
     public function log($message, $data = [])
     {
-        $message = "[JOB:发单|id:{$this->order->id},order_id:{$this->order->order_id}] {$message}";
+        $message = "[JOB:发单|id:{$this->order->id},order_id:{$this->order->order_id},status:{$this->order->status}] {$message}";
         Log::info($message, $data);
     }
 
