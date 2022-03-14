@@ -115,6 +115,9 @@ class ShopController extends Controller
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['city'] = $shop->city;
 
+                // 跑腿加价
+                $tmp['running_add'] = $shop->running_add;
+                $tmp['running_manager_add'] = $shop->running_manager_add;
                 // 外卖资料
                 $tmp['material'] = $shop->material;
                 // 商城
@@ -404,5 +407,25 @@ class ShopController extends Controller
         $shop->save();
 
         return $this->success($shop);
+    }
+
+    public function moneyAdd(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $running_add = floatval($request->get('running_add', 0));
+        $running_manager_add = floatval($request->get('running_manager_add', 0));
+
+        if ($running_manager_add > $running_add) {
+            return $this->error('经理抽佣不能大于加价金额');
+        }
+
+        $shop->running_add = $running_add;
+        $shop->running_manager_add = $running_manager_add;
+        $shop->save();
+
+        return $this->success();
     }
 }

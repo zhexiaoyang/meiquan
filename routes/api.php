@@ -351,6 +351,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("shop/all", "ShopController@all");
             // **门店管理-保存仓库设置
             Route::post("shop/warehouse", "ShopController@warehouse");
+            // 修改跑腿订单加价
+            Route::post("shop/running/money/add", "ShopController@moneyAdd")->name("admin.shop.running.money.add");
             // **门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             /**

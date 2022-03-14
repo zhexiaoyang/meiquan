@@ -10,7 +10,7 @@ class Shop extends Model
         "category","second_category","contact_name","contact_phone","shop_address","city_level","city_level_fn","city",
         "citycode","shop_lng","shop_lat","coordinate_type","delivery_service_codes","business_hours","status","auth",
         "auth_error","material","material_error","mtwm","ele","jddj","apply_auth_time","adopt_auth_time","area","manager_id",
-        "yyzz","yyzz_img","yyzz_name","internal_id",
+        "yyzz","yyzz_img","yyzz_name","internal_id","running_add","running_manager_add",
         "apply_material_time","adopt_material_time", "running_select","province","district","chufang_status"];
 
     protected $casts = [
