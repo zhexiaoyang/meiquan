@@ -300,6 +300,8 @@ class DaDaController extends Controller
                             'courier_phone' => $phone,
                             'courier_lng' => $longitude,
                             'courier_lat' => $latitude,
+                            'pay_status' => 1,
+                            'pay_at' => date("Y-m-d H:i:s"),
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);

@@ -333,6 +333,8 @@ class OrderController
                             'courier_phone' => $phone,
                             'courier_lng' => $locations['lng'] ?? '',
                             'courier_lat' => $locations['lat'] ?? '',
+                            'pay_status' => 1,
+                            'pay_at' => date("Y-m-d H:i:s"),
                         ]);
                         // 查找扣款用户，为了记录余额日志
                         $current_user = DB::table('users')->find($order->user_id);
@@ -422,17 +424,17 @@ class OrderController
             } elseif ($status == 60) {
                 if ($abort_type < 3) {
                     Log::info($log_prefix . "闪送取消订单通知-商户原因取消");
-                    $logs = [
-                        "\n\n描述" => "闪送取消订单通知-商户原因取消",
-                        "\n\n订单ID" => $order->id,
-                        "\n\n订单号" => $order->order_id,
-                        "\n\n订单配送单号" => $order->peisong_id,
-                        "\n\n订单闪送单号" => $order->ss_order_id,
-                        "\n\n请求闪送单号" => $ss_order_id,
-                        "\n\n时间" => date("Y-m-d H:i:s"),
-                    ];
-                    $dd->sendMarkdownMsgArray("【闪送跑腿】，取消订单-商户原因", $logs);
-                    return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
+                    // $logs = [
+                    //     "\n\n描述" => "闪送取消订单通知-商户原因取消",
+                    //     "\n\n订单ID" => $order->id,
+                    //     "\n\n订单号" => $order->order_id,
+                    //     "\n\n订单配送单号" => $order->peisong_id,
+                    //     "\n\n订单闪送单号" => $order->ss_order_id,
+                    //     "\n\n请求闪送单号" => $ss_order_id,
+                    //     "\n\n时间" => date("Y-m-d H:i:s"),
+                    // ];
+                    // $dd->sendMarkdownMsgArray("【闪送跑腿】，取消订单-商户原因", $logs);
+                    // return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
                 }
                 if ($order->status >= 20 && $order->status < 70 ) {
                     // 添加延时
