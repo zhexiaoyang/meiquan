@@ -66,7 +66,7 @@ class VipProductExport extends DefaultValueBinder implements WithStrictNullCompa
     public function bindValue(Cell $cell, $value)
     {
         $column = $cell->getColumn();
-        if (in_array( $column, ['B','H'])) {
+        if (in_array( $column, ['F'])) {
             $cell->setValueExplicit($value, DataType::TYPE_STRING);
             return true;
         }
