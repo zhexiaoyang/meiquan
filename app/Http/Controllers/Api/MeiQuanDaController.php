@@ -384,6 +384,10 @@ class MeiQuanDaController extends Controller
                 return json_encode($res);
             } elseif ($status == 7) {
                 if ($order->status >= 20 && $order->status < 70 ) {
+                    if ($order->mqd_status == 99) {
+                        Log::info($log_prefix . '接口取消订单-已经是取消状态');
+                        return json_encode($res);
+                    }
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
                             // if (($order->status == 50 || $order->status == 60) && $order->ps == 4) {

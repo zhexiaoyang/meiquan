@@ -50,6 +50,8 @@ class CreateMtOrder implements ShouldQueue
     protected $log = "";
     // 仓库ID
     protected $warehouse = 0;
+    // 加价金额
+    protected $add_money = 0;
 
     /**
      * Create a new job instance.
@@ -190,6 +192,12 @@ class CreateMtOrder implements ShouldQueue
         }
         $this->log("用户冻结金额：{$use_money}");
 
+        // 加价金额
+        $add_money = $shop->running_add;
+        $manager_money = $shop->running_manager_add;
+        $this->add_money = $add_money;
+        $this->log("用户加价金额：{$add_money}");
+
         // **********************************************************************************
         // ******************************  顺  丰  跑  腿  ***********************************
         // **********************************************************************************
@@ -207,7 +215,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $sf = app("shunfeng");
             $check_sf= $sf->precreateorder($order, $shop);
-            $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + 1;
+            $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + $add_money;
             if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
                 // 判断用户金额是否满足顺丰订单
                 if ($user->money < ($money_sf + $use_money)) {
@@ -244,7 +252,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $uu = app("uu");
             $check_uu= $uu->orderCalculate($order, $shop);
-            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + 1;
+            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + $add_money;
             $addfee =  isset($check_uu['addfee']) ? intval($check_uu['addfee']) : 0;
             $money_uu_total = $check_uu['total_money'] ?? 0;
             $money_uu_need = $check_uu['need_paymoney'] ?? 0;
@@ -291,7 +299,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $dada = app("dada");
             $check_dd= $dada->orderCalculate($shop, $order);
-            $money_dd = (($check_dd['result']['fee'] ?? 0)) + 1;
+            $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
             if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
                 // 判断用户金额是否满足达达订单
                 if ($user->money < ($money_dd + $use_money)) {
@@ -330,7 +338,7 @@ class CreateMtOrder implements ShouldQueue
             $meiquanda = app('meiquanda');
             $check_mqd = $meiquanda->orderCalculate($shop, $order);
             $money_mqd = $check_mqd['data']['pay_fee'] ?? 0;
-            $money_mqd += 1;
+            $money_mqd += $add_money;
             if ($money_mqd > 1) {
                 // 判断用户金额是否满足美全达订单
                 if ($user->money < ($money_mqd + $use_money)) {
@@ -369,7 +377,7 @@ class CreateMtOrder implements ShouldQueue
             $meituan = app("meituan");
             $check_mt = $meituan->preCreateByShop($shop, $this->order);
             $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
-            $money_mt += 1;
+            $money_mt += $add_money;
             if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
                 // 判断用户金额是否满足美团订单
                 if ($user->money < ($money_mt + $use_money)) {
@@ -413,7 +421,7 @@ class CreateMtOrder implements ShouldQueue
             $fengniao = app("fengniao");
             $check_fn_res = $fengniao->preCreateOrderNew($shop, $this->order);
             $check_fn = json_decode($check_fn_res['business_data'], true);
-            $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + 100 ) / 100;
+            $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
             if ($money_fn > 1) {
                 // 判断用户金额是否满足蜂鸟订单
                 if ($user->money < ($money_fn + $use_money)) {
@@ -450,7 +458,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $shansong = app("shansong");
             $check_ss = $shansong->orderCalculate($shop, $order);
-            $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + 1;
+            $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
             if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
                 if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
                     // 判断用户金额是否满足闪送订单
@@ -479,6 +487,8 @@ class CreateMtOrder implements ShouldQueue
 
         // 保存订单信息
         $order->user_id = $user->id;
+        $order->add_money = $add_money;
+        $order->manager_money = $manager_money;
         $order->save();
 
         // 没有配送服务商
@@ -645,7 +655,7 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             $this->log("发送「顺丰」订单成功|返回参数", [$result_sf]);
             // 写入订单信息
-            $money_sf = (($result_sf['result']['total_price'] ?? 0) / 100) + 1;
+            $money_sf = (($result_sf['result']['total_price'] ?? 0) / 100) + $this->add_money;
             $update_info = [
                 'money_sf' => $money_sf,
                 'sf_order_id' => $result_sf['result']['sf_order_id'] ?? $this->order->order_id,
@@ -753,9 +763,6 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             $this->log("发送「美全达」订单成功|返回参数", [$result_mqd]);
             $mqd_order_info = $meiquanda->getOrderInfo($result_mqd['data']['trade_no'] ?? "");
-            if (!empty($mqd_order_info['data']['merchant_pay_fee']) && $mqd_order_info['data']['merchant_pay_fee'] > 0) {
-                $money = $mqd_order_info['data']['merchant_pay_fee'];
-            }
             // 写入订单信息
             $update_info = [
                 // 'money_mqd' => $money,
@@ -764,6 +771,13 @@ class CreateMtOrder implements ShouldQueue
                 'status' => 20,
                 'push_at' => date("Y-m-d H:i:s")
             ];
+            if (!empty($mqd_order_info['data']['merchant_pay_fee']) && $mqd_order_info['data']['merchant_pay_fee'] > 0) {
+                $money = $mqd_order_info['data']['merchant_pay_fee'] + $this->add_money;
+                if ($money > $this->add_money) {
+                    $update_info['money_mqd'] = $money;
+                    $this->log("「美全达」创建订单成功，金额：{$money}，加价：{$this->add_money}");
+                }
+            }
             DB::table('orders')->where('id', $this->order->id)->update($update_info);
             DB::table('order_logs')->insert([
                 'ps' => 4,
@@ -817,9 +831,6 @@ class CreateMtOrder implements ShouldQueue
         if ($result_mt['code'] === 0) {
             // 订单发送成功
             $this->log("发送「美团」订单成功|返回参数", [$result_mt]);
-            if (!empty($result_mt['data']['delivery_fee']) && $result_mt['data']['delivery_fee'] > 0) {
-                $money = $result_mt['data']['delivery_fee'] + 1;
-            }
             // 写入订单信息
             $update_info = [
                 // 'money_mt' => $money,
@@ -828,6 +839,13 @@ class CreateMtOrder implements ShouldQueue
                 'status' => 20,
                 'push_at' => date("Y-m-d H:i:s")
             ];
+            if (!empty($result_mt['data']['delivery_fee']) && $result_mt['data']['delivery_fee'] > 0) {
+                $money = $result_mt['data']['delivery_fee'] + $this->add_money;
+                if ($money > $this->add_money) {
+                    $update_info['money_mt'] = $money;
+                    $this->log("「美团」创建订单成功，金额：{$money}，加价：{$this->add_money}");
+                }
+            }
             DB::table('orders')->where('id', $this->order->id)->update($update_info);
             DB::table('order_logs')->insert([
                 'ps' => 1,
@@ -875,11 +893,6 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             $this->log("发送「蜂鸟」订单成功|返回参数", [$result_fn]);
             $fn_order_info = $fengniao->getOrder($this->order->order_id);
-            if ((!empty($fn_order_info['code'])) && ($fn_order_info['code'] == 200)) {
-                if (!empty($fn_order_info['data']['order_total_delivery_cost']) && $fn_order_info['data']['order_total_delivery_cost'] > 0) {
-                    $money = $fn_order_info['data']['order_total_delivery_cost'] + 1;
-                }
-            }
             // 写入订单信息
             $update_info = [
                 // 'money_fn' => $money,
@@ -888,6 +901,15 @@ class CreateMtOrder implements ShouldQueue
                 'status' => 20,
                 'push_at' => date("Y-m-d H:i:s")
             ];
+            if ((!empty($fn_order_info['code'])) && ($fn_order_info['code'] == 200)) {
+                if (!empty($fn_order_info['data']['order_total_delivery_cost']) && $fn_order_info['data']['order_total_delivery_cost'] > 0) {
+                    $money = $fn_order_info['data']['order_total_delivery_cost'] + $this->add_money;
+                    if ($money > $this->add_money) {
+                        $update_info['money_fn'] = $money;
+                        $this->log("「蜂鸟」创建订单成功，金额：{$money}，加价：{$this->add_money}");
+                    }
+                }
+            }
             DB::table('orders')->where('id', $this->order->id)->update($update_info);
             DB::table('order_logs')->insert([
                 'ps' => 2,
