@@ -127,7 +127,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             "delivery_time" => $data['delivery_time'],
             "pick_type" => $data['pick_type'] ?? 0,
             "day_seq" => $data['day_seq'] ?? 0,
-            "invoice_title" => $data['invoice_title'] ?? '',
+            "invoice_title" => urldecode($data['invoice_title'] ?? ''),
             "taxpayer_id" => $data['taxpayer_id'] ?? '',
             "is_prescription" =>  $is_prescription,
             "is_favorites" => intval($data['is_favorites'] ?? 0),
