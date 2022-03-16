@@ -10,6 +10,7 @@ use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
+use App\Models\WmOrder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -670,6 +671,14 @@ class OrderController extends Controller
             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-订单不存在");
             // \Log::info('[订单-美团外卖接口取消订单]-订单未找到', ['请求参数' => $request->all()]);
             return $this->error("订单不存在");
+        }
+
+        if ($wmOrder = WmOrder::where('order_id', $order_id)->first()) {
+            if ($wmOrder->status < 18) {
+                $wmOrder->status = 30;
+                $wmOrder->save();
+                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-取消外卖订单");
+            }
         }
 
         $ps = $order->ps;
