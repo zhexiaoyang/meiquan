@@ -17,11 +17,11 @@ class MeiQuanDaController extends Controller
 {
     public function order_status(Request $request)
     {
-        $res = ['status' => 100, 'msg' => 'success', 'data' => ''];
+        $res = ['code' => 100, 'message' => '', 'data' => []];
         // 接收全部参数
         $data = $request->all();
         if (empty($data)) {
-            return $res;
+            return json_encode($res);
         }
         // 商家订单号
         $trade_no = $data['trade_no'] ?? '';
