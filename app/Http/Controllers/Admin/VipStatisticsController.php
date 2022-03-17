@@ -83,6 +83,11 @@ class VipStatisticsController extends Controller
         return $this->success($result);
     }
 
+    public function shop()
+    {
+
+    }
+
     public function initOrderDayData($sdate, $edate)
     {
         $data = [];
