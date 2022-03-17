@@ -49,11 +49,11 @@ class Handler extends ExceptionHandler
             $notice_status = true;
         }
         // 判断异常是否需要通知
-        foreach (array_keys($this->dontReport) as $report){
-            if ($exception instanceof $report){
-                $notice_status = false;
-            }
-        }
+        // foreach (array_keys($this->dontReport) as $report){
+        //     if ($exception instanceof $report){
+        //         $notice_status = false;
+        //     }
+        // }
 
         // 钉钉通知
         if ($notice_status) {
