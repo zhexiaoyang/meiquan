@@ -1027,6 +1027,9 @@ class OrderController extends Controller
                                     $jian_money = 2;
                                 }
                             }
+                            if (!empty($order->take_at)) {
+                                $jian_money = $order->money;
+                            }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -1743,6 +1746,9 @@ class OrderController extends Controller
                                     $jian_money = 2;
                                 }
                             }
+                            if (!empty($order->take_at)) {
+                                $jian_money = $order->money;
+                            }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
                             UserMoneyBalance::query()->create([
@@ -2237,16 +2243,28 @@ class OrderController extends Controller
         if (!$order = Order::query()->find( $request->get('order_id', 0))) {
             return $this->error("订单不存在");
         }
+        $error = '失败';
 
-        $shansong = app("shansong");
-
-        $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
-
-        if ($res_ss['status'] === 200) {
-            return $this->success("成功");
+        if ($order->ps == 3) {
+            $shansong = app("shansong");
+            $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
+            if ($res_ss['status'] === 200) {
+                return $this->success("成功");
+            } else {
+                $error = $res_ss['msg'] ?? '失败';
+            }
+        }
+        if ($order->ps == 5) {
+            $dada = app("dada");
+            $res_dada = $dada->sendBack($order->order_id);
+            if ($res_dada['code'] === 0) {
+                return $this->success("成功");
+            } else {
+                $error = $res_dada['msg'] ?? '失败';
+            }
         }
 
-        return $this->error($res_ss['msg'] ?? "成功");
+        return $this->error($error ?? "成功");
     }
 
     /**

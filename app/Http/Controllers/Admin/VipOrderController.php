@@ -35,6 +35,9 @@ class VipOrderController extends Controller
         if ($order_id = $request->get('order_id', '')) {
             $query->where('order_id', 'like', "%{$order_id}%");
         }
+        if ($shop_id = $request->get('shop_id', '')) {
+            $query->where('shop_id', $shop_id);
+        }
         if ($name = $request->get('name', '')) {
             $query->where('recipient_name', $name);
         }
