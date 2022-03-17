@@ -40,10 +40,24 @@ class Handler extends ExceptionHandler
      */
     public function report(Exception $exception)
     {
-        $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+        // 钉钉通知状态
+        $notice_status = false;
+        // 判断异常码
         $fe = FlattenException::create($exception);
         $StatusCode = $fe->getStatusCode();
         if ( $StatusCode != 401 && $StatusCode !=403 && $StatusCode != 404 && $StatusCode != 405 && $StatusCode != 429){
+            $notice_status = true;
+        }
+        // 判断异常是否需要通知
+        foreach (array_keys($this->dontReport) as $report){
+            if ($exception instanceof $report){
+                $notice_status = false;
+            }
+        }
+
+        // 钉钉通知
+        if ($notice_status) {
+            $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
             $logs = [
                 "\n\n错误编码" => $fe->getStatusCode(),
                 "\n\n错误内容" => $fe->getMessage(),
