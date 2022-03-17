@@ -97,6 +97,7 @@ class VipOrderSettlement implements ShouldQueue
 
         $this->log("计算佣金", "公司:{$vip_company}|运营经理:{$vip_operate}|城市经理:{$vip_city}|内勤:{$vip_internal}|商家:{$vip_business}|");
 
+        $this->order->vip_total = $total;
         $this->order->vip_company = $vip_company;
         $this->order->vip_operate = $vip_operate;
         $this->order->vip_city = $vip_city;
