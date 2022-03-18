@@ -676,6 +676,7 @@ class OrderController extends Controller
         if ($wmOrder = WmOrder::where('order_id', $order_id)->first()) {
             if ($wmOrder->status < 18) {
                 $wmOrder->status = 30;
+                $wmOrder->cancel_at = date("Y-m-d H:i:s");
                 $wmOrder->save();
                 \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-取消外卖订单");
             }
