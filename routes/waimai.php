@@ -23,7 +23,7 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送已确认订单
     // Route::post('order/confirm', "OrderController@confirm");
     // 推送用户或客服取消订单
-    // Route::post('order/cancel', "OrderController@cancel");
+    Route::post('order/cancel', "OrderController@cancel");
     // 推送全额退款信息
     Route::any('order/refund', "OrderController@refund");
     // 推送部分退款信息
@@ -85,6 +85,7 @@ Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Wai
     Route::post('order/partrefund', "OrderController@partrefund");
     Route::post('order/remind', "OrderController@remind");
     Route::post('order/down', "OrderController@down");
+    Route::post('order/bill', "OrderController@bill");
     // 门店绑定
     Route::post('shop/bind', "ShopController@bind");
     // 门店解绑

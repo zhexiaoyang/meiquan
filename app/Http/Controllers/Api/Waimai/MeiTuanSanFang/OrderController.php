@@ -107,4 +107,15 @@ class OrderController extends Controller
 
         return json_encode(['data' => 'ok']);
     }
+
+    public function bill(Request $request)
+    {
+        $this->prefix .= '-[账单]';
+
+        if ($order_id = $request->get("order_id", "")) {
+            $this->log('全部参数', $request->all());
+        }
+
+        return json_encode(['data' => 'ok']);
+    }
 }
