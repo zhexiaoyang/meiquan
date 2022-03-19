@@ -39,8 +39,10 @@ class VipStatisticsController extends Controller
         $order_total = 0;
         $order_cancel = 0;
         $order_query = WmOrder::where('is_vip', 1);
+        $order_cancel_query = WmOrder::where('is_vip', 1);
         if ($sdate && $edate) {
             $order_query->where('finish_at', '>=', $sdate)->where('finish_at', '<', date("Y-m-d", strtotime($edate) + 86400));
+            $order_cancel_query->where('cancel_at', '>=', $sdate)->where('cancel_at', '<', date("Y-m-d", strtotime($edate) + 86400));
         }
         if ($shop_id) {
             $order_query->where('shop_id', $shop_id);
@@ -59,8 +61,6 @@ class VipStatisticsController extends Controller
                     $data[$order_at]['有效订单']++;
                     $data[$order_at]['销售额'] += $order->poi_receive;
                     $data[$order_at]['总利润'] += $order->vip_total;
-                } else {
-                    $order_cancel++;
                 }
             }
         }
@@ -77,7 +77,7 @@ class VipStatisticsController extends Controller
             'data' => array_values($data),
             'shop_total' => $shops->count(),
             'order_total' => $order_total,
-            'order_cancel' => $order_cancel,
+            'order_cancel' => $order_cancel_query->count(),
             'order_sale' => number_format($order_sale, 2),
             'order_profit' => number_format($order_profit, 2),
         ];
