@@ -13,9 +13,9 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[创建]';
 
-        // if ($order_id = $request->get("order_id", "")) {
-         $this->log('全部参数', $request->all());
-        // }
+        if ($order_id = $request->get("orderId", "")) {
+            $this->log('全部参数', $request->all());
+        }
 
         return json_encode(['data' => 'ok']);
     }
@@ -24,7 +24,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[确认]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -35,7 +35,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[取消]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -46,7 +46,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[退款]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -57,7 +57,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[骑手]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -68,7 +68,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[完成]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -79,7 +79,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[部分退款]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -90,7 +90,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[催单]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -101,7 +101,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[降级]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
@@ -112,7 +112,7 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[账单]';
 
-        if ($order_id = $request->get("order_id", "")) {
+        if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
         }
 
