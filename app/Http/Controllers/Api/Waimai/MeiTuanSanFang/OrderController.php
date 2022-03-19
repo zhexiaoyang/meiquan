@@ -35,9 +35,9 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[取消]';
 
-        if ($order_id = $request->get("orderId", "")) {
+        // if ($order_id = $request->get("orderId", "")) {
             $this->log('全部参数', $request->all());
-        }
+        // }
 
         return json_encode(['data' => 'ok']);
     }
