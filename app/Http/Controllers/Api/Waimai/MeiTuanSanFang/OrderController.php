@@ -13,9 +13,9 @@ class OrderController extends Controller
     {
         $this->prefix .= '-[创建]';
 
-        if ($order_id = $request->get("order_id", "")) {
-            $this->log('全部参数', $request->all());
-        }
+        // if ($order_id = $request->get("order_id", "")) {
+         $this->log('全部参数', $request->all());
+        // }
 
         return json_encode(['data' => 'ok']);
     }
