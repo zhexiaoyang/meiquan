@@ -89,7 +89,7 @@ class Order extends Model
         });
 
         static::saved(function ($order) {
-            if ($order->status === 70) {
+            if (($order->status === 70) && !ManagerProfit::where('order_id', $order->id)->first()) {
                 Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
                 if ($order->ps != 4) {
                     $manager_ids = User::whereHas("roles", function ($query) {
