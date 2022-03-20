@@ -3,31 +3,51 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
 use App\Http\Controllers\Controller;
+use App\Models\MeituanOpenToken;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ShopController extends Controller
 {
-    public $prefix = '[美团外卖三方服务商-绑定门店回调]';
+    public $prefix_title = '[美团外卖三方服务商-门店回调-###]';
 
     public function bind(Request $request)
     {
-        $this->prefix .= '-[绑定]';
+        $this->prefix = str_replace('###', '绑定', $this->prefix_title);
+        $token = $request->get("appAuthToken", "");
+        $shop_id = $request->get("ePoiId", "");
+        $mt_shop_id = $request->get("poiId", "");
 
-        if ($poiId = $request->get("ePoiId", "")) {
+        if ($token && $shop_id) {
             $this->log('全部参数', $request->all());
+            if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
+                $token_data->update(['token' => $token]);
+            } else {
+                MeituanOpenToken::create([
+                    'shop_id' => $shop_id,
+                    'mt_shop_id' => $mt_shop_id,
+                    'token' => $token,
+                ]);
+            }
+            $key = 'meituan:open:token:' . $shop_id;
+            Cache::put($key, $token);
         }
 
-        return json_encode(['data' => 'ok']);
+        return json_encode(['data' => 'OK']);
     }
 
     public function unbound(Request $request)
     {
-        $this->prefix .= '-[解绑]';
+        $this->prefix = str_replace('###', '解绑', $this->prefix_title);
+        $shop_id = $request->get("ePoiId", "");
 
-        if ($poiId = $request->get("ePoiId", "")) {
+        if ($shop_id) {
             $this->log('全部参数', $request->all());
+            MeituanOpenToken::where('shop_id', $shop_id)->delete();
+            $key = 'meituan:open:token:' . $shop_id;
+            Cache::forget($key);
         }
 
-        return json_encode(['data' => 'ok']);
+        return json_encode(['data' => 'OK']);
     }
 }
