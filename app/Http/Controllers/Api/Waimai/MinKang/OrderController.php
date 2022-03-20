@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api\Waimai\MinKang;
 use App\Http\Controllers\Controller;
 use App\Jobs\MeiTuanWaiMaiPicking;
 use App\Jobs\VipOrderSettlement;
+use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -35,17 +38,46 @@ class OrderController extends Controller
     //
     //     return json_encode(['data' => 'ok']);
     // }
-    //
-    // public function cancel(Request $request)
-    // {
-    //     $this->prefix .= '-[取消]';
-    //
-    //     if ($order_id = $request->get("order_id", "")) {
-    //         $this->log('全部参数', $request->all());
-    //     }
-    //
-    //     return json_encode(['data' => 'ok']);
-    // }
+
+    public function cancel(Request $request)
+    {
+        // 获取参数
+        // $order_id = $request->get('order_id', '');
+        //
+        // if ($order = Order::query()->where('order_id', $order_id)->first()) {
+        //     $this->log('全部参数', $request->all());
+        // }
+        //
+        // if ($order->status >= 70) {
+        //     // 完成获取取消订单-不能取消
+        //     Log::debug("[美团民康取消订单-订单状态大于等于70|id:{$order->id},order_id:{$order->order_id},status:{$order->status}]");
+        // } elseif ($order->status >= 40 && $order->status <= 60) {
+        //     // 已发配送订单-骑手接单-取消
+        //     $ps = $order->ps;
+        //     if ($ps == 1) {
+        //
+        //     }
+        // } elseif ($order->status <= 30 && $order->status >= 20) {
+        //     // 已发配送订单-骑手未接单-取消
+        // } else {
+        //     // 未发配送单-直接取消
+        //     if ($order->status < 0) {
+        //         $order->status = -10;
+        //     } else {
+        //         $order->status = 99;
+        //         $order->cancel_at = date("Y-m-d H:i:s");
+        //     }
+        //     $order->save();
+        //     OrderLog::create([
+        //         "order_id" => $order->id,
+        //         "des" => "[美团外卖]取消跑腿订单"
+        //     ]);
+        //     Log::info("[美团民康取消订单-未配送|id:{$order->id},order_id:{$order->order_id},status:{$order->status}]");
+        //     return $this->success();
+        // }
+
+        return json_encode(['data' => 'ok']);
+    }
 
     public function refund(Request $request)
     {
@@ -83,11 +115,13 @@ class OrderController extends Controller
                 if (in_array($status, [10, 20, 40]) && $order->status < 16) {
                     if ($status == 10) {
                         $order->status = 12;
+                        $order->receive_at = date("Y-m-d H:i:s", $time ?: time());
                     } elseif ($status == 20) {
                         $order->status = 14;
+                        $order->send_at = date("Y-m-d H:i:s", $time ?: time());
                     } elseif ($status == 40) {
                         $order->status = 16;
-                        $order->send_at = date("Y-m-d H:i:s", $time ?: time());
+                        $order->deliver_at = date("Y-m-d H:i:s", $time ?: time());
                     }
                     if ($name) {
                         $order->shipper_name = $name;
