@@ -45,7 +45,7 @@ class VipShopController extends Controller
     public function all(Request $request)
     {
         $query = Shop::select('id','shop_name')->where('vip_status', 1);
-        $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        $query->whereIn('id', $request->user()->shops()->pluck('id'));
         $data = $query->get();
 
         return $this->success($data);
