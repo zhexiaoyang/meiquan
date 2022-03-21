@@ -428,6 +428,7 @@ class ProductController extends Controller
                         "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
                     ];
                     $bind_log = $meituan->medicineCodeUpdate($params_bind);
+                    \Log::info("[ERP接口]-[添加商品]-[绑定药品返回]: " . json_encode($bind_log, JSON_UNESCAPED_UNICODE));
                     // \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
                     // \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
