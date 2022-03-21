@@ -218,10 +218,6 @@ class ProductController extends Controller
 
     /**
      * 添加商品
-     * @param Request $request
-     * @return mixed
-     * @author zhangzhen
-     * @data dateTime
      */
     public function add(Request $request)
     {
@@ -357,6 +353,7 @@ class ProductController extends Controller
                 ];
                 $meituan->medicineCatSave($category_params);
 
+                $params_bind_data = [];
                 $params_data = [];
                 $params_update_data = [];
 
@@ -389,6 +386,10 @@ class ProductController extends Controller
                             "status" => 1,
                             "msg" => "成功"
                         ];
+                        $params_bind_data[] = [
+                            'upc' => $item['upc'],
+                            'app_medicine_code_new' => $item['app_medicine_code'],
+                        ];
                         // 添加数组
                         $params_data[] = [
                             'app_medicine_code' => $item['app_medicine_code'],
@@ -414,6 +415,10 @@ class ProductController extends Controller
                     // $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $res_data]);
                     // $result = json_decode($response->getBody(), true);
                     // \Log::info("海协ERP推送商品状态-返回", [$result]);
+                    $params_bind = [
+                        "app_poi_code" => $access_shop->mt_shop_id,
+                        "medicine_data" => json_encode($params_bind_data, JSON_UNESCAPED_UNICODE)
+                    ];
                     $params = [
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_data, JSON_UNESCAPED_UNICODE)
@@ -422,6 +427,7 @@ class ProductController extends Controller
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
                     ];
+                    $bind_log = $meituan->medicineCodeUpdate($params_bind);
                     // \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
                     // \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
