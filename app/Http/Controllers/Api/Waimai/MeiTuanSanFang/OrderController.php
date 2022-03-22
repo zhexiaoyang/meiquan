@@ -163,7 +163,8 @@ class OrderController extends Controller
 
         if ($order) {
             $mt = app('mtkf');
-            $mt->order_confirm($order->order_id, $order->app_poi_code);
+            $res = $mt->order_confirm($order->order_id, $order->app_poi_code);
+            $this->log('接单返回', $res);
         }
 
         return json_encode(['data' => 'OK']);
