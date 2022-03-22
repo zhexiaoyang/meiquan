@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
 use App\Http\Controllers\Controller;
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\Shop;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
@@ -17,20 +18,6 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $this->prefix_title = str_replace('###', '创建订单', $this->prefix_title);
-        if (!$data = $request->get('order')) {
-            return json_encode(['data' => 'OK']);
-        }
-        $data = json_decode($data, true);
-        $order_id = $data['orderId'];
-        $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
-        $this->log('全部参数', $data);
-
-        return json_encode(['data' => 'OK']);
-    }
-
-    public function confirm(Request $request)
-    {
-        $this->prefix_title = str_replace('###', '已确认', $this->prefix_title);
         if (!$data = $request->get('order')) {
             return json_encode(['data' => 'OK']);
         }
@@ -147,7 +134,7 @@ class OrderController extends Controller
                     if ($receive['moneyCent'] > 0) {
                         $receives[] = [
                             'type' => 1,
-                            // 'order_id' => $order->id,
+                            'order_id' => $order->id,
                             'comment' => $receive['comment'],
                             'fee_desc' => $receive['feeTypeDesc'],
                             'money' => $receive['moneyCent'] / 100,
@@ -160,7 +147,7 @@ class OrderController extends Controller
                     if ($receive['moneyCent'] > 0) {
                         $receives[] = [
                             'type' => 2,
-                            // 'order_id' => $order->id,
+                            'order_id' => $order->id,
                             'comment' => $receive['comment'],
                             'fee_desc' => $receive['feeTypeDesc'],
                             'money' => $receive['moneyCent'],
@@ -173,6 +160,36 @@ class OrderController extends Controller
             }
             return $order;
         });
+
+        if ($order) {
+            $mt = app('mtkf');
+            $mt->order_confirm($order->order_id, $order->app_poi_code);
+        }
+
+        return json_encode(['data' => 'OK']);
+    }
+
+    public function confirm(Request $request)
+    {
+        $this->prefix_title = str_replace('###', '已确认', $this->prefix_title);
+        if (!$data = $request->get('order')) {
+            return json_encode(['data' => 'OK']);
+        }
+        $data = json_decode($data, true);
+        $order_id = $data['orderId'];
+        $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
+        $this->log('全部参数', $data);
+
+        // 更改订单状态
+        $status_filter = [1 => 1, 2 => 1, 4 => 4, 6 => 14, 8 => 18, 9 => 30];
+        if ($order = WmOrder::where('order_id', $data['orderId'])->first()) {
+            $order->status = $status_filter[$data['status']];
+            $order->save();
+        } else {
+            $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+            $dingding->sendTextMsg("餐饮服务商确认订单-不存在，订单号:{$data['orderId']}");
+        }
+
 
         return json_encode(['data' => 'OK']);
     }

@@ -8,6 +8,7 @@ use App\Libraries\Ele\Ele;
 use App\Libraries\Fengniao\Fengniao;
 use App\Libraries\MeiQuanDa\MeiQuanDa;
 use App\Libraries\Meituan\MeiTuan;
+use App\Libraries\MeiTuanKaiFang\MeiTuanKaiFang;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Shunfeng\Shunfeng;
 use App\Libraries\TaoZi\TaoZi;
@@ -124,6 +125,11 @@ class AppServiceProvider extends ServiceProvider
         // 采购微信支付
         $this->app->singleton('pay.wechat_supplier', function () {
             return Pay::wechat(config('pay.wechat_supplier'));
+        });
+
+        $this->app->singleton('mtkf', function () {
+            // return new MeiTuanKaiFang(['app_id' => 106791, 'app_key' => 'lq1gtktmr3ofrjny', 'url' => 'https://api-open-cater.meituan.com/']);
+            return new MeiTuanKaiFang(['app_id' => 106792, 'app_key' => '36cvt5p8joq0jiiw', 'url' => 'https://api-open-cater.meituan.com/']);
         });
     }
 
