@@ -138,6 +138,8 @@ class OrderController extends Controller
         // $this->log('美配订单状态回调全部参数', $request->all());
 
         if ($order_id && $status) {
+            $this->prefix_title = str_replace('###', '美配订单状态回调', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if (in_array($status, [10, 20, 40]) && $order->status < 16) {
                     if ($status == 10) {
@@ -155,12 +157,12 @@ class OrderController extends Controller
                         $order->shipper_phone = $phone;
                     }
                     $order->save();
-                    $this->log("status_platform|订单号：{$order_id}|操作完成");
+                    $this->log("订单号：{$order_id}|操作完成");
                 } else {
-                    $this->log("status_platform|订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
+                    $this->log("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                 }
             } else {
-                $this->log("status_platform|订单号：{$order_id}|订单不存在");
+                $this->log("订单号：{$order_id}|订单不存在");
             }
         }
         return json_encode(['data' => 'ok']);
@@ -177,17 +179,19 @@ class OrderController extends Controller
         $time = $request->get('operate_time', 0);
 
         if ($order_id && $status) {
+            $this->prefix_title = str_replace('###', '自配订单状态', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($status == 20 && $order->status < 14) {
                     $order->send_at = date("Y-m-d H:i:s", $time ?: time());
                     $order->status = 14;
                     $order->save();
-                    $this->log("status_self|订单号：{$order_id}|操作完成");
+                    $this->log("订单号：{$order_id}|操作完成");
                 } else {
-                    $this->log("status_self|订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
+                    $this->log("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                 }
             } else {
-                $this->log("status_self|订单号：{$order_id}|订单不存在");
+                $this->log("订单号：{$order_id}|订单不存在");
             }
         }
         return json_encode(['data' => 'ok']);
@@ -203,21 +207,23 @@ class OrderController extends Controller
         $status = $request->get('status', '');
 
         if ($order_id && $status) {
+            $this->prefix_title = str_replace('###', '完成订单', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($status == 8 && $order->status < 18) {
                     $order->status = 18;
                     $order->finish_at = date("Y-m-d H:i:s");
                     $order->save();
-                    $this->log("finish|订单号：{$order_id}|操作完成");
+                    $this->log("订单号：{$order_id}|操作完成");
                     if ($order->is_vip) {
                         // 如果是VIP订单，触发JOB
                         dispatch(new VipOrderSettlement($order));
                     }
                 } else {
-                    $this->log("finish|订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
+                    $this->log("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                 }
             } else {
-                $this->log("finish|订单号：{$order_id}|订单不存在");
+                $this->log("订单号：{$order_id}|订单不存在");
             }
         }
         return json_encode(['data' => 'ok']);
