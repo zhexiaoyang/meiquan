@@ -13,15 +13,17 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    public $prefix = '[美团外卖民康-订单回调]';
+    public $prefix_title = '[美团外卖民康-订单回调-###|订单号:$$$]';
 
     public function create(Request $request)
     {
         if ($order_id = $request->get("order_id", "")) {
+            $this->prefix_title = str_replace('###', '创建订单', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             // $this->log('全部参数', $request->all());
             $meituan = app("minkang");
             $res = $meituan->orderConfirm($order_id);
-            $this->log("create|订单号：{$order_id}|操作接单返回信息", $res);
+            $this->log("订单号：{$order_id}|操作接单返回信息", $res);
             dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
         }
 
@@ -82,6 +84,18 @@ class OrderController extends Controller
     public function refund(Request $request)
     {
         if ($order_id = $request->get("order_id", "")) {
+            $notify_type = $request->get('notify_type');
+            $this->prefix_title = str_replace('###', '全部退款', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
+            if ($notify_type == 'agree') {
+                if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    WmOrder::where('id', $order->id)->update([
+                        'refund_status' => 1,
+                        'refund_fee' => $order->total,
+                        'refund_at' => date("Y-m-d H:i:s")
+                    ]);
+                }
+            }
             $this->log('全部退款全部参数', $request->all());
         }
 
@@ -91,7 +105,20 @@ class OrderController extends Controller
     public function partrefund(Request $request)
     {
         if ($order_id = $request->get("order_id", "")) {
+            $money = $request->get('money');
+            $notify_type = $request->get('notify_type');
+            $this->prefix_title = str_replace('###', '部分退款', $this->prefix_title);
+            $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             $this->log('部分退款全部参数', $request->all());
+            if (($notify_type == 'agree') && ($money > 0)) {
+                if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    WmOrder::where('id', $order->id)->update([
+                        'refund_status' => 2,
+                        'refund_fee' => $money,
+                        'refund_at' => date("Y-m-d H:i:s"),
+                    ]);
+                }
+            }
         }
 
         return json_encode(['data' => 'ok']);
