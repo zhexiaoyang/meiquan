@@ -21,10 +21,14 @@ class OrderController extends Controller
             $this->prefix_title = str_replace('###', '创建订单', $this->prefix_title);
             $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
             // $this->log('全部参数', $request->all());
-            $meituan = app("minkang");
-            $res = $meituan->orderConfirm($order_id);
-            $this->log("订单号：{$order_id}|操作接单返回信息", $res);
-            dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
+            $app_poi_code = $request->get('app_poi_code', 0);
+            $data = ['9413566'];
+            if (!in_array($app_poi_code, $data)) {
+                $meituan = app("minkang");
+                $res = $meituan->orderConfirm($order_id);
+                $this->log("订单号：{$order_id}|操作接单返回信息", $res);
+                dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
+            }
         }
 
         return json_encode(['data' => 'ok']);
