@@ -102,12 +102,12 @@ class CreateMtOrder implements ShouldQueue
         }
 
         // 判断是否接单了
-        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
-        if (!$jiedan_lock->get()) {
-            // 获取锁定5秒...
-            $this->log("已经操作接单，停止派单");
-            return;
-        }
+        // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
+        // if (!$jiedan_lock->get()) {
+        //     // 获取锁定5秒...
+        //     $this->log("已经操作接单，停止派单");
+        //     return;
+        // }
 
         // 相关信息
         // 判断用户和门店是否存在
