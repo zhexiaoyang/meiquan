@@ -512,7 +512,7 @@ class CreateMtOrder implements ShouldQueue
         $ps = $this->getService();
 
         // 判断是否接单了
-        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 2);
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
         if (!$jiedan_lock->get()) {
             // 获取锁定5秒...
             $this->log("已经操作接单，停止派单");
