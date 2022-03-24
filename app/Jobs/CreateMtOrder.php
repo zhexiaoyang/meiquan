@@ -93,15 +93,16 @@ class CreateMtOrder implements ShouldQueue
             return;
         }
 
-        $lock = Cache::lock("send_order_job:{$order->id}", 5);
-
+        // 判断50秒内是否发过订单
+        $lock = Cache::lock("send_order_job:{$order->id}", 50);
         if (!$lock->get()) {
             // 获取锁定6秒...
-            $this->log("订单被锁住，重复发送订单，停止派单");
+            $this->log("50秒内发过订单，被锁住，停止派单");
             return;
         }
 
-        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 2);
+        // 判断是否接单了
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
         if (!$jiedan_lock->get()) {
             // 获取锁定5秒...
             $this->log("已经操作接单，停止派单");
@@ -509,6 +510,14 @@ class CreateMtOrder implements ShouldQueue
         }
 
         $ps = $this->getService();
+
+        // 判断是否接单了
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
+        if (!$jiedan_lock->get()) {
+            // 获取锁定5秒...
+            $this->log("已经操作接单，停止派单");
+            return;
+        }
 
         if ($ps === "meituan") {
             if ($this->meituan()) {

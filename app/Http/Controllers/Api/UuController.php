@@ -122,6 +122,7 @@ class UuController extends Controller
                         "order_id" => $order->order_id
                     ];
                     $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                    sleep(1);
                 }
                 // 取货中
                 // 判断订单状态，是否可接单

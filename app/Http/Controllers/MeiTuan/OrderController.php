@@ -129,6 +129,7 @@ class OrderController
                         "order_id" => $order->order_id
                     ];
                     $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                    sleep(1);
                 }
                 // 已接单
                 // 判断订单状态，是否可接单
