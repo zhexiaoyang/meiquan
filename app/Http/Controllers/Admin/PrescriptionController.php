@@ -232,8 +232,12 @@ class PrescriptionController extends Controller
         $data = WmPrescription::query()->where('status', 2)->get();
         if (!empty($data)) {
             foreach ($data as $v) {
-                if ($shop = Shop::query()->select('id','user_id')->where('chufang_mt', $v->storeID)->first()) {
-                    Log::info("shop", [$shop]);
+                if ($v->platform === 1) {
+                    $shop = Shop::query()->select('id','user_id')->where('chufang_mt', $v->storeID)->first();
+                } else {
+                    $shop = Shop::query()->select('id','user_id')->where('chufang_ele', $v->storeID)->first();
+                }
+                if ($shop) {
                     DB::transaction(function () use ($v, $shop) {
                         $money = $v->money;
                         $order_id = $v->outOrderID;
