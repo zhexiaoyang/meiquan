@@ -49,10 +49,14 @@ class ShopController extends Controller
         $shop_id = $request->get("ePoiId", "");
 
         if ($shop_id) {
-            $this->log('全部参数', $request->all());
-            MeituanOpenToken::where('shop_id', $shop_id)->delete();
-            $key = 'meituan:open:token:' . $shop_id;
-            Cache::forget($key);
+            if ($shop = Shop::find($shop_id)) {
+                $shop->waimai_mt = '';
+                $shop->save();
+                $this->log('全部参数', $request->all());
+                MeituanOpenToken::where('shop_id', $shop_id)->delete();
+                $key = 'meituan:open:token:' . $shop_id;
+                Cache::forget($key);
+            }
         }
 
         return json_encode(['data' => 'OK']);
