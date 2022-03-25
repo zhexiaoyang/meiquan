@@ -128,8 +128,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton('mtkf', function () {
-            // return new MeiTuanKaiFang(['app_id' => 106791, 'app_key' => 'lq1gtktmr3ofrjny', 'url' => 'https://api-open-cater.meituan.com/']);
-            return new MeiTuanKaiFang(['app_id' => 106792, 'app_key' => '36cvt5p8joq0jiiw', 'url' => 'https://api-open-cater.meituan.com/']);
+            return new MeiTuanKaiFang(['app_id' => 106791, 'app_key' => 'lq1gtktmr3ofrjny', 'url' => 'https://api-open-cater.meituan.com/']);
+            // return new MeiTuanKaiFang(['app_id' => 106792, 'app_key' => '36cvt5p8joq0jiiw', 'url' => 'https://api-open-cater.meituan.com/']);
         });
     }
 
