@@ -232,7 +232,7 @@ class PrescriptionController extends Controller
         $data = WmPrescription::query()->where('status', 2)->get();
         if (!empty($data)) {
             foreach ($data as $v) {
-                if ($v->platform === 1) {
+                if ($v->platform == 1) {
                     $shop = Shop::query()->select('id','user_id')->where('chufang_mt', $v->storeID)->first();
                 } else {
                     $shop = Shop::query()->select('id','user_id')->where('chufang_ele', $v->storeID)->first();
