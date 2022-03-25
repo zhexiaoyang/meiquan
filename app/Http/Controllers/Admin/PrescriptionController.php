@@ -298,6 +298,12 @@ class PrescriptionController extends Controller
         $status = $request->get('status', 0);
         $ids = $request->get('ids');
 
+        \Log::info("处方门店状态变更", [
+            '操作人ID' => $request->user()->id,
+            '状态' => $status,
+            '门店ID' => $ids,
+        ]);
+
         if (empty($ids)) {
             return $this->success();
         }
