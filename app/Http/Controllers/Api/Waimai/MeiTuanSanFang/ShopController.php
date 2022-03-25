@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
 use App\Http\Controllers\Controller;
 use App\Models\MeituanOpenToken;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -20,17 +21,23 @@ class ShopController extends Controller
 
         if ($token && $shop_id) {
             $this->log('全部参数', $request->all());
-            if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
-                $token_data->update(['token' => $token]);
+            if ($shop = Shop::find($shop_id)) {
+                $shop->waimai_mt = $shop_id;
+                $shop->save();
+                if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
+                    $token_data->update(['token' => $token]);
+                } else {
+                    MeituanOpenToken::create([
+                        'shop_id' => $shop_id,
+                        'mt_shop_id' => $mt_shop_id,
+                        'token' => $token,
+                    ]);
+                }
+                $key = 'meituan:open:token:' . $shop_id;
+                Cache::put($key, $token);
             } else {
-                MeituanOpenToken::create([
-                    'shop_id' => $shop_id,
-                    'mt_shop_id' => $mt_shop_id,
-                    'token' => $token,
-                ]);
+                $this->log("绑定门店不存在");
             }
-            $key = 'meituan:open:token:' . $shop_id;
-            Cache::put($key, $token);
         }
 
         return json_encode(['data' => 'OK']);
