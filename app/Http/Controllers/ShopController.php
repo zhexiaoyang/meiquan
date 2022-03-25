@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtShop;
+use App\Libraries\MeiTuanKaiFang\Tool;
 use App\Models\Shop;
 use App\Models\ShopRange;
 use App\Models\ShopThreeId;
@@ -103,6 +104,8 @@ class ShopController extends Controller
         if (!empty($shops)) {
             foreach ($shops as $shop) {
                 $tmp['id'] = $shop->id;
+                $tmp['category'] = $shop->category;
+                $tmp['category_second'] = $shop->second_category;
                 $tmp['shop_name'] = $shop->shop_name;
                 $tmp['shop_address'] = $shop->shop_address;
                 $tmp['shop_lng'] = $shop->shop_lng;
@@ -959,5 +962,20 @@ class ShopController extends Controller
         $apply->save();
 
         return $this->success($shop);
+    }
+
+    public function shop_auth_meituan_canyin(Request $request)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('参数错误');
+        }
+
+        if (!Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        $url = Tool::binding($shop_id);
+
+        return $this->success(['url' => $url]);
     }
 }
