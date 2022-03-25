@@ -269,7 +269,6 @@ class PrescriptionController extends Controller
                 }
             }
         }
-        Log::info("data", [$data]);
         return $this->success();
     }
 
