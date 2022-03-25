@@ -2,6 +2,8 @@
 
 namespace App\Libraries\MeiTuanKaiFang;
 
+use Illuminate\Support\Facades\Cache;
+
 class Tool
 {
     /**
@@ -59,7 +61,9 @@ class Tool
         // lq1gtktmr3ofrjny
         // 106792
         // 36cvt5p8joq0jiiw
+        $key = 'meituan:open:token:' . $shop_id;
         $params = [
+            'appAuthToken' => Cache::get($key),
             'developerId' => '106791',
             'businessId' => 2,
             'timestamp' => time(),
