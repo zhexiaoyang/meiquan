@@ -43,12 +43,12 @@ class Tool
         // 106792
         // 36cvt5p8joq0jiiw
         $params = [
-            'developerId' => '106792',
+            'developerId' => '106791',
             'businessId' => 2,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
         ];
-        $params['sign'] = self::get_sign($params, '36cvt5p8joq0jiiw');
+        $params['sign'] = self::get_sign($params, 'lq1gtktmr3ofrjny');
 
         return 'https://open-erp.meituan.com/storemap?' . Tool::concat_params($params);
     }
@@ -60,12 +60,12 @@ class Tool
         // 106792
         // 36cvt5p8joq0jiiw
         $params = [
-            'developerId' => '106792',
+            'developerId' => '106791',
             'businessId' => 2,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
         ];
-        $params['sign'] = self::get_sign($params, '36cvt5p8joq0jiiw');
+        $params['sign'] = self::get_sign($params, 'lq1gtktmr3ofrjny');
 
         return 'https://open-erp.meituan.com/releasebinding?' . Tool::concat_params($params);
     }

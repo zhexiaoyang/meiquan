@@ -75,6 +75,13 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("shops", "ContractController@shops");
         });
 
+        /**
+         * 门店管理
+         */
+        Route::prefix('shop')->group(function () {
+            Route::get('auth/meituankaifang', 'ShopController@shop_auth_meituan_canyin')->name('shop.shop_auth_meituan_canyin');
+        });
+
 
         // *修改密码验证码
         Route::post("auth/code", "AuthController@sms_password")->name("sms_password");
