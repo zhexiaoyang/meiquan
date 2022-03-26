@@ -168,7 +168,7 @@ class SaveMeiTuanOrder implements ShouldQueue
                         if (isset($cost->cost)) {
                             $cost_money += $cost->cost ?? 0;
                             $_tmp['vip_cost'] = $cost->cost;
-                            $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                            // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
                         } else {
                             $upc = $product['upc'];
                             Log::info("[保存外卖订单]-[成本价小于等于零]-[shop_id：{$this->shop_id}|upc：{$upc}]");
@@ -179,7 +179,7 @@ class SaveMeiTuanOrder implements ShouldQueue
             }
             if (!empty($items)) {
                 $order->vip_cost = $cost_money;
-                $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
+                // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
                 $order->save();
                 WmOrderItem::query()->insert($items);
                 Log::info("[保存外卖订单]-[成本价计算：{$cost_money}]-[shop_id：{$this->shop_id},order_id：{$order->order_id}]");
