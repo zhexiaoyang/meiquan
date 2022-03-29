@@ -149,6 +149,10 @@ class OrderController extends Controller
                             $vip_cost = $order->vip_cost - $dec_cost;
                             WmOrder::where('id', $order->id)->update(['vip_cost' => $vip_cost > 0 ? $vip_cost : 0]);
                         });
+                        if ($order->is_vip) {
+                            // 如果是VIP订单，触发结算JOB
+                            dispatch(new VipOrderSettlement($order));
+                        }
                     }
                 }
             }
