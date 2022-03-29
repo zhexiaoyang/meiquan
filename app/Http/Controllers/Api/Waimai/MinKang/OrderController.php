@@ -131,7 +131,7 @@ class OrderController extends Controller
                             foreach ($foods as $food) {
                                 $where['upc'] = $food['upc'];
                                 $count = $food['count'];
-                                if ($item = WmOrderItem::where($where)->first()) {
+                                if ($item = WmOrderItem::where($where)->where('quantity', '>', 0)->first()) {
                                     WmOrderItem::where('id', $item->id)->update([
                                         'quantity' => $item->quantity - $count,
                                         'refund_quantity' => $count,
