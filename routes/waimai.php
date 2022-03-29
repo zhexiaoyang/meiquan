@@ -32,6 +32,8 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     Route::post('order/rider', "OrderController@rider");
     // 推送已完成订单
     Route::post('order/finish', "OrderController@finish");
+    // 推送订单结算信息
+    Route::post('order/settlement', "OrderController@settlement");
     // 推送催单消息
     // Route::post('order/remind', "OrderController@remind");
     // 隐私号降级通知

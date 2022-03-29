@@ -262,7 +262,21 @@ class OrderController extends Controller
         }
         return json_encode(['data' => 'ok']);
     }
-    //
+
+    public function settlement(Request $request)
+    {
+        $order_id = $request->get('wm_order_id_view', '');
+        $status = $request->get('status', '');
+        if ($order_id && $status) {
+            $this->prefix = str_replace('###', "订单结算|订单号:{$order_id}|订单状态:{$status}", $this->prefix_title);
+            $this->log('全部参数', $request->all());
+            // if ($order = WmOrder::where('order_id', $order_id)->first()) {
+            //     $this->log('全部参数', $request->all());
+            // }
+        }
+
+        return json_encode(['data' => 'ok']);
+    }
     // public function remind(Request $request)
     // {
     //     $this->prefix .= '-[催单]';
