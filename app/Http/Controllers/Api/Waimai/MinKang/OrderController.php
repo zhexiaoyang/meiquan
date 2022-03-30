@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waimai\MinKang;
 use App\Http\Controllers\Controller;
 use App\Jobs\MeiTuanWaiMaiPicking;
 use App\Jobs\VipOrderSettlement;
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\VipProduct;
@@ -267,12 +268,16 @@ class OrderController extends Controller
     {
         $order_id = $request->get('order_id', '');
         $status = $request->get('status', '');
+        $fee = $request->get('settleAmount', '');
         if ($order_id && $status) {
             $this->prefix = str_replace('###', "订单结算|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             $this->log('全部参数', $request->all());
-            // if ($order = WmOrder::where('order_id', $order_id)->first()) {
-            //     $this->log('全部参数', $request->all());
-            // }
+            if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                if ($order->poi_receive !== $fee) {
+                    $dingding = new DingTalkRobotNotice("c957a526bb78093f61c61ef0693cc82aae34e079f4de3321ef14c881611204c4");
+                    $dingding->sendTextMsg("结算金额不一致,status:{$order->status},poi_receive:{$order->poi_receive},fee:{$fee},时间:".date("Y-m-d H:i:s"));
+                }
+            }
         }
 
         return json_encode(['data' => 'ok']);
