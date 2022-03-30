@@ -268,7 +268,7 @@ class OrderController extends Controller
         $order_id = $request->get('order_id', '');
         $status = $request->get('status', '');
         if ($order_id && $status) {
-            $this->prefix = str_replace('###', "订单结算|订单号:{$order_id}|订单状态:{$status}", $this->prefix_title);
+            $this->prefix = str_replace('###', "订单结算|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             $this->log('全部参数', $request->all());
             // if ($order = WmOrder::where('order_id', $order_id)->first()) {
             //     $this->log('全部参数', $request->all());
