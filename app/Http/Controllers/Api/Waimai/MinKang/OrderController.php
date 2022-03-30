@@ -112,7 +112,7 @@ class OrderController extends Controller
         if ($order_id = $request->get("order_id", "")) {
             $money = $request->get('money');
             $notify_type = $request->get('notify_type');
-            $this->prefix = str_replace('###', "部分退款|订单号:{$order_id}|类型:{$notify_type}", $this->prefix_title);
+            $this->prefix = str_replace('###', "部分退款|类型:{$notify_type}|订单号:{$order_id}", $this->prefix_title);
             $this->log('全部参数', $request->all());
             if (($notify_type == 'agree') && ($money > 0)) {
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
