@@ -265,7 +265,7 @@ class OrderController extends Controller
 
     public function settlement(Request $request)
     {
-        $order_id = $request->get('wm_order_id_view', '');
+        $order_id = $request->get('order_id', '');
         $status = $request->get('status', '');
         if ($order_id && $status) {
             $this->prefix = str_replace('###', "订单结算|订单号:{$order_id}|订单状态:{$status}", $this->prefix_title);
