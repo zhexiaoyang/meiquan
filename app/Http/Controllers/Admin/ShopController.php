@@ -385,7 +385,7 @@ class ShopController extends Controller
             $shop->mtwm = $mtwm;
             if ($shop->second_category == 200001) {
                 $shop->chufang_mt = $mtwm;
-                $shop->chufang_status = 2;
+                // $shop->chufang_status = 2;
             }
         }
         if (!is_null($ele)) {
@@ -397,7 +397,7 @@ class ShopController extends Controller
             $shop->ele = $ele;
             if ($shop->second_category == 200001) {
                 $shop->chufang_ele = $ele;
-                $shop->chufang_status = 2;
+                // $shop->chufang_status = 2;
             }
         }
         if (!is_null($jddj)) {
