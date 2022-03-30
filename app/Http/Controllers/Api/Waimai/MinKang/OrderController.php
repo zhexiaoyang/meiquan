@@ -275,7 +275,7 @@ class OrderController extends Controller
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($order->poi_receive !== $fee) {
                     $dingding = new DingTalkRobotNotice("c957a526bb78093f61c61ef0693cc82aae34e079f4de3321ef14c881611204c4");
-                    $dingding->sendTextMsg("结算金额不一致,status:{$order->status},poi_receive:{$order->poi_receive},fee:{$fee},时间:".date("Y-m-d H:i:s"));
+                    $dingding->sendTextMsg("结算金额不一致异常,status:{$order->status},poi_receive:{$order->poi_receive},fee:{$fee},时间:".date("Y-m-d H:i:s"));
                 }
             }
         }
