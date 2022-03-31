@@ -286,13 +286,16 @@ Route::middleware(["force-json"])->group(function() {
             Route::get('vip_order/statistics/internal', 'VipStatisticsController@internalStatistics');
             Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
             /**
-             * VIP门店
+             * VIP
              */
+            // VIP门店
             Route::get("vip_shop/all", "VipShopController@all");
             Route::resource('vip_shop', 'VipShopController', ["only" => ["index","store"]]);
-            /**
-             * VIP商品
-             */
+            // VIP商品异常
+            Route::get("vip_product/exception/statistics", "VipProductExceptionController@statistics");
+            Route::post("vip_product/exception/ignore", "VipProductExceptionController@ignore");
+            Route::resource('vip_product/exception', 'VipProductExceptionController', ["only" => ["index","update"]]);
+            // VIP商品
             Route::post('vip_product/import', 'VipProductController@import');
             Route::get('vip_product/export', 'VipProductController@export');
             Route::resource('vip_product', 'VipProductController', ["only" => ["index","store"]]);

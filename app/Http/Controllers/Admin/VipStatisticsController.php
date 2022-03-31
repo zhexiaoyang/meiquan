@@ -56,10 +56,10 @@ class VipStatisticsController extends Controller
                 if ($order->status == 18) {
                     $order_at = date('Y-m-d', strtotime($order->finish_at));
                     $order_total++;
-                    $order_sale += $order->poi_receive;
+                    $order_sale += ($order->poi_receive - $order->refund_fee);
                     $order_profit += $order->vip_total;
                     $data[$order_at]['有效订单']++;
-                    $data[$order_at]['销售额'] += $order->poi_receive;
+                    $data[$order_at]['销售额'] += ($order->poi_receive - $order->refund_fee);
                     $data[$order_at]['总利润'] += $order->vip_total;
                 }
             }
@@ -148,7 +148,7 @@ class VipStatisticsController extends Controller
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $res_data[$order->shop_id]['order']++;
-                $res_data[$order->shop_id]['sale'] += $order->poi_receive;
+                $res_data[$order->shop_id]['sale'] += ($order->poi_receive - $order->refund_fee);
                 $res_data[$order->shop_id]['profit'] += $order->vip_total;
                 $res_data[$order->shop_id]['shop_profit'] += $order->vip_business;
                 $res_data[$order->shop_id]['company_profit'] += $order->vip_company;
@@ -215,7 +215,7 @@ class VipStatisticsController extends Controller
             foreach ($orders as $order) {
                 if (isset($res_data[$order->shop->manager_id])) {
                     $res_data[$order->shop->manager_id]['order']++;
-                    $res_data[$order->shop->manager_id]['sale'] += $order->poi_receive;
+                    $res_data[$order->shop->manager_id]['sale'] += ($order->poi_receive - $order->refund_fee);
                     $res_data[$order->shop->manager_id]['profit'] += $order->vip_total;
                     $res_data[$order->shop->manager_id]['shop_profit'] += $order->vip_business;
                     $res_data[$order->shop->manager_id]['manager_profit'] += $order->vip_city;
@@ -308,7 +308,7 @@ class VipStatisticsController extends Controller
             foreach ($orders as $order) {
                 if (isset($res_data[$order->shop->operate_id])) {
                     $res_data[$order->shop->operate_id]['order']++;
-                    $res_data[$order->shop->operate_id]['sale'] += $order->poi_receive;
+                    $res_data[$order->shop->operate_id]['sale'] += ($order->poi_receive - $order->refund_fee);
                     $res_data[$order->shop->operate_id]['profit'] += $order->vip_total;
                     $res_data[$order->shop->operate_id]['shop_profit'] += $order->vip_business;
                     $res_data[$order->shop->operate_id]['operate_profit'] += $order->vip_operate;
@@ -401,7 +401,7 @@ class VipStatisticsController extends Controller
             foreach ($orders as $order) {
                 if (isset($res_data[$order->shop->internal_id])) {
                     $res_data[$order->shop->internal_id]['order']++;
-                    $res_data[$order->shop->internal_id]['sale'] += $order->poi_receive;
+                    $res_data[$order->shop->internal_id]['sale'] += ($order->poi_receive - $order->refund_fee);
                     $res_data[$order->shop->internal_id]['profit'] += $order->vip_total;
                     $res_data[$order->shop->internal_id]['shop_profit'] += $order->vip_business;
                     $res_data[$order->shop->internal_id]['internal_profit'] += $order->vip_internal;
