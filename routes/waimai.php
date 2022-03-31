@@ -44,6 +44,10 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // Route::post('shop/bind', "ShopController@bind");
     // 门店解绑
     // Route::post('shop/unbound', "ShopController@unbound");
+    // 创建商品
+    Route::post('product/create', "ProductController@create");
+    Route::post('product/update', "ProductController@update");
+    Route::post('product/delete', "ProductController@delete");
 });
 
 /**
