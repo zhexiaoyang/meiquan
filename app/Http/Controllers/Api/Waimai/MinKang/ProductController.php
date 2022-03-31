@@ -11,7 +11,9 @@ class ProductController extends Controller
 
     public function create(Request $request)
     {
-        $app_poi_code = $request->get('app_poi_code');
+        $medicine_data = $request->get('medicine_data');
+        $data = json_decode($medicine_data, true);
+        $app_poi_code = $data['app_poi_code'] ?? '';
 
         if ($app_poi_code) {
             $this->prefix = str_replace('###', "创建商品|门店ID:{$app_poi_code}", $this->prefix_title);
@@ -22,7 +24,9 @@ class ProductController extends Controller
 
     public function update(Request $request)
     {
-        $app_poi_code = $request->get('app_poi_code');
+        $medicine_data = $request->get('medicine_data');
+        $data = json_decode($medicine_data, true);
+        $app_poi_code = $data['app_poi_code'] ?? '';
 
         if ($app_poi_code) {
             $this->prefix = str_replace('###', "修改商品|门店ID:{$app_poi_code}", $this->prefix_title);
@@ -33,7 +37,9 @@ class ProductController extends Controller
 
     public function delete(Request $request)
     {
-        $app_poi_code = $request->get('app_poi_code');
+        $medicine_data = $request->get('medicine_data');
+        $data = json_decode($medicine_data, true);
+        $app_poi_code = $data['app_poi_code'] ?? '';
 
         if ($app_poi_code) {
             $this->prefix = str_replace('###', "删除商品|门店ID:{$app_poi_code}", $this->prefix_title);
