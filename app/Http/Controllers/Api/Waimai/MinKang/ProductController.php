@@ -11,6 +11,7 @@ class ProductController extends Controller
 
     public function create(Request $request)
     {
+        $this->log('创建商品全部参数', $request->all());
         $medicine_data = $request->get('medicine_data');
         $data = json_decode($medicine_data, true);
         $app_poi_code = $data['app_poi_code'] ?? '';
@@ -24,6 +25,7 @@ class ProductController extends Controller
 
     public function update(Request $request)
     {
+        $this->log('修改商品全部参数', $request->all());
         $medicine_data = $request->get('medicine_data');
         $data = json_decode($medicine_data, true);
         $app_poi_code = $data['app_poi_code'] ?? '';
@@ -37,6 +39,7 @@ class ProductController extends Controller
 
     public function delete(Request $request)
     {
+        $this->log('删除商品全部参数', $request->all());
         $medicine_data = $request->get('medicine_data');
         $data = json_decode($medicine_data, true);
         $app_poi_code = $data['app_poi_code'] ?? '';
