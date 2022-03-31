@@ -114,9 +114,9 @@ class OrderController extends Controller
             $money = $request->get('money');
             $notify_type = $request->get('notify_type');
             $this->prefix = str_replace('###', "部分退款|类型:{$notify_type}|订单号:{$order_id}", $this->prefix_title);
-            $this->log('全部参数', $request->all());
             if (($notify_type == 'agree') && ($money > 0)) {
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    $this->log('全部参数', $request->all());
                     WmOrder::where('id', $order->id)->update([
                         'refund_status' => 2,
                         'refund_fee' => $money,
