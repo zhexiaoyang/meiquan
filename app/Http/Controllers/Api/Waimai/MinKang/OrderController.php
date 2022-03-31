@@ -271,12 +271,14 @@ class OrderController extends Controller
         $fee = $request->get('settleAmount', '');
         if ($order_id && $status) {
             $this->prefix = str_replace('###', "订单结算|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
-            $this->log('全部参数', $request->all());
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                $this->log('VIP全部参数', $request->all());
                 if (floatval($order->poi_receive) != floatval($fee)) {
                     $dingding = new DingTalkRobotNotice("c957a526bb78093f61c61ef0693cc82aae34e079f4de3321ef14c881611204c4");
                     $dingding->sendTextMsg("结算金额不一致异常,status:{$status},order_id:{$order_id},poi_receive:{$order->poi_receive},fee:{$fee},时间:".date("Y-m-d H:i:s"));
                 }
+            } else {
+                $this->log('全部参数', $request->all());
             }
         }
 
