@@ -434,6 +434,11 @@ class OrderController extends Controller
             } else {
                 $this->log("订单状态不正确，不能取消。订单状态：{$order->status}");
             }
+            if ($order_pt = Order::where('order_id', $order_id)->first()) {
+                // 取消跑腿订单
+                $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+                $dingding->sendTextMsg("餐饮服务商取消跑腿订单，订单号:{$order_id}");
+            }
         }
 
         return json_encode(['data' => 'OK']);
