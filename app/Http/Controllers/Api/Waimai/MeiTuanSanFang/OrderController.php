@@ -25,7 +25,7 @@ class OrderController extends Controller
         }
         $data = json_decode($data, true);
         $order_id = $data['orderId'];
-        $pick_type = $data['pickType'];
+        $pick_type = $data['pickType'] ?? 0;
         $delivery_time = $data['deliveryTime'];
         $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
         $this->log('全部参数', $data);
