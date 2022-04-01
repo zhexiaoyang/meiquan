@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
 use App\Http\Controllers\Controller;
 use App\Libraries\DingTalk\DingTalkRobotNotice;
+use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
@@ -23,6 +25,8 @@ class OrderController extends Controller
         }
         $data = json_decode($data, true);
         $order_id = $data['orderId'];
+        $pick_type = $data['pickType'];
+        $delivery_time = $data['deliveryTime'];
         $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
         $this->log('全部参数', $data);
 
@@ -161,6 +165,46 @@ class OrderController extends Controller
             return $order;
         });
 
+        // 创建跑腿订单
+        if ($pick_type == 0) {
+            $order_pt = [
+                'delivery_id' => $order_id,
+                'user_id' => $shop->user_id,
+                'order_id' => $order_id,
+                'shop_id' => $shop->id,
+                'delivery_service_code' => "4011",
+                'receiver_name' => $data['recipientName'] ?? "无名客人",
+                'receiver_address' => $data['recipientAddressDesensitization'],
+                'receiver_phone' => $data['recipientPhone'],
+                'receiver_lng' => $data['longitude'],
+                'receiver_lat' => $data['latitude'],
+                'coordinate_type' => 0,
+                'goods_value' => $data['total'],
+                'goods_weight' => 3,
+                'day_seq' => $data['daySeq'] ?? 0,
+                'platform' => 1,
+                // type=8，美团开放-餐饮
+                'type' => 8,
+                'status' => 0,
+                'order_type' => 0
+            ];
+            // 判断是否预约单
+            if ($delivery_time > 0) {
+                $order_pt['order_type'] = 1;
+                $order_pt['expected_pickup_time'] = $delivery_time - 3600;
+                $order_pt['expected_delivery_time'] = $delivery_time;
+            }
+            $order_pt = new Order($order_pt);
+            // 保存订单
+            if ($order_pt->save()) {
+                OrderLog::create([
+                    "order_id" => $order_pt->id,
+                    "des" => "（美团外卖）自动创建跑腿订单：{$order_pt->order_id}"
+                ]);
+            }
+        }
+
+        // 操作接单
         if ($order) {
             $mt = app('mtkf');
             $res = $mt->order_confirm($order->order_id, $order->app_poi_code);
