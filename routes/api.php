@@ -46,6 +46,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::resource('vip_shop', 'VipShopController', ["only" => ["index"]]);
         // VIP商品
         Route::resource('vip_product', 'VipProductController', ["only" => ["index"]]);
+        // 账单
+        Route::resource('vip/bill', 'VipBillController', ["only" => ["index","show"]]);
         /**
          * 【快递订单】
          */
@@ -299,6 +301,9 @@ Route::middleware(["force-json"])->group(function() {
             Route::post('vip_product/import', 'VipProductController@import');
             Route::get('vip_product/export', 'VipProductController@export');
             Route::resource('vip_product', 'VipProductController', ["only" => ["index","store"]]);
+            // VIP账单
+            Route::get('vip/bill/reset/{bill}', 'VipBillController@reset');
+            Route::resource('vip/bill', 'VipBillController', ["only" => ["index","show"]]);
             /**
              * 【外卖订单管理】
              */
