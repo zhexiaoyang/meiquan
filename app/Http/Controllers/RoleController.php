@@ -29,7 +29,7 @@ class RoleController extends Controller
 
         $roles = $query->orderBy('id', 'desc')->paginate($page_size);
 
-        return $this->page($roles);
+        return $this->success($roles);
     }
 
     /**

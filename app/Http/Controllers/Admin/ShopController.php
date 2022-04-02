@@ -196,11 +196,7 @@ class ShopController extends Controller
             }
         }
 
-        $result['page'] = $shops->currentPage();
-        $result['total'] = $shops->total();
-        $result['list'] = $data;
-
-        return $this->success($result);
+        return $this->page($shops, $data);
     }
 
     public function all(Request $request)

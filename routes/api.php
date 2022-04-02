@@ -277,16 +277,10 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
-             * VIP订单
+             * 跑腿设置
              */
-            Route::get('vip_order/export_order', 'VipOrderController@export_order');
-            Route::get('vip_order/export_product', 'VipOrderController@export_product');
-            Route::get('vip_order/statistics', 'VipStatisticsController@orderStatistics');
-            Route::get('vip_order/statistics/shop', 'VipStatisticsController@shopStatistics');
-            Route::get('vip_order/statistics/manager', 'VipStatisticsController@managerStatistics');
-            Route::get('vip_order/statistics/operate', 'VipStatisticsController@operateStatistics');
-            Route::get('vip_order/statistics/internal', 'VipStatisticsController@internalStatistics');
-            Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
+            Route::get('shop/setting', 'ShopSettingController@show');
+            Route::post("shop/setting", "ShopSettingController@update");
             /**
              * VIP
              */
@@ -304,6 +298,15 @@ Route::middleware(["force-json"])->group(function() {
             // VIP账单
             Route::get('vip/bill/reset/{bill}', 'VipBillController@reset');
             Route::resource('vip/bill', 'VipBillController', ["only" => ["index","show"]]);
+            // VIP订单
+            Route::get('vip_order/export_order', 'VipOrderController@export_order');
+            Route::get('vip_order/export_product', 'VipOrderController@export_product');
+            Route::get('vip_order/statistics', 'VipStatisticsController@orderStatistics');
+            Route::get('vip_order/statistics/shop', 'VipStatisticsController@shopStatistics');
+            Route::get('vip_order/statistics/manager', 'VipStatisticsController@managerStatistics');
+            Route::get('vip_order/statistics/operate', 'VipStatisticsController@operateStatistics');
+            Route::get('vip_order/statistics/internal', 'VipStatisticsController@internalStatistics');
+            Route::resource('vip_order', 'VipOrderController', ["only" => ["index","show"]]);
             /**
              * 【外卖订单管理】
              */
@@ -577,7 +580,6 @@ Route::middleware(["force-json"])->group(function() {
         // 用户
         Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man");
 
-
         /**
          * 资源路由
          */
@@ -589,6 +591,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("/shop/delete/{shop}", "ShopController@delete")->name("shop.delete");
         // 可以看到的所有门店
         Route::get("shopAll", "ShopController@shopAll")->name("shop.shopAll");
+        Route::get("shop/list/search", "ShopController@get_shop_search")->name("shop.list.search");
         // 个人中心-商城余额-微信支付-公众号user/balance
         // Route::post("deposit/shop/wechat/mp", "DepositController@shopWechatMp");
         // 个人中心-商城余额-微信支付-扫码

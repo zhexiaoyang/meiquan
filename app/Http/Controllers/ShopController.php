@@ -267,6 +267,26 @@ class ShopController extends Controller
         return $this->success($shops);
     }
 
+    public function get_shop_search(Request $request)
+    {
+        $shops = [];
+        $name = $request->get('name');
+
+        if ($name) {
+            $query = Shop::select("id", "shop_name");
+
+            $query->where('shop_name', 'like', "%{$name}%");
+
+            if (!$request->user()->hasRole('super_man')) {
+                $query->whereIn('id', $request->user()->shops()->pluck('id'));
+            }
+
+            $shops = $query->orderBy('id', 'desc')->get();
+        }
+
+        return $this->success($shops);
+    }
+
     // 添加用户返回没有绑定的门店
     public function wei()
     {
