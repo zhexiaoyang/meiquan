@@ -118,6 +118,8 @@ return [
     "order_ttl" => 480,
     "order_delay_ttl" => 60,
     "shop_setting" => [
+        // 呼叫模式，1 自动，2 手动
+        'call' => 1,
         // 延时发送订单，单位：秒
         'delay_send' => 60,
         // 检查订单重新发送，单位：分钟
