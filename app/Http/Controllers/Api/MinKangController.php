@@ -26,13 +26,13 @@ class MinKangController
                 return json_encode(['data' => 'ok']);
             }
 
-            if (Order::query()->where("order_id", $mt_order_id)->first()) {
+            if (Order::where("order_id", $mt_order_id)->first()) {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：民康平台异常-订单已存在");
                 return json_encode(['data' => 'ok']);
             }
 
             // 创建跑腿订单
-            if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
+            if ($shop = Shop::where("mt_shop_id", $mt_shop_id)->first()) {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：正在创建跑腿订单");
                 $mt_status = $request->get("status", 0);
                 $pick_type = $request->get("pick_type", 0);
@@ -139,13 +139,16 @@ class MinKangController
             }
 
             // 创建外卖订单
-            if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+            if (!$shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+                $shop = Shop::where('mt_shop_id', $mt_shop_id)->first();
+            }
+            if ($shop) {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：集中接单");
                 dispatch(new SaveMeiTuanOrder($request->all(), 1, 1, $shop->id, 1,'','', $shop->vip_status));
             }
 
             // 推送ERP
-            if ($erp_shop = ErpAccessShop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
+            if ($erp_shop = ErpAccessShop::where("mt_shop_id", $mt_shop_id)->first()) {
                 if ($erp_shop->access_id === 4) {
                     Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：推送ERP开始");
                     dispatch(new SendOrderToErp($request->all(), $erp_shop->id));
