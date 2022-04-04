@@ -41,13 +41,13 @@ class MeiTuanMeiquanController extends Controller
             return json_encode(['data' => 'ok']);
         }
 
-        if (Order::query()->where("order_id", $mt_order_id)->first()) {
+        if (Order::where("order_id", $mt_order_id)->first()) {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团服务商异常-订单已存在");
             return json_encode(['data' => 'ok']);
         }
 
         // 创建跑腿订单
-        if ($shop = Shop::query()->where("mt_shop_id", $mt_shop_id)->first()) {
+        if ($shop = Shop::where("mt_shop_id", $mt_shop_id)->first()) {
             // 药柜订单是否创建成功，1 非药柜订单，10 药柜下单成功，30 药柜下单失败，创建失败跑腿不发单
             $g_status = 1;
             $g_order_id = '';
@@ -205,7 +205,10 @@ class MeiTuanMeiquanController extends Controller
 
 
         // 创建外卖订单
-        if ($shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+        if (!$shop = Shop::where('waimai_mt', $mt_shop_id)->first()) {
+            $shop = Shop::where('mt_shop_id', $mt_shop_id)->first();
+        }
+        if ($shop) {
             Log::info("【外卖-美团服务商】（{$mt_order_id}）：集中接单");
             dispatch(new SaveMeiTuanOrder($request->all(), 1, 2, $shop->id, $g_status, $g_order_id, $g_error));
         }
@@ -218,8 +221,8 @@ class MeiTuanMeiquanController extends Controller
         \Log::info("[外卖-美团服务商]-[推送用户或客服取消订单回调]-全部参数：", $request->all());
         $order_id = $request->get("order_id", "");
 
-        if ($order = Order::query()->where("order_id", $order_id)->first()) {
-            $order = Order::query()->where('order_id', $order_id)->first();
+        if ($order = Order::where("order_id", $order_id)->first()) {
+            // $order = Order::where('order_id', $order_id)->first();
             \Log::info("[外卖-美团服务商-接口取消订单]-[订单号: {$order_id}]-开始");
 
             if (!$order) {
@@ -254,7 +257,7 @@ class MeiTuanMeiquanController extends Controller
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -315,7 +318,7 @@ class MeiTuanMeiquanController extends Controller
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -381,7 +384,7 @@ class MeiTuanMeiquanController extends Controller
                                 }
 
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -390,7 +393,7 @@ class MeiTuanMeiquanController extends Controller
                                     "description" => "（美团）取消闪送跑腿订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -453,7 +456,7 @@ class MeiTuanMeiquanController extends Controller
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -507,7 +510,7 @@ class MeiTuanMeiquanController extends Controller
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -567,7 +570,7 @@ class MeiTuanMeiquanController extends Controller
                                 }
                                 // 当前用户
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -576,7 +579,7 @@ class MeiTuanMeiquanController extends Controller
                                     "description" => "（美团外卖）取消UU跑腿订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -643,7 +646,7 @@ class MeiTuanMeiquanController extends Controller
                                 \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
                                 // 当前用户
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -653,7 +656,7 @@ class MeiTuanMeiquanController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
