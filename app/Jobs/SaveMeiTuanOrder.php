@@ -152,13 +152,14 @@ class SaveMeiTuanOrder implements ShouldQueue
             // 组合商品数组，计算成本价
             if (!empty($products)) {
                 foreach ($products as $product) {
+                    $quantity = $product['quantity'] ?? 0;
                     $_tmp = [
                         'order_id' => $order->id,
                         'app_food_code' => $product['app_food_code'] ?? '',
                         'food_name' => $product['food_name'] ?? '',
                         'unit' => $product['unit'] ?? '',
                         'upc' => $product['upc'] ?? '',
-                        'quantity' => $product['quantity'] ?? 0,
+                        'quantity' => $quantity,
                         'price' => $product['price'] ?? 0,
                         'spec' => $product['spec'] ?? '',
                         'vip_cost' => 0
@@ -166,8 +167,9 @@ class SaveMeiTuanOrder implements ShouldQueue
                     if ($this->vip) {
                         $cost = VipProduct::select('cost')->where(['upc' => $product['upc'], 'shop_id' => $this->shop_id])->first();
                         if (isset($cost->cost)) {
-                            $cost_money += $cost->cost ?? 0;
-                            $_tmp['vip_cost'] = $cost->cost;
+                            $cost = $cost->cost ?? 0;
+                            $cost_money += ($cost * $quantity);
+                            $_tmp['vip_cost'] = $cost;
                             // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
                         } else {
                             $upc = $product['upc'];
