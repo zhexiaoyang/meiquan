@@ -30,7 +30,7 @@ class OrderController extends Controller
                 $meituan = app("minkang");
                 $res = $meituan->orderConfirm($order_id);
                 $this->log("订单号：{$order_id}|操作接单返回信息", $res);
-                dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
+                // dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
             }
         }
 
