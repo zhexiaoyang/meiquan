@@ -238,8 +238,8 @@ class OrderController extends Controller
         if (($order->status >= 20) && ($order->status <= 70)) {
             return $this->error("订单状态不正确，请先取消订单在重新发送");
         }
-        if ($order->status == 8) {
-            return $this->error("订单即将发送");
+        if (($order->status == 8) && ((time() - strtotime($order->created_at)) < 120)) {
+            return $this->error("订单创建时间小于2分钟，不能重新发送");
         }
         if (($order->status == 0) && ((time() - strtotime($order->created_at)) < 120)) {
             return $this->error("订单创建时间小于2分钟，不能重新发送");
