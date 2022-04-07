@@ -79,7 +79,7 @@ Route::middleware(['force-json'])->prefix('meituan/meiquan')->namespace('Api\Wai
 });
 
 /**
- * 美全科技-美团三方开发者-餐饮服务商
+ * 美全科技-美团三方开发者-【餐饮、闪购等】服务商
  */
 Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Waimai\MeiTuanSanFang')->group(function () {
     // 推送美配订单配送状态回调
@@ -98,6 +98,17 @@ Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Wai
     Route::post('shop/bind', "ShopController@bind");
     // 门店解绑
     Route::post('shop/unbound', "ShopController@unbound");
+});
+/**
+ * 美全科技-美团三方开发者-【餐饮、闪购等】服务商-【非接单】
+ */
+Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Waimai\MeiTuanSanFang')->group(function () {
+    // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/order
+    // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/rider
+    // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/marketing
+    Route::post('fei/order', "FeiController@order");
+    Route::post('fei/rider', "FeiController@rider");
+    Route::post('fei/marketing', "FeiController@marketing");
 });
 
 /**
