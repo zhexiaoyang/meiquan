@@ -12,7 +12,7 @@ class FeiController extends Controller
     public function order(Request $request)
     {
         $this->prefix_title = str_replace('###', '订单', $this->prefix_title);
-        $this->log('全部参数', $request->all());
+        $this->log('美团外卖三方服务商非接单回调-订单', $request->all());
         // if (!$data = $request->get('message')) {
         //     return json_encode(['data' => 'OK']);
         // }
@@ -27,7 +27,7 @@ class FeiController extends Controller
     public function rider(Request $request)
     {
         $this->prefix_title = str_replace('###', '配送状态', $this->prefix_title);
-        $this->log('全部参数', $request->all());
+        $this->log('美团外卖三方服务商非接单回调-配送', $request->all());
         // if (!$data = $request->get('message')) {
         //     return json_encode(['data' => 'OK']);
         // }
@@ -42,7 +42,7 @@ class FeiController extends Controller
     public function marketing(Request $request)
     {
         $this->prefix_title = str_replace('###', '营销任务', $this->prefix_title);
-        $this->log('全部参数', $request->all());
+        $this->log('美团外卖三方服务商非接单回调-营销', $request->all());
         // if (!$data = $request->get('message')) {
         //     return json_encode(['data' => 'OK']);
         // }
