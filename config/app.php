@@ -178,6 +178,7 @@ return [
 
         SMartins\PassportMultiauth\Providers\MultiauthServiceProvider::class,
         Laravel\Passport\PassportServiceProvider::class,
+        App\Providers\HorizonServiceProvider::class,
 
     ],
 
