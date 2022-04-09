@@ -25,7 +25,7 @@ class MinKangController
             if (!$mt_shop_id || !$mt_order_id) {
                 return json_encode(['data' => 'ok']);
             }
-            Log::info("民康已确认订单-全部参数", $request->all());
+            // Log::info("民康已确认订单-全部参数", $request->all());
 
             if (Order::where("order_id", $mt_order_id)->first()) {
                 Log::info("【民康平台-推送已确认订单】（{$mt_order_id}）：民康平台异常-订单已存在");
