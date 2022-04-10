@@ -256,27 +256,29 @@ class OrderConfirmController
                 $setting = OrderSetting::where('shop_id', $shop->id)->first();
                 // 判断是否发单
                 $this->log_info("-开始派单");
-                if ($pick_type == 0) {
-                    if ($order_pt->order_type) {
-                        $this->log_info("-预约单");
-                        $qu = 2400;
-                        if ($order_pt->distance <= 2) {
-                            $qu = 1800;
+                if ($shop->mt_shop_id) {
+                    if ($pick_type == 0) {
+                        if ($order_pt->order_type) {
+                            $this->log_info("-预约单");
+                            $qu = 2400;
+                            if ($order_pt->distance <= 2) {
+                                $qu = 1800;
+                            }
+                            dispatch(new PushDeliveryOrder($order_pt, ($order_pt->expected_delivery_time - time() - $qu)));
+                            $this->log_info("-预约单派单成功，{$qu}秒后发单");
+                        } else {
+                            $order_pt->send_at = date("Y-m-d H:i:s");
+                            $order_pt->status = 8;
+                            $order_pt->save();
+                            $delay = $setting->delay_send ?? 0;
+                            $delay = $delay > 60 ? $delay : config("ps.order_delay_ttl");
+                            dispatch(new CreateMtOrder($order_pt, $delay));
+                            $this->log_info("-派单成功，{$delay}秒后发单");
                         }
-                        dispatch(new PushDeliveryOrder($order_pt, ($order_pt->expected_delivery_time - time() - $qu)));
-                        $this->log_info("-预约单派单成功，{$qu}秒后发单");
                     } else {
-                        $order_pt->send_at = date("Y-m-d H:i:s");
-                        $order_pt->status = 8;
-                        $order_pt->save();
-                        $delay = $setting->delay_send ?? 0;
-                        $delay = $delay > 60 ? $delay : config("ps.order_delay_ttl");
-                        dispatch(new CreateMtOrder($order_pt, $delay));
-                        $this->log_info("-派单成功，{$delay}秒后发单");
+                        // 到店自取 ？？？ ， 更改状态，不在新订单列表里面显示
+                        $this->log_info('-到店自取，不发单');
                     }
-                } else {
-                    // 到店自取 ？？？ ， 更改状态，不在新订单列表里面显示
-                    $this->log_info('-到店自取，不发单');
                 }
                 // 打印订单
                 if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
