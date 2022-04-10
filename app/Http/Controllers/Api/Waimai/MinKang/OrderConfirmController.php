@@ -244,6 +244,10 @@ class OrderConfirmController
                     $order_pt_data['expected_pickup_time'] = $delivery_time - 3600;
                     $order_pt_data['expected_delivery_time'] = $delivery_time;
                 }
+                // 判断是否自动发单
+                if ($shop->mt_shop_id) {
+                    $order_pt_data['status'] = 7;
+                }
                 // 创建跑腿订单
                 $order_pt_data['wm_id'] = $order_wm->id;
                 $order_pt = Order::create($order_pt_data);
@@ -279,6 +283,8 @@ class OrderConfirmController
                         // 到店自取 ？？？ ， 更改状态，不在新订单列表里面显示
                         $this->log_info('-到店自取，不发单');
                     }
+                } else {
+                    $this->log_info('-未开通自动派单');
                 }
                 // 打印订单
                 if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
