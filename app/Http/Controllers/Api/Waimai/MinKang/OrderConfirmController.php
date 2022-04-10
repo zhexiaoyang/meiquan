@@ -44,13 +44,13 @@ class OrderConfirmController
             }
             /********************* 判断订单是否存在 *********************/
             if (Order::where("order_id", $mt_order_id)->first()) {
-                $this->notice('订单已存在');
+                $this->log_info('订单已存在');
                 return json_encode(['data' => 'ok']);
             }
             /********************* 查找门店 *********************/
             if (!$shop = Shop::where("waimai_mt", $mt_shop_id)->first()) {
                 if (!$shop = Shop::where("mt_shop_id", $mt_shop_id)->first()) {
-                    $this->notice('没有找到门店');
+                    $this->log_info('没有找到门店');
                     return json_encode(['data' => 'ok']);
                 }
             }
@@ -223,8 +223,8 @@ class OrderConfirmController
                     'receiver_name' => urldecode($data['recipient_name'] ?? '') ?: "无名客人",
                     "receiver_address" => urldecode($data['recipient_address']),
                     'receiver_phone' => $data['recipient_phone'] ?? '',
-                    "receiver_lng" => $data['latitude'],
-                    "receiver_lat" => $data['longitude'],
+                    "receiver_lng" => $data['longitude'],
+                    "receiver_lat" => $data['latitude'],
                     'coordinate_type' => 0,
                     "goods_value" => $data['total'],
                     // 'goods_weight' => $weight <= 0 ? rand(10, 50) / 10 : $weight/1000,
