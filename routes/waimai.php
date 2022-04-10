@@ -21,7 +21,7 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送已支付订单
     Route::post('order/create', "OrderController@create");
     // 推送已确认订单
-    // Route::post('order/confirm', "OrderController@confirm");
+    Route::post('order/confirm', "OrderConfirmController@confirm");
     // 推送用户或客服取消订单
     Route::post('order/cancel', "OrderController@cancel");
     // 推送全额退款信息

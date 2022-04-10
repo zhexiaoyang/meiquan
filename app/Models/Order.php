@@ -25,7 +25,9 @@ class Order extends Model
         99 => '已取消'
     ];
 
-    protected $fillable = ['delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
+    protected $fillable = [
+        'wm_poi_name','wm_id',
+        'delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
         'receiver_address','receiver_phone','receiver_lng','receiver_lat','coordinate_type','goods_value',
         'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info','goods_delivery_info',
         'expected_pickup_time','expected_delivery_time','order_type','day_seq','platform','note','type','status','failed',
@@ -36,7 +38,8 @@ class Order extends Model
         'mqd_status','money_mqd','fail_mqd','dd_status','money_dd','fail_dd',
         'uu_status','money_uu','fail_uu','money_uu_total','money_uu_need',
         'courier_lng', 'courier_lat','pay_status','pay_at','refund_at','add_money','manager_money',
-        'receive_at','take_at','over_at','cancel_at','push_at','created_at','updated_at'];
+        'receive_at','take_at','over_at','cancel_at','push_at','created_at','updated_at'
+    ];
 
     public function shop() {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
