@@ -260,6 +260,16 @@ class OrderController extends Controller
             } else {
                 $this->log("订单号：{$order_id}|订单不存在");
             }
+            if ($order_pt = Order::where('order_id', $order_id)->first()) {
+                if ($order_pt->status == 0) {
+                    $order_pt->status = 70;
+                    $order_pt->save();
+                    OrderLog::create([
+                        "order_id" => $order_pt->id,
+                        "des" => "「美团外卖」完成订单"
+                    ]);
+                }
+            }
         }
         return json_encode(['data' => 'ok']);
     }

@@ -247,7 +247,7 @@ class OrderController extends Controller
 
         if ($request->get("mt", 0) === 0) {
             if (!$order->fail_mt) {
-                $order->fail_mt = '重新发送订单-不选择';
+                $order->fail_mt = '重新呼叫-不选择';
             }
         } else {
             $order->mt_status = 0;
@@ -256,7 +256,7 @@ class OrderController extends Controller
 
         if ($request->get("fn", 0) === 0) {
             if (!$order->fail_fn) {
-                $order->fail_fn = '重新发送订单-不选择';
+                $order->fail_fn = '重新呼叫-不选择';
             }
         } else {
             $order->fn_status = 0;
@@ -265,7 +265,7 @@ class OrderController extends Controller
 
         if ($request->get("ss", 0) === 0) {
             if (!$order->fail_ss) {
-                $order->fail_ss = '重新发送订单-不选择';
+                $order->fail_ss = '重新呼叫-不选择';
             }
         } else {
             $order->ss_status = 0;
@@ -274,7 +274,7 @@ class OrderController extends Controller
 
         if ($request->get("sf", 0) === 0) {
             if (!$order->fail_sf) {
-                $order->fail_sf = '重新发送订单-不选择';
+                $order->fail_sf = '重新呼叫-不选择';
             }
         } else {
             $order->sf_status = 0;
@@ -283,7 +283,7 @@ class OrderController extends Controller
 
         if ($request->get("mqd", 0) === 0) {
             if (!$order->fail_mqd) {
-                $order->fail_mqd = '重新发送订单-不选择';
+                $order->fail_mqd = '重新呼叫-不选择';
             }
         } else {
             $order->mqd_status = 0;
@@ -292,7 +292,7 @@ class OrderController extends Controller
 
         if ($request->get("dd", 0) === 0) {
             if (!$order->fail_dd) {
-                $order->fail_dd = '重新发送订单-不选择';
+                $order->fail_dd = '重新呼叫-不选择';
             }
         } else {
             $order->dd_status = 0;
@@ -301,25 +301,22 @@ class OrderController extends Controller
 
         if ($request->get("uu", 0) === 0) {
             if (!$order->fail_uu) {
-                $order->fail_uu = '重新发送订单-不选择';
+                $order->fail_uu = '重新呼叫-不选择';
             }
         } else {
             $order->uu_status = 0;
             $order->fail_uu = '';
         }
 
-        $order->status = 0;
+        $order->status = 8;
         $order->ps = 0;
-
         $order->save();
-
         $order = Order::find($order_id);
 
         dispatch(new CreateMtOrder($order));
-
         OrderLog::create([
             "order_id" => $order->id,
-            "des" => "重新发送跑腿订单"
+            "des" => "重新呼叫跑腿"
         ]);
 
         return $this->success("发送成功");

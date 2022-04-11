@@ -245,9 +245,9 @@ class OrderConfirmController
                     $order_pt_data['expected_delivery_time'] = $delivery_time;
                 }
                 // 判断是否自动发单
-                if (!$shop->mt_shop_id) {
-                    $order_pt_data['status'] = 7;
-                }
+                // if (!$shop->mt_shop_id) {
+                //     $order_pt_data['status'] = 7;
+                // }
                 // 创建跑腿订单
                 $order_pt_data['wm_id'] = $order_wm->id;
                 $order_pt = Order::create($order_pt_data);
