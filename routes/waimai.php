@@ -18,19 +18,19 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
 Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Waimai\MeiTuanWaiMai')->group(function () {
     // https://psapi.meiquanda.com/api/waimai/meituan/callback/order/confirm/4
     // 推送已支付订单
-    Route::post('order/create', "OrderController@create");
+    Route::post('order/create/{platform}', "OrderController@create");
     // 全部退款
-    Route::post('order/refund', "OrderController@refund");
+    Route::post('order/refund/{platform}', "OrderController@refund");
     // 部分退款
-    Route::post('order/partrefund', "OrderController@partrefund");
+    Route::post('order/partrefund/{platform}', "OrderController@partrefund");
     // 推送美配订单配送状态
-    Route::post('order/rider', "OrderController@rider");
+    Route::post('order/rider/{platform}', "OrderController@rider");
     // 自配订单配送状态
-    Route::post('order/status/self', "OrderController@status_self");
+    Route::post('order/status/self/{platform}', "OrderController@status_self");
     // 推送已完成订单
-    Route::post('order/finish', "OrderController@finish");
+    Route::post('order/finish/{platform}', "OrderController@finish");
     // 推送订单结算信息
-    Route::post('order/settlement', "OrderController@settlement");
+    Route::post('order/settlement/{platform}', "OrderController@settlement");
     // 已确认订单
     Route::any('order/confirm/{platform}', "OrderConfirmController@confirm");
     // 取消订单
@@ -40,7 +40,7 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     // 隐私号降级通知
     Route::post('order/down/{platform}', "OrderController@down");
     // 门店状态变更
-    Route::post('shop/status', "ShopController@bind");
+    Route::post('shop/status/{platform}', "ShopController@bind");
 });
 
 /**
