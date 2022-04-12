@@ -40,7 +40,7 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     // 隐私号降级通知
     Route::post('order/down/{platform}', "OrderController@down");
     // 门店状态变更
-    Route::post('shop/status/{platform}', "ShopController@bind");
+    Route::post('shop/status/{platform}', "ShopController@status");
 });
 
 /**
