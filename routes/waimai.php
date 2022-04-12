@@ -16,6 +16,8 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
  * 美团外卖-统一回调
  */
 Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Waimai\MeiTuanWaiMai')->group(function () {
+    // 已确认订单
+    Route::any('order/confirm/{platform}', "OrderConfirmController@confirm");
     // 取消订单
     Route::any('order/cancel/{platform}', "OrderCancelController@cancel");
     // 推送催单消息
