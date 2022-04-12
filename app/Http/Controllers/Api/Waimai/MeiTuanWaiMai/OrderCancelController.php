@@ -43,7 +43,7 @@ class OrderCancelController
             $this->log_info("跑腿订单不存在");
             return json_encode(["data" => "ok"]);
         }
-        $this->ding_exception("有取消订单了");
+        // $this->ding_exception("有取消订单了");
         // 当前配送平台
         $ps = $order->ps;
         // 判断状态
