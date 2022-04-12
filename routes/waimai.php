@@ -20,9 +20,9 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     // 推送已支付订单
     Route::post('order/create/{platform}', "OrderController@create");
     // 全部退款
-    Route::post('order/refund/{platform}', "OrderController@refund");
+    Route::any('order/refund/{platform}', "OrderController@refund");
     // 部分退款
-    Route::post('order/partrefund/{platform}', "OrderController@partrefund");
+    Route::any('order/partrefund/{platform}', "OrderController@partrefund");
     // 推送美配订单配送状态
     Route::post('order/rider/{platform}', "OrderController@rider");
     // 自配订单配送状态
