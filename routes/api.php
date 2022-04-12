@@ -26,7 +26,7 @@ Route::middleware(["force-json"])->group(function() {
     // 同步订单
     Route::get("order/sync", "OrderController@sync2")->name("api.order.sync");
     // 取消订单
-    Route::get("order/cancel", "OrderController@cancel")->name("api.order.cancel");
+    Route::any("order/cancel", "OrderController@cancel")->name("api.order.cancel");
     // 服务协议
     Route::get("getAgreementList", "CommonController@agreement")->name("agreement");
 
