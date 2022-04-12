@@ -689,13 +689,14 @@ class OrderController extends Controller
 
         if ($order->status == 99) {
             // 已经是取消状态
-            return $this->success();
+            return json_encode(["data" => "ok"]);
         } elseif ($order->status == 80) {
             // 异常状态
-            return $this->success();
+            return json_encode(["data" => "ok"]);
         } elseif ($order->status == 70) {
             // 已经完成
-            return $this->error("订单已经完成，不能取消");
+            // return $this->error("订单已经完成，不能取消");
+            return json_encode(["data" => "ok"]);
         } elseif (in_array($order->status, [40, 50, 60])) {
             $dd = app("ding");
             if ($ps == 1) {
@@ -1260,7 +1261,7 @@ class OrderController extends Controller
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消顺丰订单返回失败", $logs);
                 }
             }
-            return $this->success();
+            return json_encode(["data" => "ok"]);
         } elseif (in_array($order->status, [20, 30])) {
             // 没有骑手接单，取消订单
             if (in_array($order->mt_status, [20, 30])) {
@@ -1386,7 +1387,7 @@ class OrderController extends Controller
                 "des" => "（美团外卖）取消跑腿订单"
             ]);
             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-未配送");
-            return $this->success();
+            return json_encode(["data" => "ok"]);
         }
 
         return $this->error("取消失败");
