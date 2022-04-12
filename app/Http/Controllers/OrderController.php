@@ -723,7 +723,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消美团跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[美团跑腿]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
@@ -733,7 +733,7 @@ class OrderController extends Controller
                                     "type" => 2,
                                     "before_money" => ($current_user->money + $order->money),
                                     "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "（美团外卖）取消美团跑腿订单扣款：" . $order->order_id,
+                                    "description" => "[美团外卖]取消[美团跑腿]订单扣款：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
                             }
@@ -756,7 +756,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【美团】跑腿订单"
+                                "des" => "[美团外卖]取消[美团跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -816,7 +816,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消蜂鸟跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[蜂鸟]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
@@ -826,7 +826,7 @@ class OrderController extends Controller
                                     "type" => 2,
                                     "before_money" => ($current_user->money + $order->money),
                                     "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "（美团外卖）取消蜂鸟跑腿订单扣款：" . $order->order_id,
+                                    "description" => "[美团外卖]取消[蜂鸟]订单扣款：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
                             }
@@ -849,7 +849,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【蜂鸟】跑腿订单"
+                                "des" => "[美团外卖]取消[蜂鸟]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -904,7 +904,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消闪送跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[闪送]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             UserMoneyBalance::query()->create([
@@ -913,7 +913,7 @@ class OrderController extends Controller
                                 "type" => 2,
                                 "before_money" => ($current_user->money + $order->money),
                                 "after_money" => ($current_user->money + $order->money - $jian_money),
-                                "description" => "取消闪送跑腿订单扣款：" . $order->order_id,
+                                "description" => "[美团外卖]取消[闪送]订单扣款：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
@@ -933,7 +933,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【闪送】跑腿订单"
+                                "des" => "[美团外卖]取消[闪送]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -976,7 +976,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消美全达跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[美全达]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             // 更改订单信息
@@ -989,7 +989,7 @@ class OrderController extends Controller
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【美全达】跑腿订单"
+                                "des" => "[美团外卖]取消[美全达]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1043,7 +1043,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消达达跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[达达]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
@@ -1053,7 +1053,7 @@ class OrderController extends Controller
                                     "type" => 2,
                                     "before_money" => ($current_user->money + $order->money),
                                     "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "（美团外卖）取消达达跑腿订单扣款：" . $order->order_id,
+                                    "description" => "[美团外卖]取消[达达]订单扣款：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
                             }
@@ -1075,7 +1075,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【达达】跑腿订单"
+                                "des" => "[美团外卖]取消[达达]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1124,7 +1124,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消UU跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[UU]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             UserMoneyBalance::query()->create([
@@ -1133,7 +1133,7 @@ class OrderController extends Controller
                                 "type" => 2,
                                 "before_money" => ($current_user->money + $order->money),
                                 "after_money" => ($current_user->money + $order->money - $jian_money),
-                                "description" => "（美团外卖）取消UU跑腿订单扣款：" . $order->order_id,
+                                "description" => "[美团外卖]取消[UU]订单扣款：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
@@ -1153,7 +1153,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【UU跑腿】跑腿订单"
+                                "des" => "[美团外卖]取消[UU]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1200,7 +1200,7 @@ class OrderController extends Controller
                                 "type" => 1,
                                 "before_money" => $current_user->money,
                                 "after_money" => ($current_user->money + $order->money),
-                                "description" => "（美团外卖）取消顺丰跑腿订单：" . $order->order_id,
+                                "description" => "[美团外卖]取消[顺丰]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
@@ -1210,7 +1210,7 @@ class OrderController extends Controller
                                     "type" => 2,
                                     "before_money" => ($current_user->money + $order->money),
                                     "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "（美团外卖）取消顺丰跑腿订单扣款：" . $order->order_id,
+                                    "description" => "[美团外卖]取消[顺丰]订单扣款：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
                             }
@@ -1231,7 +1231,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "（美团外卖）取消【顺丰跑腿】跑腿订单"
+                                "des" => "[美团外卖]取消[顺丰]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1279,7 +1279,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【美团】跑腿订单"
+                        "des" => "[美团外卖]取消[美团跑腿]订单"
                     ]);
                 }
             }
@@ -1298,7 +1298,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【蜂鸟】跑腿订单"
+                        "des" => "[美团外卖]取消[蜂鸟]订单"
                     ]);
                 }
             }
@@ -1312,7 +1312,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【闪送】跑腿订单"
+                        "des" => "[美团外卖]取消[闪送]订单"
                     ]);
                 }
             }
@@ -1326,7 +1326,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【美全达】跑腿订单"
+                        "des" => "[美团外卖]取消[美全达]订单"
                     ]);
                 }
             }
@@ -1340,7 +1340,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【达达】跑腿订单"
+                        "des" => "[美团外卖]取消[达达]订单"
                     ]);
                 }
             }
@@ -1354,7 +1354,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【UU】跑腿订单"
+                        "des" => "[美团外卖]取消[UU]订单"
                     ]);
                 }
             }
@@ -1368,7 +1368,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "（美团外卖）取消【顺丰】跑腿订单"
+                        "des" => "[美团外卖]取消[顺丰]订单"
                     ]);
                 }
             }
@@ -1384,7 +1384,7 @@ class OrderController extends Controller
             $order->save();
             OrderLog::create([
                 "order_id" => $order->id,
-                "des" => "（美团外卖）取消跑腿订单"
+                "des" => "[美团外卖]取消订单"
             ]);
             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-未配送");
             return json_encode(["data" => "ok"]);
