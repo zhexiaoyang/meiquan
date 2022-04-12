@@ -17,7 +17,7 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
  */
 Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Waimai\MeiTuanWaiMai')->group(function () {
     // 取消订单
-    Route::post('order/cancel/{platform}', "OrderCancelController@cancel");
+    Route::any('order/cancel/{platform}', "OrderCancelController@cancel");
     // 推送催单消息
     Route::post('order/remind/{platform}', "OrderController@remind");
     // 隐私号降级通知
