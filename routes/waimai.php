@@ -13,7 +13,17 @@ Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group
 });
 
 /**
- * 美全科技-美团三方开发者-餐饮服务商
+ * 美团外卖-统一回调
+ */
+Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Waimai\MeiTuanWaiMai')->group(function () {
+    // 推送催单消息
+    Route::post('order/remind', "OrderController@remind");
+    // 隐私号降级通知
+    Route::post('order/down', "OrderController@down");
+});
+
+/**
+ * 美团外卖-民康开发者
  */
 Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Waimai\MinKang')->group(function () {
     // 推送美配订单配送状态回调
@@ -23,7 +33,7 @@ Route::middleware(['force-json'])->prefix('meituan/minkang')->namespace('Api\Wai
     // 推送已确认订单
     Route::post('order/confirm', "OrderConfirmController@confirm");
     // 推送用户或客服取消订单
-    Route::post('order/cancel', "OrderController@cancel");
+    Route::post('order/cancel', "OrderCancelController@cancel");
     // 推送全额退款信息
     Route::any('order/refund', "OrderController@refund");
     // 推送部分退款信息
