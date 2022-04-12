@@ -115,6 +115,9 @@ return [
         "2020-02-16",
         "2020-02-17",
     ],
+    "meituan_develop_platform" => [
+        '','民康','寝趣','洁爱眼'
+    ],
     "order_ttl" => 480,
     "order_delay_ttl" => 60,
     "shop_setting" => [

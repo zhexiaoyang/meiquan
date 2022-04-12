@@ -1,6 +1,19 @@
 <?php
 
 /**
+ * 获取美团开放平台分类
+ * @param $platform
+ * @return string
+ * @author zhangzhen
+ * @data 2022/4/12 11:58 上午
+ */
+function get_meituan_develop_platform($platform) :string
+{
+    $platforms = config('ps.meituan_develop_platform');
+    return $platforms[$platform] ?? '';
+}
+
+/**
  * @param $stime '20:00'
  * @param $etime '06:00'
  * @param string $current '12:00'
