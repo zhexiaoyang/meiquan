@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
-    public $prefix_title = '[美团外卖民康-订单回调-###]';
+    public $prefix_title = '[美团外卖&&民康订单&&###]';
 
     public function create(Request $request)
     {
@@ -47,46 +47,6 @@ class OrderController extends Controller
     //
     //     return json_encode(['data' => 'ok']);
     // }
-
-    public function cancel(Request $request)
-    {
-        // 获取参数
-        // $order_id = $request->get('order_id', '');
-        //
-        // if ($order = Order::query()->where('order_id', $order_id)->first()) {
-        //     $this->log('全部参数', $request->all());
-        // }
-        //
-        // if ($order->status >= 70) {
-        //     // 完成获取取消订单-不能取消
-        //     Log::debug("[美团民康取消订单-订单状态大于等于70|id:{$order->id},order_id:{$order->order_id},status:{$order->status}]");
-        // } elseif ($order->status >= 40 && $order->status <= 60) {
-        //     // 已发配送订单-骑手接单-取消
-        //     $ps = $order->ps;
-        //     if ($ps == 1) {
-        //
-        //     }
-        // } elseif ($order->status <= 30 && $order->status >= 20) {
-        //     // 已发配送订单-骑手未接单-取消
-        // } else {
-        //     // 未发配送单-直接取消
-        //     if ($order->status < 0) {
-        //         $order->status = -10;
-        //     } else {
-        //         $order->status = 99;
-        //         $order->cancel_at = date("Y-m-d H:i:s");
-        //     }
-        //     $order->save();
-        //     OrderLog::create([
-        //         "order_id" => $order->id,
-        //         "des" => "[美团外卖]取消跑腿订单"
-        //     ]);
-        //     Log::info("[美团民康取消订单-未配送|id:{$order->id},order_id:{$order->order_id},status:{$order->status}]");
-        //     return $this->success();
-        // }
-
-        return json_encode(['data' => 'ok']);
-    }
 
     public function refund(Request $request)
     {
@@ -239,40 +199,6 @@ class OrderController extends Controller
      */
     public function finish(Request $request)
     {
-        $order_id = $request->get('wm_order_id_view', '');
-        $status = $request->get('status', '');
-
-        if ($order_id && $status) {
-            $this->prefix = str_replace('###', "完成订单|订单号:{$order_id}", $this->prefix_title);
-            if ($order = WmOrder::where('order_id', $order_id)->first()) {
-                if ($status == 8 && $order->status < 18) {
-                    $order->status = 18;
-                    $order->finish_at = date("Y-m-d H:i:s");
-                    $order->save();
-                    $this->log("订单号：{$order_id}|操作完成");
-                    if ($order->is_vip) {
-                        // 如果是VIP订单，触发JOB
-                        dispatch(new VipOrderSettlement($order));
-                    }
-                } else {
-                    $this->log("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
-                }
-            } else {
-                $this->log("订单号：{$order_id}|订单不存在");
-            }
-            if ($order_pt = Order::where('order_id', $order_id)->first()) {
-                if ($order_pt->status == 0) {
-                    $order_pt->status = 70;
-                    $order_pt->over_at = date("Y-m-d H:i:s");
-                    $order_pt->save();
-                    OrderLog::create([
-                        "order_id" => $order_pt->id,
-                        "des" => "「美团外卖」完成订单"
-                    ]);
-                }
-            }
-        }
-        return json_encode(['data' => 'ok']);
     }
 
     public function settlement(Request $request)
@@ -295,25 +221,28 @@ class OrderController extends Controller
 
         return json_encode(['data' => 'ok']);
     }
-    // public function remind(Request $request)
-    // {
-    //     $this->prefix .= '-[催单]';
-    //
-    //     if ($order_id = $request->get("order_id", "")) {
-    //         $this->log('全部参数', $request->all());
-    //     }
-    //
-    //     return json_encode(['data' => 'ok']);
-    // }
-    //
-    // public function down(Request $request)
-    // {
-    //     $this->prefix .= '-[降级]';
-    //
-    //     if ($order_id = $request->get("order_id", "")) {
-    //         $this->log('全部参数', $request->all());
-    //     }
-    //
-    //     return json_encode(['data' => 'ok']);
-    // }
+
+    public function down(Request $request)
+    {
+        // $this->prefix = str_replace('###', "隐私号降级", $this->prefix_title);
+        //
+        // $data = $request->all();
+        //
+        // if (!empty($data)) {
+        //     $this->log('全部参数', $request->all());
+        // }
+        //
+        // return json_encode(['data' => 'ok']);
+    }
+
+    public function remind(Request $request)
+    {
+        // $this->prefix = str_replace('###', "催单", $this->prefix_title);
+        //
+        // if ($order_id = $request->get("order_id", "")) {
+        //     $this->log('全部参数', $request->all());
+        // }
+        //
+        // return json_encode(['data' => 'ok']);
+    }
 }
