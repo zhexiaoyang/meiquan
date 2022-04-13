@@ -429,9 +429,9 @@ class ProductController extends Controller
                     ];
                     $bind_log = $meituan->medicineCodeUpdate($params_bind);
                     \Log::info("[ERP接口]-[添加商品]-[绑定药品返回]: " . json_encode($bind_log, JSON_UNESCAPED_UNICODE));
-                    // \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
+                    \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
-                    // \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
+                    \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
                     \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
                     $update_log = $meituan->medicineBatchUpdate($params_update);
                     \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
@@ -442,24 +442,24 @@ class ProductController extends Controller
                     } else {
                         $msg = $create_log['error']['msg'] ?? '';
                     }
-                    // \Log::info("[ERP接口]-[添加商品]-[MSG]: " . $msg);
+                    \Log::info("[ERP接口]-[添加商品]-[MSG]: " . $msg);
                     if ($msg) {
                         $msg = str_replace('批量添加药品结果：','',$msg);
-                        // \Log::info("[ERP接口]-[添加商品]-[MSG2]: " . $msg);
+                        \Log::info("[ERP接口]-[添加商品]-[MSG2]: " . $msg);
                         $msg_arr = json_decode($msg, true);
-                        // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR]: ", [$msg_arr]);
+                        \Log::info("[ERP接口]-[添加商品]-[MSG-ARR]: ", [$msg_arr]);
 
                         if (!empty($msg_arr)) {
                             foreach ($msg_arr as $arr) {
                                 if (mb_strpos($arr['error_msg'], '编码在该店中已存在') !== false) {
                                     $res_data_items[$arr['app_medicine_code']]['status'] = 2;
                                     $res_data_items[$arr['app_medicine_code']]['msg'] = '条码已存在';
-                                    // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
                                 }
                                 if (mb_strpos($arr['error_msg'], '标品库中没有此药品') !== false) {
                                     $res_data_items[$arr['app_medicine_code']]['status'] = 2;
                                     $res_data_items[$arr['app_medicine_code']]['msg'] = '美团标品库中没有此药品';
-                                    // \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
+                                    \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
                                 }
                             }
                         }
@@ -478,7 +478,7 @@ class ProductController extends Controller
             }
         }
 
-        // \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
+        \Log::info("[ERP接口]-[添加商品]-组合参数", $data);
         return $this->success();
     }
 
