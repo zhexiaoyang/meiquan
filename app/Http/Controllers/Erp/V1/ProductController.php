@@ -463,6 +463,10 @@ class ProductController extends Controller
                                 }
                                 $res_data_items[$arr['app_medicine_code']]['status'] = 2;
                                 $res_data_items[$arr['app_medicine_code']]['msg'] = $arr['error_msg'] ?? '失败';
+                                if (mb_strpos($arr['error_msg'], '药品已存在') !== false) {
+                                    $res_data_items[$arr['app_medicine_code']]['status'] = 1;
+                                    $res_data_items[$arr['app_medicine_code']]['msg'] = '成功';
+                                }
                             }
                         }
                     }
