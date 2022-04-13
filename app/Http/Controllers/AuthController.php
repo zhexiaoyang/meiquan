@@ -299,7 +299,12 @@ class AuthController extends Controller
                 $permissions[] = [
                     'roleId' => 'shop',
                     'permissionId' => 'shop',
-                    'permissionName' => '商户权限',
+                    'permissionName' => '门店管理',
+                ];
+                $permissions[] = [
+                    'roleId' => 'order',
+                    'permissionId' => 'order',
+                    'permissionName' => '订单管理',
                 ];
                 $data['permissions'] = array_values($permissions);
             }
