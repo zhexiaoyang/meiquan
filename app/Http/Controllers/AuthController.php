@@ -296,7 +296,11 @@ class AuthController extends Controller
                         $permissions[] = $tmp;
                     }
                 }
-
+                $permissions[] = [
+                    'roleId' => 'shop',
+                    'permissionId' => 'shop',
+                    'permissionName' => '商户权限',
+                ];
                 $data['permissions'] = array_values($permissions);
             }
         }
