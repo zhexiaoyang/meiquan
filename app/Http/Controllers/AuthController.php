@@ -307,11 +307,11 @@ class AuthController extends Controller
                     'permissionId' => 'order',
                     'permissionName' => '订单管理',
                 ];
-                $permissions[] = [
-                    'roleId' => 'vip_admin',
-                    'permissionId' => 'vip_admin',
-                    'permissionName' => '订单管理',
-                ];
+                // $permissions[] = [
+                //     'roleId' => 'vip_admin',
+                //     'permissionId' => 'vip_admin',
+                //     'permissionName' => '订单管理',
+                // ];
                 // 判断VIP商家权限
                 if (Shop::where('user_id', $user->id)->where('vip_status', '1')->count() > 0) {
                     $permissions[] = [
