@@ -20,7 +20,7 @@ class PermissionController extends Controller
 
         $query = Permission::with(['actions' => function ($query) {
             $query->select('id', 'pid', 'name', 'title');
-        }])->select('id', 'name', 'title', 'status')->where(['pid' => 0]);
+        }])->select('id', 'name', 'title', 'menu_title', 'status')->where(['pid' => 0]);
 
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
@@ -33,7 +33,7 @@ class PermissionController extends Controller
             $query->where('status', $status);
         }
 
-        $permissions = $query->orderBy('id', 'desc')->paginate($page_size);
+        $permissions = $query->where('is_display', 1)->orderBy('sort')->paginate($page_size);
 
         return $this->success($permissions);
     }
@@ -54,9 +54,10 @@ class PermissionController extends Controller
         ]);
 
         $actions = $request->get('actions', []);
+        $pid = $request->get('pid', 0);
 
         $permission = Permission::query()->create([
-            'pid' => 0,
+            'pid' => $pid,
             'name' => $request->get('name', ''),
             'title' => $request->get('title', ''),
             'guard_name' => 'api',
@@ -127,6 +128,12 @@ class PermissionController extends Controller
             }
         }
 
+        return $this->success();
+    }
+
+    public function destroy(Permission $permission)
+    {
+        $permission->delete();
         return $this->success();
     }
 

@@ -297,16 +297,16 @@ class AuthController extends Controller
                         $permissions[] = $tmp;
                     }
                 }
-                $permissions[] = [
-                    'roleId' => 'shop',
-                    'permissionId' => 'shop',
-                    'permissionName' => '门店管理',
-                ];
-                $permissions[] = [
-                    'roleId' => 'order',
-                    'permissionId' => 'order',
-                    'permissionName' => '订单管理',
-                ];
+                // $permissions[] = [
+                //     'roleId' => 'shop',
+                //     'permissionId' => 'shop',
+                //     'permissionName' => '门店管理',
+                // ];
+                // $permissions[] = [
+                //     'roleId' => 'order',
+                //     'permissionId' => 'order',
+                //     'permissionName' => '订单管理',
+                // ];
                 // $permissions[] = [
                 //     'roleId' => 'vip_admin',
                 //     'permissionId' => 'vip_admin',

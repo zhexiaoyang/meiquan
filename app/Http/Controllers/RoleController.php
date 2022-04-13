@@ -95,21 +95,17 @@ class RoleController extends Controller
     public function show(Role $role)
     {
         $role->load('permissions');
-
         $user_permissions = $role->permissions->pluck('id')->toArray();
-
         unset($role->permissions);
-
         $permissions = Permission::with(['actions' => function ($query) {
             $query->select('id', 'pid', 'title');
-        }])->select('id', 'title')->where(['status' => 1, 'pid' => 0])
-            ->orderBy('id', 'desc')->get();
+        }])->select('id', 'title', 'menu_title')->where(['status' => 1, 'pid' => 0])
+            ->where('is_display', 1)->orderBy('sort')->get();
 
         if (!empty($permissions)) {
             foreach ($permissions as $permission) {
                 $selected = [];
                 if (in_array($permission->id, $user_permissions)) {
-                    // $selected[] = $permission->id;
                     if (!empty($permission->actions)) {
                         foreach ($permission->actions as $action) {
                             if (in_array($action->id, $user_permissions)) {

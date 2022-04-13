@@ -605,7 +605,7 @@ Route::middleware(["force-json"])->group(function() {
         // 所有权限列表
         Route::get("permission/all", "PermissionController@all")->name("permission.all");
         // 权限管理
-        Route::resource("permission", "PermissionController", ["only" => ["store", "index", "update"]]);
+        Route::resource("permission", "PermissionController", ["only" => ["store", "index", "update", "destroy"]]);
         // 所有角色列表
         Route::get("role/all", "RoleController@all")->name("role.all");
         // 角色管理
