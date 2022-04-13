@@ -461,6 +461,8 @@ class ProductController extends Controller
                                     $res_data_items[$arr['app_medicine_code']]['msg'] = '美团标品库中没有此药品';
                                     \Log::info("[ERP接口]-[添加商品]-[MSG-ARR-FAIL]: ", [$arr]);
                                 }
+                                $res_data_items[$arr['app_medicine_code']]['status'] = 2;
+                                $res_data_items[$arr['app_medicine_code']]['msg'] = $arr['error_msg'] ?? '失败';
                             }
                         }
                     }
