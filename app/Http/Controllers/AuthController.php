@@ -254,7 +254,7 @@ class AuthController extends Controller
         $data = [];
 
         $role = Role::with(['permissions' => function($query) {
-            $query->select('name', 'title', 'id', 'pid')->orderBy('pid', 'asc');
+            $query->select('name', 'title', 'id', 'pid', 'menu', 'menu_title')->orderBy('pid', 'asc');
         }])->select('name', 'title', 'id')->where('name', $role_name)->first();
 
         if ($role) {
@@ -267,6 +267,9 @@ class AuthController extends Controller
                         $permissions[$permission->id]['roleId'] = $role->name;
                         $permissions[$permission->id]['permissionId'] = $permission->name;
                         $permissions[$permission->id]['permissionName'] = $permission->title;
+                        $permissions[$permission->menu]['roleId'] = $permission->menu;
+                        $permissions[$permission->menu]['permissionId'] = $permission->menu;
+                        $permissions[$permission->menu]['permissionName'] = $permission->menu_title;
                     } else {
                         if (isset($permissions[$permission->pid])) {
                             $tmp['action'] = $permission->name;
