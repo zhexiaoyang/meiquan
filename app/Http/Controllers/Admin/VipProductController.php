@@ -70,7 +70,7 @@ class VipProductController extends Controller
         }
 
         $data = $mt->medicineList($params);
-        return $data;
+        // return $data;
         // return $data;
         $total = $data['extra_info']['total_count'] ?? 0;
         $total_page = ceil($total / 200);
