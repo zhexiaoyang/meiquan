@@ -46,7 +46,7 @@ class Tool
         // 36cvt5p8joq0jiiw
         $params = [
             'developerId' => '106791',
-            'businessId' => 2,
+            'businessId' => 16,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
         ];
@@ -65,7 +65,7 @@ class Tool
         $params = [
             'appAuthToken' => Cache::get($key),
             'developerId' => '106791',
-            'businessId' => 2,
+            'businessId' => 16,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
         ];
