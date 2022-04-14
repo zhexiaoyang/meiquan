@@ -5,9 +5,13 @@ namespace App\Libraries\Meituan\Api;
 
 use App\Models\Order;
 use App\Models\Shop;
+use App\Traits\NoticeTool;
+use Illuminate\Support\Facades\Cache;
 
 class Api extends Request
 {
+    use NoticeTool;
+
     public function riderLocation($order_id, $mt_peisong_id)
     {
         $params = [
@@ -242,6 +246,26 @@ class Api extends Request
     public function getShopIds()
     {
         return $this->request_get('v1/poi/getids', []);
+    }
+
+    public function getShopCats($shop_id)
+    {
+        return $this->request_get('v1/medicineCat/list', ['app_poi_code' => $shop_id]);
+    }
+
+    public function deleteShopCats($params)
+    {
+        return $this->request_post('v1/medicineCat/delete', $params);
+    }
+
+    public function poiOffline($shop_id)
+    {
+        return $this->request_post('v1/poi/offline', ['app_poi_code' => $shop_id]);
+    }
+
+    public function poiOnline($shop_id)
+    {
+        return $this->request_post('v1/poi/online', ['app_poi_code' => $shop_id]);
     }
 
     /**
@@ -491,6 +515,9 @@ class Api extends Request
         return $this->request_get('v1/ecommerce/order/reviewAfterSales', $params);
     }
 
+    /**
+     * 闪购-授权
+     */
     public function waimaiAuthorize($shop_id)
     {
         $params['app_poi_code'] = $shop_id;
@@ -499,6 +526,9 @@ class Api extends Request
         return $this->request_get('v1/oauth/authorize', $params);
     }
 
+    /**
+     * 闪购-刷新Token
+     */
     public function waimaiAuthorizeRef($refresh_token)
     {
         $params['refresh_token'] = $refresh_token;
@@ -507,4 +537,53 @@ class Api extends Request
         return $this->request_post('v1/oauth/token', $params);
     }
 
+    public function getShopToken($shop_id)
+    {
+        $key = 'mtwm:shop:auth:' . $shop_id;
+        $access_token = Cache::store('redis')->get($key, '');
+        if (!$access_token) {
+            $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
+            $refresh_token = Cache::store('redis')->get($key_ref);
+            if (!$refresh_token) {
+                $this->ding_error("闪购门店刷新token不存在，shop_id:{$shop_id}");
+                return false;
+            }
+            $res = $this->waimaiAuthorizeRef($refresh_token);
+            if (!empty($res['access_token'])) {
+                $access_token = $res['access_token'];
+                $refresh_token = $res['refresh_token'];
+                Cache::put($key, $access_token, $res['expires_in'] - 100);
+                Cache::forever($key_ref, $refresh_token);
+            } else {
+                $this->ding_error("闪购门店刷新token获取token失败，shop_id:{$shop_id}");
+                return false;
+            }
+        }
+
+        return $access_token;
+    }
+
+    /**
+     * 零售类接口
+     */
+    public function retailCatList($params)
+    {
+        return $this->request_get('v1/retailCat/list', $params);
+    }
+    public function retailCatUpdate($params)
+    {
+        return $this->request_post('v1/retailCat/update', $params);
+    }
+    public function retailList($params)
+    {
+        return $this->request_get('v1/retail/list', $params);
+    }
+    public function retailBatchInitData($params)
+    {
+        return $this->request_post('v1/retail/batchinitdata', $params);
+    }
+    public function retailInitData($params)
+    {
+        return $this->request_post('v1/retail/initdata', $params);
+    }
 }

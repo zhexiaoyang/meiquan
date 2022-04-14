@@ -8,6 +8,7 @@ use App\Imports\Admin\VipProductImport;
 use App\Models\Shop;
 use App\Models\VipProduct;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 
 class VipProductController extends Controller
@@ -54,15 +55,22 @@ class VipProductController extends Controller
         if (!$shop = Shop::find($request->get('shop_id', 0))) {
             return $this->error('门店不存在');
         }
-        $mt = app("minkang");
-
+        // 请求参数组合
         $params = [
             'offset' => 0,
             'limit' => 200,
             'app_poi_code' => $shop->mtwm
         ];
 
+        if ($shop->meituan_bind_platform == 31) {
+            $mt = app("meiquan");
+            $params['accessToken'] = $mt->getShopToken($shop->waimai_id);
+        } else {
+            $mt = app("minkang");
+        }
+
         $data = $mt->medicineList($params);
+        return $data;
         // return $data;
         $total = $data['extra_info']['total_count'] ?? 0;
         $total_page = ceil($total / 200);
