@@ -70,7 +70,7 @@ class Api extends Request
         $data = [
             "shop_id" => (string) intval($shop->citycode),
             "shop_type" => 2,
-            'shop_order_id' => $order->order_id,
+            'shop_order_id' => $order->delivery_id,
             // 'order_source' => 1,
             // 'order_sequence' => 1,
             "lbs_type" => 2,

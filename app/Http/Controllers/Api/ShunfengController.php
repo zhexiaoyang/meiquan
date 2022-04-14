@@ -36,7 +36,7 @@ class ShunfengController
             Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
         }
 
-        if ($order = Order::where('order_id', $order_id)->first()) {
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
             // 日志前缀
             $log_prefix = "[顺丰跑腿回调-订单状态变更|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
@@ -336,7 +336,7 @@ class ShunfengController
                     return ['code' => 'error'];
                 }
                 // 同步美团外卖配送信息
-                $order = Order::where('order_id', $order_id)->first();
+                $order = Order::where('delivery_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             }elseif ($status == 15) {
@@ -385,7 +385,7 @@ class ShunfengController
 
         $receipt_type = $request->get("receipt_type", 1);
 
-        if ($order = Order::where('order_id', $order_id)->first()) {
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
             // 日志前缀
             $log_prefix = "[顺丰跑腿回调-订单完成回调|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
@@ -452,7 +452,7 @@ class ShunfengController
         // $receipt_type = $request->get("receipt_type", 1);
 
         sleep(1);
-        if ($order = Order::where('order_id', $order_id)->first()) {
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
             // 日志前缀
             $log_prefix = "[顺丰跑腿回调-订单取消回调|订单号:{$order_id}|订单状态:{$order->status}]-";
 
