@@ -64,7 +64,7 @@ class VipProductController extends Controller
 
         if ($shop->meituan_bind_platform == 31) {
             $mt = app("meiquan");
-            $params['access_token'] = $mt->getShopToken($shop->waimai_id);
+            $params['access_token'] = $mt->getShopToken($shop->waimai_mt);
         } else {
             $mt = app("minkang");
         }
