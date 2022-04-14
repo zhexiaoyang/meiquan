@@ -64,13 +64,13 @@ class VipProductController extends Controller
 
         if ($shop->meituan_bind_platform == 31) {
             $mt = app("meiquan");
-            $params['accessToken'] = $mt->getShopToken($shop->waimai_id);
+            $params['access_token'] = $mt->getShopToken($shop->waimai_id);
         } else {
             $mt = app("minkang");
         }
 
         $data = $mt->medicineList($params);
-        // return $data;
+        return $data;
         // return $data;
         $total = $data['extra_info']['total_count'] ?? 0;
         $total_page = ceil($total / 200);
