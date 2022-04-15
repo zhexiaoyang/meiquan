@@ -18,7 +18,7 @@ class ProductStockController
         }
         // 日志格式
         $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&门店:{$shop_id}", $this->prefix_title);
-        if ($str = $request->get('medicine_code_list')) {
+        if ($str = $request->get('app_food_list')) {
             $ids = json_encode(urldecode($str), true);
             if (is_array($ids) && !empty($ids)) {
                 $this->log_info('商品信息', $ids);
