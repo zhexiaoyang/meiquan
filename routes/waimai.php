@@ -41,6 +41,8 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::post('order/down/{platform}', "OrderController@down");
     // 门店状态变更
     Route::post('shop/status/{platform}', "ShopController@status");
+    // 美团实时拉取商家单门店下指定商品库存
+    Route::post('product/stock/{platform}', "ProductStockController@stock");
 });
 
 /**
