@@ -47,7 +47,7 @@ class VipProductController extends Controller
 
         $data = $query->orderByDesc('id')->paginate($page_size);
 
-        return $this->page($data);
+        return $this->page($data, false, 'data');
     }
 
     public function store(Request $request)
@@ -152,6 +152,13 @@ class VipProductController extends Controller
             }
         }
 
+        return $this->success();
+    }
+
+    public function update(VipProduct $vipProduct, Request $request)
+    {
+        $data = $request->only('cost');
+        VipProduct::where('id', $vipProduct->id)->update($data);
         return $this->success();
     }
 

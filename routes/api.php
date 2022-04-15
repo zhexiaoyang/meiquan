@@ -198,8 +198,12 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("/shop/binding/takeout", "ShopController@bindingTakeout")->name("shop.binding.takeout");
         // *绑定门店-处方订单
         Route::post("/shop/binding/chufang", "ShopController@bindingChufang")->name("shop.binding.chufang");
-        // *关闭自动发单
+        // *关闭自动发单-20220414-准备删除
         Route::post("/shop/closeAuto", "ShopController@closeAuto")->name("shop.closeAuto");
+        // *关闭自动发单
+        Route::post("/shop/auto/close", "ShopController@closeAuto")->name("shop.auto.close");
+        // *开启自动发单
+        Route::post("/shop/auto/open", "ShopController@openAuto")->name("shop.auto.open");
         // *资源路由-门店
         Route::resource("shop", "ShopController", ["only" => ["store", "show", "index","update"]]);
 
@@ -294,7 +298,7 @@ Route::middleware(["force-json"])->group(function() {
             // VIP商品
             Route::post('vip_product/import', 'VipProductController@import');
             Route::get('vip_product/export', 'VipProductController@export');
-            Route::resource('vip_product', 'VipProductController', ["only" => ["index","store"]]);
+            Route::resource('vip_product', 'VipProductController', ["only" => ["index","store","update"]]);
             // VIP账单
             Route::get('vip/bill/reset/{bill}', 'VipBillController@reset');
             Route::resource('vip/bill', 'VipBillController', ["only" => ["index","show"]]);

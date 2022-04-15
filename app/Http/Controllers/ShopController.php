@@ -176,10 +176,14 @@ class ShopController extends Controller
         }
 
         $result['page'] = $shops->currentPage();
+        $result['current_page'] = $shops->currentPage();
         $result['total'] = $shops->total();
+        $result['page_total'] = $shops->lastPage();
+        $result['last_page'] = $shops->lastPage();
         $result['list'] = $data;
-
+        $result['data'] = $data;
         return $this->success($result);
+        // return $this->page($shops, $data, 'data');
     }
 
     public function update(Shop $shop, Request $request)
@@ -708,26 +712,26 @@ class ShopController extends Controller
             $mk_shops = $mk->getShops($params);
             if (!$status && !empty($mk_shops['data'])) {
                 $shop->waimai_mt = $mtwm;
+                $shop->meituan_bind_platform = 4;
                 $shop->save();
                 return $this->success();
             }
-
             $mq = app('meiquan');
             $mq_shops = $mq->getShops($params);
             if (!$status && !empty($mq_shops['data'])) {
                 $shop->waimai_mt = $mtwm;
+                $shop->meituan_bind_platform = 31;
                 $shop->save();
                 return $this->success();
             }
-
-            $qq = app('qinqu');
-            $qq_shops = $qq->getShops($params);
-            if (!$status && !empty($qq_shops['data'])) {
-                $shop->waimai_mt = $mtwm;
-                $shop->save();
-                return $this->success();
-            }
-            return $this->error('该门店没有授权开放平台,请先授权。如是民康门店,请联系技术处理');
+            // $qq = app('qinqu');
+            // $qq_shops = $qq->getShops($params);
+            // if (!$status && !empty($qq_shops['data'])) {
+            //     $shop->waimai_mt = $mtwm;
+            //     $shop->save();
+            //     return $this->success();
+            // }
+            return $this->error('该门店没有授权,请参考说明授权');
         }
 
         if ($ele = $request->get("ele", '')) {
@@ -741,7 +745,7 @@ class ShopController extends Controller
                 $shop->save();
                 return $this->success();
             }
-            return $this->error('该门店没有授权开放平台,请先授权');
+            return $this->error('该门店没有授权,请参考说明授权');
         }
 
         return $this->success();
@@ -859,10 +863,6 @@ class ShopController extends Controller
 
     /**
      * 关闭门店自动发单
-     * @param Request $request
-     * @return mixed
-     * @author zhangzhen
-     * @data dateTime
      */
     public function closeAuto(Request $request)
     {
@@ -880,6 +880,29 @@ class ShopController extends Controller
             $shop->ele_shop_id = '';
         }
 
+        $shop->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 关闭门店自动发单
+     */
+    public function openAuto(Request $request)
+    {
+        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+            return $this->error("门店不存在");
+        }
+
+        $platform = $request->get("platform", 1);
+
+        if ($platform == 1) {
+            $shop->auto_mtwm = '';
+            $shop->mt_shop_id = $shop->waimai_mt;
+        } else {
+            $shop->auto_ele = '';
+            $shop->ele_shop_id = $shop->waimai_ele;
+        }
         $shop->save();
 
         return $this->success();
