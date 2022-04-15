@@ -18,11 +18,16 @@ class ProductStockController
         }
         // 日志格式
         $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&门店:{$shop_id}", $this->prefix_title);
-        $this->log_info('全部参数', $request->all());
         if ($str = $request->get('app_food_list')) {
             $ids = json_decode(urldecode($str), true);
             if (is_array($ids) && !empty($ids)) {
-                $this->log_info('商品信息', $ids);
+                $this->log_info('app_food_list商品信息', $ids);
+            }
+        }
+        if ($str = $request->get('medicine_code_list')) {
+            $ids = json_decode(urldecode($str), true);
+            if (is_array($ids) && !empty($ids)) {
+                $this->log_info('medicine_code_list商品信息', $ids);
             }
         }
         return json_encode(["data" => "ok"]);
