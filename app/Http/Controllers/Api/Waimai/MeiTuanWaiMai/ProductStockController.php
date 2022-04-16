@@ -18,6 +18,8 @@ class ProductStockController
             return json_encode(["data" => "ok"]);
         }
         $wanxiang = ['12606969','12965411','12606971','12966872','13084144','13144836','12931358','12931400','13778180','12931402','13505397'];
+        $wanxiang_mqp = ['12606969' => '0009','12965411' => '0004','12606971' => '0015','12966872' => '0012', '13084144' => '0003',
+            '13144836' => '0006','12931358' => '0007','12931400' => '0007','13778180' => '0007','12931402' => '0007','13505397' => '0007'];
         if (!in_array($shop_id, array_merge($wanxiang))) {
             return json_encode(["code" => 1, "message" => ""]);
         }
@@ -45,15 +47,27 @@ class ProductStockController
         }
 
         if (in_array($shop_id, $wanxiang)) {
-            $this->log_info('万祥商品库存拉取', $product_ids);
-            // $data = DB::connection('wanxiang_haidian')
-            //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0006' AND [upc] <> '' AND [upc] IS NOT NULL");
-            // if (!empty($data)) {
-            //
-            // }
+            $hd_shop_id = $wanxiang_mqp[$shop_id];
+            $this->log_info("万祥商品库存拉取,万祥门店ID:{$hd_shop_id}", $product_ids);
+            $product_in = implode(',', $product_ids);
+            $data = DB::connection('wanxiang_haidian')
+                ->select("SELECT 药品ID as id,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$hd_shop_id}' AND [药品ID] IN ({$product_in})");
+            if (!empty($data)) {
+                $res_data = [];
+                foreach ($data as $v) {
+                    $res_data[] = [
+                        'app_medicine_code' => $v->id,
+                        'stock' => $v->stock,
+                    ];
+                }
+                if (!empty($res_data)) {
+                    $this->log_info("万祥商品库存拉取,万祥门店ID:{$hd_shop_id},返回值", $res_data);
+                    return json_encode(["code" => 0, "message" => "成功", "data" => $res_data]);
+                }
+            }
         }
 
-        return json_encode(["data" => "ok"]);
+        return json_encode(["code" => 1, "message" => ""]);
     }
 
 }
