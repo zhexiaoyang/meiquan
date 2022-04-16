@@ -7,11 +7,13 @@ use App\Jobs\PushDeliveryOrder;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
+use App\Models\OrderResend;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
@@ -231,9 +233,9 @@ class OrderController extends Controller
 
         \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]-[订单号: {$order->order_id}]");
 
-        if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
-            return $this->error("该门店不能发单");
-        }
+        // if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
+        //     return $this->error("该门店不能发单");
+        // }
 
         if (($order->status >= 20) && ($order->status <= 70)) {
             return $this->error("订单状态不正确，请先取消订单在重新发送");
@@ -306,6 +308,12 @@ class OrderController extends Controller
         } else {
             $order->uu_status = 0;
             $order->fail_uu = '';
+        }
+
+        if ($order->status == 99) {
+            $delivery_id = $order->order_id . (OrderResend::where('order_id', $order->id)->count() + 1);
+            OrderResend::create(['order_id' => $order->id, 'delivery_id' => $delivery_id, 'user_id' => Auth::id()]);
+            $order->delivery_id = $delivery_id;
         }
 
         $order->status = 8;
