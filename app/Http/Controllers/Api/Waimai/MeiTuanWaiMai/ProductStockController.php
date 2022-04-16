@@ -57,7 +57,7 @@ class ProductStockController
                 foreach ($data as $v) {
                     $res_data[] = [
                         'app_medicine_code' => $v->id,
-                        'stock' => $v->stock,
+                        'stock' => intval($v->stock),
                     ];
                 }
                 if (!empty($res_data)) {
