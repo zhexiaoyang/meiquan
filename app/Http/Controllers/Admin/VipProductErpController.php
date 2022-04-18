@@ -44,7 +44,7 @@ class VipProductErpController extends Controller
             $product_in = implode("','", $product_ids);
             \Log::info('同步ERP成本价条码1', [$product_in]);
             $data = DB::connection('wanxiang_haidian')
-                ->select("SELECT 药品ID as id,进价 as cost,upc FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$setting->sync_erp_shop_id}' AND [upc] IN ('{$product_in})'");
+                ->select("SELECT 药品ID as id,进价 as cost,upc FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$setting->sync_erp_shop_id}' AND [upc] IN ('{$product_in}')");
             $upcs = [];
             \Log::info('同步ERP成本价条码2', [$data]);
             if (!empty($data)) {
