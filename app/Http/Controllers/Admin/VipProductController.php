@@ -17,7 +17,7 @@ class VipProductController extends Controller
     {
         $page_size = $request->get('page_size', 10);
 
-        $query = VipProduct::query();
+        $query = VipProduct::with('erp');
 
         if ($shop_id = $request->get('shop_id', '')) {
             $query->where('shop_id',$shop_id);

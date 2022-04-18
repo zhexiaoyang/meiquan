@@ -41,6 +41,13 @@ class Shop extends Model
     }
 
     /**
+     * ERP配置
+     */
+    public function erp() {
+        return $this->hasOne(ShopErpSetting::class, "shop_id", "id");
+    }
+
+    /**
      * 门店付款账号
      */
     public function user()

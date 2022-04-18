@@ -18,7 +18,7 @@ class VipShopController extends Controller
             $query->select('id', 'nickname');
         },'internal' => function($query) {
             $query->select('id', 'nickname');
-        }])->select('id','shop_name','contact_name','contact_phone','vip_logistics','vip_commission',
+        }, 'erp'])->select('id','shop_name','contact_name','contact_phone','vip_logistics','vip_commission',
             'vip_commission_manager','vip_commission_operate','manager_id','internal_id','vip_commission_internal',
             'vip_settlement','vip_at','operate_id','vip_mt','vip_ele','mtwm','ele');
 

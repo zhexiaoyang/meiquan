@@ -295,9 +295,15 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("vip_product/exception/statistics", "VipProductExceptionController@statistics");
             Route::post("vip_product/exception/ignore", "VipProductExceptionController@ignore");
             Route::resource('vip_product/exception', 'VipProductExceptionController', ["only" => ["index","update"]]);
-            // VIP商品
+            // VIP商品-ERP-所有
+            Route::post('vip/product/erp/cost/all', 'VipProductErpController@erp_cost_all');
+            // VIP商品-ERP
+            Route::post('vip/product/erp/cost/{vip_product}', 'VipProductErpController@erp_cost');
+            // VIP商品-导入
             Route::post('vip_product/import', 'VipProductController@import');
+            // VIP商品-导出
             Route::get('vip_product/export', 'VipProductController@export');
+            // VIP商品-资源路由
             Route::resource('vip_product', 'VipProductController', ["only" => ["index","store","update"]]);
             // VIP账单
             Route::get('vip/bill/reset/{bill}', 'VipBillController@reset');
