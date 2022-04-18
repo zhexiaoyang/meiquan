@@ -42,7 +42,7 @@ class VipProductErpController extends Controller
         VipProduct::query()->where('shop_id', $setting->shop_id)->chunk(200, function ($products) use ($setting) {
             $product_ids = $products->pluck('upc')->toArray();
             $product_in = implode(',', $product_ids);
-            \Log::info('同步ERP成本价条码', $product_in);
+            \Log::info('同步ERP成本价条码', [$product_in]);
             $data = DB::connection('wanxiang_haidian')
                 ->select("SELECT 药品ID as id,进价 as cost,upc FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$setting->sync_erp_shop_id}' AND [upc] IN ({$product_in})");
             $upcs = [];
