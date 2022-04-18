@@ -125,7 +125,7 @@ class VipProductErpController extends Controller
                 }
             }
             if (!empty($error_data)) {
-                VipProductException::insert($data);
+                VipProductException::insert($error_data);
             }
         });
         return $this->success([],"同步完成:成功 {$this->success_num},异常 {$this->error_num}");
