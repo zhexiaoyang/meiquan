@@ -124,8 +124,11 @@ class VipProductErpController extends Controller
                     $this->success_num += 1;
                 }
             }
+            if (!empty($error_data)) {
+                VipProductException::insert($data);
+            }
         });
-        return $this->success("同步完成:成功 {$this->success_num},异常 {$this->error_num}");
+        return $this->success([],"同步完成:成功 {$this->success_num},异常 {$this->error_num}");
     }
 
     public function wanxiang(VipProduct $product, ShopErpSetting $setting)
