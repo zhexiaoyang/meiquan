@@ -122,7 +122,7 @@ class Api extends Request
     {
         $shop = Shop::query()->find($order->shop_id);
         $data = [
-            'order_id' => $order->order_id,
+            'order_id' => $order->delivery_id,
             'order_type' => 2,
             "shop_id" => (string) intval($shop->citycode),
             "shop_type" => 2,
