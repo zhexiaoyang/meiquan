@@ -46,15 +46,10 @@ class VipBillController extends Controller
     public function show(VipBill $bill)
     {
         $date = $bill->date;
-        $sdate = date('Y-m-d H:i:s', strtotime($date) + 3600 * 9);
-        $edate = date('Y-m-d H:i:s', strtotime($date) + 3600 * 33);
         $shop_id = $bill->shop_id;
         $total = ['order_id' => '总计：', 'poi_receive' => 0, 'vip_cost' => 0, 'running_fee' => 0, 'prescription_fee' => 0, 'refund_fee' => 0, 'vip_total' => 0];
 
-        $orders = WmOrder::where('shop_id', $shop_id)
-            ->where('finish_at', '>=', $sdate)
-            ->where('finish_at', '<', $edate)
-            ->get();
+        $orders = WmOrder::where('shop_id', $shop_id)->where('bill_date', $date)->get();
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $total['poi_receive'] = sprintf("%.2f", $total['poi_receive'] + $order->poi_receive);
@@ -69,7 +64,7 @@ class VipBillController extends Controller
 
         $res = [
             'orders' => $orders,
-            'count' => count($orders),
+            'count' => count($orders) - 1,
             'shop_name' => $bill->shop_name,
             'bill_date' => $bill->date,
         ];

@@ -13,8 +13,7 @@ trait VipShopHelper
         $orders = WmOrder::query()
             ->where('is_vip', 1)
             ->where('shop_id', $shop->id)
-            ->where('finish_at', '>=', $date)
-            ->where('finish_at', '<', date('Y-m-d H:i:s', strtotime($date) + 86400))
+            ->where('bill_date', $date)
             ->get();
         $poi_receive = 0;
         $vip_cost = 0;
@@ -36,7 +35,7 @@ trait VipShopHelper
         $data = [
             'shop_id' => $shop->id,
             'shop_name' => $shop->shop_name,
-            'mt_id' => $shop->mtwm,
+            'mt_id' => $shop->waimai_mt ?: $shop->mtwm,
             'ele_id' => $shop->ele,
             'date' => $date,
             'poi_receive' => $poi_receive,
