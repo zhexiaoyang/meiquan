@@ -38,7 +38,7 @@ class VipOrderSettlement implements ShouldQueue
     public function handle()
     {
         if (!$shop = Shop::find($this->order->shop_id)) {
-            $this->log_info('错误', '门店不存在');
+            $this->log_info('错误|门店不存在');
             return;
         }
 
@@ -47,15 +47,15 @@ class VipOrderSettlement implements ShouldQueue
         $commission_operate = $shop->vip_commission_operate;
         $commission_internal = $shop->vip_commission_internal;
         $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
-        $this->log_info("百分比", "公司:{$commission}|运营经理:{$commission_operate}|城市经理:{$commission_manager}|内勤:{$commission_internal}|商家:{$business}|");
+        $this->log_info("百分比|公司:{$commission}|运营经理:{$commission_operate}|城市经理:{$commission_manager}|内勤:{$commission_internal}|商家:{$business}|");
 
         if ($commission + $commission_manager + $commission_operate + $commission_internal > 100) {
-            $this->log_info('错误', '佣金比例大于100%');
+            $this->log_info('错误|佣金比例大于100%');
             return;
         }
 
         if ($this->order->status != 18 && $this->order->status != 30) {
-            $this->log_info('错误', '订单状态不正确|状态：' . $this->order->status);
+            $this->log_info('错误|订单状态不正确|状态：' . $this->order->status);
             return;
         }
 
@@ -66,7 +66,7 @@ class VipOrderSettlement implements ShouldQueue
             }
             $reduce = OrderDeduction::where('order_id', $this->order->id)->sum('money');
             if ($reduce > 0) {
-                $this->log_info('', '跑腿扣款大于0|扣款：' . $reduce);
+                $this->log_info('跑腿扣款大于0|扣款：' . $reduce);
             }
             $running_money += $reduce;
             $this->order->running_fee = $running_money;
@@ -86,7 +86,7 @@ class VipOrderSettlement implements ShouldQueue
         // 总收益
         $total = (($poi_receive * 100) - ($running_fee * 100) - ($prescription_fee * 100) - ($vip_cost * 100) - ($refund_fee * 100)) / 100;
 
-        $this->log_info("结算金额", "美团结算:{$poi_receive}|跑腿费:{$running_fee}|处方费:{$prescription_fee}|成本费:{$vip_cost}|退款金额:{$refund_fee}|总收益:{$total}|");
+        $this->log_info("结算金额|美团结算:{$poi_receive}|跑腿费:{$running_fee}|处方费:{$prescription_fee}|成本费:{$vip_cost}|退款金额:{$refund_fee}|总收益:{$total}|");
 
         $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
         $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
@@ -95,7 +95,7 @@ class VipOrderSettlement implements ShouldQueue
         // $vip_company = $total * $commission / 100;
         $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
 
-        $this->log_info("计算佣金", "公司:{$vip_company}|运营经理:{$vip_operate}|城市经理:{$vip_city}|内勤:{$vip_internal}|商家:{$vip_business}|");
+        $this->log_info("计算佣金|公司:{$vip_company}|运营经理:{$vip_operate}|城市经理:{$vip_city}|内勤:{$vip_internal}|商家:{$vip_business}|");
 
         $this->order->vip_total = $total;
         $this->order->vip_company = $vip_company;
