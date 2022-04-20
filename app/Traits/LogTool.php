@@ -9,10 +9,10 @@ trait LogTool
     public $log_name = '';
     public $prefix = '';
 
-    public function log($name, $text, $data = [])
-    {
-        Log::info("[$this->log_name|$name]-$text", $data);
-    }
+    // public function log($name, $text, $data = [])
+    // {
+    //     Log::info("[$this->log_name|$name]-$text", $data);
+    // }
 
     public function log_info($message = '', $data = [])
     {
