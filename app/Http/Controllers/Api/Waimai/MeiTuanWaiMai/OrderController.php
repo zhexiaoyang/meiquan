@@ -178,6 +178,11 @@ class OrderController
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&完成订单|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($status == 8 && $order->status < 18) {
+                    $bill_date = date("Y-m-d");
+                    if (($order->ctime < strtotime($bill_date)) && (time() < strtotime(date("Y-m-d 09:00:00")))) {
+                        $bill_date = date("Y-m-d", time() - 86400);
+                    }
+                    $order->bill_date = $bill_date;
                     $order->status = 18;
                     $order->finish_at = date("Y-m-d H:i:s");
                     $order->save();
