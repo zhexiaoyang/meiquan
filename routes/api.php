@@ -440,8 +440,6 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("user/return", "UserController@returnShow");
             // 用户管理-管理员-清空用户跑腿余额
             Route::post("user/money/clear", "UserController@money_clear");
-            // 城市经理
-            Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
             // 用户管理-管理员-运营经理
             Route::post("user/operate", "UserController@operate_update");
             Route::get("user/operate", "UserController@operate_index");
@@ -452,6 +450,14 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("/user", "UserController@store");
             // 用户管理-管理员修改用户
             Route::put("/user", "UserController@update");
+            // 用户管理-城市经理-负责城市列表
+            Route::get("/user/manager/city", "ManagerCityController@index");
+            // 用户管理-城市经理-添加城市
+            Route::post("/user/manager/city", "ManagerCityController@store");
+            // 用户管理-城市经理-删除城市
+            Route::delete("/user/manager/city", "ManagerCityController@destroy");
+            // 城市经理-资源路由
+            Route::resource("city_manager", "CityManagerController", ["only" => ["store", "show", "index", "update", "destroy"]]);
 
             /**
              * 财务管理

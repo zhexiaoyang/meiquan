@@ -10,7 +10,7 @@ class CityManagerController extends Controller
 {
     public function index()
     {
-        $data = User::select("id", "nickname as name")->whereHas('roles', function ($query) {
+        $data = User::with('cities')->select("id", "nickname as name")->whereHas('roles', function ($query) {
             $query->where('name', 'city_manager');
         })->where("id", ">", 2400)->where("status", 1)->get();
 

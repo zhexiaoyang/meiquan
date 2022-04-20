@@ -50,6 +50,11 @@ class VipStatisticsController extends Controller
         if ($city) {
             $order_query->whereIn('shop_id', Shop::where('city', $city)->pluck('id'));
         }
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $order_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $order_cancel_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
         $orders = $order_query->get();
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -118,6 +123,10 @@ class VipStatisticsController extends Controller
         }
         $shop_ids = [];
         $res_data = [];
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $shop_query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
         $shops = $shop_query->paginate($request->get('page_size', 10));
         if (!empty($shops)) {
             foreach ($shops as $shop) {
@@ -170,7 +179,13 @@ class VipStatisticsController extends Controller
             }
         }
 
-        return $this->success(array_values($res_data));
+        $res['page'] = $shops->currentPage();
+        $res['current_page'] = $shops->currentPage();
+        $res['total'] = $shops->total();
+        $res['page_total'] = $shops->lastPage();
+        $res['last_page'] = $shops->lastPage();
+        $res['data'] = array_values($res_data);
+        return $this->success($res);
     }
 
     public function managerStatistics(Request $request)
@@ -178,9 +193,16 @@ class VipStatisticsController extends Controller
         $sdate = $request->get('sdate');
         $edate = $request->get('edate');
 
-        $managers = User::select('id', 'nickname', 'name', 'phone')->whereHas('roles', function ($query)  {
+        $query = User::select('id', 'nickname', 'name', 'phone')->whereHas('roles', function ($query)  {
             $query->where('name', 'city_manager');
-        })->where('status', 1)->where('id', '>', 2000)->get();
+        })->where('status', 1)->where('id', '>', 2000);
+
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->where('id', $request->user()->id);
+        }
+
+        $managers = $query->get();
 
         $manager_ids = [];
         $shop_ids = [];
@@ -273,7 +295,14 @@ class VipStatisticsController extends Controller
         $sdate = $request->get('sdate');
         $edate = $request->get('edate');
 
-        $operates = User::select('id', 'nickname', 'name', 'phone')->where('is_operate', 1)->where('status', 1)->get();
+        $query = User::select('id', 'nickname', 'name', 'phone')->where('is_operate', 1)->where('status', 1);
+
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->where('id', $request->user()->id);
+        }
+
+        $operates = $query->get();
 
         $operate_ids = [];
         $shop_ids = [];
@@ -366,7 +395,14 @@ class VipStatisticsController extends Controller
         $sdate = $request->get('sdate');
         $edate = $request->get('edate');
 
-        $internal = User::select('id', 'nickname', 'name', 'phone')->where('is_internal', 1)->where('status', 1)->get();
+        $query = User::select('id', 'nickname', 'name', 'phone')->where('is_internal', 1)->where('status', 1);
+
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->where('id', $request->user()->id);
+        }
+
+        $internal = $query->get();
 
         $internal_ids = [];
         $shop_ids = [];

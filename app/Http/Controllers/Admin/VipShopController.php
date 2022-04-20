@@ -39,6 +39,11 @@ class VipShopController extends Controller
             $query->where('vip_logistics',$logistics);
         }
 
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+
         $data = $query->paginate($page_size);
 
         return $this->page($data);
@@ -128,9 +133,16 @@ class VipShopController extends Controller
         return $this->status();
     }
 
-    public function all()
+    public function all(Request $request)
     {
-        $data = Shop::select('id','shop_name')->where('vip_status', 1)->get();
+        $query = Shop::select('id','shop_name')->where('vip_status', 1);
+
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+
+        $data = $query->get();
 
         return $this->success($data);
     }

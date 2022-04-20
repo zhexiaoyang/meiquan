@@ -51,6 +51,11 @@ class VipOrderController extends Controller
             $query->where('created_at', '<', date("Y-m-d H:i:s", strtotime($etime) + 86400));
         }
 
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+
         $data = $query->orderByDesc('id')->paginate($page_size);
 
         if (!empty($data)) {

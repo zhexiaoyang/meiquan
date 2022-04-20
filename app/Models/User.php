@@ -50,6 +50,12 @@ class User extends Authenticatable
         return self::where(['name' => $username])->first();
     }
 
+    // 城市经理-负责的城市
+    public function cities()
+    {
+        return $this->hasMany(ManagerCity::class, 'user_id', 'id');
+    }
+
     public function deposit()
     {
         return $this->hasMany(Deposit::class);

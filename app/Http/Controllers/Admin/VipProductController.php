@@ -45,6 +45,11 @@ class VipProductController extends Controller
             }
         }
 
+        // 判断角色
+        if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+
         $data = $query->orderByDesc('id')->paginate($page_size);
 
         return $this->page($data, false, 'data');
