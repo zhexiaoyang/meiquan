@@ -63,7 +63,7 @@ class ProductController
                             'spec' => $p->spec,
                             'upc' => $p->upc,
                             'price' => $p->price,
-                            'cost' => $p->cost,
+                            'cost' => 0,
                             'platform' => $p->platform,
                             'error_type' => 1,
                             'error' => '成本价为0',
