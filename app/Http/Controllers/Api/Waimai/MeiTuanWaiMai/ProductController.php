@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
 use App\Models\Shop;
 use App\Models\VipProduct;
+use App\Models\VipProductException;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
@@ -51,7 +52,23 @@ class ProductController
                             'utime' => time(),
                             'platform' => 1,
                         ];
-                        VipProduct::create($tmp);
+                        $p = VipProduct::create($tmp);
+                        $tem_error = [
+                            'product_id' => $p->id,
+                            'shop_id' => $p->shop_id,
+                            'platform_id' => $p->platform_id,
+                            'shop_name' => $p->shop_name,
+                            'app_medicine_code' => $p->app_medicine_code,
+                            'name' => $p->name,
+                            'spec' => $p->spec,
+                            'upc' => $p->upc,
+                            'price' => $p->price,
+                            'cost' => $p->cost,
+                            'platform' => $p->platform,
+                            'error_type' => 1,
+                            'error' => '成本价为0',
+                        ];
+                        VipProductException::create($tem_error);
                         $this->ding_exception("添加商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                     }
                 }
@@ -76,23 +93,23 @@ class ProductController
 
         if (!empty($data)) {
             foreach ($data as $v) {
-                // $app_poi_code = $v['app_poi_code'];
-                // $upc = $v['upc'];
-                $price = $v['diff_contents']['skus'][0]['price'] ?? '';
+                $app_poi_code = $v['app_poi_code'];
+                $upc = $v['upc'];
+                $price = $v['diff_contents']['skus'][0]['diffContentMap']['price'] ?? '';
                 if ($price) {
                     $this->log_info('价格全部参数', $request->all());
-                    $this->ding_exception("更新商品,价格全部参数");
-                    // if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
-                    //     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                    //         if ($product->delete()) {
-                    //             $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                    //         } else {
-                    //             $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                    //         }
-                    //     } else {
-                    //         $this->ding_exception("更新商品,商品不存在|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                    //     }
-                    // }
+                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
+                        if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                            return $product;
+                            if ($product->delete()) {
+                                $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                            } else {
+                                $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                            }
+                        } else {
+                            $this->ding_exception("更新商品,商品不存在|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                        }
+                    }
                 }
             }
         }
