@@ -41,6 +41,8 @@ class OrderController extends Controller
             $query->select('id', 'shop_id', 'shop_name');
         }, 'products' => function($query) {
             $query->select('id', 'order_id', 'food_name', 'quantity', 'spec', 'price');
+        }, 'order' => function($query) {
+            $query->select('id', 'order_id', 'ctime');
         }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
             'receiver_address','tool','ps',
             'mt_status','money_mt','fail_mt',
@@ -133,6 +135,8 @@ class OrderController extends Controller
                     $order->status = 0;
                 }
                 $order->number = $number;
+                $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
+                unset($order->order);
                 unset($order->shop);
                 unset($order->warehouse);
             }

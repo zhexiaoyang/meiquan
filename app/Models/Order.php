@@ -59,6 +59,11 @@ class Order extends Model
         return $this->hasMany(WmOrderItem::class, "order_id", "wm_id");
     }
 
+    public function order()
+    {
+        return $this->belongsTo(WmOrder::class, "wm_id", "id");
+    }
+
     public function logs()
     {
         return $this->hasMany(OrderLog::class, "order_id", "id");
