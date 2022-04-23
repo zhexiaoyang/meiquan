@@ -96,7 +96,9 @@ class OrderController extends Controller
         }
 
         // 查询订单
-        $orders = $query->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
+        $orders = $query->withCount(['products as products_sum' => function($query){
+            $query->select(DB::raw("sum(quantity) as products_sum"));
+        }])->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
