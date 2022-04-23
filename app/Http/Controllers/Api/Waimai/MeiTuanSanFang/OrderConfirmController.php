@@ -328,6 +328,7 @@ class OrderConfirmController
                     dispatch(new SendOrderToErp($data, $erp_shop->id));
                 }
             }
+            $this->ding_exception('餐饮创建订单成功');
         });
         $this->log_info("-结束");
         return json_encode(['data' => 'ok']);
