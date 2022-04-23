@@ -48,7 +48,7 @@ class OrderController extends Controller
             'dd_status','money_dd','fail_dd',
             'uu_status','money_uu','fail_uu',
             'sf_status','money_sf','fail_sf',
-            'courier_name','courier_phone','warehouse_id','day_seq','wm_poi_name',
+            'courier_name','courier_phone','warehouse_id','day_seq','wm_poi_name','caution',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
 
