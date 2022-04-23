@@ -44,6 +44,7 @@ class OrderConfirmController
         if (!$mt_shop_id || !$mt_order_id) {
             return json_encode(['data' => 'OK']);
         }
+        $this->ding_exception('餐饮来单');
         /********************* 判断订单是否存在 *********************/
         if (Order::where("order_id", $mt_order_id)->exists()) {
             $this->log_info('订单已存在');
