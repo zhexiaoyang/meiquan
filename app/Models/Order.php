@@ -26,7 +26,7 @@ class Order extends Model
     ];
 
     protected $fillable = [
-        'wm_poi_name','wm_id',
+        'wm_poi_name','wm_id','caution',
         'delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
         'receiver_address','receiver_phone','receiver_lng','receiver_lat','coordinate_type','goods_value',
         'goods_height','goods_width','goods_length','goods_weight','goods_pickup_info','goods_delivery_info',
