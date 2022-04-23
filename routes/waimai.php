@@ -124,7 +124,7 @@ Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Wai
     // 推送美配订单配送状态回调
     // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/order/cancel
     Route::post('order/create', "OrderController@create");
-    Route::post('order/confirm', "OrderController@confirm");
+    Route::post('order/confirm', "OrderConfirmController@confirm");
     Route::post('order/cancel', "OrderController@cancel");
     Route::post('order/refund', "OrderController@refund");
     Route::post('order/rider', "OrderController@rider");
