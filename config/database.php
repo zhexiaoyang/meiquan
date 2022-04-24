@@ -77,7 +77,6 @@ return [
             'schema' => 'public',
             'sslmode' => 'prefer',
         ],
-
         'wanxiang_haidian' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
@@ -86,6 +85,18 @@ return [
             'database' => 'hydee_new',
             'username' => 'hydee',
             'password' => 'wx888',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
+        'jishitang' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => '182.92.231.104',
+            'port' => '12315',
+            'database' => 'hydee_2',
+            'username' => 'watermelon',
+            'password' => 'Jst@1985*A',
             'charset' => 'utf8',
             'prefix' => '',
             'prefix_indexes' => true,
