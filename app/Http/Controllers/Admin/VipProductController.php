@@ -60,6 +60,8 @@ class VipProductController extends Controller
         if (!$shop = Shop::find($request->get('shop_id', 0))) {
             return $this->error('门店不存在');
         }
+        $shop->vip_sync_status = 1;
+        $shop->save();
         // 请求参数组合
         $params = [
             'offset' => 0,

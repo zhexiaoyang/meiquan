@@ -31,7 +31,7 @@ class ProductController
             foreach ($data as $v) {
                 $app_poi_code = $v['app_poi_code'];
                 $upc = $v['upc'];
-                if ($shop = Shop::select('id','shop_name')->where('waimai_mt', $app_poi_code)->where('vip_status', 1)->first()) {
+                if ($shop = Shop::select('id','shop_name')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         $this->ding_exception("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                     } else {
@@ -99,7 +99,7 @@ class ProductController
                 $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? '';
                 if ($price) {
                     $this->log_info('价格全部参数', $request->all());
-                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_status', 1)->first()) {
+                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                         if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                             if (VipProduct::query()->where('id', $product->id)->update(['price' => $price])) {
                                 $this->log_info("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
@@ -134,7 +134,7 @@ class ProductController
             foreach ($data as $v) {
                 $app_poi_code = $v['app_poi_code'];
                 $upc = $v['upc'];
-                if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_status', 1)->first()) {
+                if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         if ($product->delete()) {
                             $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
