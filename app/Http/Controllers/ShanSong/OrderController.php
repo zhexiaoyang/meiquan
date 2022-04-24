@@ -123,9 +123,9 @@ class OrderController
                     // $dd->sendMarkdownMsgArray("【ERROR】不能操作待接单", $logs);
                     return json_encode($res);
                 }
-                $order->status = 30;
-                $order->ss_status = 30;
-                $order->save();
+                // $order->status = 30;
+                // $order->ss_status = 30;
+                // $order->save();
                 Log::info($log_prefix . '待接单');
                 return json_encode($res);
 
