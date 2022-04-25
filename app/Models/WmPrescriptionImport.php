@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WmPrescriptionImport extends Model
 {
-    protected $fillable = ['count', 'success', 'error', 'user_id'];
+    protected $fillable = ['count', 'success', 'error', 'exists', 'text', 'user_id'];
 
     public function user()
     {

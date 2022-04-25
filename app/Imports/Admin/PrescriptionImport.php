@@ -22,16 +22,20 @@ class PrescriptionImport implements ToArray
     {
         array_shift($array);
         if (!empty($array)) {
-            \Log::info("导入总数", [count($array)]);
             $prescriptions = [];
             $balances = [];
             $users = [];
             $user_money = [];
             $shops = [];
-            $import_log = ['count' => 0, 'success' => 0, 'error' => 0, 'user_id' => Auth::id(), ];
+            $import_log = ['count' => 0, 'success' => 0, 'error' => 0, 'exists' => 0, 'text' => '', 'user_id' => Auth::id(), ];
             foreach ($array as $key => $item) {
                 $import_log['count']++;
                 $line = $key + 2;
+                if (WmPrescription::select('id')->where('outOrderID', $item[3])->exists()) {
+                    $import_log['exists']++;
+                    $import_log['text'] .= $item[3] . ',';
+                    continue;
+                }
                 if (!in_array($item[0], ['美团', '饿了么'])) {
                     throw new InvalidRequestException("第{$line}行，参数错误");
                 }
