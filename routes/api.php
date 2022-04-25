@@ -35,6 +35,10 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 移动端
+         */
+        // Route::get("m/order", "OrderController@index");
+        /**
          * VIP
          */
         // VIP订单
@@ -367,6 +371,10 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("prescription", "PrescriptionController@index")->name("admin.prescription.index");
             // 处方后台-处方管理-订单统计
             Route::get("prescription/statistics", "PrescriptionController@statistics")->name("admin.prescription.statistics");
+            // 处方后台-处方管理-导入列表
+            Route::get("prescription/import", "WmPrescriptionImportController@index")->name("admin.prescription.import.index");
+            // 处方后台-处方管理-导入
+            Route::post("prescription/import", "WmPrescriptionImportController@store")->name("admin.prescription.import.store");
             /**
              * 门店管理
              */
