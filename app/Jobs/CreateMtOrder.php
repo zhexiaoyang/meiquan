@@ -216,7 +216,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $sf = app("shunfeng");
             $check_sf= $sf->precreateorder($order, $shop);
-            $money_sf = (($check_sf['result']['charge_price_list']['shop_pay_price'] ?? 0) / 100) + $add_money;
+            $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
             if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
                 // 判断用户金额是否满足顺丰订单
                 if ($user->money < ($money_sf + $use_money)) {
@@ -664,7 +664,7 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             $this->log("发送「顺丰」订单成功|返回参数", [$result_sf]);
             // 写入订单信息
-            $money_sf = (($result_sf['result']['total_price'] ?? 0) / 100) + $this->add_money;
+            $money_sf = (($result_sf['result']['real_pay_money'] ?? 0) / 100) + $this->add_money;
             $update_info = [
                 'money_sf' => $money_sf,
                 'sf_order_id' => $result_sf['result']['sf_order_id'] ?? $this->order->order_id,
