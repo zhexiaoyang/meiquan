@@ -419,7 +419,9 @@ Route::middleware(["force-json"])->group(function() {
             // 外卖资料-导出
             Route::get("online_shop/export", "OnlineShopController@export")->name("admin.online_shop.export");
             // 外卖资料
-            Route::resource("online_shop", "OnlineShopController", ["only" => ["index", "show"]]);
+            // Route::resource("online_shop", "OnlineShopController", ["only" => ["index", "show"]]);
+            Route::get("online_shop/info", "OnlineShopController@info_by_shop_id")->name("admin.online_shop.info.info_by_shop_id");
+            Route::put("online_shop/info", "OnlineShopController@update_by_shop_id")->name("admin.online_shop.info.update_by_shop_id");
             // 用户管理-充值记录
             Route::get("deposit", "DepositController@index")->name("admin.deposit.index");
             // 用户管理-充值记录-导出
@@ -497,13 +499,11 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("examine/shopping/change", "ExamineShoppingController@changeStore");
 
             // *审核接口-管理员-审核列表
-            Route::get("online/shop/examine", "OnlineController@examineList");
+            Route::get("examine/online", "OnlineController@examineList");
             // *审核接口-管理员-详情
-            Route::get("online/shop/examine/show", "OnlineController@examineShow");
+            Route::get("examine/online/show", "OnlineController@examineShow");
             // *审核接口-管理员-审核
-            Route::post("online/shop/examine", "OnlineController@examine");
-            // *审核接口-管理员-审核
-            Route::post("online/shop/examine", "OnlineController@examine");
+            Route::post("examine/online", "OnlineController@examine");
 
             // *跑腿审核-门店列表
             Route::get("examine/shop", "ExamineShopController@index");
