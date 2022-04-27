@@ -145,7 +145,7 @@ Route::middleware(['force-json'])->prefix('meituan/sanfang')->namespace('Api\Wai
     // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/order
     // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/rider
     // https://psapi.meiquanda.com/api/waimai/meituan/sanfang/fei/marketing
-    Route::post('fei/order', "FeiController@order");
+    Route::post('fei/order', "OrderConfirmController@confirm");
     Route::post('fei/rider', "FeiController@rider");
     Route::post('fei/marketing', "FeiController@marketing");
 });
