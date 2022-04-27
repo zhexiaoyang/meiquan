@@ -30,7 +30,8 @@ class RunningStatisticController extends Controller
         $cancel_query = Order::query()->where("cancel_at", ">=", $start_date)->where("status", 99)
             ->where("cancel_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $cancel_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
@@ -49,7 +50,7 @@ class RunningStatisticController extends Controller
         $res['money'] /= 100;
         $res['cancel'] = $cancel_query->count();
 
-        if ($res['profit'] > 0 && !$request->user()->hasRole('super_man')) {
+        if ($res['profit'] > 0 && !$request->user()->hasPermissionTo('currency_shop_all')) {
             if ($user_return = UserReturn::where("user_id", $request->user()->id)->first()) {
                 if ($user_return->running_type === 1) {
                     $res['profit'] = number_format($res['complete'] * $user_return['running_value1'], 2);

@@ -28,7 +28,8 @@ class ShoppingStatisticController extends Controller
             ->where("status", '>=', 70)->where("created_at", ">", $start_date)
             ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('receive_shop_id', $request->user()->shops()->pluck('id'));
         }
 
@@ -49,7 +50,8 @@ class ShoppingStatisticController extends Controller
         $res['money'] /= 100;
         $res['profit'] /= 100;
 
-        if ($res['profit'] > 0 && !$request->user()->hasRole('super_man')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if ($res['profit'] > 0 && !$request->user()->hasPermissionTo('currency_shop_all')) {
             if ($user_return = UserReturn::where("user_id", $request->user()->id)->first()) {
                 if ($user_return->shop_type === 1) {
                     $res['profit'] = number_format($res['complete'] * $user_return['shop_value1'], 2);

@@ -19,7 +19,8 @@ class OnlineShopController extends Controller
         $query = OnlineShop::with('contract');
 
         // 非管理员只能查看所指定的门店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
@@ -60,7 +61,8 @@ class OnlineShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $where = [
                 'user_id' => \Auth::id(),
                 'shop_id' => $shop_id,
@@ -82,7 +84,8 @@ class OnlineShopController extends Controller
             return $this->error("门店不存在");
         }
 
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $where = [
                 'user_id' => \Auth::id(),
                 'shop_id' => $shop_id,

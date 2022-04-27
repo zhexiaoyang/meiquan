@@ -40,7 +40,8 @@ class VipShopController extends Controller
         }
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 
@@ -138,7 +139,8 @@ class VipShopController extends Controller
         $query = Shop::select('id','shop_name')->where('vip_status', 1);
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 

@@ -34,7 +34,8 @@ class VipBillController extends Controller
         }
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 

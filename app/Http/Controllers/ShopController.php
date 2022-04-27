@@ -88,7 +88,8 @@ class ShopController extends Controller
         }
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
         $shops = $query->where("status", ">=", 0)->orderBy('id', 'desc')->paginate($page_size);
@@ -262,7 +263,8 @@ class ShopController extends Controller
     {
         $query = Shop::query()->select("id", "shop_name");
 
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 
@@ -281,7 +283,8 @@ class ShopController extends Controller
 
             $query->where('shop_name', 'like', "%{$name}%");
 
-            if (!$request->user()->hasRole('super_man')) {
+            if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            // if (!$request->user()->hasRole('super_man')) {
                 $query->whereIn('id', $request->user()->shops()->pluck('id'));
             }
 

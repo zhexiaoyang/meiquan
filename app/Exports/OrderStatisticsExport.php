@@ -59,7 +59,8 @@ class OrderStatisticsExport implements WithStrictNullComparison, Responsable, Fr
             ->where("over_at", ">=", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
-        if (!$this->request->user()->hasRole('super_man')) {
+        if (!$this->request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$this->request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $this->request->user()->shops()->pluck('id'));
         }
 

@@ -584,7 +584,8 @@ class OnlineController extends Controller
             "contact_phone","is_meituan","is_ele","is_jddj","is_btoc");
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 

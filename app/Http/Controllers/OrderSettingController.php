@@ -116,7 +116,8 @@ class OrderSettingController extends Controller
     public function shops(Request $request)
     {
         $name = $request->get('name');
-        if ($request->user()->hasRole('super_man')) {
+        if ($request->user()->hasPermissionTo('currency_shop_all')) {
+        // if ($request->user()->hasRole('super_man')) {
             if ($name) {
                 $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->get();
             } else {
@@ -136,7 +137,8 @@ class OrderSettingController extends Controller
     public function warehouse_shops(Request $request)
     {
         $name = $request->get('name');
-        if ($request->user()->hasRole('super_man')) {
+        if ($request->user()->hasPermissionTo('currency_shop_all')) {
+        // if ($request->user()->hasRole('super_man')) {
             if ($name) {
                 $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->get();
             } else {

@@ -51,7 +51,8 @@ class VipStatisticsController extends Controller
             $order_query->whereIn('shop_id', Shop::where('city', $city)->pluck('id'));
         }
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $order_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $order_cancel_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
@@ -124,7 +125,8 @@ class VipStatisticsController extends Controller
         $shop_ids = [];
         $res_data = [];
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $shop_query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
         $shops = $shop_query->paginate($request->get('page_size', 10));
@@ -198,7 +200,8 @@ class VipStatisticsController extends Controller
         })->where('status', 1)->where('id', '>', 2000);
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->where('id', $request->user()->id);
         }
 
@@ -298,7 +301,8 @@ class VipStatisticsController extends Controller
         $query = User::select('id', 'nickname', 'name', 'phone')->where('is_operate', 1)->where('status', 1);
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->where('id', $request->user()->id);
         }
 
@@ -398,7 +402,8 @@ class VipStatisticsController extends Controller
         $query = User::select('id', 'nickname', 'name', 'phone')->where('is_internal', 1)->where('status', 1);
 
         // 判断角色
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->where('id', $request->user()->id);
         }
 

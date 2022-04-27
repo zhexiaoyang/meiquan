@@ -23,7 +23,8 @@ class ExamineShopController extends Controller
             ->where("status", 0)->where("id", ">", 900);
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 
@@ -94,7 +95,8 @@ class ExamineShopController extends Controller
             });
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 
@@ -187,7 +189,8 @@ class ExamineShopController extends Controller
             });
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
 

@@ -72,7 +72,8 @@ class OrderController extends Controller
         }
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        // if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
@@ -2341,7 +2342,8 @@ class OrderController extends Controller
     {
 
         // 判断可以查询的药店
-        if ($request->user()->hasRole('super_man')) {
+        // if ($request->user()->hasRole('super_man')) {
+        if ($request->user()->hasPermissionTo('currency_shop_all')) {
             $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
             $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
             $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();

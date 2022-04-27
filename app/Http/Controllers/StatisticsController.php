@@ -75,7 +75,8 @@ class StatisticsController extends Controller
             ->where("over_at", ">=", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $_shop_ids = $request->user()->shops()->pluck('id') ?? [];
             $query->whereIn('shop_id', $_shop_ids);
         }

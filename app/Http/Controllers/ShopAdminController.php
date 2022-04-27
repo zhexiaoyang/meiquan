@@ -167,7 +167,8 @@ class ShopAdminController extends Controller
         $query = SupplierOrder::with(["shop", "items"])->orderBy("id", "desc");
 
         // 非管理员只能查看所指定的门店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('receive_shop_id', $request->user()->shops()->pluck('id'));
         }
 

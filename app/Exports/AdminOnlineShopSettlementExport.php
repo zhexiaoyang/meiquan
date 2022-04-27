@@ -37,7 +37,8 @@ class AdminOnlineShopSettlementExport implements WithStrictNullComparison, Respo
         },'user']);
 
         // 非管理员只能查看所指定的门店
-        if (!$this->request->user()->hasRole('super_man')) {
+        if (!$this->request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$this->request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $this->request->user()->shops()->pluck('id'));
         }
 

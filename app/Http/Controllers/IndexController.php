@@ -33,7 +33,8 @@ class IndexController extends Controller
         $supplier_query = SupplierOrder::whereIn("status", [30, 50]);
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $order_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $shop_query->whereIn('id', $request->user()->shops()->pluck('id'));
             $shop_no_auto_query->whereIn('id', $request->user()->shops()->pluck('id'));
@@ -114,7 +115,8 @@ class IndexController extends Controller
             ->where("created_at", "<", $end_date)
             ->groupBy("shop_id", "status");
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $complete_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $cancel_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             $exception_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));

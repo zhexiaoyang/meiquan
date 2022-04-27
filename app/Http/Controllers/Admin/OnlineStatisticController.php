@@ -27,7 +27,8 @@ class OnlineStatisticController extends Controller
             ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         // 判断可以查询的药店
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
