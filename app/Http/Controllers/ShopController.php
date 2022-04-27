@@ -89,6 +89,7 @@ class ShopController extends Controller
 
         // 判断角色
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            \Log::info("没有全部门店权限");
         // if (!$request->user()->hasRole('super_man')) {
             $query->whereIn('id', $request->user()->shops()->pluck('id'));
         }
