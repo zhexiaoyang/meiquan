@@ -283,7 +283,7 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 管理员操作
          */
-        Route::middleware(["role:super_man|admin|finance|city_manager"])->prefix("admin")->namespace("Admin")->group(function () {
+        Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
              * 跑腿设置
              */
@@ -485,7 +485,7 @@ Route::middleware(["force-json"])->group(function() {
                 Route::get("manager/profit", "ManagerProfitController@index");
             });
         });
-        Route::middleware(["role:super_man|admin|finance|city_manager"])->group(function () {
+        Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
             // 用户管理-导出
