@@ -351,6 +351,8 @@ Route::middleware(["force-json"])->group(function() {
              */
             // *处方单列表-重新结算
             Route::get("prescription/again", "PrescriptionController@again");
+            // *处方单列表-删除订单（单个、门店）
+            Route::post("prescription/delete", "PrescriptionController@delete");
             // 处方后台-门店管理-门店列表
             Route::get("prescription/shop", "PrescriptionController@shop")->name("admin.prescription.shop.index");
             // 处方后台-门店管理-门店列表-所有

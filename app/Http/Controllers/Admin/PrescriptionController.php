@@ -25,6 +25,7 @@ class PrescriptionController extends Controller
         $stime = $request->get('stime', '');
         $etime = $request->get('etime', '');
         $status = $request->get('status', '');
+        $mtwm = $request->get('mtwm', '');
 
         $query = WmPrescription::query();
 
@@ -46,10 +47,13 @@ class PrescriptionController extends Controller
         if ($etime) {
             $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
+        if ($mtwm) {
+            $query->where('storeID', $mtwm);
+        }
 
         $data = $query->paginate($page_size);
 
-        return $this->page($data);
+        return $this->page($data, [], 'data');
     }
 
     public function export(Request $request, PrescriptionOrderExport $export)
@@ -220,7 +224,23 @@ class PrescriptionController extends Controller
 
     public function shop_all(Request $request)
     {
-        return $this->success();
+        $data = [];
+        if ($name = $request->get('name')) {
+            // $data = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
+            //     ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
+            //         'prescription_cost', 'prescription_channel',
+            //         'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
+            //     ->where('shops.user_id', '>', 0)
+            //     ->where('shops.chufang_status', '>', 0)
+            //     ->where('shops.second_category', '200001')
+            //     ->where('shops.shop_name', 'like', "%{$name}%")
+            //     ->orderByDesc('shops.id')->limit(30)->get();
+
+            $data = WmPrescription::query()->select("storeName")
+                ->where('storeName', 'like', "%{$name}%")
+                ->groupBy("storeName")->get();
+        }
+        return $this->success($data);
     }
 
     /**
@@ -348,6 +368,21 @@ class PrescriptionController extends Controller
         $shop->prescription_cost = floatval($request->get('cost', 0));
         $shop->prescription_channel = intval($request->get('channel', 0));
         $shop->save();
+
+        return $this->success();
+    }
+
+    public function delete(Request $request)
+    {
+        if ($id = $request->get('id')) {
+            if ($prescription = WmPrescription::find($id)) {
+                if ($prescription->status == 2) {
+                    $prescription->delete();
+                }
+            }
+        } elseif ($shop_id = $request->get('shop_id')) {
+            WmPrescription::where('storeID', $shop_id)->where('status', 2)->delete();
+        }
 
         return $this->success();
     }
