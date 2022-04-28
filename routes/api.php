@@ -190,7 +190,9 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 门店管理
          */
+        // 外卖建店-详情
         Route::get("shop/create", "ShopCreateController@info")->name("shop.create.info");
+        // 外卖建店-保存
         Route::post("shop/create", "ShopCreateController@save")->name("shop.create.save");
         // *门店列表-修改三方门店ID
         Route::post("shop/update/three", "ShopController@update_three_id")->name("shop.update.three.id");
@@ -286,6 +288,13 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
+            /**
+             * 审核管理
+             */
+            // 外卖门店审核
+            Route::get("examine/shop/create", "ExamineShopCreateController@index")->name("examine.shop.create.index");
+            Route::post("examine/shop/create", "ExamineShopCreateController@update")->name("examine.shop.create.update");
+            Route::post("examine/shop/adopt", "ExamineShopCreateController@adopt")->name("examine.shop.create.adopt");
             /**
              * 跑腿设置
              */

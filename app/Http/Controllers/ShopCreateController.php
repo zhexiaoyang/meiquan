@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Shop;
 use App\Models\ShopCreate;
 use Illuminate\Http\Request;
 
@@ -83,6 +84,14 @@ class ShopCreateController extends Controller
                 return $this->error('门店定位不能为空，请点击地图选址获取定位');
             }
             $data['citycode'] = $citycode;
+            // 判断营业执照
+            if ($_shop = Shop::where('yyzz', $yyzz)->first()) {
+                return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
+            }
+            // 判断营业执照
+            if ($_shop = ShopCreate::where('yyzz', $yyzz)->first()) {
+                return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
+            }
             if ($info) {
                 ShopCreate::where('id', $info->id)->update($data);
             } else {
@@ -114,6 +123,7 @@ class ShopCreateController extends Controller
             $data['mt_shop_id'] = $mt_shop_id;
             $data['step'] = 3;
             $data['status'] = 1;
+            $data['apply_at'] = date("Y-m-d H:i:s");
             ShopCreate::where('id', $info->id)->update($data);
         }
 
