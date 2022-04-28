@@ -190,6 +190,8 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 门店管理
          */
+        Route::get("shop/create", "ShopCreateController@info")->name("shop.create.info");
+        Route::post("shop/create", "ShopCreateController@save")->name("shop.create.save");
         // *门店列表-修改三方门店ID
         Route::post("shop/update/three", "ShopController@update_three_id")->name("shop.update.three.id");
         // *门店地址加配送范围信息
