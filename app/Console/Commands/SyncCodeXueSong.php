@@ -42,6 +42,7 @@ class SyncCodeXueSong extends Command
 
         // --------------------- 雪松青年桥店:9493159 ---------------------
         $this->info('门店「雪松青年桥店:9493159」同步-开始......');
+        Log::info('门店「雪松青年桥店:9493159」同步-开始......');
         // SELECT TOP 1000 * FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493159'
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493159' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
@@ -64,9 +65,11 @@ class SyncCodeXueSong extends Command
             }
         }
         $this->info('门店「雪松青年桥店:9493159」同步-结束......');
+        Log::info('门店「雪松青年桥店:9493159」同步-结束......');
 
         // --------------------- 雪松站前店:9493161 ---------------------
         $this->info('门店「雪松站前店:9493161」同步-开始......');
+        Log::info('门店「雪松站前店:9493161」同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493161' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -87,6 +90,7 @@ class SyncCodeXueSong extends Command
             }
         }
         $this->info('门店「雪松站前店:9493161」同步-结束......');
+        Log::info('门店「雪松站前店:9493161」同步-结束......');
 
         // --------------------- 雪松金山店:9493163 ---------------------
         $this->info('门店「雪松金山店:9493163」同步-开始......');

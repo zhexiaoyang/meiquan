@@ -41,6 +41,7 @@ class SyncStockWanXiang extends Command
     {
         $this->info('------------万祥同步库存开始------------');
         $this->info('中心仓同步-开始......');
+        Log::info('中心仓同步-开始......');
         $data = DB::connection('wanxiang_haidian')
             ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' AND [upc] <> '' AND [upc] IS NOT NULL");
             // ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' and [upc] = '6948060300279'");
@@ -72,8 +73,10 @@ class SyncStockWanXiang extends Command
             }
         }
         $this->info('中心仓同步-结束......');
+        Log::info('中心仓同步-结束......');
 
         $this->info('门店「12606969」同步-开始......');
+        Log::info('门店「12606969」同步-开始......');
         $data = DB::connection('wanxiang_haidian')
             ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0009' AND [upc] <> '' AND [upc] IS NOT NULL");
         if (!empty($data)) {
@@ -94,6 +97,7 @@ class SyncStockWanXiang extends Command
             }
         }
         $this->info('门店「12606969」同步-结束......');
+        Log::info('门店「12606969」同步-结束......');
 
         // 12965411
         $this->info('门店「12965411」同步-开始......');
