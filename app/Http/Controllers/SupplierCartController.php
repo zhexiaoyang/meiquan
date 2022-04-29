@@ -26,6 +26,12 @@ class SupplierCartController extends Controller
 
         // 查询门店城市编码
         $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        if (!isset($city_code->id)) {
+            \Log::info("没有citycode", [
+                $request->user(),
+                $shop
+            ]);
+        }
 
         $result = [];
         $data = [];
