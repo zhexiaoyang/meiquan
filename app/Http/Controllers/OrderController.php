@@ -333,6 +333,7 @@ class OrderController extends Controller
         dispatch(new CreateMtOrder($order));
         OrderLog::create([
             "order_id" => $order->id,
+            "user_id" => $request->user()->id ?? 0,
             "des" => "重新呼叫跑腿"
         ]);
 
