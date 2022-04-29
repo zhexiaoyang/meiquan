@@ -37,6 +37,12 @@ class SupplierProductController extends Controller
 
         // 查询门店城市编码
         $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        if (!isset($city_code->id)) {
+            \Log::info("没有citycode", [
+                $request->user(),
+                $shop
+            ]);
+        }
 
         $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_meituan","is_ele","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
