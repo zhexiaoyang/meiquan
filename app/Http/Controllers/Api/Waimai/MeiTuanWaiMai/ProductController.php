@@ -95,7 +95,10 @@ class ProductController
         if (!empty($data)) {
             foreach ($data as $v) {
                 $app_poi_code = $v['app_poi_code'];
-                $upc = $v['upc'];
+                $upc = $v['upc'] ?? '';
+                if (!$upc) {
+                    continue;
+                }
                 $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? '';
                 if ($price) {
                     $this->log_info('价格全部参数', $request->all());
