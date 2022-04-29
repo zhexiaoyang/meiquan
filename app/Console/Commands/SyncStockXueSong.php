@@ -43,8 +43,8 @@ class SyncStockXueSong extends Command
         $minkang = app("minkang");
 
         // --------------------- 雪松青年桥店:9493159 ---------------------
-        $this->info('门店「雪松青年桥店:9493159」同步-开始......');
-        Log::info('门店「雪松青年桥店:9493159」同步-开始......');
+        $this->info('门店「雪松青年桥店:9493159」库存同步-开始......');
+        Log::info('门店「雪松青年桥店:9493159」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493159' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -63,12 +63,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松青年桥店:9493159」同步-结束......');
-        Log::info('门店「雪松青年桥店:9493159」同步-结束......');
+        $this->info('门店「雪松青年桥店:9493159」库存同步-结束......');
+        Log::info('门店「雪松青年桥店:9493159」库存同步-结束......');
 
         // --------------------- 雪松站前店:9493161 ---------------------
-        $this->info('门店「雪松站前店:9493161」同步-开始......');
-        Log::info('门店「雪松站前店:9493161」同步-开始......');
+        $this->info('门店「雪松站前店:9493161」库存同步-开始......');
+        Log::info('门店「雪松站前店:9493161」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493161' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -87,12 +87,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松站前店:9493161」同步-结束......');
-        Log::info('门店「雪松站前店:9493161」同步-结束......');
+        $this->info('门店「雪松站前店:9493161」库存同步-结束......');
+        Log::info('门店「雪松站前店:9493161」库存同步-结束......');
 
         // --------------------- 雪松金山店:9493163 ---------------------
-        $this->info('门店「雪松金山店:9493163」同步-开始......');
-        Log::info('门店「雪松金山店:9493163」同步-开始......');
+        $this->info('门店「雪松金山店:9493163」库存同步-开始......');
+        Log::info('门店「雪松金山店:9493163」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493163' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -111,12 +111,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松金山店:9493163」同步-结束......');
-        Log::info('门店「雪松金山店:9493163」同步-结束......');
+        $this->info('门店「雪松金山店:9493163」库存同步-结束......');
+        Log::info('门店「雪松金山店:9493163」库存同步-结束......');
 
         // --------------------- 雪松湖西店:9493216 ---------------------
-        $this->info('门店「雪松湖西店:9493216」同步-开始......');
-        Log::info('门店「雪松湖西店:9493216」同步-开始......');
+        $this->info('门店「雪松湖西店:9493216」库存同步-开始......');
+        Log::info('门店「雪松湖西店:9493216」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493216' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -135,12 +135,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松湖西店:9493216」同步-结束......');
-        Log::info('门店「雪松湖西店:9493216」同步-结束......');
+        $this->info('门店「雪松湖西店:9493216」库存同步-结束......');
+        Log::info('门店「雪松湖西店:9493216」库存同步-结束......');
 
         // --------------------- 雪松海棠店:9493164 ---------------------
-        $this->info('门店「雪松海棠店:9493164」同步-开始......');
-        Log::info('门店「雪松海棠店:9493164」同步-开始......');
+        $this->info('门店「雪松海棠店:9493164」库存同步-开始......');
+        Log::info('门店「雪松海棠店:9493164」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493164' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -159,12 +159,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松海棠店:9493164」同步-结束......');
-        Log::info('门店「雪松海棠店:9493164」同步-结束......');
+        $this->info('门店「雪松海棠店:9493164」库存同步-结束......');
+        Log::info('门店「雪松海棠店:9493164」库存同步-结束......');
 
         // --------------------- 雪松旗舰店:9492506 ---------------------
-        $this->info('门店「雪松旗舰店:9492506」同步-开始......');
-        Log::info('门店「雪松旗舰店:9492506」同步-开始......');
+        $this->info('门店「雪松旗舰店:9492506」库存同步-开始......');
+        Log::info('门店「雪松旗舰店:9492506」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492506' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -183,12 +183,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松旗舰店:9492506」同步-结束......');
-        Log::info('门店「雪松旗舰店:9492506」同步-结束......');
+        $this->info('门店「雪松旗舰店:9492506」库存同步-结束......');
+        Log::info('门店「雪松旗舰店:9492506」库存同步-结束......');
 
         // --------------------- 雪松阳光店:9493165 ---------------------
-        $this->info('门店「雪松阳光店:9493165」同步-开始......');
-        Log::info('门店「雪松阳光店:9493165」同步-开始......');
+        $this->info('门店「雪松阳光店:9493165」库存同步-开始......');
+        Log::info('门店「雪松阳光店:9493165」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493165' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -207,12 +207,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松阳光店:9493165」同步-结束......');
-        Log::info('门店「雪松阳光店:9493165」同步-结束......');
+        $this->info('门店「雪松阳光店:9493165」库存同步-结束......');
+        Log::info('门店「雪松阳光店:9493165」库存同步-结束......');
 
         // --------------------- 雪松爱心店:9493089 ---------------------
-        $this->info('门店「雪松爱心店:9493089」同步-开始......');
-        Log::info('门店「雪松爱心店:9493089」同步-开始......');
+        $this->info('门店「雪松爱心店:9493089」库存同步-开始......');
+        Log::info('门店「雪松爱心店:9493089」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493089' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -231,12 +231,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松爱心店:9493089」同步-结束......');
-        Log::info('门店「雪松爱心店:9493089」同步-结束......');
+        $this->info('门店「雪松爱心店:9493089」库存同步-结束......');
+        Log::info('门店「雪松爱心店:9493089」库存同步-结束......');
 
         // --------------------- 雪松春天店:9493167 ---------------------
-        $this->info('门店「雪松春天店:9493167」同步-开始......');
-        Log::info('门店「雪松春天店:9493167」同步-开始......');
+        $this->info('门店「雪松春天店:9493167」库存同步-开始......');
+        Log::info('门店「雪松春天店:9493167」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493167' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -255,12 +255,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松春天店:9493167」同步-结束......');
-        Log::info('门店「雪松春天店:9493167」同步-结束......');
+        $this->info('门店「雪松春天店:9493167」库存同步-结束......');
+        Log::info('门店「雪松春天店:9493167」库存同步-结束......');
 
         // --------------------- 雪松河畔店:9492507 ---------------------
-        $this->info('门店「雪松河畔店:9492507」同步-开始......');
-        Log::info('门店「雪松河畔店:9492507」同步-开始......');
+        $this->info('门店「雪松河畔店:9492507」库存同步-开始......');
+        Log::info('门店「雪松河畔店:9492507」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492507' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -279,12 +279,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松河畔店:9492507」同步-结束......');
-        Log::info('门店「雪松河畔店:9492507」同步-结束......');
+        $this->info('门店「雪松河畔店:9492507」库存同步-结束......');
+        Log::info('门店「雪松河畔店:9492507」库存同步-结束......');
 
         // --------------------- 雪松健康店:9492509 ---------------------
-        $this->info('门店「雪松健康店:9492509」同步-开始......');
-        Log::info('门店「雪松健康店:9492509」同步-开始......');
+        $this->info('门店「雪松健康店:9492509」库存同步-开始......');
+        Log::info('门店「雪松健康店:9492509」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492509' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -303,12 +303,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松健康店:9492509」同步-结束......');
-        Log::info('门店「雪松健康店:9492509」同步-结束......');
+        $this->info('门店「雪松健康店:9492509」库存同步-结束......');
+        Log::info('门店「雪松健康店:9492509」库存同步-结束......');
 
         // --------------------- 雪松溪畔店:9493168 ---------------------
-        $this->info('门店「雪松溪畔店:9493168」同步-开始......');
-        Log::info('门店「雪松溪畔店:9493168」同步-开始......');
+        $this->info('门店「雪松溪畔店:9493168」库存同步-开始......');
+        Log::info('门店「雪松溪畔店:9493168」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493168' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -327,12 +327,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松溪畔店:9493168」同步-结束......');
-        Log::info('门店「雪松溪畔店:9493168」同步-结束......');
+        $this->info('门店「雪松溪畔店:9493168」库存同步-结束......');
+        Log::info('门店「雪松溪畔店:9493168」库存同步-结束......');
 
         // --------------------- 雪松兴隆店:9493172 ---------------------
-        $this->info('门店「雪松兴隆店:9493172」同步-开始......');
-        Log::info('门店「雪松兴隆店:9493172」同步-开始......');
+        $this->info('门店「雪松兴隆店:9493172」库存同步-开始......');
+        Log::info('门店「雪松兴隆店:9493172」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493172' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -351,12 +351,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松兴隆店:9493172」同步-结束......');
-        Log::info('门店「雪松兴隆店:9493172」同步-结束......');
+        $this->info('门店「雪松兴隆店:9493172」库存同步-结束......');
+        Log::info('门店「雪松兴隆店:9493172」库存同步-结束......');
 
         // --------------------- 雪松碧桂园:9492664 ---------------------
-        $this->info('门店「雪松碧桂园:9492664」同步-开始......');
-        Log::info('门店「雪松碧桂园:9492664」同步-开始......');
+        $this->info('门店「雪松碧桂园:9492664」库存同步-开始......');
+        Log::info('门店「雪松碧桂园:9492664」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492664' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -375,12 +375,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松碧桂园:9492664」同步-结束......');
-        Log::info('门店「雪松碧桂园:9492664」同步-结束......');
+        $this->info('门店「雪松碧桂园:9492664」库存同步-结束......');
+        Log::info('门店「雪松碧桂园:9492664」库存同步-结束......');
 
         // --------------------- 雪松迎春店:9492666 ---------------------
-        $this->info('门店「雪松迎春店:9492666」同步-开始......');
-        Log::info('门店「雪松迎春店:9492666」同步-开始......');
+        $this->info('门店「雪松迎春店:9492666」库存同步-开始......');
+        Log::info('门店「雪松迎春店:9492666」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492666' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -399,12 +399,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松迎春店:9492666」同步-结束......');
-        Log::info('门店「雪松迎春店:9492666」同步-结束......');
+        $this->info('门店「雪松迎春店:9492666」库存同步-结束......');
+        Log::info('门店「雪松迎春店:9492666」库存同步-结束......');
 
         // --------------------- 雪松桂花店:9492670 ---------------------
-        $this->info('门店「雪松桂花店:9492670」同步-开始......');
-        Log::info('门店「雪松桂花店:9492670」同步-开始......');
+        $this->info('门店「雪松桂花店:9492670」库存同步-开始......');
+        Log::info('门店「雪松桂花店:9492670」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492670' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -423,12 +423,12 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松桂花店:9492670」同步-结束......');
-        Log::info('门店「雪松桂花店:9492670」同步-结束......');
+        $this->info('门店「雪松桂花店:9492670」库存同步-结束......');
+        Log::info('门店「雪松桂花店:9492670」库存同步-结束......');
 
         // --------------------- 雪松丁香店:9492671 ---------------------
-        $this->info('门店「雪松丁香店:9492671」同步-开始......');
-        Log::info('门店「雪松丁香店:9492671」同步-开始......');
+        $this->info('门店「雪松丁香店:9492671」库存同步-开始......');
+        Log::info('门店「雪松丁香店:9492671」库存同步-开始......');
         $data = DB::connection('xuesong')
             ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492671' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
@@ -447,7 +447,7 @@ class SyncStockXueSong extends Command
                 $minkang->medicineStock($params);
             }
         }
-        $this->info('门店「雪松丁香店:9492671」同步-结束......');
-        Log::info('门店「雪松丁香店:9492671」同步-结束......');
+        $this->info('门店「雪松丁香店:9492671」库存同步-结束......');
+        Log::info('门店「雪松丁香店:9492671」库存同步-结束......');
     }
 }
