@@ -104,7 +104,7 @@ return [
         'xuesong' => [
             'driver' => 'sqlsrv',
             'url' => env('DATABASE_URL'),
-            'host' => '182.92.231.104',
+            'host' => 'xsyf.f3322.net',
             'port' => '1433',
             'database' => 'med',
             'username' => 'meituan',
