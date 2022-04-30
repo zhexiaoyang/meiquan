@@ -40,6 +40,7 @@ class OrderConfirmController
         $this->prefix = str_replace('###', "&门店:{$mt_shop_id},订单号:{$mt_order_id}", $this->prefix_title);
         $this->log_info('-开始');
         $this->log_info('-全部参数', $data);
+        return json_encode(['data' => 'OK']);
         /********************* 美团心跳测试-返回成功 *********************/
         if (!$mt_shop_id || !$mt_order_id) {
             return json_encode(['data' => 'OK']);
@@ -85,15 +86,15 @@ class OrderConfirmController
             $order_wm_data = [
                 "shop_id" => $shop->id,
                 "order_id" => $mt_order_id,
-                "wm_order_id_view" => $data['orderIdView'],
+                "wm_order_id_view" => $data['wm_order_id_view'],
                 // 订单平台（1 美团外卖，2 饿了么，3京东到家，4美全达）
                 "platform" => 1,
                 // 订单来源（1 民康，2 美全美团服务商，3 美全饿了么服务商，4 寝趣，5 美团开放平台餐饮）
                 "from_type" => 5,
                 "app_poi_code" => $data['ePoiId'],
-                "wm_shop_name" => $data['poiName'],
-                "recipient_name" => $data['recipientName'] ?? "无名客人",
-                "recipient_phone" => $data['recipientPhone'],
+                "wm_shop_name" => $data['wm_poi_name'],
+                "recipient_name" => $data['recipient_name'] ?? "无名客人",
+                "recipient_phone" => $data['recipient_phone'],
                 "recipient_address" => $data['recipientAddressDesensitization'],
                 "recipient_address_detail" => $data['recipientAddressDesensitization'],
                 "latitude" => $data['latitude'],
