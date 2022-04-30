@@ -34,8 +34,8 @@ class OrderConfirmController
         }
         $data = json_decode($data, true);
         // 门店订单ID
-        $mt_shop_id = $data['ePoiId'];
-        $mt_order_id = $data['orderId'];
+        $mt_shop_id = $request->get('ePoiId');
+        $mt_order_id = $data['order_id'];
         // 全部参数
         $this->prefix = str_replace('###', "&门店:{$mt_shop_id},订单号:{$mt_order_id}", $this->prefix_title);
         $this->log_info('-开始');
