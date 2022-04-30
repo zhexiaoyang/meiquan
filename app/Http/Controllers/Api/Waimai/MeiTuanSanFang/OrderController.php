@@ -20,7 +20,7 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $this->prefix_title = str_replace('###', '创建订单', $this->prefix_title);
-        if (!$data = $request->get('message')) {
+        if (!$data = $request->get('order')) {
             return json_encode(['data' => 'OK']);
         }
         $data = json_decode($data, true);

@@ -29,7 +29,7 @@ class OrderConfirmController
 
     public function confirm(Request $request)
     {
-        if (!$data = $request->get('order')) {
+        if (!$data = $request->get('message')) {
             return json_encode(['data' => 'OK']);
         }
         $data = json_decode($data, true);
