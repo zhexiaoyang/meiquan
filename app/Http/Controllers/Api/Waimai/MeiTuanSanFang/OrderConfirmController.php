@@ -125,7 +125,7 @@ class OrderConfirmController
                 "recipient_name" => $data['recipient_name'] ?? "无名客人",
                 "recipient_phone" => $data['recipient_phone'],
                 "recipient_address" => $data2['recipientAddress'],
-                "recipient_address_detail" => $data2['recipientAddress'],
+                // "recipient_address_detail" => $data2['recipientAddress'],
                 "latitude" => $data['latitude'],
                 "longitude" => $data['longitude'],
                 "shipping_fee" => $data['shippingFee'],
