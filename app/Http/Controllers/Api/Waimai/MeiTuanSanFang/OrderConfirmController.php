@@ -65,7 +65,7 @@ class OrderConfirmController
     public function confirm_order($mt_order_id, $wm_shop_id, $data)
     {
         $mt = app('mtkf');
-        $res = $mt->wmoper_order_info($mt_order_id, $wm_shop_id);
+        $res = $mt->wmoper_order_recipient_info($mt_order_id, $wm_shop_id);
         // 获取订单详情
         $data2 = $res['data'] ?? '';
         if (!$data2) {
@@ -99,7 +99,7 @@ class OrderConfirmController
             // 对账信息
             $poi_receive_detail = json_decode($data['poiReceiveDetail'], true);
             // 配送模式
-            $logistics_code = isset($data2['logisticsCode']) ? intval($data2['logisticsCode']) : 0;
+            $logistics_code = isset($data['logistics_code']) ? intval($data['logistics_code']) : 0;
             if ($logistics_code > 0) {
                 if ($logistics_code === 1001) {
                     $logistics_code = 1;
@@ -112,6 +112,11 @@ class OrderConfirmController
                 }
             }
             // 创建外卖订单数组
+            if ($mt_order_id[0] == 1) {
+                $mt_shop_id = substr($mt_order_id, 0, 8);
+            } else {
+                $mt_shop_id = substr($mt_order_id, 0, 7);
+            }
             $order_wm_data = [
                 "shop_id" => $shop->id,
                 "order_id" => $mt_order_id,
@@ -120,11 +125,12 @@ class OrderConfirmController
                 "platform" => 1,
                 // 订单来源（1 民康，2 美全美团服务商，3 美全饿了么服务商，4 寝趣，5 美团开放平台餐饮）
                 "from_type" => 5,
-                "app_poi_code" => $data2['wmPoiId'],
+                "app_poi_code" => $mt_shop_id,
                 "wm_shop_name" => $data['wm_poi_name'],
-                "recipient_name" => $data['recipient_name'] ?? "无名客人",
-                "recipient_phone" => $data['recipient_phone'],
-                "recipient_address" => $data2['recipientAddress'],
+                "recipient_name" => $data2['recipientName'] ?? "无名客人",
+                "recipient_phone" => $data2['recipientPhone'],
+                "recipient_address" => $data2['recipientAddressDesensitization'],
+                // "recipient_address" => $data2['recipientAddress'],
                 // "recipient_address_detail" => $data2['recipientAddress'],
                 "latitude" => $data['latitude'],
                 "longitude" => $data['longitude'],
@@ -138,7 +144,7 @@ class OrderConfirmController
                 "poi_receive" => $poi_receive_detail['wmPoiReceiveCent'] / 100,
                 // "rebate_fee" => $poi_receive_detail['agreementCommissionRebateAmount'] ?? 0,
                 "caution" => $data['caution'],
-                "shipper_phone" => $data2['shipperPhone'] ?? "",
+                // "shipper_phone" => $data2['shipperPhone'] ?? "",
                 "status" => $status_filter[$data['status']] ?? 4,
                 "ctime" => $data['ctime'],
                 "estimate_arrival_time" => $data['estimate_arrival_time'] ?? 0,
@@ -261,9 +267,9 @@ class OrderConfirmController
                 'shop_id' => $shop->id,
                 'wm_poi_name' => $data['wm_poi_name'],
                 'delivery_service_code' => "4011",
-                'receiver_name' => $data['recipientName'] ?? "无名客人",
-                "receiver_address" => $data2['recipientAddress'],
-                'receiver_phone' => $data['recipient_phone'],
+                'receiver_name' => $data2['recipientName'] ?? "无名客人",
+                "receiver_address" => $data2['recipientAddressDesensitization'],
+                'receiver_phone' => $data2['recipientPhone'],
                 "receiver_lng" => $data['longitude'],
                 "receiver_lat" => $data['latitude'],
                 "caution" => $data['caution'],

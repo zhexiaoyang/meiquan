@@ -110,6 +110,18 @@ class Api extends Request
         return $this->post('wmoper/ng/order/queryDetail', $data, 16);
     }
 
+    public function wmoper_order_recipient_info($order_id, $shop_id)
+    {
+        $params = [
+            'orderId' => $order_id
+        ];
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/delivery/getRecipientInfo', $data, 16);
+    }
+
     public function get_token($shop_id, $order_id = '')
     {
         $key = 'meituan:open:token:' . $shop_id;
