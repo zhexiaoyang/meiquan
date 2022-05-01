@@ -389,8 +389,10 @@ Route::middleware(["force-json"])->group(function() {
             // 处方后台-处方管理-导入
             Route::post("prescription/import", "WmPrescriptionImportController@store")->name("admin.prescription.import.store");
             /**
-             * 门店管理
+             * 门店后台管理
              */
+            // 门店导出
+            Route::post("shop/manager/update", "ShopController@manager_update")->name("admin.shop.manager.update");
             // 门店导出
             Route::get("shop/export", "ShopController@export")->name("admin.shop.export");
             // 门店管理-更新门店三方ID

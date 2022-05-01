@@ -184,10 +184,13 @@ class ShopController extends Controller
                 unset($shop->contract);
                 $tmp['contract'] = $contract_data;
                 // 城市经理
+                $tmp['manager'] = '';
+                $tmp['manager_id'] = 0;
                 if (!empty($shop->users)) {
                     foreach ($shop->users as $user) {
                         if (in_array($user->id, $managers)) {
                             $tmp['manager'] = $user->nickname ?: $user->username;
+                            $tmp['manager_id'] = $user->id;
                         }
                     }
                 }
@@ -423,5 +426,30 @@ class ShopController extends Controller
         $shop->save();
 
         return $this->success();
+    }
+
+    /**
+     * 更改门店城市经理
+     * @data 2022/5/1 1:07 下午
+     */
+    public function manager_update(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('shop_id'))) {
+            return $this->error('门店不存在');
+        }
+        if (!$user = User::find($request->get('user_id'))) {
+            return $this->error('用户不存在');
+        }
+        if (!$user->hasRole('city_manager')) {
+            return $this->error('选择的不是城市经理');
+        }
+
+        $manager_ids = DB::table('model_has_roles')->where('role_id', 4)->pluck('model_id')->toArray();
+        DB::transaction(function () use ($manager_ids, $shop, $user) {
+            DB::table('user_has_shops')->where('shop_id', $shop->id)->whereIn('user_id', $manager_ids)->delete();
+            DB::table('shops')->where('shop_id', $shop->id)->update(['manager_id' => $user->id]);
+            DB::table('user_has_shops')->insert(['shop_id' => $shop->id, 'user_id' => $user->id]);
+        });
+        return $this->success($manager_ids);
     }
 }

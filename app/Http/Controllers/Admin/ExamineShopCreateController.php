@@ -8,6 +8,7 @@ use App\Models\ManagerCity;
 use App\Models\OnlineShop;
 use App\Models\Shop;
 use App\Models\ShopCreate;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -152,6 +153,9 @@ class ExamineShopCreateController extends Controller
                 'status' => 40,
                 'material' => 10,
             ]);
+            if ($manager = User::find($manager_id)) {
+                $manager->shops()->attach($shop);
+            }
             dispatch(new CreateMtShop($shop));
             OnlineShop::create([
                 'is_meituan' => 1,

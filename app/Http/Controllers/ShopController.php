@@ -376,13 +376,11 @@ class ShopController extends Controller
         $shop->status = 40;
         $shop->user_id = $user->id;
         $shop->own_id = $user->id;
-
-        // return $this->success($shop);
         $shop->contact_phone = str_replace(' ', '', $shop->contact_phone);
 
         // 城市经理
         $manager_id = 2415;
-        $city = ManagerCity::where('city', $info->city ?? '')->first();
+        $city = ManagerCity::where('city', $shop->city ?? '')->first();
         if ($city) {
             $manager_id = $city->user_id;
         }
@@ -390,7 +388,6 @@ class ShopController extends Controller
 
         if ($shop->save()) {
             $user->shops()->attach($shop->id);
-            \Log::info("创建门店-自动审核");
             dispatch(new CreateMtShop($shop));
             if ($shop->manager_id && ($manager = User::find($shop->manager_id))) {
                 $manager->shops()->attach($shop);
