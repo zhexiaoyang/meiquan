@@ -210,7 +210,7 @@ class OrderConfirmController
                             }
                         }
                     } else {
-                        $this->notice("UPC不存在");
+                        $this->log_info("UPC不存在");
                     }
                     $items[] = $_tmp;
                 }
