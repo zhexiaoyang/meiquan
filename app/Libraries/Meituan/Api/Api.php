@@ -477,6 +477,14 @@ class Api extends Request
         return $this->request('shop/area/query', $params);
     }
 
+    /**
+     * 闪购零售
+     */
+    public function retail_list(array $params)
+    {
+        return $this->request_get('v1/retail/list', $params);
+    }
+
 
     /**
      * 服务商接口

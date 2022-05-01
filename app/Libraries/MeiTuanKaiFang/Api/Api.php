@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Log;
 
 class Api extends Request
 {
+    // public function poi_time()
+    // {
+    //     $params = [
+    //         'openTime' => '00:00-23:59'
+    //     ];
+    //     $data = [
+    //         'appAuthToken' => 'c40c476887b9524d7edeb539e64603b72db91ee73c8e7596e59d52653e82b7c8d5ca936931d1dd3933e9e388b7f7ac8c',
+    //         'biz' => json_encode($params)
+    //     ];
+    //
+    //     return $this->post('waimai/poi/updateOpenTime', $data);
+    // }
     // public function poi_info($shop_id)
     // {
     //     $params = [
@@ -84,6 +96,18 @@ class Api extends Request
             'biz' => json_encode($params)
         ];
         return $this->post('waimai/order/rejectRefund', $data);
+    }
+
+    public function wmoper_order_info($order_id, $shop_id)
+    {
+        $params = [
+            'orderId' => $order_id
+        ];
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/order/queryDetail', $data, 16);
     }
 
     public function get_token($shop_id, $order_id = '')

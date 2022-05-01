@@ -27,14 +27,14 @@ class Request
         return $this->http;
     }
 
-    public function post(string $method, array $data)
+    public function post(string $method, array $data, $businessId = 2)
     {
         $params = [
             'developerId' => (int) $this->app_id,
             'timestamp' => time(),
             'charset' => 'utf-8',
             'version' => 2,
-            'businessId' => 2,
+            'businessId' => $businessId,
         ];
 
         $params = array_merge($data, $params);
