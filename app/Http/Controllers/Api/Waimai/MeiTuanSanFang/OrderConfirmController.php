@@ -44,6 +44,7 @@ class OrderConfirmController
         if (!$shop_id || !$mt_order_id) {
             return json_encode(['code' => '0', 'message' => 'success']);
         }
+        \Log::info('餐饮来单全部参数', $request->all());
         $this->ding_exception('餐饮来单');
         // 全部参数
         $status_texts = [2 => '用户已支付', 4 => '商家已接单', 8 => '订单已完成', 9 => '订单已取消'];
