@@ -67,10 +67,10 @@ class OrderConfirmController
         $mt = app('mtkf');
         $res = $mt->wmoper_order_recipient_info($mt_order_id, $wm_shop_id);
         // 获取订单详情
-        $data2 = $res['data'] ?? '';
+        $data2 = $res['data'] ?? [];
         if (!$data2) {
             $this->ding_error('未获取到订单详情');
-            return false;
+            // return false;
         }
         /********************* 判断订单是否存在 *********************/
         if (Order::where("order_id", $mt_order_id)->exists()) {
