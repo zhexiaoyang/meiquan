@@ -50,13 +50,8 @@ class SyncCodeXueSong extends Command
             $data = array_chunk($data, 200);
             // Log::info("data", [$data]);
             foreach ($data as $items) {
-                $s = false;
                 $code_data = [];
                 foreach ($items as $item) {
-                    if ($item->upc == '6933692557191') {
-                        $s = true;
-                        $this->info('门店「雪松青年桥店:9493159」编码绑定同步，upc:' . $item->upc . '，id:' . $item->id);
-                    }
                     $code_data[] = [
                         'upc' => $item->upc,
                         'app_medicine_code_new' => $item->id,
@@ -66,12 +61,7 @@ class SyncCodeXueSong extends Command
                 // 绑定商品编码
                 $params['app_poi_code'] = '9493159';
                 $params['medicine_data'] = json_encode($code_data);
-                $res = $minkang->medicineCodeUpdate($params);
-                if ($s) {
-                    \Log::info("medicine_data", $params);
-                    \Log::info("res", [$res]);
-                }
-                // $this->info('门店「雪松青年桥店:9493159」编码绑定同步数量:' . count($code_data));
+                $minkang->medicineCodeUpdate($params);
             }
         }
         $this->info('门店「雪松青年桥店:9493159」编码绑定同步-结束......');
