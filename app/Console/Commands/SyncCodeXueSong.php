@@ -52,7 +52,7 @@ class SyncCodeXueSong extends Command
             foreach ($data as $items) {
                 $code_data = [];
                 foreach ($items as $item) {
-                    if ($item->upc = '6933692557191') {
+                    if ($item->upc == '6933692557191') {
                         $this->info('门店「雪松青年桥店:9493159」编码绑定同步，upc:' . $item->upc . '，id:' . $item->id);
                     }
                     $code_data[] = [
