@@ -62,6 +62,7 @@ class SyncCodeXueSong extends Command
                 $params['app_poi_code'] = '9493159';
                 $params['medicine_data'] = json_encode($code_data);
                 $minkang->medicineCodeUpdate($params);
+                $this->info('门店「雪松青年桥店:9493159」编码绑定同步数量:' . count($code_data));
             }
         }
         $this->info('门店「雪松青年桥店:9493159」编码绑定同步-结束......');
