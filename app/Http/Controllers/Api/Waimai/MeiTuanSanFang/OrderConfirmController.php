@@ -269,7 +269,7 @@ class OrderConfirmController
                 'delivery_service_code' => "4011",
                 "receiver_name" => $data2['recipientName'] ?? ($data['recipient_name'] ?? '无名客人'),
                 "receiver_phone" => $data2['recipientPhone'] ?? ($data['recipient_phone'] ?? ''),
-                "receiver_address" => $data2['recipientAddressDesensitization'],
+                "receiver_address" => $data2['recipientAddressDesensitization'] ?? '',
                 "receiver_lng" => $data['longitude'],
                 "receiver_lat" => $data['latitude'],
                 "caution" => $data['caution'],
