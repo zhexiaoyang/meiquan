@@ -24,7 +24,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'apply_three_id', 'setting.shop', 'contract','users']);
+        }, 'apply_three_id', 'setting.shop', 'contract','users','erp']);
 
         // 搜索条件
         if ($shop_id = $request->get('shop_id')) {
@@ -199,6 +199,9 @@ class ShopController extends Controller
                         }
                     }
                 }
+                // VIP\ERP
+                $tmp['is_vip'] = $shop->vip_status;
+                $tmp['is_erp'] = $shop->erp ?? 0;
                 // 赋值
                 $data[] = $tmp;
             }

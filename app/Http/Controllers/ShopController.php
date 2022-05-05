@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtShop;
 use App\Libraries\MeiTuanKaiFang\Tool;
+use App\Models\Contract;
 use App\Models\ManagerCity;
 use App\Models\Shop;
 use App\Models\ShopRange;
@@ -35,7 +36,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'users', 'apply_three_id', 'manager']);
+        }, 'users', 'apply_three_id', 'manager', 'contract','erp','user']);
 
         // 关键字搜索
         if ($search_key) {
@@ -105,6 +106,7 @@ class ShopController extends Controller
         $data = [];
 
         if (!empty($shops)) {
+            $contracts = Contract::select('id', 'name')->get()->toArray();
             foreach ($shops as $shop) {
                 $tmp['id'] = $shop->id;
                 $tmp['category'] = $shop->category;
@@ -161,8 +163,20 @@ class ShopController extends Controller
                 $tmp['waimai_mt_status'] = (bool) $shop->waimai_mt;
                 $tmp['waimai_ele'] = $shop->waimai_ele;
                 $tmp['waimai_ele_status'] = (bool) $shop->waimai_ele;
-                // 合同状态
-                $tmp['contract'] = $shop->online_shop->contract_status ?? 0;
+                // 合同
+                $contract_data = $contracts;
+                foreach ($contract_data as $k => $v) {
+                    $contract_data[$k]['status'] = 0;
+                    if (!empty($shop->contract)) {
+                        foreach ($shop->contract as $item) {
+                            if ($v['id'] === $item->contract_id) {
+                                $contract_data[$k]['status'] = $item->status;
+                            }
+                        }
+                    }
+                }
+                unset($shop->contract);
+                $tmp['contract'] = $contract_data;
                 // 城市经理
                 $tmp['manager'] = $shop->manager->nickname ?? '';
                 // 城市经理
@@ -173,6 +187,14 @@ class ShopController extends Controller
                 //         }
                 //     }
                 // }
+                // VIP\ERP
+                $tmp['is_vip'] = $shop->vip_status;
+                $tmp['is_erp'] = $shop->erp ?? 0;
+                // 门店建店人信息
+                // $tmp['running_money'] = $shop->user->money ?? 0;
+                // $tmp['operate_money'] = $shop->user->operate_money ?? 0;
+                $tmp['running_money'] = (float) $shop->user->money ?? 0;
+                $tmp['operate_money'] = (float) $shop->user->operate_money ?? 0;
                 // 赋值
                 $data[] = $tmp;
             }
