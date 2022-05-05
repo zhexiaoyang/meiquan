@@ -88,6 +88,11 @@ class ShopController extends Controller
         $managers = User::select('id')->whereHas('roles', function ($query)  {
             $query->where('name', 'city_manager');
         })->where('status', 1)->where('id', '>', 2000)->get()->pluck('id')->toArray();
+        // 判断角色
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            // if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
 
         $shops = $query->where("status", ">=", 0)->orderBy('id', 'desc')->paginate($page_size);
 
