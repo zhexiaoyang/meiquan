@@ -54,7 +54,7 @@ class PrescriptionImport implements ToArray
                     'storeName' => $item[2],
                     'outOrderID' => $item[3],
                     // 'outRpId' => $v['outRpId'] ?? '',
-                    'outDoctorName' => $item[4],
+                    'outDoctorName' => $item[4] ?? '',
                     'orderStatus' => $item[7],
                     'reviewStatus' => $item[6],
                     'reason' => '',
