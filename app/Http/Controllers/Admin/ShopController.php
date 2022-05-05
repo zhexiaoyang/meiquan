@@ -199,7 +199,7 @@ class ShopController extends Controller
             }
         }
 
-        return $this->page($shops, $data);
+        return $this->page($shops, $data, 'data');
     }
 
     public function all(Request $request)

@@ -30,6 +30,11 @@ class VipProductExceptionController extends Controller
         if ($name = $request->get('name', '')) {
             $query->where('name','like', "%{$name}%");
         }
+        // 判断角色
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            // if (!$request->user()->hasRole('super_man')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
 
         $data = $query->orderByDesc('id')->paginate($page_size);
 

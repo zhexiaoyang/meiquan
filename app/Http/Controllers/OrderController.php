@@ -535,6 +535,7 @@ class OrderController extends Controller
             return $this->error('参数错误');
         }
 
+        // $res = $meituan->getOrderDetail(['order_id' => $order_id, "access_token" => 'token_htOzSRNimGmYNEkoEuZJbw',]);
         $res = $meituan->getOrderDetail(['order_id' => $order_id]);
 
         // \Log::info('获取订单信息', [$res]);
