@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\VipOrderSettlement;
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -512,17 +513,40 @@ class OrderController extends Controller
             return json_encode(['data' => 'OK']);
         }
         $data = json_decode($data, true);
+        // 订单号
         $order_id = $data['orderId'];
         $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
         $this->log('全部参数', $data);
         if ($order = WmOrder::where('order_id', $order_id)->first()) {
             if ($order->status < 18) {
-                WmOrder::where('id', $order->id)->update([
-                    'status' => 18,
-                    'finish_at' => date("Y-m-d H:i:s")
-                ]);
+                $bill_date = date("Y-m-d");
+                if (($order->ctime < strtotime($bill_date)) && (time() < strtotime(date("Y-m-d 09:00:00")))) {
+                    $bill_date = date("Y-m-d", time() - 86400);
+                }
+                $order->bill_date = $bill_date;
+                $order->status = 18;
+                $order->finish_at = date("Y-m-d H:i:s");
+                $order->save();
+                $this->log_info("订单号：{$order_id}|操作完成");
+                if ($order->is_vip) {
+                    // 如果是VIP订单，触发JOB
+                    dispatch(new VipOrderSettlement($order));
+                }
             } else {
-                $this->log("订单状态不正确，不能完成。订单状态：{$order->status}");
+                $this->log_info("订单号：{$order_id}|操作失败|系统订单状态：{$order->status}");
+            }
+        } else {
+            $this->log_info("订单号：{$order_id}|订单不存在");
+        }
+        if ($order_pt = Order::where('order_id', $order_id)->first()) {
+            if ($order_pt->status == 0) {
+                $order_pt->status = 75;
+                $order_pt->over_at = date("Y-m-d H:i:s");
+                $order_pt->save();
+                OrderLog::create([
+                    "order_id" => $order_pt->id,
+                    "des" => "「美团外卖」完成订单"
+                ]);
             }
         }
 

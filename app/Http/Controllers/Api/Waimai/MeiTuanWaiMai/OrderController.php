@@ -171,7 +171,9 @@ class OrderController
      */
     public function finish(Request $request, $platform)
     {
+        // 订单号
         $order_id = $request->get('wm_order_id_view', '');
+        // 订单状态
         $status = $request->get('status', '');
 
         if ($order_id && $status) {
