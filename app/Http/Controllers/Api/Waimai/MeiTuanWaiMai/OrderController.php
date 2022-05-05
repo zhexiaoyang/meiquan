@@ -199,7 +199,7 @@ class OrderController
             }
             if ($order_pt = Order::where('order_id', $order_id)->first()) {
                 if ($order_pt->status == 0) {
-                    $order_pt->status = 70;
+                    $order_pt->status = 75;
                     $order_pt->over_at = date("Y-m-d H:i:s");
                     $order_pt->save();
                     OrderLog::create([
