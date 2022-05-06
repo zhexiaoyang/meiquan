@@ -17,6 +17,7 @@ class Handler extends ExceptionHandler
      * @var array
      */
     protected $dontReport = [
+        NoPermissionException::class,
         InvalidRequestException::class,
         OAuthServerException::class,
         AuthenticationException::class

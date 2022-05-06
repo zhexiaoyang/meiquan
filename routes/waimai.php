@@ -39,8 +39,6 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::post('order/remind/{platform}', "OrderController@remind");
     // 隐私号降级通知
     Route::post('order/down/{platform}', "OrderController@down");
-    // 门店状态变更
-    Route::post('shop/status/{platform}', "ShopController@status");
     // 美团实时拉取商家单门店下指定商品库存
     Route::post('product/stock/{platform}', "ProductStockController@stock");
     // 创建商品
@@ -49,6 +47,8 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::post('product/update/{platform}', "ProductController@update");
     // 删除商品
     Route::post('product/delete/{platform}', "ProductController@delete");
+    // 门店状态变更
+    Route::post('shop/status/{platform}', "ShopController@status");
     // 门店绑定状态
     Route::post('shop/bind/{platform}', "ShopBindController@status");
 });

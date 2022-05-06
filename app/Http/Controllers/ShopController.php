@@ -1013,7 +1013,7 @@ class ShopController extends Controller
         }
 
         // 判断角色
-        if ((!$request->user()->hasRole('super_man')) && (!$request->user()->hasRole('city_manager'))) {
+        if (!$request->user()->hasRole('city_manager')) {
             if (($shop->own_id != Auth::user()->id)) {
                 return $this->error('门店不存在');
             }

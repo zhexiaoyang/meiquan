@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exceptions\NoPermissionException;
 use App\Exports\Admin\ShopExport;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
@@ -299,7 +300,7 @@ class ShopController extends Controller
     }
 
     /**
-     * 审核管理-三方门店ID审核
+     * 审核管理-三方门店ID审核列表
      * @data 2021/12/1 4:27 下午
      */
     public function apply_three_id_shops(Request $request)
@@ -317,6 +318,10 @@ class ShopController extends Controller
         return $this->success($data);
     }
 
+    /**
+     * 审核管理-三方门店ID审核操作
+     * @data 2021/12/1 4:27 下午
+     */
     public function apply_three_id_save(Request $request)
     {
         $id = $request->get('id', 0);
@@ -337,7 +342,20 @@ class ShopController extends Controller
                 }
                 $shop->mtwm = $mtwm;
                 $shop->chufang_mt = $mtwm;
-                // $shop->chufang_status = 2;
+
+                $params = ['app_poi_codes' => $mtwm];
+                $mk = app('minkang');
+                $mk_shops = $mk->getShops($params);
+                if (!empty($mk_shops['data'])) {
+                    $shop->waimai_mt = $mtwm;
+                    $shop->meituan_bind_platform = 4;
+                }
+                $mq = app('meiquan');
+                $mq_shops = $mq->getShops($params);
+                if (!empty($mq_shops['data'])) {
+                    $shop->waimai_mt = $mtwm;
+                    $shop->meituan_bind_platform = 31;
+                }
             }
             if (($ele = $apply->ele) && !$shop->ele) {
                 if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
@@ -345,12 +363,16 @@ class ShopController extends Controller
                 }
                 $shop->ele = $ele;
                 $shop->chufang_ele = $ele;
-                // $shop->chufang_status = 2;
+
+                $e = app('ele');
+                $data = $e->shopInfo($ele);
+                if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                    $shop->waimai_ele = $ele;
+                }
             }
             if (($jddj = $apply->jddj) && !$shop->jddj) {
                 $shop->jddj = $jddj;
                 $shop->chufang_jddj = $ele;
-                // $shop->chufang_status = 2;
             }
 
             $shop->save();
@@ -368,12 +390,14 @@ class ShopController extends Controller
      */
     public function update_three(Request $request)
     {
+        if (!$request->user()->hasAllPermissions(['admin_shop_shop', 'update_three_id'])) {
+            throw new NoPermissionException();
+        }
         $shop_id = $request->get('id', 0);
 
         if (!$shop = Shop::query()->find($shop_id)) {
             return $this->error('门店不存在');
         }
-
 
         if (ShopThreeId::where('shop_id', $shop_id)->first()) {
             return $this->error('该门店有待审核ID，请先审核');
@@ -392,7 +416,20 @@ class ShopController extends Controller
             $shop->mtwm = $mtwm;
             if ($shop->second_category == 200001) {
                 $shop->chufang_mt = $mtwm;
-                // $shop->chufang_status = 2;
+            }
+
+            $params = ['app_poi_codes' => $mtwm];
+            $mk = app('minkang');
+            $mk_shops = $mk->getShops($params);
+            if (!empty($mk_shops['data'])) {
+                $shop->waimai_mt = $mtwm;
+                $shop->meituan_bind_platform = 4;
+            }
+            $mq = app('meiquan');
+            $mq_shops = $mq->getShops($params);
+            if (!empty($mq_shops['data'])) {
+                $shop->waimai_mt = $mtwm;
+                $shop->meituan_bind_platform = 31;
             }
         }
         if (!is_null($ele)) {
@@ -404,7 +441,12 @@ class ShopController extends Controller
             $shop->ele = $ele;
             if ($shop->second_category == 200001) {
                 $shop->chufang_ele = $ele;
-                // $shop->chufang_status = 2;
+            }
+
+            $e = app('ele');
+            $data = $e->shopInfo($ele);
+            if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                $shop->waimai_ele = $ele;
             }
         }
         if (!is_null($jddj)) {
