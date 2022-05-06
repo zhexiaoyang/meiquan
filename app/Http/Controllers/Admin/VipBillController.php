@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\Admin\VipOrderBillExport;
+use App\Exports\Admin\VipOrderBillShopExport;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\VipBill;
@@ -88,11 +89,25 @@ class VipBillController extends Controller
         return $this->success();
     }
 
-    public function export_order(Request $request, VipOrderBillExport $export)
+    public function export_bill_order(Request $request, VipOrderBillExport $export)
     {
         if (!$bill = VipBill::find($request->get('id', 0))) {
             return $this->error('账单不存在');
         }
         return $export->withRequest($request, $bill);
+    }
+
+    public function export_shop_bill_order(Request $request, VipOrderBillShopExport $export)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('门店不存在');
+        }
+        if (!$sdate = $request->get('sdate')) {
+            return $this->error('账单起始时间不能为空');
+        }
+        if (!$edate = $request->get('edate')) {
+            return $this->error('账单结束时间不能为空');
+        }
+        return $export->withRequest($request, $shop_id, $sdate, $edate);
     }
 }
