@@ -15,6 +15,7 @@ class ShopBindController
 
     public function status(Request $request, $platform)
     {
+        $this->log_info("美团外卖门店绑定回调美团外卖门店绑定回调", $request->all());
         $type = $request->get('op_type');
         $mt_shop_id = $request->get('poi_info.appPoiCode');
         if ($type && $mt_shop_id) {
