@@ -44,6 +44,8 @@ class ShopBindController
                         $this->log_info("解绑成功");
                     }
                 }
+            } else {
+                $this->log_info("没有找到门店");
             }
         }
 
