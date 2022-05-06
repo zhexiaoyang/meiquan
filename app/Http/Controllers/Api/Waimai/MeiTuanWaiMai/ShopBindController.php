@@ -15,12 +15,9 @@ class ShopBindController
 
     public function status(Request $request, $platform)
     {
-        $this->log_info("美团外卖门店绑定回调美团外卖门店绑定回调", $request->all());
-        $info = json_decode($request->get('poi_info'), true);
+        $info = json_decode(urldecode($request->get('poi_info')), true);
         $type = $request->get('op_type');
         $mt_shop_id = $info['appPoiCode'];
-        $this->log_info("美团外卖门店绑定回调美团外卖门店绑定回调", $request->all());
-        $this->log_info("美团外卖门店绑定回调美团外卖门店绑定回调", [$type, $mt_shop_id]);
         if ($type && $mt_shop_id) {
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&类型:{$type}&美团ID:{$mt_shop_id}", $this->prefix_title);
             // 查询门店个数
