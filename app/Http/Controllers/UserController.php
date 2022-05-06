@@ -15,6 +15,8 @@ use Yansongda\Pay\Pay;
 
 class UserController extends Controller
 {
+    protected $guard_name = 'api';
+
     public function __construct()
     {
         $this->middleware('auth:api');
