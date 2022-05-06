@@ -31,12 +31,17 @@ class ShopBindController
                     if ($shop->waimai_mt) {
                         $this->ding_error("该门店已经绑定");
                         return json_encode(['data' => 'ok']);
+                    } else {
+                        $shop->waimai_mt = $mt_shop_id;
+                        $shop->save();
+                        $this->log_info("绑定成功");
                     }
                 } elseif ($type == 2) {
                     // 解绑
                     if ($shop->waimai_mt) {
                         $shop->waimai_mt = '';
                         $shop->save();
+                        $this->log_info("解绑成功");
                     }
                 }
             }
