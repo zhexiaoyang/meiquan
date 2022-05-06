@@ -49,6 +49,8 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::post('product/update/{platform}', "ProductController@update");
     // 删除商品
     Route::post('product/delete/{platform}', "ProductController@delete");
+    // 门店绑定状态
+    Route::post('shop/bind/{platform}', "ShopBindController@status");
 });
 
 /**
