@@ -390,7 +390,7 @@ class ShopController extends Controller
      */
     public function update_three(Request $request)
     {
-        if (!$request->user()->hasAllPermissions(['admin_shop_shop', 'update_three_id'])) {
+        if (!$request->user()->hasAllPermissions(['update_three_id', 'admin_shop_shop'])) {
             throw new NoPermissionException();
         }
         $shop_id = $request->get('id', 0);
