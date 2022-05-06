@@ -69,7 +69,7 @@ class OrderConfirmController
         // 获取订单详情
         $data2 = $res['data'] ?? [];
         if (!$data2) {
-            $this->ding_error('未获取到订单详情');
+            $this->log_info('未获取到订单详情');
             // return false;
         }
         /********************* 判断订单是否存在 *********************/

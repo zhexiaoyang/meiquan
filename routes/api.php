@@ -322,6 +322,7 @@ Route::middleware(["force-json"])->group(function() {
             Route::resource('vip_product', 'VipProductController', ["only" => ["index","store","update"]]);
             // VIP账单
             Route::get('vip/bill/reset/{bill}', 'VipBillController@reset');
+            Route::get('vip/bill/export/order', 'VipBillController@export_order');
             Route::resource('vip/bill', 'VipBillController', ["only" => ["index","show"]]);
             // VIP订单
             Route::get('vip_order/export_order', 'VipOrderController@export_order');

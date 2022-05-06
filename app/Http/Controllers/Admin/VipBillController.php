@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\Admin\VipOrderBillExport;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\VipBill;
@@ -85,5 +86,13 @@ class VipBillController extends Controller
         $this->make_bill($shop, $date, $bill);
 
         return $this->success();
+    }
+
+    public function export_order(Request $request, VipOrderBillExport $export)
+    {
+        if (!$bill = VipBill::find($request->get('id', 0))) {
+            return $this->error('账单不存在');
+        }
+        return $export->withRequest($request, $bill);
     }
 }
