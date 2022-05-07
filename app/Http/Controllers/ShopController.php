@@ -970,6 +970,8 @@ class ShopController extends Controller
         $shop->ele_shop_id = '';
         $shop->chufang_mt = '';
         $shop->chufang_ele = '';
+        $shop->waimai_mt = '';
+        $shop->waimai_ele = '';
         $shop->mtwm = '';
         $shop->ele = '';
         $shop->auto_mtwm = '';
