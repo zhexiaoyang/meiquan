@@ -15,6 +15,58 @@ class Api extends Request
         return $this->post('shop.get', $data);
     }
 
+    /**
+     * 获取门店营业时间
+     * @data 2022/5/7 6:55 下午
+     */
+    public function shopBusstatus($shop_id)
+    {
+        $data = [
+            'baidu_shop_id' => $shop_id,
+            'platformFlag' => 1
+        ];
+
+        return $this->post('shop.busstatus.get', $data);
+    }
+
+    /**
+     * 修改门店营业时间
+     * @data 2022/5/7 6:55 下午
+     */
+    public function shippingTimeUpdate($shop_id, $start, $end)
+    {
+        $data = [
+            'baidu_shop_id' => $shop_id,
+            'business_time' => [
+                'start' => $start,
+                'end' => $end,
+            ]
+        ];
+
+        return $this->post('shop.update', $data);
+    }
+
+    /**
+     * 修改门店营业时间
+     * @data 2022/5/7 6:55 下午
+     */
+    public function shopOpen($shop_id)
+    {
+        $data = [
+            'baidu_shop_id' => $shop_id
+        ];
+
+        return $this->post('shop.open', $data);
+    }
+    public function shopClose($shop_id)
+    {
+        $data = [
+            'baidu_shop_id' => $shop_id
+        ];
+
+        return $this->post('shop.close', $data);
+    }
+
     public function shopInfoByStoreId($shop_id)
     {
         $data = [

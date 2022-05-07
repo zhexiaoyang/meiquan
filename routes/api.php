@@ -188,6 +188,14 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("order_setting/warehouse_shops", "OrderSettingController@warehouse_shops")->name("order_setting.warehouse_shops");
 
         /**
+         * 门店管理-操作外面门店
+         */
+        // 外卖建店-保存
+        Route::post("takeout/shop/shipping", "TakeoutShopController@update_shipping");
+        Route::post("takeout/meituan/shop/status", "TakeoutShopController@update_meituan_status");
+        Route::post("takeout/ele/shop/status", "TakeoutShopController@update_ele_status");
+
+        /**
          * 门店管理
          */
         // 外卖建店-详情

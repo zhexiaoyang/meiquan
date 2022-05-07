@@ -3,6 +3,7 @@
 
 namespace App\Libraries\Meituan\Api;
 
+use App\Models\MeituanShangouToken;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Traits\NoticeTool;
@@ -277,6 +278,47 @@ class Api extends Request
     public function getShopInfoByIds($params)
     {
         return $this->request_get('v1/poi/mget', $params);
+    }
+
+    /**
+     * 美团外卖-更新营业时间
+     * @data 2022/5/7 4:44 下午
+     */
+    public function shippingTimeUpdate($app_poi_code, $shipping_time, $token)
+    {
+        $params = [
+            'app_poi_code' => $app_poi_code,
+            'shipping_time' => $shipping_time
+        ];
+        if ($token) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('v1/poi/shippingtime/update', $params);
+    }
+
+    /**
+     * 美团外卖-更新营业时间
+     * @data 2022/5/7 4:44 下午
+     */
+    public function shopOpen($app_poi_code, $token)
+    {
+        $params = [
+            'app_poi_code' => $app_poi_code,
+        ];
+        if ($token) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('v1/poi/open', $params);
+    }
+    public function shopClose($app_poi_code, $token)
+    {
+        $params = [
+            'app_poi_code' => $app_poi_code,
+        ];
+        if ($token) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('v1/poi/close', $params);
     }
 
     public function shopCreate(Shop $shop)
@@ -557,7 +599,12 @@ class Api extends Request
             $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
             $refresh_token = Cache::store('redis')->get($key_ref);
             if (!$refresh_token) {
-                $this->ding_error("闪购门店刷新token不存在，shop_id:{$shop_id}");
+                if ($token_res = MeituanShangouToken::where('shop_id', $shop_id)->first()) {
+                    $refresh_token = $token_res->refresh_token;
+                }
+            }
+            if (!$refresh_token) {
+                $this->ding_error("闪购门店刷新token不存在错误，shop_id:{$shop_id}");
                 return false;
             }
             $res = $this->waimaiAuthorizeRef($refresh_token);
@@ -567,7 +614,7 @@ class Api extends Request
                 Cache::put($key, $access_token, $res['expires_in'] - 100);
                 Cache::forever($key_ref, $refresh_token);
             } else {
-                $this->ding_error("闪购门店刷新token获取token失败，shop_id:{$shop_id}");
+                $this->ding_error("闪购门店刷新token获取token失败错误，shop_id:{$shop_id}");
                 return false;
             }
         }
