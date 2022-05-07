@@ -980,6 +980,7 @@ class ShopController extends Controller
 
         if ($shop->save()) {
             DB::table("user_has_shops")->where("shop_id", $shop->id)->delete();
+            DB::table("shop_three_ids")->where("shop_id", $shop->id)->delete();
         }
 
         return $this->success();
