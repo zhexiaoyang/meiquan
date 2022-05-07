@@ -43,7 +43,9 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
             $query->with(['manager','operate','internal']);
         }])->where('is_vip', 1);
 
-        $query->where('shop_id', $this->shop_id);
+        if ($this->shop_id) {
+            $query->where('shop_id', $this->shop_id);
+        }
         $query->where('bill_date', '>=', $this->sdate);
         $query->where('bill_date', '<=', $this->edate);
 
@@ -58,6 +60,7 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
         // 门店名称  下单平台 下单时间， 订单号，订单状态，美团结算金额，商品成本价总计，跑腿费，处方费，完成订单时间，城市经理，运营经理
         return [
             $platforms[$order->platform],
+            $order->app_poi_code,
             $order->wm_shop_name,
             $order->order_id,
             $order->poi_receive,
@@ -78,6 +81,7 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
         // 门店名称  下单平台 下单时间， 订单号，订单状态，美团结算金额，商品成本价总计，跑腿费，处方费，完成订单时间，城市经理，运营经理
         return [
             '下单平台',
+            '平台ID',
             '门店名称',
             '订单号',
             '美团结算金额',
@@ -96,7 +100,7 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
     public function bindValue(Cell $cell, $value)
     {
         $column = $cell->getColumn();
-        if (in_array( $column, ['C'])) {
+        if (in_array( $column, ['D'])) {
             $cell->setValueExplicit($value, DataType::TYPE_STRING);
             return true;
         }
