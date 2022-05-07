@@ -2263,6 +2263,9 @@ class OrderController extends Controller
         ]);
     }
 
+    /**
+     * 物品送回
+     */
     public function returned(Request $request)
     {
         if (!$order = Order::query()->find( $request->get('order_id', 0))) {
@@ -2278,8 +2281,7 @@ class OrderController extends Controller
             } else {
                 $error = $res_ss['msg'] ?? '失败';
             }
-        }
-        if ($order->ps == 5) {
+        } else {
             $dada = app("dada");
             $res_dada = $dada->sendBack($order->order_id);
             if ($res_dada['code'] === 0) {

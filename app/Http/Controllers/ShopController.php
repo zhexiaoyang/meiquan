@@ -127,6 +127,13 @@ class ShopController extends Controller
                 $tmp['shop_id_uu'] = $shop->shop_id_uu;
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['city'] = $shop->city;
+                $tmp['mt_name'] = $shop->mt_name;
+                $tmp['mt_shipping_time'] = $shop->mt_shipping_time;
+                $tmp['mt_open'] = $shop->mt_open;
+                $tmp['mt_online'] = $shop->mt_online;
+                $tmp['ele_name'] = $shop->ele_name;
+                $tmp['ele_shipping_time'] = $shop->ele_shipping_time;
+                $tmp['ele_open'] = $shop->ele_open;
 
                 // 外卖资料
                 $tmp['material'] = $shop->material;
@@ -193,8 +200,8 @@ class ShopController extends Controller
                 // 门店建店人信息
                 // $tmp['running_money'] = $shop->user->money ?? 0;
                 // $tmp['operate_money'] = $shop->user->operate_money ?? 0;
-                $tmp['running_money'] = (float) $shop->user->money ?? 0;
-                $tmp['operate_money'] = (float) $shop->user->operate_money ?? 0;
+                $tmp['running_money'] = (float) isset($shop->user->money) ? $shop->user->money : 0;
+                $tmp['operate_money'] = (float) isset($shop->user->operate_money) ? $shop->user->operate_money : 0;
                 // 赋值
                 $data[] = $tmp;
             }
