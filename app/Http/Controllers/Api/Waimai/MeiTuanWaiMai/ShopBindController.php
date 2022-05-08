@@ -37,6 +37,7 @@ class ShopBindController
                         return json_encode(['data' => 'ok']);
                     } else {
                         $shop->waimai_mt = $mt_shop_id;
+                        $shop->meituan_bind_platform = 4;
                         $shop->save();
                         $this->log_info("绑定成功");
                     }

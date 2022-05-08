@@ -37,6 +37,7 @@ class MeiTuanMeiquanController extends Controller
                 $this->log_info('锁住了');
                 return $this->success(["data" => "ok"]);
             }
+            // 处理Token
             if ($op_type == 1) {
                 $meituan = app("meiquan");
                 $key = 'mtwm:shop:auth:' . $shop_id;
@@ -62,6 +63,37 @@ class MeiTuanMeiquanController extends Controller
                 Cache::forget($key_ref);
                 MeituanShangouToken::where('shop_id', $shop_id)->delete();
                 $this->log_info('解绑成功');
+            }
+
+            // 处理门店
+            // 查询门店个数
+            $shops = Shop::query()->where("mtwm", $shop_id)->get();
+            if ($shop = $shops->first()) {
+                if ($shops->count() > 1) {
+                    $this->ding_error("美团外卖ID，数量大于1");
+                    return json_encode(['data' => 'ok']);
+                }
+                if ($op_type == 1) {
+                    // 绑定
+                    if ($shop->waimai_mt) {
+                        $this->ding_error("该门店已经绑定");
+                        return json_encode(['data' => 'ok']);
+                    } else {
+                        $shop->waimai_mt = $shop_id;
+                        $shop->meituan_bind_platform = 31;
+                        $shop->save();
+                        $this->log_info("绑定成功");
+                    }
+                } elseif ($op_type == 2) {
+                    // 解绑
+                    if ($shop->waimai_mt) {
+                        $shop->waimai_mt = '';
+                        $shop->save();
+                        $this->log_info("解绑成功");
+                    }
+                }
+            } else {
+                $this->log_info("没有找到门店");
             }
             Cache::lock("meiquan_$shop_id")->release();
         }

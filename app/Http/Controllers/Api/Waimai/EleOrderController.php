@@ -11,12 +11,18 @@ use App\Models\OrderDeduction;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
+use App\Traits\LogTool;
+use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EleOrderController extends Controller
 {
+    use NoticeTool, LogTool;
+
+    public $prefix_title = '[饿了么回调&###]';
+
     /**
      * 订单回调
      * @param Request $request
@@ -47,9 +53,119 @@ class EleOrderController extends Controller
                 \Log::info("[饿了么]-[订单回调-创建订单]，订单号：{$body['order_id']}");
                 return $this->confirmOrder($body['order_id']);
             }
+        } elseif ($cmd === 'shop.bind.msg') {
+            $body = json_decode($request->get("body"), true);
+            if (!empty($body['shop_list'])) {
+                return $this->shop_bind($body['shop_list']);
+            } else {
+                $this->log_info('饿了么绑定门店，列表为空，全部参数', $request->all());
+                $this->ding_error('饿了么绑定门店，列表为空异常');
+            }
+        } elseif ($cmd === 'shop.unbind.msg') {
+            $body = json_decode($request->get("body"), true);
+            if (!empty($body['shop_list'])) {
+                return $this->shop_unbind($body['shop_list']);
+            } else {
+                $this->log_info('饿了么绑定门店，列表为空，全部参数', $request->all());
+                $this->ding_error('饿了么绑定门店，列表为空异常');
+            }
+        } elseif ($cmd === 'shop.msg.push') {
+            $body = json_decode($request->get("body"), true);
+            if (isset($body['baidu_shop_id']) && isset($body['msg_type'])) {
+                return $this->shop_status($body['baidu_shop_id'], $body['msg_type']);
+            } else {
+                $this->ding_error('饿了么绑定门店，列表为空异常');
+            }
         }
 
         \Log::info("[饿了么]-[订单回调]，错误请求");
+        return $this->res("order.status.success");
+    }
+
+    /**
+     * 门店绑定
+     * @data 2022/5/8 10:41 上午
+     */
+    public function shop_status($ele_id, $type)
+    {
+        $this->prefix = str_replace('###', "饿了么门店状态修改|ID:{$ele_id}|type:{$type}", $this->prefix_title);
+        // 查询门店个数
+        $shops = Shop::query()->where("ele", $ele_id)->get();
+        if ($shop = $shops->first()) {
+            if ($shops->count() > 1) {
+                $this->ding_error("饿了么门店状态修改|ID:{$ele_id}，数量大于1");
+                return '';
+            }
+            // 营业
+            if ($type == 'shop_open') {
+                $shop->ele_open = 3;
+                $shop->save();
+            } elseif ($type == 'shop_close') {
+                $shop->ele_open = 1;
+                $shop->save();
+            }
+        } else {
+            $this->log_info("饿了么门店状态修改|ID:{$ele_id}，没有找到门店");
+        }
+        return $this->res("order.status.success");
+    }
+
+    /**
+     * 门店绑定
+     * @data 2022/5/8 10:41 上午
+     */
+    public function shop_bind($shops)
+    {
+        $this->prefix = str_replace('###', "门店绑定", $this->prefix_title);
+        foreach ($shops as $shop) {
+            $ele_id = $shop['baidu_shop_id'];
+            // 查询门店个数
+            $shops = Shop::query()->where("ele", $ele_id)->get();
+            if ($shop = $shops->first()) {
+                if ($shops->count() > 1) {
+                    $this->ding_error("饿了么绑定门店ID:{$ele_id}，数量大于1");
+                    return '';
+                }
+                // 绑定
+                if ($shop->waimai_ele) {
+                    $this->ding_error("该门店已经绑定|shop_id:{$shop->id}:ele_id:{$ele_id}");
+                    return $this->res("order.status.success");
+                } else {
+                    $shop->waimai_ele = $ele_id;
+                    $shop->save();
+                    $this->log_info("绑定成功");
+                }
+            } else {
+                $this->log_info("饿了么绑定门店ID:{$ele_id}，没有找到门店");
+            }
+        }
+        return $this->res("order.status.success");
+    }
+
+    /**
+     * 门店解绑
+     * @data 2022/5/8 10:41 上午
+     */
+    public function shop_unbind($shops)
+    {
+        $this->prefix = str_replace('###', "门店解绑", $this->prefix_title);
+        foreach ($shops as $shop) {
+            $ele_id = $shop['baidu_shop_id'];
+            // 查询门店个数
+            $shops = Shop::query()->where("ele", $ele_id)->get();
+            if ($shop = $shops->first()) {
+                if ($shops->count() > 1) {
+                    $this->ding_error("饿了么解绑门店ID:{$ele_id}，数量大于1");
+                    return '';
+                }
+                // 解绑
+                if ($shop->waimai_ele) {
+                    $shop->waimai_ele = '';
+                    $shop->save();
+                    $this->log_info("解绑成功");
+                }
+            }
+        }
         return $this->res("order.status.success");
     }
 
