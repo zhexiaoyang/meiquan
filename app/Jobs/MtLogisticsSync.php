@@ -271,6 +271,38 @@ class MtLogisticsSync implements ShouldQueue
                 $result = $meituan->logisticsSync($params);
                 \Log::info('美团外卖服务商同步配送信息结束', compact("params", "result"));
             }
+        } elseif ($this->order->type == 7) {
+            // 同步美团餐饮-订单状态
+            $meituan = app("mtkf");
+            $status = 5;
+            if ($this->order->status == 40) {
+                $status = 10;
+            }elseif ($this->order->status == 50) {
+                $status = 10;
+                // $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
+                // \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
+            }elseif ($this->order->status == 60) {
+                $status = 20;
+            }elseif ($this->order->status == 70) {
+                $status = 40;
+            }
+            // $shop = Shop::query()->select("id","mt_shop_id")->find($this->order->shop_id);
+            $params = [
+                "orderId" => $this->order->order_id,
+                "courierName" => $this->order->courier_name,
+                "courierPhone" => $this->order->courier_phone,
+                "logisticsStatus" => $status,
+                // "access_token" => $access_token,
+                // "app_poi_code" => $shop->mt_shop_id,
+                "thirdCarrierId" => $this->order->peisong_id,
+                'thirdLogisticsId' => $codes[$this->order->ps ?: 4],
+                'latitude' => $this->order->courier_lat,
+                'longitude' => $this->order->courier_lng,
+                'backFlowTime' => time()
+            ];
+
+            $result = $meituan->logistics_sync($params, $this->order->shop_id);
+            \Log::info('美团外卖餐饮同步配送信息结束', compact("params", "result"));
         }
 
         // 同步外卖订单跑腿费用

@@ -98,6 +98,38 @@ class Api extends Request
         return $this->post('waimai/order/rejectRefund', $data);
     }
 
+    /**
+     * 非接单菜品详情
+     * @data 2022/5/1 9:38 下午
+     */
+    public function wmoper_food_info($food_id, $shop_id)
+    {
+        $params = [
+            'app_food_code' => $food_id
+        ];
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/food/detail', $data, 16);
+    }
+    public function wmoper_food_list($shop_id)
+    {
+        $params = [
+            'offset' => 2,
+            'limit' => 100,
+        ];
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/food/queryFoodList', $data, 16);
+    }
+
+    /**
+     * 非接单订单详情
+     * @data 2022/5/1 9:38 下午
+     */
     public function wmoper_order_info($order_id, $shop_id)
     {
         $params = [
@@ -110,6 +142,10 @@ class Api extends Request
         return $this->post('wmoper/ng/order/queryDetail', $data, 16);
     }
 
+    /**
+     * 非接单收货地址详情
+     * @data 2022/5/1 9:38 下午
+     */
     public function wmoper_order_recipient_info($order_id, $shop_id)
     {
         $params = [
@@ -120,6 +156,19 @@ class Api extends Request
             'biz' => json_encode($params)
         ];
         return $this->post('wmoper/ng/delivery/getRecipientInfo', $data, 16);
+    }
+
+    /**
+     * 非接单同步配送信息
+     * @data 2022/5/8 11:11 上午
+     */
+    public function logistics_sync($params, $shop_id)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/order/riderPosition', $data, 16);
     }
 
     public function get_token($shop_id, $order_id = '')
