@@ -133,7 +133,7 @@ class EleOrderController extends Controller
                 } else {
                     $shop->waimai_ele = $ele_id;
                     $shop->save();
-                    $this->log_info("绑定成功");
+                    $this->log_info("饿了么绑定门店|门店ID:{$shop->id}|饿了么门店ID:{$ele_id}，绑定成功");
                 }
             } else {
                 $this->log_info("饿了么绑定门店ID:{$ele_id}，没有找到门店");
@@ -162,7 +162,7 @@ class EleOrderController extends Controller
                 if ($shop->waimai_ele) {
                     $shop->waimai_ele = '';
                     $shop->save();
-                    $this->log_info("解绑成功");
+                    $this->log_info("饿了么解绑门店|门店ID:{$shop->id}|饿了么门店ID:{$ele_id}，解绑成功");
                 }
             }
         }
