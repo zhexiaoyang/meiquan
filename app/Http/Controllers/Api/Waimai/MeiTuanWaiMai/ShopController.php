@@ -41,6 +41,7 @@ class ShopController
                     $shop->mt_online = 0;
                     $shop->save();
                 }
+                $this->log_info("更改成功");
             } else {
                 $this->log_info("门店状态变更没有找到门店");
             }
