@@ -3,6 +3,7 @@
 namespace App\Libraries\MeiTuanKaiFang\Api;
 
 use App\Libraries\DingTalk\DingTalkRobotNotice;
+use App\Models\MeituanOpenToken;
 use App\Models\WmOrder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -176,8 +177,15 @@ class Api extends Request
         $key = 'meituan:open:token:' . $shop_id;
         $token = Cache::get($key);
         if (!$token) {
+            if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
+                $token = $token_data->token;
+                // $key = 'meituan:open:token:' . $shop_id;
+                Cache::put($key, $token);
+            }
+        }
+        if (!$token) {
             $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
-            $dingding->sendTextMsg("餐饮服务商token不存在,order_id:{$order_id},shop_id:{$shop_id}");
+            $dingding->sendTextMsg("餐饮服务商token不存在异常,order_id:{$order_id},shop_id:{$shop_id}");
         }
         Log::info("餐饮服务商获取token|order_id:{$order_id},shop_id:{$shop_id},token:{$token}");
         return $token;
