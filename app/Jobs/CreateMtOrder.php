@@ -325,7 +325,9 @@ class CreateMtOrder implements ShouldQueue
         // *****************************  美  全  达  跑  腿  *********************************
         // **********************************************************************************
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
-        if ($order->fail_mqd) {
+        if (true) {
+            $this->log("关闭美全达派单");
+        } elseif ($order->fail_mqd) {
             $this->log("已经有「美全达」失败信息：{$order->fail_mqd}，停止「美全达」派单");
         } elseif ($order->mqd_status != 0) {
             $this->log("订单状态[{$order->dd_status}]不是0，停止「美全达」派单");
