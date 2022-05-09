@@ -226,7 +226,7 @@ class MtLogisticsSync implements ShouldQueue
                 $status = 40;
             }
 
-            $shop = Shop::query()->select("id","mt_shop_id")->find($this->order->shop_id);
+            $shop = Shop::query()->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
 
             if ($shop->mt_shop_id) {
                 $params = [
