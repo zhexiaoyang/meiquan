@@ -187,12 +187,13 @@ class MtLogisticsSync implements ShouldQueue
             $meituan = app("meiquan");
 
             $status = 5;
+            $shop = Shop::query()->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
 
             if ($this->order->status == 40) {
                 $status = 10;
             }elseif ($this->order->status == 50) {
                 $status = 10;
-                $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60);
+                $time_result = $meituan->syncEstimateArrivalTime($this->order->order_id, time() + 45 * 60, $shop->waimai_mt);
                 \Log::info('美团外卖同步预计送达时间结束', ['id' => $this->order->id, 'order_id' => $this->order->order_id, 'result' => $time_result]);
                 // 同步其它状态
                 // $params_tmp = [
@@ -225,8 +226,6 @@ class MtLogisticsSync implements ShouldQueue
             }elseif ($this->order->status == 70) {
                 $status = 40;
             }
-
-            $shop = Shop::query()->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
 
             if ($shop->mt_shop_id) {
                 $params = [

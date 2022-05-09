@@ -428,12 +428,16 @@ class Api extends Request
         return $this->request_post('v1/ecommerce/order/logistics/sync', $params);
     }
 
-    public function syncEstimateArrivalTime($order_id, $date)
+    public function syncEstimateArrivalTime($order_id, $date, $shop_id = '')
     {
         $params = [
             'order_id' => $order_id,
             'estimate_arrival_time' => $date
         ];
+
+        if ($shop_id) {
+            $params['access_token'] = $this->getShopToken($shop_id);
+        }
         return $this->request_get('v1/ecommerce/order/syncEstimateArrivalTime', $params);
     }
 
@@ -644,5 +648,9 @@ class Api extends Request
     public function retailInitData($params)
     {
         return $this->request_post('v1/retail/initdata', $params);
+    }
+    public function retailDelete($params)
+    {
+        return $this->request_post('v1/retail/delete', $params);
     }
 }
