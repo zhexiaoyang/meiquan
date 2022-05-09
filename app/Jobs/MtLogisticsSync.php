@@ -229,38 +229,12 @@ class MtLogisticsSync implements ShouldQueue
             $shop = Shop::query()->select("id","mt_shop_id")->find($this->order->shop_id);
 
             if ($shop->mt_shop_id) {
-                $key = 'mtwm:shop:auth:'.$shop->mt_shop_id;
-
-                $access_token = Cache::store('redis')->get($key, '');
-
-                if (!$access_token) {
-                    $key_ref = 'mtwm:shop:auth:ref:'.$shop->mt_shop_id;
-                    $refresh_token = Cache::store('redis')->get($key_ref);
-                    if (!$refresh_token) {
-                        \Log::info("刷新token不存在|{$shop->mt_shop_id}");
-                        $dingding = app("ding");
-                        $logs = [
-                            "des" => "刷新token不存在",
-                            "shop_iid" => $shop->mt_shop_id
-                        ];
-                        $dingding->sendMarkdownMsgArray("刷新token不存在", $logs);
-                        return;
-                    }
-                    $res = $meituan->waimaiAuthorizeRef($refresh_token);
-                    if (!empty($res['access_token'])) {
-                        $access_token = $res['access_token'];
-                        $refresh_token = $res['refresh_token'];
-                        Cache::put($key, $access_token, $res['expires_in'] - 100);
-                        Cache::forever($key_ref, $refresh_token);
-                    }
-                }
-
                 $params = [
                     "order_id" => $this->order->order_id,
                     "courier_name" => $this->order->courier_name,
                     "courier_phone" => $this->order->courier_phone,
                     "logistics_status" => $status,
-                    "access_token" => $access_token,
+                    "access_token" => $meituan->getShopToken($shop->waimai_mt),
                     "app_poi_code" => $shop->mt_shop_id,
                     "third_carrier_order_id" => $this->order->peisong_id,
                     'logistics_provider_code' => $codes[$this->order->ps ?: 4],
