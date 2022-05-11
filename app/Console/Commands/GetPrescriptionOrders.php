@@ -47,7 +47,7 @@ class GetPrescriptionOrders extends Command
      */
     public function handle()
     {
-        $start_date = '2022-01-28';
+        $start_date = '2022-05-06';
         // $last = WmPrescription::where('platform', 1)->orderByDesc('id')->first();
         // if ($last) {
         //     $last_date = substr($last->rpCreateTime, 0, 10);
@@ -136,7 +136,7 @@ class GetPrescriptionOrders extends Command
                                             $_user = DB::table('users')->find($current_user->id);
                                             if ($_user->operate_money < 50) {
                                                 $phone = $_user->phone;
-                                                $lock = Cache::lock("send_sms_chufang:{$phone}", 3600);
+                                                $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
                                                 if ($lock->get()) {
                                                     Log::info("处方余额不足发送短信：{$phone}");
                                                     dispatch(new SendSmsNew($phone, "SMS_227744641", ['money' => 50, 'phone' => '15843224429']));
