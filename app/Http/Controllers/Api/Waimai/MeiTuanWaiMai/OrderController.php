@@ -57,6 +57,9 @@ class OrderController
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
             if (($notify_type == 'agree') && ($money > 0)) {
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    if ($order->status != 18) {
+                        $this->ding_error("订单未完成，部分退款");
+                    }
                     $this->log_info('全部参数', $request->all());
                     WmOrder::where('id', $order->id)->update([
                         'refund_status' => 2,
