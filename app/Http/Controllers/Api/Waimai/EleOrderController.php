@@ -9,16 +9,13 @@ use App\Libraries\Ele\Api\Tool;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
-use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
-use App\Models\VipProduct;
-use App\Models\WmOrder;
-use App\Models\WmOrderItem;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class EleOrderController extends Controller
 {
@@ -35,24 +32,19 @@ class EleOrderController extends Controller
      */
     public function order(Request $request)
     {
-        \Log::info("[饿了么回调]，全部参数", $request->all());
+        \Log::info("[饿了么]-[订单回调]，全部参数", $request->all());
         $cmd = $request->get("cmd", "");
 
         if ($cmd === "order.status.push") {
             $body = json_decode($request->get("body"), true);
             if (is_array($body) && isset($body['status'])) {
                 $status = $body['status'] ?? 0;
-                $order_id = $body['order_id'];
                 if ($status === 5) {
-                    $this->ding_error('饿了么创建订单了');
-                    $this->log_info("创建订单通知|订单号:{$order_id}|全部参数：", $request->all());
-                    return $this->createOrder($order_id);
+                    return $this->createOrder($body['order_id']);
                 } elseif ($status === 1) {
-                    $this->log_info("确认订单通知|订单号:{$order_id}|全部参数：", $request->all());
-                    return $this->confirmOrder($order_id);
+                    return $this->confirmOrder($body['order_id']);
                 } elseif ($status === 10) {
-                    $this->log_info("取消订单通知|订单号:{$order_id}|全部参数：", $request->all());
-                    return $this->cancelOrder($order_id);
+                    return $this->cancelOrder($body['order_id']);
                 }
             }
         } elseif ($cmd === 'order.create') {
@@ -848,13 +840,11 @@ class EleOrderController extends Controller
      */
     public function createOrder($order_id)
     {
-        $this->prefix = str_replace('###', "创建订单|订单号:{$order_id}", $this->prefix_title);
         $ele = app("ele");
         $order_request = $ele->orderInfo($order_id);
         if (!empty($order_request) && isset($order_request['body']['data']) && !empty($order_request['body']['data'])) {
             // 订单数组
             $order = $order_request['body']['data'];
-            $this->log_info("订单全部信息", $order);
             // return $order;
             // 订单ID
             $order_id = $order['order']['order_id'];
@@ -862,245 +852,98 @@ class EleOrderController extends Controller
             $status = $order['order']['status'];
             // 饿了么门店ID
             $ele_shop_id = $order['shop']['id'];
+            // 订单类型（1 即时单，2 预约单）
+            $order_type = $order['order']['send_immediately'];
 
             // 判断是否是接单状态
             if ($status !== 5) {
-                $this->log_info("订单状态不是5，不能创建订单");
-                $this->ding_error("订单状态不是5，不能创建订单");
+                Log::info("【饿了么-推送已确认订单】（{$order_id}）：订单状态不是5，状态：{$status}");
                 return $this->error("不是接单状态");
             }
 
             // 寻找门店
             if (!$shop = Shop::query()->where("ele_shop_id", $ele_shop_id)->first()) {
-                $this->log_info("门店不存在，不能创建订单");
-                // $this->ding_error("门店不存在，不能创建订单");
+                Log::info("【饿了么-推送已确认订单】（{$order_id}）：门店不存在，门店ID：{$ele_shop_id}");
                 return $this->error("门店不存在");
             }
 
-            // 创建订单
-            DB::transaction(function () use ($shop, $order_id, $order) {
-                // 重量，商品列表里面有字段累加就行，但是数据中没个重量都是 1，好像有问题，先写成1
-                $weight = 2;
-                // 取货类型，枚举值：0-外卖到家，1-用户到店自提
-                $pick_type = $order['order']['business_type'];
-                // 是否处方药订单，枚举值： 0 不是 ，1 是
-                $is_prescription = $order['order']['is_prescription'];
-                // 订单类型（1 即时单，2 预约单）
-                $order_type = $order['order']['send_immediately'];
-                // 送达时间
-                $delivery_time = 0;
-                if ($order_type === 2) {
-                    $delivery_time = $order['order']['latest_send_time'];
-                }
+            $pick_type = $order['order']['business_type'];
+            if ($pick_type == 1) {
+                // 到店自取订单，不创建订单，返回成功
+                return $this->res('order.get.success');
+            }
+            // 重量，商品列表里面有字段累加就行，但是数据中没个重量都是 1，好像有问题，先写成1
+            $weight = 2;
+            // 送达时间
+            $delivery_time = 0;
+            if ($order_type === 2) {
+                $delivery_time = $order['order']['send_time'];
+            }
+            // 创建订单数组
+            $order_pt = [
+                'delivery_id' => $order_id,
+                'user_id' => $shop->user_id,
+                'order_id' => $order_id,
+                'shop_id' => $shop->id,
+                'delivery_service_code' => "4011",
+                'receiver_name' => empty($order['user']['name']) ? "无名客人" : $order['user']['name'],
+                'receiver_address' => $order['user']['address'],
+                'receiver_phone' => str_replace(',', '_', $order['user']['phone']),
+                'receiver_lng' => $order['user']['coord_amap']['longitude'],
+                'receiver_lat' => $order['user']['coord_amap']['latitude'],
+                'coordinate_type' => 0,
+                'goods_value' => $order['order']['total_fee'] / 100,
+                'goods_weight' => $weight,
+                'day_seq' => $order['order']['order_index'],
+                'platform' => 2,
+                'type' => 21,
+                'status' => $status,
+                'order_type' => $order_type
+            ];
 
-                $order_wm_data = [
-                    "shop_id" => $shop->id ?? 0,
-                    "order_id" => $order_id,
-                    "wm_order_id_view" => $order_id,
-                    // 订单平台（1 美团外卖，2 饿了么，3 京东到家，4 美全达）
-                    "platform" => 2,
-                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
-                    // "from_type" => $platform,
-                    "app_poi_code" => $order['shop']['baidu_shop_id'],
-                    "wm_shop_name" => $order['shop']['name'],
-                    'recipient_name' => empty($order['user']['name']) ? "无名客人" : $order['user']['name'],
-                    'recipient_phone' => str_replace(',', '_', $order['user']['phone']),
-                    'recipient_address' => $order['user']['address'],
-                    // 'recipient_address_detail' => $order['user']['address'],
-                    'longitude' => $order['user']['coord_amap']['longitude'],
-                    'latitude' => $order['user']['coord_amap']['latitude'],
-                    "shipping_fee" => $order['order']['send_fee'],
-                    "total" => $order['order']['user_fee'],
-                    "original_price" => $order['order']['total_fee'],
-                    "package_bag_money_yuan" => $order['order']['merchant_total_fee'],
-                    "service_fee" => $order['order']['origin_merchant_commission_amount'] + $order['order']['base_logistics_amount'] + $order['order']['pay_channel_fee'],
-                    "logistics_fee" => $order['order']['send_fee'] ?? 0,
-                    "online_payment" => $order['order']['user_fee'] ?? 0,
-                    "poi_receive" => $order['order']['shop_fee'] ?? 0,
-                    // "rebate_fee" => $poi_receive_detail_yuan['agreementCommissionRebateAmount'] ?? 0,
-                    "caution" => $order['order']['remark'] ?: '',
-                    "shipper_phone" => $order['order']['delivery_phone'] ?? "",
-                    "status" => 4,
-                    "estimate_arrival_time" => $order['estimate_arrival_time'] ?? 0,
-                    "ctime" => $order['order']['create_time'],
-                    "utime" => $order['order']['create_time'],
-                    "delivery_time" => $order['order']['latest_send_time'],
-                    "pick_type" => $pick_type,
-                    "day_seq" => $order['order']['order_index'] ?? 0,
-                    "invoice_title" => $order['order']['invoice_title'] ?? '',
-                    "taxpayer_id" => $order['order']['taxer_id'] ?? '',
-                    "is_prescription" =>  $is_prescription,
-                    // "is_favorites" => intval($data['is_favorites'] ?? 0),
-                    // "is_poi_first_order" => intval($data['is_poi_first_order'] ?? 0),
-                    // "logistics_code" => $logistics_code,
-                    "logistics_code" => 0,
-                    "is_vip" => $shop->vip_status,
-                    "prescription_fee" => $is_prescription ? 1.5 : 0,
-                ];
-                // 创建外卖订单
-                $order_wm = WmOrder::create($order_wm_data);
-                $this->log_info("-外卖订单创建成功，ID:{$order_wm->id}");
-                // 商品信息
-                $items = [];
-                // VIP成本价
-                $cost_money = 0;
-                // 组合商品数组，计算成本价
-                $products = $order['products'];
-                if (!empty($products)) {
-                    foreach ($products as $product) {
-                        $quantity = $product['product_amount'] ?? 0;
-                        $_tmp = [
-                            'order_id' => $order_wm->id,
-                            'mt_spu_id' => $product['baidu_product_id'] ?? '',
-                            'app_food_code' => $product['custom_sku_id'] ?? '',
-                            'food_name' => $product['product_name'] ?? '',
-                            // 'unit' => $product['unit'] ?? '',
-                            'upc' => $product['upc'] ?? '',
-                            'quantity' => $quantity,
-                            'product_price' => $product['product_price'] / 100,
-                            'product_fee' => $product['product_fee'] / 100,
-                            // 'spec' => $product['spec'] ?? '',
-                            'vip_cost' => 0,
-                            'total_weight' => $product['total_weight'],
-                            'is_free_gift' => $product['is_free_gift'] == 1 ? 1 : 0,
-                        ];
-                        if ($shop->vip_status) {
-                            $upc = $product['upc'];
-                            $cost = VipProduct::select('cost')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
-                            if (isset($cost->cost)) {
-                                $cost = $cost->cost;
-                                if ($cost > 0) {
-                                    $cost_money += ($cost * $quantity);
-                                    $_tmp['vip_cost'] = $cost;
-                                    // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
-                                    $this->log_info("-VIP订单成本价,upc:{$upc},价格:{$cost}");
-                                } else {
-                                    $this->log_info("-VIP订单成本价小于等于0,upc:{$upc},价格:{$cost}");
-                                }
-                            } else {
-                                $this->log_info("-成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
-                            }
-                        }
-                        $items[] = $_tmp;
-                    }
-                }
-                if (!empty($items)) {
-                    if ($shop->vip_status) {
-                        $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
-                        $order_wm->vip_cost = $cost_money;
-                        // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
-                        $order_wm->save();
-                        $this->log_info("-外卖订单,VIP商家成本价更新成功");
-                    }
-                    WmOrderItem::insert($items);
-                    $this->log_info("-外卖订单「商品」保存成功");
-                }
-                // 商家活动信息
-                // 商家活动信息
+            // 判断是否预约单
+            if ($delivery_time > 0) {
+                $order_pt['status'] = 3;
+                $order_pt['order_type'] = 1;
+                $order_pt['expected_pickup_time'] = $delivery_time - 3600;
+                $order_pt['expected_delivery_time'] = $delivery_time;
+            }
 
-                /********************* 创建跑腿订单数组 *********************/
-                // $pick_type = $data['pick_type'] ?? 0;
-                // $weight = $data['total_weight'] ?? 0;
-                $delivery_time = $order['delivery_time'];
-                // 创建订单数组
-                $order_pt_data = [
-                    'delivery_id' => $order_id,
-                    'user_id' => $shop->user_id,
-                    'order_id' => $order_id,
-                    'shop_id' => $shop->id,
-                    'wm_poi_name' => $order['shop']['name'],
-                    'delivery_service_code' => "4011",
-                    'receiver_name' => empty($order['user']['name']) ? "无名客人" : $order['user']['name'],
-                    'receiver_address' => $order['user']['address'],
-                    'receiver_phone' => str_replace(',', '_', $order['user']['phone']),
-                    'receiver_lng' => $order['user']['coord_amap']['longitude'],
-                    'receiver_lat' => $order['user']['coord_amap']['latitude'],
-                    "caution" => $order['order']['remark'] ?: '',
-                    'coordinate_type' => 0,
-                    'goods_value' => $order['order']['total_fee'] / 100,
-                    'goods_weight' => $weight,
-                    'day_seq' => $order['order']['order_index'],
-                    'platform' => 2,
-                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
-                    'type' => 21,
-                    'status' => 0,
-                    'order_type' => 0
-                ];
-                // 判断是否预约单
-                if ($delivery_time > 0) {
-                    $this->log_info("-跑腿订单,预约单,送达时间:" . strtotime("Y-m-d H:i:s", $delivery_time));
-                    // [预约单]待发送
-                    $order_pt_data['status'] = 3;
-                    $order_pt_data['order_type'] = 1;
-                    $order_pt_data['expected_pickup_time'] = $delivery_time - 3600;
-                    $order_pt_data['expected_delivery_time'] = $delivery_time;
-                }
-                // 判断是否自动发单
-                // if (!$shop->mt_shop_id) {
-                //     $order_pt_data['status'] = 7;
-                // }
-                // 创建跑腿订单
-                $order_pt_data['wm_id'] = $order_wm->id;
-                $order_pt = Order::create($order_pt_data);
-                $this->log_info("-跑腿订单创建成功，ID:{$order_pt->id}");
+            $order = new Order($order_pt);
+            // 保存订单
+            if ($order->save()) {
                 OrderLog::create([
-                    "order_id" => $order_pt->id,
-                    "des" => "「饿了么」创建订单"
+                    "order_id" => $order->id,
+                    "des" => "（饿了么）自动创建跑腿订单：{$order_id}"
                 ]);
-                // 获取发单设置
-                $setting = OrderSetting::where('shop_id', $shop->id)->first();
-                // 判断是否发单
-                $this->log_info("-开始派单");
-                if ($shop->ele_shop_id) {
-                    if ($pick_type == 0) {
-                        if ($order_pt->order_type) {
-                            $this->log_info("-预约单");
-                            $qu = 2400;
-                            if ($order_pt->distance <= 2 && $order_pt->distance > 0) {
-                                $qu = 1800;
-                            }
-                            dispatch(new PushDeliveryOrder($order_pt, ($order_pt->expected_delivery_time - time() - $qu)));
-                            $this->log_info("-预约单派单成功，{$qu}秒后发单");
-                        } else {
-                            $order_pt->send_at = date("Y-m-d H:i:s");
-                            $order_pt->status = 8;
-                            $order_pt->save();
-                            $delay = $setting->delay_send ?? 0;
-                            $delay = $delay > 60 ? $delay : config("ps.order_delay_ttl");
-                            dispatch(new CreateMtOrder($order_pt, $delay));
-                            $this->log_info("-派单成功，{$delay}秒后发单");
-                        }
-                    } else {
-                        // 到店自取 ？？？ ， 更改状态，不在新订单列表里面显示
-                        $this->log_info('-到店自取，不发单');
+                Log::info("【饿了么-推送已确认订单】（{$order_id}）：跑腿订单创建完毕");
+                if ($order_type === 2) {
+                    $qu = 2400;
+                    if ($order->distance <= 2) {
+                        $qu = 1800;
                     }
+
+                    dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                    Log::info("【饿了么-推送已确认订单】（{$order_id}）：饿了么创建预约订单成功");
+
+                    $ding_notice = app("ding");
+                    $logs = [
+                        "des" => "接到饿了么预订单：" . $qu,
+                        "datetime" => date("Y-m-d H:i:s"),
+                        "order_id" => $order->order_id,
+                        "status" => $order->status,
+                        "ps" => $order->ps
+                    ];
+                    $ding_notice->sendMarkdownMsgArray("接到饿了么预订单", $logs);
                 } else {
-                    $this->log_info('-未开通自动派单');
+                    Log::info("【饿了么-推送已确认订单】（{$order_id}）：派单单成功");
+                    $order->send_at = date("Y-m-d H:i:s");
+                    $order->status = 8;
+                    $order->save();
+                    dispatch(new CreateMtOrder($order, config("ps.order_delay_ttl")));
                 }
-                // 打印订单
-                // if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
-                //     $this->log_info('-打印订单，触发任务');
-                //     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-                // }
-                // 转仓库打印
-                // if ($setting) {
-                //     if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
-                //         $this->log_info("-转单打印[setting：{$setting->id}", [$setting]);
-                //         $time_data = explode('-', $setting->warehouse_time);
-                //         $this->log_info("-转单打印-[time_data", [$time_data]);
-                //         if (!empty($time_data) && (count($time_data) === 2)) {
-                //             if (in_time_status($time_data[0], $time_data[1])) {
-                //                 $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
-                //                 if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
-                //                     $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
-                //                     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
-                // 推送ERP
-            });
+                return $this->res('order.get.success');
+            }
         }
     }
 
