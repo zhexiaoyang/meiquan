@@ -929,7 +929,7 @@ class EleOrderController extends Controller
             if (!$shop = Shop::query()->where("waimai_ele", $ele_shop_id)->first()) {
                 $this->log_info("门店不存在，不能创建订单");
                 // $this->ding_error("门店不存在，不能创建订单");
-                return $this->error("门店不存在");
+                return $this->res("order.status.success");
             }
 
             // 创建订单
