@@ -40,7 +40,7 @@ class OrderCancelController
             // -------------------VIP订单结算----------------------
             if ($wmOrder->is_vip && $shop = Shop::find($wmOrder->shop_id)) {
                 // 处方审方扣费
-                $prescription = $wmOrder->prescription ? 1.5 : 0;
+                $prescription = $wmOrder->is_prescription ? 1.5 : 0;
                 // 总利润
                 $total = $wmOrder->vip_cost + $prescription - $wmOrder->poi_receive;
                 // VIP门店各方利润百分比

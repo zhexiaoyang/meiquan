@@ -46,7 +46,7 @@ class VipOrderSettlement implements ShouldQueue
         }
 
         // 处方审方扣费
-        $prescription = $order->prescription ? 1.5 : 0;
+        $prescription = $order->is_prescription ? 1.5 : 0;
         // 总利润
         $total = $order->poi_receive - $order->vip_cost - $prescription;
         // VIP门店各方利润百分比
