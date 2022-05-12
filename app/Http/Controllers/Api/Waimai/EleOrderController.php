@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waimai;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Jobs\VipOrderSettlement;
 use App\Libraries\Ele\Api\Tool;
 use App\Models\Order;
 use App\Models\OrderDeduction;
@@ -53,6 +54,9 @@ class EleOrderController extends Controller
                 } elseif ($status === 10) {
                     $this->log_info("取消订单通知|订单号:{$order_id}|全部参数：", $request->all());
                     return $this->cancelOrder($order_id);
+                } elseif ($status === 9) {
+                    $this->log_info("完成订单通知|订单号:{$order_id}|全部参数：", $request->all());
+                    return $this->finishOrder($order_id);
                 }
             }
         } elseif ($cmd === 'order.create') {
@@ -184,6 +188,43 @@ class EleOrderController extends Controller
         $res = $ele->confirmOrder($order_id);
         \Log::info("[饿了么]-[订单回调-确认订单]-结果", [$res]);
         return $this->res("order.status.success");
+    }
+
+    public function finishOrder($order_id)
+    {
+        $this->prefix = str_replace('###', "完成订单|订单号:{$order_id}", $this->prefix_title);
+        if ($order = WmOrder::where('order_id', $order_id)->first()) {
+            if ($order->status < 18) {
+                $bill_date = date("Y-m-d");
+                // if (($order->ctime < strtotime($bill_date)) && (time() < strtotime(date("Y-m-d 09:00:00")))) {
+                //     $bill_date = date("Y-m-d", time() - 86400);
+                // }
+                $order->bill_date = $bill_date;
+                $order->status = 18;
+                $order->finish_at = date("Y-m-d H:i:s");
+                $order->save();
+                $this->log_info("订单号：{$order_id}|操作完成");
+                if ($order->is_vip) {
+                    // 如果是VIP订单，触发JOB
+                    dispatch(new VipOrderSettlement($order));
+                }
+            } else {
+                $this->log_info("订单号：{$order_id}|操作失败|系统订单状态：{$order->status}");
+            }
+        } else {
+            $this->log_info("订单号：{$order_id}|外卖订单不存在");
+        }
+        if ($order_pt = Order::where('order_id', $order_id)->first()) {
+            if ($order_pt->status == 0) {
+                $order_pt->status = 75;
+                $order_pt->over_at = date("Y-m-d H:i:s");
+                $order_pt->save();
+                OrderLog::create([
+                    "order_id" => $order_pt->id,
+                    "des" => "「饿了么」完成订单"
+                ]);
+            }
+        }
     }
 
     public function cancelOrder($order_id)
