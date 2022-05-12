@@ -105,54 +105,105 @@ class Order extends Model
         });
 
         static::saved(function ($order) {
-            if (($order->status === 70) && !ManagerProfit::where('order_id', $order->id)->first()) {
-                Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
-                if ($order->ps != 4) {
-                    $manager_ids = User::whereHas("roles", function ($query) {
-                        $query->where('name', 'city_manager');
-                    })->orderByDesc('id')->pluck("id")->toArray();
-                    $_users = DB::table('user_has_shops')->where('shop_id', $order->shop_id)->get();
-                    if (!empty($_users)) {
-                        foreach ($_users as $_user) {
-                            if (in_array($_user->user_id, $manager_ids)) {
-                                $order_profit = 1;
-                                $manager = User::find($_user->user_id);
-                                if (!$manager_return = UserReturn::where('user_id', $_user->user_id)->first()) {
-                                    Log::info("未找到城市经理收益，收益未结算|门店ID：{$order->shop_id}|经理ID：{$_user->user_id}");
+            if ($order->status === 70) {
+                if (!ManagerProfit::where('order_id', $order->id)->first()) {
+                    Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
+                    if ($order->ps != 4) {
+                        $manager_ids = User::whereHas("roles", function ($query) {
+                            $query->where('name', 'city_manager');
+                        })->orderByDesc('id')->pluck("id")->toArray();
+                        $_users = DB::table('user_has_shops')->where('shop_id', $order->shop_id)->get();
+                        if (!empty($_users)) {
+                            foreach ($_users as $_user) {
+                                if (in_array($_user->user_id, $manager_ids)) {
+                                    $order_profit = 1;
+                                    $manager = User::find($_user->user_id);
+                                    if (!$manager_return = UserReturn::where('user_id', $_user->user_id)->first()) {
+                                        Log::info("未找到城市经理收益，收益未结算|门店ID：{$order->shop_id}|经理ID：{$_user->user_id}");
+                                        break;
+                                    }
+                                    $return_type = $manager_return->running_type;
+                                    if ($return_type == 1) {
+                                        $return_value = $manager_return->running_value1;
+                                        $profit = $return_value;
+                                    } else {
+                                        $return_value = $manager_return->running_value2;
+                                        $profit = $order_profit * $return_value;
+                                    }
+                                    if ($profit <= 0) {
+                                        Log::info("收益小于等于0，收益未结算|订单ID：{$order->id}|门店ID：{$order->shop_id}|经理ID：{$_user->user_id}");
+                                        break;
+                                    }
+                                    $profit_data = [
+                                        'user_id' => $manager->id,
+                                        'order_id' => $order->id,
+                                        'order_no' => $order->order_id,
+                                        'shop_id' => $order->shop_id,
+                                        'order_profit' => $order_profit,
+                                        'profit' => $profit,
+                                        'return_type' => $return_type,
+                                        'return_value' => $return_value,
+                                        'type' => 1,
+                                        'created_at' => $order->over_at,
+                                        'updated_at' => $order->over_at,
+                                    ];
+                                    ManagerProfit::create($profit_data);
                                     break;
                                 }
-                                $return_type = $manager_return->running_type;
-                                if ($return_type == 1) {
-                                    $return_value = $manager_return->running_value1;
-                                    $profit = $return_value;
-                                } else {
-                                    $return_value = $manager_return->running_value2;
-                                    $profit = $order_profit * $return_value;
-                                }
-                                if ($profit <= 0) {
-                                    Log::info("收益小于等于0，收益未结算|订单ID：{$order->id}|门店ID：{$order->shop_id}|经理ID：{$_user->user_id}");
-                                    break;
-                                }
-                                $profit_data = [
-                                    'user_id' => $manager->id,
-                                    'order_id' => $order->id,
-                                    'order_no' => $order->order_id,
-                                    'shop_id' => $order->shop_id,
-                                    'order_profit' => $order_profit,
-                                    'profit' => $profit,
-                                    'return_type' => $return_type,
-                                    'return_value' => $return_value,
-                                    'type' => 1,
-                                    'created_at' => $order->over_at,
-                                    'updated_at' => $order->over_at,
-                                ];
-                                ManagerProfit::create($profit_data);
-                                break;
                             }
                         }
+                    } else {
+                        Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]-[美全达配送，不算收益]");
                     }
-                } else {
-                    Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]-[美全达配送，不算收益]");
+                }
+                if ($wm_order = WmOrder::where('is_vip', 1)->where('id', $order->wm_id)->first()) {
+                    if (!VipBillItem::where('trade_type', 101)->where('order_id', 101)->exists()) {
+                        if ($shop = Shop::find($order->shop_id)) {
+                            // VIP门店各方利润百分比
+                            $commission = $shop->vip_commission;
+                            $commission_manager = $shop->vip_commission_manager;
+                            $commission_operate = $shop->vip_commission_operate;
+                            $commission_internal = $shop->vip_commission_internal;
+                            $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
+                            // 订单收入（负值）
+                            $poi_receive = 0 - $order->money;
+                            // 总收入
+                            $total = $poi_receive;
+                            $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
+                            $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
+                            $vip_internal = sprintf("%.2f",$total * $commission_internal / 100);
+                            $vip_business = sprintf("%.2f",$total * $business / 100);
+                            $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
+                            $item = [
+                                'order_id' => $wm_order->id,
+                                'order_no' => $wm_order->order_id,
+                                'platform' => $wm_order->platform,
+                                'app_poi_code' => $wm_order->app_poi_code,
+                                'wm_shop_name' => $wm_order->wm_shop_name,
+                                'day_seq' => $wm_order->day_seq,
+                                'trade_type' => 101,
+                                'status' => $wm_order->status,
+                                'order_at' => $wm_order->created_at,
+                                'finish_at' => $wm_order->finish_at,
+                                'bill_date' => $order->over_at,
+                                'vip_settlement' => $poi_receive,
+                                'vip_cost' => 0,
+                                'vip_permission' => 0,
+                                'vip_total' => $total,
+                                'vip_commission_company' => $commission,
+                                'vip_commission_manager' => $commission_manager,
+                                'vip_commission_operate' => $commission_operate,
+                                'vip_commission_internal' => $commission_internal,
+                                'vip_commission_business' => $business,
+                                'vip_company' => $vip_company,
+                                'vip_city' => $vip_city,
+                                'vip_operate' => $vip_operate,
+                                'vip_internal' => $vip_internal,
+                                'vip_business' => $vip_business,
+                            ];
+                            VipBillItem::create($item);
+                        }
+                    }
                 }
             }
         });
