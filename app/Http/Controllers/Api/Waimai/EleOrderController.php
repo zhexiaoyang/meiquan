@@ -188,8 +188,22 @@ class EleOrderController extends Controller
 
     public function cancelOrder($order_id)
     {
+        $this->prefix = str_replace('###', "饿了么接口取消订单&订单号:{$order_id}", $this->prefix_title);
+        // 查找外卖订单-更改外卖订单状态
+        if ($wmOrder = WmOrder::where('order_id', $order_id)->first()) {
+            if ($wmOrder->status < 18) {
+                $wmOrder->status = 30;
+                $wmOrder->cancel_at = date("Y-m-d H:i:s");
+                $wmOrder->save();
+                $this->log_info("取消外卖订单-成功");
+            } else {
+                $this->log_info("外卖订单取消失败,外卖订单状态:{$wmOrder->status}");
+            }
+        } else {
+            $this->log_info("外卖订单不存在");
+        }
         if ($order = Order::query()->where("order_id", $order_id)->first()) {
-            $order = Order::query()->where('order_id', $order_id)->first();
+            // $order = Order::query()->where('order_id', $order_id)->first();
             \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-开始");
 
             if (!$order) {
