@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
+use App\Models\Shop;
+use App\Models\VipBillItem;
 use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use App\Models\Order;
@@ -35,6 +37,55 @@ class OrderCancelController
             } else {
                 $this->log_info("外卖订单取消失败,外卖订单状态:{$wmOrder->status}");
             }
+            // -------------------VIP订单结算----------------------
+            if ($wmOrder->is_vip && $shop = Shop::find($wmOrder->shop_id)) {
+                // 处方审方扣费
+                $prescription = $wmOrder->prescription ? 1.5 : 0;
+                // 总利润
+                $total = $wmOrder->vip_cost + $prescription - $wmOrder->poi_receive;
+                // VIP门店各方利润百分比
+                $commission = $shop->vip_commission;
+                $commission_manager = $shop->vip_commission_manager;
+                $commission_operate = $shop->vip_commission_operate;
+                $commission_internal = $shop->vip_commission_internal;
+                $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
+
+                $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
+                $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
+                $vip_internal = sprintf("%.2f",$total * $commission_internal / 100);
+                $vip_business = sprintf("%.2f",$total * $business / 100);
+                $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
+                $item = [
+                    'order_id' => $wmOrder->id,
+                    'order_no' => $wmOrder->order_id,
+                    'platform' => $wmOrder->platform,
+                    'app_poi_code' => $wmOrder->app_poi_code,
+                    'wm_shop_name' => $wmOrder->wm_shop_name,
+                    'day_seq' => $wmOrder->day_seq,
+                    'trade_type' => 2,
+                    'status' => $wmOrder->status,
+                    'order_at' => $wmOrder->created_at,
+                    'finish_at' => $wmOrder->finish_at,
+                    'bill_date' => date("Y-m-d"),
+                    'vip_settlement' => 0 - $wmOrder->poi_receive,
+                    'vip_cost' => $wmOrder->vip_cost,
+                    'vip_permission' => $prescription,
+                    'vip_total' => $total,
+                    'vip_commission_company' => $commission,
+                    'vip_commission_manager' => $commission_manager,
+                    'vip_commission_operate' => $commission_operate,
+                    'vip_commission_internal' => $commission_internal,
+                    'vip_commission_business' => $business,
+                    'vip_company' => $vip_company,
+                    'vip_city' => $vip_city,
+                    'vip_operate' => $vip_operate,
+                    'vip_internal' => $vip_internal,
+                    'vip_business' => $vip_business,
+                ];
+                VipBillItem::create($item);
+                \Log::info("VIP订单结算处理，取消订单结算成功");
+            }
+            // -------------------VIP订单结算-结束----------------------
         } else {
             $this->log_info("外卖订单不存在");
         }

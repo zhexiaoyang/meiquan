@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 use App\Jobs\VipOrderSettlement;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Shop;
+use App\Models\VipBillItem;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
@@ -18,6 +20,8 @@ class OrderController
     use LogTool, NoticeTool;
 
     public $prefix_title = '[美团外卖回调&###]';
+    // 部分扣款，退款商品成本价
+    public $dec_cost = 0;
 
     public function create(Request $request, $platform)
     {
@@ -91,12 +95,68 @@ class OrderController
                                     }
                                 }
                             }
+                            $this->dec_cost = $dec_cost;
                             $vip_cost = $order->vip_cost - $dec_cost;
                             WmOrder::where('id', $order->id)->update(['vip_cost' => $vip_cost > 0 ? $vip_cost : 0]);
                         });
                         if ($order->is_vip) {
                             // 如果是VIP订单，触发结算JOB
-                            dispatch(new VipOrderSettlement($order));
+                            // dispatch(new VipOrderSettlement($order));
+                            // 退款记录
+                            $minkang = app('minkang');
+                            $res = $minkang->getOrderRefundDetail($order_id);
+
+                            if (!empty($res['data'])) {
+                                $shop = Shop::find($order->shop_id);
+                                // VIP门店各方利润百分比
+                                $commission = $shop->vip_commission;
+                                $commission_manager = $shop->vip_commission_manager;
+                                $commission_operate = $shop->vip_commission_operate;
+                                $commission_internal = $shop->vip_commission_internal;
+                                $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
+                                foreach ($res['data'] as $v) {
+                                    $poi_receive = $v['refund_partial_estimate_charge']['settle_amount'];
+                                    if ($poi_receive) {
+                                        $total = $poi_receive + $this->dec_cost;
+                                        $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
+                                        $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
+                                        $vip_internal = sprintf("%.2f",$total * $commission_internal / 100);
+                                        $vip_business = sprintf("%.2f",$total * $business / 100);
+                                        $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
+                                        $item = [
+                                            'order_id' => $order->id,
+                                            'order_no' => $order->order_id,
+                                            'platform' => $order->platform,
+                                            'app_poi_code' => $order->app_poi_code,
+                                            'wm_shop_name' => $order->wm_shop_name,
+                                            'day_seq' => $order->day_seq,
+                                            'trade_type' => 3,
+                                            'status' => $order->status,
+                                            'order_at' => $order->created_at,
+                                            'finish_at' => $order->finish_at,
+                                            'bill_date' => date("Y-m-d"),
+                                            'vip_settlement' => $poi_receive,
+                                            'vip_cost' => $this->dec_cost,
+                                            'vip_permission' => 0,
+                                            'vip_total' => $total,
+                                            'vip_commission_company' => $commission,
+                                            'vip_commission_manager' => $commission_manager,
+                                            'vip_commission_operate' => $commission_operate,
+                                            'vip_commission_internal' => $commission_internal,
+                                            'vip_commission_business' => $business,
+                                            'vip_company' => $vip_company,
+                                            'vip_city' => $vip_city,
+                                            'vip_operate' => $vip_operate,
+                                            'vip_internal' => $vip_internal,
+                                            'vip_business' => $vip_business,
+                                        ];
+                                        VipBillItem::create($item);
+                                        \Log::info("VIP订单结算处理，部分退款订单结算成功");
+                                    } else {
+                                        $this->ding_error('部分退款未获取到退款结算金额');
+                                    }
+                                }
+                            }
                         }
                     }
                 }

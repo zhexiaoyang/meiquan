@@ -60,7 +60,7 @@ class OrderDeduction extends Model
                             'vip_business' => $vip_business,
                         ];
                         VipBillItem::create($item);
-                        \Log::info("VIP订单，跑腿订单扣款结算成功");
+                        \Log::info("VIP订单结算处理，跑腿订单扣款结算成功");
                     }
                 }
             }
