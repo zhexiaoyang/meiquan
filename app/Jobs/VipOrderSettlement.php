@@ -93,7 +93,7 @@ class VipOrderSettlement implements ShouldQueue
             'vip_business' => $vip_business,
         ];
         VipBillItem::create($item);
-        \Log::info("VIP订单结算处理，跑腿订单扣款结算成功");
+        \Log::info("VIP订单结算处理，完成订单结算成功");
 
         // $commission = $shop->vip_commission;
         // $commission_manager = $shop->vip_commission_manager;
