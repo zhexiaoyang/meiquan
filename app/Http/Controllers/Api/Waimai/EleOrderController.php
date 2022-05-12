@@ -16,6 +16,7 @@ use App\Models\UserMoneyBalance;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
+use App\Models\WmOrderReceive;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
@@ -968,7 +969,7 @@ class EleOrderController extends Controller
                     "total" => $order['order']['user_fee'] / 100,
                     "original_price" => $order['order']['total_fee'] / 100,
                     "package_bag_money_yuan" => $order['order']['merchant_total_fee'] / 100,
-                    "service_fee" => ($order['order']['origin_merchant_commission_amount'] + $order['order']['base_logistics_amount'] + $order['order']['pay_channel_fee']) / 100,
+                    "service_fee" => $order['order']['commission'] / 100,
                     "logistics_fee" => $order['order']['send_fee'] / 100,
                     "online_payment" => $order['order']['user_fee'] / 100,
                     "poi_receive" => $order['order']['shop_fee'] / 100,
@@ -1053,8 +1054,35 @@ class EleOrderController extends Controller
                     $this->log_info("-外卖订单「商品」保存成功");
                 }
                 // 商家活动信息
+                $receives = [];
+                $discounts = $order['discount'];
+                if (!empty($discounts)) {
+                    foreach ($discounts as $discount) {
+                        if ($discount['shop_rate']) {
+                            $receives[] = [
+                                'type' => 2,
+                                'order_id' => $order_wm->id,
+                                'comment' => $discount['desc'],
+                                'fee_desc' => '活动款',
+                                'money' => $discount['shop_rate'] / 100,
+                            ];
+                        }
+                        if ($discount['baidu_rate']) {
+                            $receives[] = [
+                                'type' => 1,
+                                'order_id' => $order_wm->id,
+                                'comment' => $discount['desc'],
+                                'fee_desc' => '活动款',
+                                'money' => $discount['baidu_rate'] / 100,
+                            ];
+                        }
+                    }
+                }
+                if (!empty($receives)) {
+                    $this->log_info("-外卖订单「活动」保存成功");
+                    WmOrderReceive::insert($receives);
+                }
                 // 商家活动信息
-
                 /********************* 创建跑腿订单数组 *********************/
                 // $pick_type = $data['pick_type'] ?? 0;
                 // $weight = $data['total_weight'] ?? 0;
