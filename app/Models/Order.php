@@ -202,6 +202,7 @@ class Order extends Model
                                 'vip_business' => $vip_business,
                             ];
                             VipBillItem::create($item);
+                            \Log::info("VIP订单，跑腿订单扣费结算成功");
                         }
                     }
                 }
