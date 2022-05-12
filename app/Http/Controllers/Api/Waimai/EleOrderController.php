@@ -44,7 +44,7 @@ class EleOrderController extends Controller
                 $status = $body['status'] ?? 0;
                 $order_id = $body['order_id'];
                 if ($status === 5) {
-                    $this->ding_error('饿了么创建订单了');
+                    $this->ding_error('饿了么创建订单了:' . $order_id);
                     $this->log_info("创建订单通知|订单号:{$order_id}|全部参数：", $request->all());
                     return $this->createOrder($order_id);
                 } elseif ($status === 1) {
