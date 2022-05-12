@@ -295,7 +295,7 @@ class PrescriptionController extends Controller
                             $money = $v->money;
                             $order_id = $v->outOrderID;
                             $current_user = DB::table('users')->find($shop->user_id);
-                            if ($v['orderStatus'] == 1 || $v['orderStatus'] == 2) {
+                            if ($v['orderStatus'] == '已处理') {
                                 UserOperateBalance::create([
                                     "user_id" => $current_user->id,
                                     "money" => $money,
@@ -309,6 +309,7 @@ class PrescriptionController extends Controller
                                 ]);
                                 // 减去用户运营余额
                                 DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
+                                DB::table('wm_prescriptions')->where('id', $v->id)->update(['status' => 1, 'reason' => '']);
                                 $_user = DB::table('users')->find($current_user->id);
                                 if ($_user->operate_money < 50) {
                                     $phone = $_user->phone;
