@@ -96,6 +96,9 @@ class Order extends Model
             if (!$model->delivery_id) {
                 $model->delivery_id = $model->order_id;
             }
+        });
+
+        static::created(function ($model) {
             if ($shop = Shop::where('shop_id', $model->shop_id)->first()) {
                 $model->distance = getShopDistanceV4($shop, $model->receiver_lng, $model->receiver_lat);
             }
