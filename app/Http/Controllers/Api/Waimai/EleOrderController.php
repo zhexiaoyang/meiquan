@@ -915,7 +915,7 @@ class EleOrderController extends Controller
                     "package_bag_money_yuan" => $order['order']['merchant_total_fee'] / 100,
                     "service_fee" => ($order['order']['origin_merchant_commission_amount'] + $order['order']['base_logistics_amount'] + $order['order']['pay_channel_fee']) / 100,
                     "logistics_fee" => $order['order']['send_fee'] / 100,
-                    "online_payment" => $order['order']['user_fee'] ?? 0,
+                    "online_payment" => $order['order']['user_fee'] / 100,
                     "poi_receive" => $order['order']['shop_fee'] / 100,
                     // "rebate_fee" => $poi_receive_detail_yuan['agreementCommissionRebateAmount'] ?? 0,
                     "caution" => $order['order']['remark'] ?: '',
