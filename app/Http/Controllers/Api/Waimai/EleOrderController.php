@@ -980,7 +980,7 @@ class EleOrderController extends Controller
                     "estimate_arrival_time" => $order['estimate_arrival_time'] ?? 0,
                     "ctime" => $order['order']['create_time'],
                     "utime" => $order['order']['create_time'],
-                    "delivery_time" => $order['order']['latest_send_time'],
+                    "delivery_time" => $delivery_time,
                     "pick_type" => $pick_type,
                     "day_seq" => $order['order']['order_index'] ?? 0,
                     "invoice_title" => $order['order']['invoice_title'] ?? '',
