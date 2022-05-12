@@ -12,6 +12,7 @@ class OrderDeduction extends Model
 
     protected static function boot()
     {
+        parent::boot();
         static::created(function ($model) {
             if ($order = Order::find($model->order_id)) {
                 if ($wm_order = WmOrder::where('is_vip', 1)->where('id', $order->wm_id)->first()) {
