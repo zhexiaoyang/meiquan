@@ -16,7 +16,7 @@ class VipOrderController extends Controller
 
         $query = WmOrder::with(['items' => function ($query) {
             $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc','vip_cost');
-        }, 'receives'])->where('is_vip', 1);
+        }, 'receives', 'bill_items'])->where('is_vip', 1);
 
         // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 

@@ -38,7 +38,7 @@ class OrderCancelController
                 $this->log_info("外卖订单取消失败,外卖订单状态:{$wmOrder->status}");
             }
             // -------------------VIP订单结算----------------------
-            if ($wmOrder->is_vip && $shop = Shop::find($wmOrder->shop_id)) {
+            if ($wmOrder->status == 18 && $wmOrder->is_vip && $shop = Shop::find($wmOrder->shop_id)) {
                 // 处方审方扣费
                 $prescription = $wmOrder->is_prescription ? 1.5 : 0;
                 // 总利润
