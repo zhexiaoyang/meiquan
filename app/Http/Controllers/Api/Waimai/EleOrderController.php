@@ -207,7 +207,7 @@ class EleOrderController extends Controller
                 $this->log_info("订单号：{$order_id}|操作完成");
                 if ($order->is_vip) {
                     // 如果是VIP订单，触发JOB
-                    // dispatch(new VipOrderSettlement($order));
+                    dispatch(new VipOrderSettlement($order));
                 }
             } else {
                 $this->log_info("订单号：{$order_id}|操作失败|系统订单状态：{$order->status}");
