@@ -121,7 +121,7 @@ class OrderConfirmController
                     "is_favorites" => intval($data['is_favorites'] ?? 0),
                     "is_poi_first_order" => intval($data['is_poi_first_order'] ?? 0),
                     "logistics_code" => $logistics_code,
-                    "is_vip" => $shop->vip_status,
+                    "is_vip" => $shop->vip_mt,
                     "prescription_fee" => $prescription_fee,
                 ];
                 // 创建外卖订单
