@@ -45,6 +45,7 @@ class VipOrderSettlement implements ShouldQueue
             return;
         }
 
+        $platform = $order->platform;
         // 处方审方扣费
         $prescription = $order->is_prescription ? 1.5 : 0;
         // 总利润
@@ -68,11 +69,11 @@ class VipOrderSettlement implements ShouldQueue
         $item = [
             'order_id' => $order->id,
             'order_no' => $order->order_id,
-            'platform' => $order->platform,
+            'platform' => $platform,
             'app_poi_code' => $order->app_poi_code,
             'wm_shop_name' => $order->wm_shop_name,
             'day_seq' => $order->day_seq,
-            'trade_type' => 1,
+            'trade_type' => $platform == 1 ? 1 : 11,
             'status' => $order->status,
             'order_at' => $order->created_at,
             'finish_at' => $order->finish_at,
