@@ -17,16 +17,17 @@ class ShopCreateController extends Controller
 
     public function save(Request $request)
     {
+        $user_id = \Auth::id();
         $step = $request->get('step');
 
         if (!in_array($step, [0, 1, 2])) {
             return $this->error('参数错误');
         }
 
-        $info = ShopCreate::where('user_id', \Auth::id())->where('status', 0)->first();
+        $info = ShopCreate::where('user_id', $user_id)->where('status', 0)->first();
 
         if ($step == 0) {
-            $data = ['user_id' => \Auth::id()];
+            $data = ['user_id' => $user_id];
             if (!$shop_name = $request->get('shop_name')) {
                 return $this->error('门店名称不能为空');
             }
@@ -90,7 +91,13 @@ class ShopCreateController extends Controller
             }
             // 判断营业执照
             if ($_shop = ShopCreate::where('yyzz', $yyzz)->first()) {
-                return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
+                if ($_shop->user_id != $user_id) {
+                    return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
+                } else {
+                    if ($_shop->status == 1) {
+                        return $this->error("该营业执照已存在，请核对，绑定门店名称[{$_shop->shop_name}]", 422);
+                    }
+                }
             }
             if ($info) {
                 ShopCreate::where('id', $info->id)->update($data);

@@ -47,7 +47,7 @@ class VipShopController extends Controller
 
         $data = $query->paginate($page_size);
 
-        return $this->page($data);
+        return $this->page($data, [], 'data');
     }
 
     public function store(Request $request)
@@ -122,6 +122,11 @@ class VipShopController extends Controller
 
     public function destroy(Request $request)
     {
+        // 判断角色
+        if (!$request->user()->hasPermissionTo('admin_vip_shop_delete')) {
+            return $this->error('没有权限执行此操作');
+        }
+
         if (!$shop = Shop::find($request->get('shop_id',0))) {
             return $this->error('门店不存在');
         }

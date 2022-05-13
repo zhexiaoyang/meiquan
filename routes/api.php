@@ -313,7 +313,7 @@ Route::middleware(["force-json"])->group(function() {
              */
             // VIP门店
             Route::get("vip_shop/all", "VipShopController@all");
-            Route::resource('vip_shop', 'VipShopController', ["only" => ["index","store"]]);
+            Route::resource('vip_shop', 'VipShopController', ["only" => ["index","store","destroy"]]);
             // VIP商品异常
             Route::get("vip_product/exception/statistics", "VipProductExceptionController@statistics");
             Route::post("vip_product/exception/ignore", "VipProductExceptionController@ignore");

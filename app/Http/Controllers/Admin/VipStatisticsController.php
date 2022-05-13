@@ -265,7 +265,6 @@ class VipStatisticsController extends Controller
             $tmp = array_chunk($mt_shop_ids, 200);
             foreach ($tmp as $item) {
                 $res = $mk->getShopInfoByIds(['app_poi_codes' => implode(",", $item)]);
-                \Log::info('aaa', [$res]);
                 if (!empty($res['data'])) {
                     foreach ($res['data'] as $re) {
                         $mt_id = $re['app_poi_code'];
@@ -366,7 +365,6 @@ class VipStatisticsController extends Controller
             $tmp = array_chunk($mt_shop_ids, 200);
             foreach ($tmp as $item) {
                 $res = $mk->getShopInfoByIds(['app_poi_codes' => implode(",", $item)]);
-                \Log::info('aaa', [$res]);
                 if (!empty($res['data'])) {
                     foreach ($res['data'] as $re) {
                         $mt_id = $re['app_poi_code'];
@@ -467,7 +465,6 @@ class VipStatisticsController extends Controller
             $tmp = array_chunk($mt_shop_ids, 200);
             foreach ($tmp as $item) {
                 $res = $mk->getShopInfoByIds(['app_poi_codes' => implode(",", $item)]);
-                \Log::info('aaa', [$res]);
                 if (!empty($res['data'])) {
                     foreach ($res['data'] as $re) {
                         $mt_id = $re['app_poi_code'];
