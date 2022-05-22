@@ -618,8 +618,9 @@ class Api extends Request
         if (!$access_token) {
             $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
             $refresh_token = Cache::store('redis')->get($key_ref);
+            $token_res = MeituanShangouToken::where('shop_id', $shop_id)->first();
             if (!$refresh_token) {
-                if ($token_res = MeituanShangouToken::where('shop_id', $shop_id)->first()) {
+                if ($token_res) {
                     $refresh_token = $token_res->refresh_token;
                 }
             }
@@ -633,6 +634,19 @@ class Api extends Request
                 $refresh_token = $res['refresh_token'];
                 Cache::put($key, $access_token, $res['expires_in'] - 100);
                 Cache::forever($key_ref, $refresh_token);
+                if ($token_res) {
+                    MeituanShangouToken::where('shop_id', $shop_id)->update([
+                        'access_token' => $res['access_token'],
+                        'refresh_token' => $res['refresh_token'],
+                    ]);
+                } else {
+                    MeituanShangouToken::create([
+                        'shop_id' => $shop_id,
+                        'access_token' => $res['access_token'],
+                        'refresh_token' => $res['refresh_token'],
+                    ]);
+                }
+                $this->ding_error("重新获取Token成功，shop_id:{$shop_id}");
             } else {
                 $this->ding_error("闪购门店刷新token获取token失败错误，shop_id:{$shop_id}");
                 \Log::info("闪购门店刷新token获取token失败错误", [$res]);
