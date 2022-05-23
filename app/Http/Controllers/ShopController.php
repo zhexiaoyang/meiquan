@@ -767,13 +767,14 @@ class ShopController extends Controller
                 $shop->save();
                 return $this->success();
             }
-            // $qq = app('qinqu');
-            // $qq_shops = $qq->getShops($params);
-            // if (!$status && !empty($qq_shops['data'])) {
-            //     $shop->waimai_mt = $mtwm;
-            //     $shop->save();
-            //     return $this->success();
-            // }
+            $qq = app('qinqu');
+            $qq_shops = $qq->getShops($params);
+            if (!$status && !empty($qq_shops['data'])) {
+                $shop->waimai_mt = $mtwm;
+                $shop->meituan_bind_platform = 5;
+                $shop->save();
+                return $this->success();
+            }
             return $this->error('该门店没有授权,请参考说明授权');
         }
 
