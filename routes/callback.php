@@ -35,5 +35,5 @@ Route::middleware(['force-json'])->prefix('shansong')->namespace('Api\Callback')
     // 闪送订单回调
     Route::post('order', "ShanSongOrderController@order");
     // 闪送门店绑定回调
-    Route::get('auth', "ShanSongOrderController@auth");
+    Route::get('auth', "ShanSongAuthController@auth");
 });

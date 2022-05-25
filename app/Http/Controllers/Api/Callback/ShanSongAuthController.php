@@ -7,5 +7,8 @@ use Illuminate\Http\Request;
 
 class ShanSongAuthController extends Controller
 {
-    //
+    public function auth(Request $request)
+    {
+        return $this->success($request->all());
+    }
 }
