@@ -29,3 +29,11 @@ Route::middleware(['force-json'])->prefix('kuaidi')->namespace('Api\Callback')->
     // 线下处方订单回调
     Route::post('order', "KuaiDiController@order");
 });
+
+// 闪送-服务商
+Route::middleware(['force-json'])->prefix('shansong')->namespace('Api\Callback')->group(function () {
+    // 闪送订单回调
+    Route::post('order', "ShanSongOrderController@order");
+    // 闪送门店绑定回调
+    Route::get('auth', "ShanSongOrderController@auth");
+});
