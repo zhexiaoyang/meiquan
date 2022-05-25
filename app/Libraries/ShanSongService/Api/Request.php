@@ -57,7 +57,11 @@ class Request
     }
 
     private function signature($params) {
-        $seed = $this->secret . 'accessToken' . $params['accessToken'] . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
+        if ($params['accessToken']) {
+            $seed = $this->secret . 'accessToken' . $params['accessToken'] . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
+        } else {
+            $seed = $this->secret . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
+        }
         return md5($seed);
     }
 
