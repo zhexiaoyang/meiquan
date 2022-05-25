@@ -35,10 +35,13 @@ class Request
     {
         $params = [
             'clientId' => $this->client_id,
-            'accessToken' => $this->access_token,
             'timestamp' => time(),
             'data' => json_encode($data, JSON_UNESCAPED_UNICODE)
         ];
+
+        if ($this->access_token) {
+            $params['accessToken'] = $this->access_token;
+        }
 
         $params['sign'] = strtoupper($this->signature($params));
 

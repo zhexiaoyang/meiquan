@@ -27,7 +27,7 @@ class Api extends Request
 
     public function token_ref($refresh_token, $shop_id)
     {
-        $this->access_token = $this->get_token($shop_id);
+        // $this->access_token = $this->get_token($shop_id);
 
         $data = [
             'refreshToken' => $refresh_token,
@@ -246,7 +246,7 @@ class Api extends Request
                 $this->ding_error("闪送自建门店token不存在错误，shop_id:{$shop_id}");
                 return false;
             }
-            $res = $this->token_ref($refresh_token);
+            $res = $this->token_ref($refresh_token, $shop_id);
             if (!empty($res['data']['access_token'])) {
                 $access_token = $res['data']['access_token'];
                 $refresh_token = $res['data']['refresh_token'];
