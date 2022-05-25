@@ -74,7 +74,7 @@ class ShipperController extends Controller
             return $this->success('创建成功，等待审核');
         }
         \Log::info("创建门店失败-美团", [$result]);
-        return $this->error('创建失败');
+        return $this->error($result['message'] ?? '添加失败');
     }
 
     /**
@@ -100,7 +100,7 @@ class ShipperController extends Controller
             return $this->success('创建成功，等待审核');
         }
         \Log::info("创建门店失败-蜂鸟", [$result]);
-        return $this->error('添加失败');
+        return $this->error($result['msg'] ?? '添加失败');
     }
 
     /**
