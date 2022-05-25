@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 
 class ShanSongOrderController extends Controller
 {
-    public function auth(Request $request)
+    public function order(Request $request)
     {
         return $this->success($request->all());
     }
