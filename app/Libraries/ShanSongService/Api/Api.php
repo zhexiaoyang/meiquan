@@ -133,7 +133,7 @@ class Api extends Request
             // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
             // "appointmentDate" => "",
             "travelWay" => $order->tool === 8 ? 8 : 0,
-            "storeId" => $shop->shop_id_ss
+            // "storeId" => $shop->shop_id_ss
         ];
 
 
