@@ -42,16 +42,26 @@ class ShanSongAuthController extends Controller
             return '授权门店没有找到，稍后再试';
         }
 
-        ShopShipper::create([
-            'user_id' => $shop->user_id,
-            'shop_id' => $shop->shop_id,
-            'platform' => 3,
-            'three_id' => $ss_shop_id,
-            'access_token' => $access_token,
-            'refresh_token' => $refresh_token,
-            'expires_in' => $expires_in,
-            'token_time' => date("Y-m-d H:i:s"),
-        ]);
+        if (ShopShipper::where('shop_id', $shop_id)->where('platform', 3)->first()) {
+            ShopShipper::where('shop_id', $shop_id)->where('platform', 3)->update([
+                'three_id' => $ss_shop_id,
+                'access_token' => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in' => $expires_in,
+                'token_time' => date("Y-m-d H:i:s"),
+            ]);
+        } else {
+            ShopShipper::create([
+                'user_id' => $shop->user_id,
+                'shop_id' => $shop->shop_id,
+                'platform' => 3,
+                'three_id' => $ss_shop_id,
+                'access_token' => $access_token,
+                'refresh_token' => $refresh_token,
+                'expires_in' => $expires_in,
+                'token_time' => date("Y-m-d H:i:s"),
+            ]);
+        }
 
         $key = 'ss:shop:auth:' . $shop_id;
         $key_ref = 'ss:shop:auth:ref:' . $shop_id;
