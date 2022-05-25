@@ -57,7 +57,7 @@ class Request
     }
 
     private function signature($params) {
-        if ($params['accessToken']) {
+        if (isset($params['accessToken'])) {
             $seed = $this->secret . 'accessToken' . $params['accessToken'] . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
         } else {
             $seed = $this->secret . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
