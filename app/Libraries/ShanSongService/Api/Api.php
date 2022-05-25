@@ -249,14 +249,14 @@ class Api extends Request
             $res = $this->token_ref($refresh_token, $shop_id);
             if (!empty($res['data']['access_token'])) {
                 $access_token = $res['data']['access_token'];
-                $refresh_token = $res['data']['refresh_token'];
+                // $refresh_token = $res['data']['refresh_token'];
                 $expires_in = $res['data']['expires_in'];
                 Cache::put($key, $access_token, $expires_in - 100);
                 Cache::forever($key_ref, $refresh_token);
                 if ($token_res) {
                     ShopShipper::where('shop_id', $shop_id)->where('platform', 3)->update([
                         'access_token' => $access_token,
-                        'refresh_token' => $refresh_token,
+                        // 'refresh_token' => $refresh_token,
                         'token_time' => date("Y-m-d H:i:s"),
                     ]);
                 }
