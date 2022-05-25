@@ -58,7 +58,7 @@ class ShanSongAuthController extends Controller
         Cache::put($key, $access_token, $expires_in - 100);
         Cache::forever($key_ref, $refresh_token);
 
-        $this->log("获取Token成功|access_token:{$access_token},refresh_token:{$refresh_token},expires_in:{$expires_in}");
+        $this->log("获取Token成功|access_token:{$access_token},refresh_token:{$refresh_token},expires_in:{$expires_in} ");
         return $this->success($request->all());
     }
 }
