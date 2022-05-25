@@ -90,73 +90,74 @@ class Api extends Request
 
         return $this->post('/openapi/developer/v5/queryAllStores', ['storeId' => $storeId]);
     }
-    //
-    // /**
-    //  * 订单计费
-    //  */
-    // public function orderCalculate(Shop $shop, Order $order)
-    // {
-    //
-    //     $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
-    //     $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
-    //     $data = [
-    //         "cityName" => $shop->city,
-    //         "sender" => [
-    //             "fromAddress" => $shop->shop_address,
-    //             "fromAddressDetail" => $shop->shop_name ?? "",
-    //             "fromSenderName" => $shop->contact_name,
-    //             "fromMobile" => $shop->contact_phone,
-    //             "fromLatitude" => $jwd1['lat'],
-    //             "fromLongitude" => $jwd1['lng']
-    //         ],
-    //         "receiverList" => [[
-    //             "orderNo" => $order->order_id,
-    //             "toAddress" => $order->receiver_address,
-    //             "toAddressDetail" => $order->receiver_address,
-    //             "toLatitude" => $jwd2['lat'],
-    //             "toLongitude" => $jwd2['lng'],
-    //             "toReceiverName" => $order->receiver_name ?: "无名",
-    //             "toMobile" => str_replace('_', '#', $order->receiver_phone),
-    //             "goodType" => 13,
-    //             "weight" => 1,
-    //             "remarks" => $order->note ?? "",
-    //             // "additionFee" => 500,
-    //             // "insurance" => 200,
-    //             // "insuranceProId" => "SS_baofei_001",
-    //             // "orderingSourceType" =>4,
-    //             // "orderingSourceNo" => $order->goods_pickup_info ?? "",
-    //             // "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
-    //         ]],
-    //         // "appointType" => $order->order_type ?? "",
-    //         "appointType" => 0,
-    //         // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
-    //         // "appointmentDate" => "",
-    //         "travelWay" => $order->tool === 8 ? 8 : 0,
-    //         "storeId" => $shop->shop_id_ss
-    //     ];
-    //
-    //
-    //     if ($order->goods_pickup_info) {
-    //         $data['receiverList'][0]['orderingSourceType'] = 4;
-    //         $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
-    //     } elseif ($order->day_seq) {
-    //         if ($order->platform === 1) {
-    //             $data['receiverList'][0]['orderingSourceType'] = 4;
-    //             $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
-    //         }
-    //         if ($order->platform === 2) {
-    //             $data['receiverList'][0]['orderingSourceType'] = 3;
-    //             $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
-    //         }
-    //     }
-    //
-    //     // if ($order->type === 11) {
-    //     //     $data['appointmentDate'] = '';
-    //     // }
-    //
-    //     return $this->post('/openapi/merchants/v5/orderCalculate', $data);
-    // }
-    //
+
+    /**
+     * 订单计费
+     */
+    public function orderCalculate(Shop $shop, Order $order)
+    {
+        $this->access_token = $this->get_token($shop->id);
+
+        $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
+        $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
+        $data = [
+            "cityName" => $shop->city,
+            "sender" => [
+                "fromAddress" => $shop->shop_address,
+                "fromAddressDetail" => $shop->shop_name ?? "",
+                "fromSenderName" => $shop->contact_name,
+                "fromMobile" => $shop->contact_phone,
+                "fromLatitude" => $jwd1['lat'],
+                "fromLongitude" => $jwd1['lng']
+            ],
+            "receiverList" => [[
+                "orderNo" => $order->order_id,
+                "toAddress" => $order->receiver_address,
+                "toAddressDetail" => $order->receiver_address,
+                "toLatitude" => $jwd2['lat'],
+                "toLongitude" => $jwd2['lng'],
+                "toReceiverName" => $order->receiver_name ?: "无名",
+                "toMobile" => str_replace('_', '#', $order->receiver_phone),
+                "goodType" => 13,
+                "weight" => 1,
+                "remarks" => $order->note ?? "",
+                // "additionFee" => 500,
+                // "insurance" => 200,
+                // "insuranceProId" => "SS_baofei_001",
+                // "orderingSourceType" =>4,
+                // "orderingSourceNo" => $order->goods_pickup_info ?? "",
+                // "orderingSourceNo" => $order->goods_pickup_info ? "取货码：" . $order->goods_pickup_info : ''
+            ]],
+            // "appointType" => $order->order_type ?? "",
+            "appointType" => 0,
+            // "appointmentDate" => (isset($order->expected_pickup_time) && $order->expected_pickup_time) ? date("Y-m-d H:i", $order->expected_pickup_time) : "",
+            // "appointmentDate" => "",
+            "travelWay" => $order->tool === 8 ? 8 : 0,
+            "storeId" => $shop->shop_id_ss
+        ];
+
+
+        if ($order->goods_pickup_info) {
+            $data['receiverList'][0]['orderingSourceType'] = 4;
+            $data['receiverList'][0]['orderingSourceNo'] = "取货码：" . $order->goods_pickup_info;
+        } elseif ($order->day_seq) {
+            if ($order->platform === 1) {
+                $data['receiverList'][0]['orderingSourceType'] = 4;
+                $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
+            }
+            if ($order->platform === 2) {
+                $data['receiverList'][0]['orderingSourceType'] = 3;
+                $data['receiverList'][0]['orderingSourceNo'] = $order->day_seq;
+            }
+        }
+
+        // if ($order->type === 11) {
+        //     $data['appointmentDate'] = '';
+        // }
+
+        return $this->post('/openapi/developer/v5/orderCalculate', $data);
+    }
+
     // /**
     //  * 创建订单
     //  * @param $order_id
