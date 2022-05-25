@@ -135,6 +135,31 @@ class ShopController extends Controller
                 $tmp['ele_shipping_time'] = $shop->ele_shipping_time;
                 $tmp['ele_open'] = $shop->ele_open;
 
+                // 跑腿平台
+                $shippers = [];
+                if ($shop->shop_id) {
+                    array_push($shippers, ['platform' => 1, 'type' => 1, 'platform_id' => $shop->shop_id]);
+                }
+                if ($shop->shop_id_fn) {
+                    array_push($shippers, ['platform' => 2, 'type' => 1, 'platform_id' => $shop->shop_id_fn]);
+                }
+                if ($shop->shop_id_ss) {
+                    array_push($shippers, ['platform' => 3, 'type' => 1, 'platform_id' => $shop->shop_id_ss]);
+                }
+                if ($shop->shop_id_mqd) {
+                    array_push($shippers, ['platform' => 4, 'type' => 1, 'platform_id' => $shop->shop_id_mqd]);
+                }
+                if ($shop->shop_id_dd) {
+                    array_push($shippers, ['platform' => 5, 'type' => 1, 'platform_id' => $shop->shop_id_dd]);
+                }
+                if ($shop->shop_id_uu) {
+                    array_push($shippers, ['platform' => 6, 'type' => 1, 'platform_id' => $shop->shop_id_uu]);
+                }
+                if ($shop->shop_id_sf) {
+                    array_push($shippers, ['platform' => 7, 'type' => 1, 'platform_id' => $shop->shop_id_sf]);
+                }
+                $tmp['shippers'] = $shippers;
+
                 // 外卖资料
                 $tmp['material'] = $shop->material;
                 // 商城

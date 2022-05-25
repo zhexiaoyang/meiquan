@@ -35,6 +35,11 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 运力管理
+         */
+        Route::post("shipper", "ShipperController@add");
+        Route::post("shipper/delete", "ShipperController@delete");
+        /**
          * 移动端
          */
         // Route::get("m/order", "OrderController@index");
