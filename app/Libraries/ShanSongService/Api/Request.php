@@ -54,7 +54,7 @@ class Request
     }
 
     private function signature($params) {
-        $seed = $this->secret . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'shopId' . $params['shopId'] . 'timestamp' . $params['timestamp'];
+        $seed = $this->secret . 'accessToken' . $params['accessToken'] . 'clientId' . $params['clientId'] . 'data' . $params['data'] . 'timestamp' . $params['timestamp'];
         return md5($seed);
     }
 
