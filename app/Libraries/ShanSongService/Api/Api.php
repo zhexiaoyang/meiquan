@@ -88,7 +88,7 @@ class Api extends Request
     {
         $this->access_token = $this->get_token($shop_id);
 
-        return $this->post('/openapi/merchants/v5/queryAllStores', ['storeId' => $storeId]);
+        return $this->post('/openapi/developer/v5/queryAllStores', ['storeId' => $storeId]);
     }
     //
     // /**
