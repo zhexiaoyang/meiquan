@@ -2302,10 +2302,10 @@ class OrderController extends Controller
      */
     public function getShopInfoByOrder(Request $request)
     {
-        if (!$order = Order::query()->find($request->get("order_id", 0))) {
+        if (!$order = Order::find($request->get("order_id", 0))) {
             return $this->error("订单不存在");
         }
-        if (!$shop = Shop::query()->find($order->shop_id)) {
+        if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
             return $this->error("门店不存在");
         }
 
@@ -2318,6 +2318,20 @@ class OrderController extends Controller
             'mqd' => $shop->shop_id_mqd ?? 0,
             'uu' => $shop->shop_id_uu ?? 0
         ];
+
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $result['ss'] = $shipper->three_id;
+                }
+                if ($shipper->platform == 5) {
+                    $result['dd'] = $shipper->three_id;
+                }
+                if ($shipper->platform == 7) {
+                    $result['sf'] = $shipper->three_id;
+                }
+            }
+        }
 
         return $this->success($result);
     }

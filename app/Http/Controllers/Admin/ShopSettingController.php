@@ -13,7 +13,7 @@ class ShopSettingController extends Controller
     {
         $shop_id = $request->get("id", 0);
 
-        if (!$shop = Shop::find($shop_id)) {
+        if (!$shop = Shop::with('shippers')->find($shop_id)) {
             return $this->error("门店不存在", 422);
         }
         if ($setting = OrderSetting::where("shop_id", $shop_id)->first()) {
@@ -74,6 +74,20 @@ class ShopSettingController extends Controller
                 $platform[] = 'dd';
             }
         }
+        // 自助注册运力
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $result['ss'] = $shipper->three_id;
+                    if (!in_array('ss', $shop_platform)) {
+                        $shop_platform[] = 'ss';
+                        if ($setting['shansong']) {
+                            $platform[] = 'ss';
+                        }
+                    }
+                }
+            }
+        }
 
         $res = [
             'id' => $shop_id,
@@ -93,7 +107,7 @@ class ShopSettingController extends Controller
     {
         $shop_id = $request->get("id", 0);
 
-        if (!$shop = Shop::find($shop_id)) {
+        if (!$shop = Shop::with('shippers')->find($shop_id)) {
             return $this->error('门店不存在');
         }
 
@@ -102,6 +116,22 @@ class ShopSettingController extends Controller
         }
 
         $setting->shop_id = $shop_id;
+
+        // 自助注册运力
+        $shippers = [];
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $shippers[] = 'ss';
+                }
+                if ($shipper->platform == 5) {
+                    $shippers[] = 'dd';
+                }
+                if ($shipper->platform == 7) {
+                    $shippers[] = 'sf';
+                }
+            }
+        }
 
         // 呼叫模式
         $call = intval($request->get('call', 1));
@@ -146,7 +176,7 @@ class ShopSettingController extends Controller
                 $setting->fengniao = 0;
             }
         }
-        if ($shop->shop_id_ss) {
+        if ($shop->shop_id_ss || in_array('ss', $shippers)) {
             if (in_array('ss', $platform)) {
                 $setting->shansong = 1;
             } else {
@@ -160,7 +190,7 @@ class ShopSettingController extends Controller
                 $setting->meiquanda = 0;
             }
         }
-        if ($shop->shop_id_dd) {
+        if ($shop->shop_id_dd || in_array('dd', $shippers)) {
             if (in_array('dd', $platform)) {
                 $setting->dada = 1;
             } else {
@@ -174,7 +204,7 @@ class ShopSettingController extends Controller
                 $setting->uu = 0;
             }
         }
-        if ($shop->shop_id_sf) {
+        if ($shop->shop_id_sf || in_array('sf', $shippers)) {
             if (in_array('sf', $platform)) {
                 $setting->shunfeng = 1;
             } else {

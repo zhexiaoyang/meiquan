@@ -1024,6 +1024,7 @@ class ShopController extends Controller
 
     public function platform(Shop $shop)
     {
+        $shop->load('shippers');
 
         $result = [
             'mt' => $shop->shop_id ?? 0,
@@ -1034,6 +1035,20 @@ class ShopController extends Controller
             'uu' => $shop->shop_id_uu ?? 0,
             'mqd' => $shop->shop_id_mqd ?? 0
         ];
+
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $result['ss'] = $shipper->three_id;
+                }
+                if ($shipper->platform == 5) {
+                    $result['dd'] = $shipper->three_id;
+                }
+                if ($shipper->platform == 7) {
+                    $result['sf'] = $shipper->three_id;
+                }
+            }
+        }
 
         return $this->success($result);
     }
