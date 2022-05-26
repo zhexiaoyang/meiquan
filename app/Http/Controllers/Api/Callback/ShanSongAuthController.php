@@ -53,7 +53,7 @@ class ShanSongAuthController extends Controller
         } else {
             ShopShipper::create([
                 'user_id' => $shop->user_id,
-                'shop_id' => $shop->shop_id,
+                'shop_id' => $shop->id,
                 'platform' => 3,
                 'three_id' => $ss_shop_id,
                 'access_token' => $access_token,
