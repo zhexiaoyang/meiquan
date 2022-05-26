@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\MtLogisticsSync;
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
@@ -205,7 +206,11 @@ class DaDaController extends Controller
                 }
                 // 取消闪送订单
                 if ($order->ss_status === 20 || $order->ss_status === 30) {
-                    $shansong = app("shansong");
+                    if ($order->shipper_type_ss) {
+                        $shansong = new ShanSongService(config('ps.shansongservice'));
+                    } else {
+                        $shansong = app("shansong");
+                    }
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] != 200) {
                         // $logs = [

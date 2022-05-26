@@ -194,7 +194,11 @@ class ShunfengController
                 }
                 // 取消闪送订单
                 if ($order->ss_status === 20 || $order->ss_status === 30) {
-                    $shansong = app("shansong");
+                    if ($order->shipper_type_ss) {
+                        $shansong = new ShanSongService(config('ps.shansongservice'));
+                    } else {
+                        $shansong = app("shansong");
+                    }
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] != 200) {
                         $logs = [
