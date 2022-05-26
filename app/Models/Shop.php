@@ -26,16 +26,25 @@ class Shop extends Model
         40 => '上线可发单'
     ];
 
+    // 门店自有运力绑定列表
+    public function shippers()
+    {
+        return $this->hasMany(ShopShipper::class);
+    }
+
+    // 门店发单设置
     public function setting()
     {
         return $this->hasOne(OrderSetting::class);
     }
 
+    // 蜂鸟-美团门店范围
     public function range()
     {
         return $this->hasOne(ShopRange::class);
     }
 
+    // 门店订单
     public function orders() {
         return $this->hasMany(Order::class);
     }

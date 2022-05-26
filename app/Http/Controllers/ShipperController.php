@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Shop;
+use App\Models\ShopShipper;
 use App\Models\ShopShipperUnbound;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ShipperController extends Controller
 {
@@ -219,50 +221,65 @@ class ShipperController extends Controller
         }
 
         $platform = $request->get('platform');
+        $type = $request->get('type');
 
         if (!in_array($platform, [1,2,3,4,5,6,7])) {
             return $this->error('所选运力不存在');
         }
-        $three_id = '';
-
-        switch ($platform) {
-            case 1:
-                $three_id = $shop->shop_id;
-                $shop->shop_id = '';
-                break;
-            case 2:
-                $three_id = $shop->shop_id_fn;
-                $shop->shop_id_fn = '';
-                break;
-            case 3:
-                $three_id = $shop->shop_id_ss;
-                $shop->shop_id_ss = '';
-                break;
-            case 4:
-                $three_id = $shop->shop_id_mqd;
-                $shop->shop_id_mqd = '';
-                break;
-            case 5:
-                $three_id = $shop->shop_id_dd;
-                $shop->shop_id_dd = '';
-                break;
-            case 6:
-                $three_id = $shop->shop_id_uu;
-                $shop->shop_id_uu = '';
-                break;
-            case 7:
-                $three_id = $shop->shop_id_sf;
-                $shop->shop_id_sf = '';
-                break;
+        if (!in_array($type, [1,2])) {
+            return $this->error('操作不存在');
         }
-        $shop->save();
-        if (!ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', $platform)->first()) {
-            ShopShipperUnbound::query()->create([
-                'shop_id' => $shop->id,
-                'user_id' => $shop->user_id,
-                'platform' => $platform,
-                'three_id' => $three_id,
-            ]);
+
+        if ($type == 1) {
+            $three_id = '';
+            switch ($platform) {
+                case 1:
+                    $three_id = $shop->shop_id;
+                    $shop->shop_id = '';
+                    break;
+                case 2:
+                    $three_id = $shop->shop_id_fn;
+                    $shop->shop_id_fn = '';
+                    break;
+                case 3:
+                    $three_id = $shop->shop_id_ss;
+                    $shop->shop_id_ss = '';
+                    break;
+                case 4:
+                    $three_id = $shop->shop_id_mqd;
+                    $shop->shop_id_mqd = '';
+                    break;
+                case 5:
+                    $three_id = $shop->shop_id_dd;
+                    $shop->shop_id_dd = '';
+                    break;
+                case 6:
+                    $three_id = $shop->shop_id_uu;
+                    $shop->shop_id_uu = '';
+                    break;
+                case 7:
+                    $three_id = $shop->shop_id_sf;
+                    $shop->shop_id_sf = '';
+                    break;
+            }
+            $shop->save();
+            if (!ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', $platform)->first()) {
+                ShopShipperUnbound::query()->create([
+                    'shop_id' => $shop->id,
+                    'user_id' => $shop->user_id,
+                    'platform' => $platform,
+                    'three_id' => $three_id,
+                ]);
+            }
+        } else {
+            if ($shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 3)->first()) {
+                $this->log('用户解绑自有闪送', $shipper->toArray());
+                $shipper->delete();
+                $old_key = 'ss:shop:auth:' . $shipper->shop_id;
+                $old_key_ref = 'ss:shop:auth:ref:' . $shipper->shop_id;
+                Cache::forget($old_key);
+                Cache::forget($old_key_ref);
+            }
         }
 
         return $this->success();

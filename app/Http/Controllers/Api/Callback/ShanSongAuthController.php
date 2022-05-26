@@ -69,6 +69,11 @@ class ShanSongAuthController extends Controller
                 'expires_in' => $expires_in,
                 'token_time' => date("Y-m-d H:i:s"),
             ]);
+            if ($shop->shop_id_ss) {
+                $this->log('闪送授权，闪送门店ID已存在，已清除：' . $shop->shop_id_ss);
+                $shop->shop_id_ss = '';
+                $shop->save();
+            }
         }
 
         $key = 'ss:shop:auth:' . $shop_id;
