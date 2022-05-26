@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderSetting;
 use App\Models\Shop;
@@ -151,6 +152,17 @@ class CreateMtOrder implements ShouldQueue
                         $shop = Shop::find($setting->warehouse);
                         $this->log("仓库转发 | 仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
                     }
+                }
+            }
+        }
+
+        // 自助注册运力判断
+        $zz_ss = false;
+        $shippers = $shop->shippers;
+        if (!empty($shippers)) {
+            foreach ($shippers as $shipper) {
+                if ($shipper->platform === 3) {
+                    $zz_ss = true;
                 }
             }
         }
@@ -330,7 +342,7 @@ class CreateMtOrder implements ShouldQueue
         } elseif ($order->fail_mqd) {
             $this->log("已经有「美全达」失败信息：{$order->fail_mqd}，停止「美全达」派单");
         } elseif ($order->mqd_status != 0) {
-            $this->log("订单状态[{$order->dd_status}]不是0，停止「美全达」派单");
+            $this->log("订单状态[{$order->mqd_status}]不是0，停止「美全达」派单");
         } elseif (!$shop->shop_id_mqd) {
             $order->fail_mqd = "门店不支持美全达跑腿";
             $this->log("门店不支持「美全达」跑腿，停止「美全达」派单");
@@ -407,7 +419,7 @@ class CreateMtOrder implements ShouldQueue
         if ($order->fail_fn) {
             $this->log("已经有「蜂鸟」失败信息：{$order->fail_fn}，停止「蜂鸟」派单");
         } elseif ($order->fn_status != 0) {
-            $this->log("订单状态[{$order->dd_status}]不是0，停止「蜂鸟」派单");
+            $this->log("订单状态[{$order->fn_status}]不是0，停止「蜂鸟」派单");
         } elseif (!$shop->shop_id_fn) {
             $order->fail_fn = "门店不支持蜂鸟跑腿";
             $this->log("门店不支持「蜂鸟」跑腿，停止「蜂鸟」派单");
@@ -451,37 +463,48 @@ class CreateMtOrder implements ShouldQueue
         if ($order->fail_ss) {
             $this->log("已经有「闪送」失败信息：{$order->fail_ss}，停止「闪送」派单");
         } elseif ($order->ss_status != 0) {
-            $this->log("订单状态[{$order->dd_status}]不是0，停止「闪送」派单");
-        } elseif (!$shop->shop_id_ss) {
-            $order->fail_ss = "门店不支持闪送跑腿";
-            $this->log("门店不支持「闪送」跑腿，停止「闪送」派单");
+            $this->log("订单状态[{$order->ss_status}]不是0，停止「闪送」派单");
+        // } elseif (!$shop->shop_id_ss) {
+        //     $order->fail_ss = "门店不支持闪送跑腿";
+        //     $this->log("门店不支持「闪送」跑腿，停止「闪送」派单");
         } elseif (!$ss_switch) {
             $order->fail_ss = "门店关闭闪送跑腿";
             $this->log("门店关闭「闪送」跑腿，停止「闪送」派单");
         } else {
-            $shansong = app("shansong");
-            $check_ss = $shansong->orderCalculate($shop, $order);
-            $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
-            if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
-                if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
-                    // 判断用户金额是否满足闪送订单
-                    if ($user->money < ($money_ss + $use_money)) {
-                        if ($order->status < 20) {
-                            DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
-                        }
-                        dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
-                        $this->log("用户金额不足发「闪送」单，停止派单");
-                        return;
-                    }
-
-                    $order->money_ss = $money_ss;
-                    $order->ss_order_id = $check_ss['data']['orderNumber'] ?? '';
-                    $this->services['shansong'] = $money_ss;
-                }
+            if (!$zz_ss && !$shop->shop_id_ss) {
+                $order->fail_ss = "门店不支持闪送跑腿";
+                $this->log("门店不支持「闪送」跑腿，停止「闪送」派单");
             } else {
-                $ss_error_msg = $check_ss['msg'] ?? "闪送校验请求失败";
-                $order->fail_ss = $ss_error_msg;
-                $this->log("「闪送」校验请求失败:{$ss_error_msg}，停止「闪送」派单");
+                if ($zz_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                    $this->log("自助注册「闪送」发单");
+                } else {
+                    $shansong = app("shansong");
+                    $this->log("聚合运力「闪送」发单");
+                }
+                $check_ss = $shansong->orderCalculate($shop, $order);
+                $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+                if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
+                    if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
+                        // 判断用户金额是否满足闪送订单
+                        if ($user->money < ($money_ss + $use_money)) {
+                            if ($order->status < 20) {
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                            }
+                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
+                            $this->log("用户金额不足发「闪送」单，停止派单");
+                            return;
+                        }
+
+                        $order->money_ss = $money_ss;
+                        $order->ss_order_id = $check_ss['data']['orderNumber'] ?? '';
+                        $this->services['shansong'] = $money_ss;
+                    }
+                } else {
+                    $ss_error_msg = $check_ss['msg'] ?? "闪送校验请求失败";
+                    $order->fail_ss = $ss_error_msg;
+                    $this->log("「闪送」校验请求失败:{$ss_error_msg}，停止「闪送」派单");
+                }
             }
         }
 
@@ -540,7 +563,7 @@ class CreateMtOrder implements ShouldQueue
             }
             return;
         } else if ($ps === "shansong") {
-            if ($this->shansong()) {
+            if ($this->shansong($zz_ss)) {
                 if (count($this->services) > 1) {
                     dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
@@ -624,7 +647,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 6,
                 'order_id' => $this->order->id,
-                'des' => '【UU】跑腿发单',
+                'des' => '「UU」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -678,7 +701,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 7,
                 'order_id' => $this->order->id,
-                'des' => '【顺丰】跑腿，发单',
+                'des' => '「顺丰」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -731,7 +754,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 5,
                 'order_id' => $this->order->id,
-                'des' => '【达达】跑腿，发单',
+                'des' => '「达达」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -793,7 +816,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 4,
                 'order_id' => $this->order->id,
-                'des' => '【美全达】跑腿，发单',
+                'des' => '「美全达」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -861,7 +884,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 1,
                 'order_id' => $this->order->id,
-                'des' => '【美团】跑腿，发单',
+                'des' => '「美团」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -925,7 +948,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 2,
                 'order_id' => $this->order->id,
-                'des' => '【蜂鸟】跑腿，发单',
+                'des' => '「蜂鸟」跑腿发单',
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
@@ -945,7 +968,7 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function shansong()
+    public function shansong($zz = false)
     {
         $order = Order::find($this->order->id);
 
@@ -959,17 +982,23 @@ class CreateMtOrder implements ShouldQueue
             return false;
         }
 
-        $shansong = app("shansong");
-        $money = $this->money_ss;
+        if ($zz) {
+            $this->log("自助注册「闪送」发单");
+            $shansong = new ShanSongService(config('ps.shansongservice'));
+        } else {
+            $shansong = app("shansong");
+            $this->log("聚合运力「闪送」发单");
+        }
 
         // 发送闪送订单
-        $result_ss = $shansong->createOrder($order->ss_order_id);
+        $result_ss = $shansong->createOrderByOrder($order);
         if ($result_ss['status'] === 200) {
             // 订单发送成功
             $this->log("发送「闪送」订单成功|返回参数", [$result_ss]);
             // 写入订单信息
             $update_info = [
                 // 'money_ss' => $money,
+                'shipper_type_ss' => $zz ? 1 : 0,
                 'ss_order_id' => $order->ss_order_id,
                 'ss_status' => 20,
                 'status' => 20,
@@ -979,7 +1008,7 @@ class CreateMtOrder implements ShouldQueue
             DB::table('order_logs')->insert([
                 'ps' => 3,
                 'order_id' => $this->order->id,
-                'des' => '【闪送】跑腿，发单',
+                'des' => '「闪送」跑腿发单:' . $order->ss_order_id,
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
