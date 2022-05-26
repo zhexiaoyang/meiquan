@@ -334,6 +334,23 @@ class ShanSongOrderController
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
+                // 查找扣款用户，为了记录余额日志
+                $current_user = DB::table('users')->find($order->user_id);
+                // 减去用户配送费
+                // 服务费
+                $service_fee = 0.2;
+                DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
+                // 用户余额日志
+                // DB::table("user_money_balances")->insert();
+                UserMoneyBalance::create([
+                    "user_id" => $order->user_id,
+                    "money" => $service_fee,
+                    "type" => 2,
+                    "before_money" => $current_user->money,
+                    "after_money" => ($current_user->money - $service_fee),
+                    "description" => "闪送跑腿订单服务费：" . $order->order_id,
+                    "tid" => $order->id
+                ]);
                 return json_encode($res);
             } elseif ($status == 60) {
                 if ($abort_type < 3) {
