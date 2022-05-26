@@ -315,6 +315,7 @@ class ShanSongOrderController
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
+                $this->log_info('取件成功，配送中，更改信息成功');
                 return json_encode($res);
             } elseif ($status == 50) {
                 $order->status = 70;
@@ -333,6 +334,7 @@ class ShanSongOrderController
                     'name' => $name,
                     'phone' => $phone,
                 ]);
+                $this->log_info('配送完成，更改信息成功');
                 dispatch(new MtLogisticsSync($order));
                 // 查找扣款用户，为了记录余额日志
                 $current_user = DB::table('users')->find($order->user_id);
@@ -351,6 +353,7 @@ class ShanSongOrderController
                     "description" => "闪送跑腿订单服务费：" . $order->order_id,
                     "tid" => $order->id
                 ]);
+                $this->log_info('配送完成，扣款成功');
                 return json_encode($res);
             } elseif ($status == 60) {
                 if ($abort_type < 3) {
