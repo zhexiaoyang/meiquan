@@ -160,12 +160,12 @@ class Api extends Request
     /**
      * 创建订单
      */
-    public function createOrder($shop_id, $order_id)
+    public function createOrderByOrder(Order $order)
     {
-        $this->access_token = $this->get_token($shop_id);
+        $this->access_token = $this->get_token($order->shop_id);
 
         $data = [
-            'issOrderNo' => $order_id
+            'issOrderNo' => $order->ss_order_id
         ];
 
         return $this->post('/openapi/developer/v5/orderPlace', $data);
