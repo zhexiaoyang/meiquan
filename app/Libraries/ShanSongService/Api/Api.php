@@ -174,8 +174,12 @@ class Api extends Request
     /**
      * 取消订单
      */
-    public function cancelOrder($shop_id, $order_id)
+    public function cancelOrder($order_id, $shop_id = '')
     {
+        if (!$shop_id) {
+            $order = Order::where('ss_order_id', $order_id)->first();
+            $shop_id = $order->shop_id;
+        }
         $this->access_token = $this->get_token($shop_id);
 
         $data = [
