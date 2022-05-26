@@ -51,6 +51,14 @@ class ShanSongAuthController extends Controller
                 'token_time' => date("Y-m-d H:i:s"),
             ]);
         } else {
+            if ($shipper = ShopShipper::where('three_id', $ss_shop_id)->first()) {
+                $this->log('闪送授权，门店ID已存在，已删除', $shipper->toArray());
+                $shipper->delete();
+                $old_key = 'ss:shop:auth:' . $shipper->shop_id;
+                $old_key_ref = 'ss:shop:auth:ref:' . $shipper->shop_id;
+                Cache::forget($old_key);
+                Cache::forget($old_key_ref);
+            }
             ShopShipper::create([
                 'user_id' => $shop->user_id,
                 'shop_id' => $shop->id,
@@ -69,6 +77,6 @@ class ShanSongAuthController extends Controller
         Cache::forever($key_ref, $refresh_token);
 
         $this->log("获取Token成功|access_token:{$access_token},refresh_token:{$refresh_token},expires_in:{$expires_in}");
-        return $this->success($request->all());
+        return '授权成功';
     }
 }
