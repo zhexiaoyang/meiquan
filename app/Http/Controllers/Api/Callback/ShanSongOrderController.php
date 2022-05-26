@@ -70,25 +70,25 @@ class ShanSongOrderController
                 $this->log_info("订单已是完成");
                 return json_encode($res);
             }
-            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【闪送】发起取消
+            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是「闪送」发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3 && $order->ps !== 0) && ($status != 60)) {
-                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-开始");
+                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-开始");
                 $shansong = new ShanSongService(config('ps.shansongservice'));
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if ($result['status'] != 200) {
-                    $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-失败", [$result]);
-                    $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-失败");
+                    $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-失败", [$result]);
+                    $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-失败");
                     return ['status' => 0, 'msg' => 'err', 'data' => ''];
                 }
                 // 记录订单日志
                 OrderLog::create([
                     'ps' => 3,
                     "order_id" => $order->id,
-                    "des" => "取消【闪送】跑腿订单",
+                    "des" => "取消「闪送」跑腿订单",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
-                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-成功");
+                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-成功");
                 return json_encode($res);
             }
             // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
@@ -274,7 +274,7 @@ class ShanSongOrderController
                         OrderLog::create([
                             'ps' => 3,
                             "order_id" => $order->id,
-                            "des" => "【闪送】跑腿，待取货",
+                            "des" => "「闪送」跑腿,待取货",
                             'name' => $name,
                             'phone' => $phone,
                         ]);
@@ -310,7 +310,7 @@ class ShanSongOrderController
                 OrderLog::create([
                     'ps' => 3,
                     "order_id" => $order->id,
-                    "des" => "【闪送】跑腿，配送中",
+                    "des" => "「闪送」跑腿,配送中",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
@@ -330,7 +330,7 @@ class ShanSongOrderController
                 OrderLog::create([
                     'ps' => 3,
                     "order_id" => $order->id,
-                    "des" => "【闪送】跑腿，已送达",
+                    "des" => "「闪送」跑腿,已送达",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
@@ -382,7 +382,7 @@ class ShanSongOrderController
                             OrderLog::create([
                                 'ps' => 3,
                                 'order_id' => $order->id,
-                                'des' => '【闪送】跑腿，发起取消配送',
+                                'des' => '「闪送」跑腿,发起取消配送',
                             ]);
                             if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
                                 $update_data = [
@@ -395,7 +395,7 @@ class ShanSongOrderController
                                 OrderLog::create([
                                     'ps' => 3,
                                     'order_id' => $order->id,
-                                    'des' => '【闪送】跑腿，发起取消配送，系统重新派单',
+                                    'des' => '「闪送」跑腿,发起取消配送，系统重新派单',
                                 ]);
                             }
 
