@@ -157,7 +157,7 @@ class Api extends Request
      * @param $order_id
      * @return mixed
      */
-    public function cancelOrder($order_id)
+    public function cancelOrder($order_id, $shop_id = '')
     {
         $data = [
             'issOrderNo' => $order_id
