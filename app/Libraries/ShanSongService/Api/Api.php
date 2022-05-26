@@ -54,7 +54,7 @@ class Api extends Request
     //         "goodType" => 13
     //     ];
     //
-    //     return $this->post('/openapi/merchants/v5/storeOperation', $data);
+    //     return $this->post('/openapi/developer/v5/storeOperation', $data);
     // }
     //
     // /**
@@ -77,12 +77,11 @@ class Api extends Request
     //         "operationType" => 2
     //     ];
     //
-    //     return $this->post('/openapi/merchants/v5/storeOperation', $data);
+    //     return $this->post('/openapi/developer/v5/storeOperation', $data);
     // }
     //
     /**
      * 获取门店信息
-     * @return mixed
      */
     public function getShop($shop_id, $storeId)
     {
@@ -158,34 +157,34 @@ class Api extends Request
         return $this->post('/openapi/developer/v5/orderCalculate', $data);
     }
 
-    // /**
-    //  * 创建订单
-    //  * @param $order_id
-    //  * @return mixed
-    //  */
-    // public function createOrder($order_id)
-    // {
-    //     $data = [
-    //         'issOrderNo' => $order_id
-    //     ];
-    //
-    //     return $this->post('/openapi/merchants/v5/orderPlace', $data);
-    // }
-    //
-    // /**
-    //  * 取消订单
-    //  * @param $order_id
-    //  * @return mixed
-    //  */
-    // public function cancelOrder($order_id)
-    // {
-    //     $data = [
-    //         'issOrderNo' => $order_id
-    //     ];
-    //
-    //     return $this->post('/openapi/merchants/v5/abortOrder', $data);
-    // }
-    //
+    /**
+     * 创建订单
+     */
+    public function createOrder($shop_id, $order_id)
+    {
+        $this->access_token = $this->get_token($shop_id);
+
+        $data = [
+            'issOrderNo' => $order_id
+        ];
+
+        return $this->post('/openapi/developer/v5/orderPlace', $data);
+    }
+
+    /**
+     * 取消订单
+     */
+    public function cancelOrder($shop_id, $order_id)
+    {
+        $this->access_token = $this->get_token($shop_id);
+
+        $data = [
+            'issOrderNo' => $order_id
+        ];
+
+        return $this->post('/openapi/developer/v5/abortOrder', $data);
+    }
+
     // /**
     //  * 获取订单
     //  * @param $data
@@ -193,7 +192,7 @@ class Api extends Request
     //  */
     // public function getOrder($data)
     // {
-    //     return $this->post('/openapi/merchants/v5/orderInfo', $data);
+    //     return $this->post('/openapi/developer/v5/orderInfo', $data);
     // }
     //
     // /**
@@ -207,26 +206,26 @@ class Api extends Request
     //         'issOrderNo' => $order_id
     //     ];
     //
-    //     return $this->post('/openapi/merchants/v5/courierInfo', $data);
+    //     return $this->post('/openapi/developer/v5/courierInfo', $data);
     // }
-    //
-    // /**
-    //  * 确认物品送回
-    //  * @param $order_id
-    //  * @return mixed
-    //  */
-    // public function confirmGoodsReturn($order_id)
-    // {
-    //     $data = [
-    //         'issOrderNo' => $order_id
-    //     ];
-    //
-    //     return $this->post('/openapi/merchants/v5/confirmGoodsReturn', $data);
-    // }
-    //
+
+    /**
+     * 确认物品送回
+     */
+    public function confirmGoodsReturn($shop_id, $order_id)
+    {
+        $this->access_token = $this->get_token($shop_id);
+
+        $data = [
+            'issOrderNo' => $order_id
+        ];
+
+        return $this->post('/openapi/developer/v5/confirmGoodsReturn', $data);
+    }
+
     // public function getUserAccount()
     // {
-    //     return $this->post('/openapi/merchants/v5/getUserAccount', []);
+    //     return $this->post('/openapi/developer/v5/getUserAccount', []);
     // }
 
 
