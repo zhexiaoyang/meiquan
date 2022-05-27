@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
@@ -899,7 +900,11 @@ class OrderController extends Controller
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消蜂鸟订单返回失败", $logs);
                 }
             } elseif ($ps == 3) {
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     if ($order->shipper_type_ss == 0) {
@@ -1327,7 +1332,11 @@ class OrderController extends Controller
                 }
             }
             if (in_array($order->ss_status, [20, 30])) {
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if ($result['status'] == 200) {
                     $order->status = 99;
@@ -1622,7 +1631,11 @@ class OrderController extends Controller
                     $dd->sendMarkdownMsgArray("用户操作取消订单，取消蜂鸟订单返回失败", $logs);
                 }
             } elseif ($ps == 3) {
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     if ($order->shipper_type_ss == 0) {
@@ -2058,7 +2071,11 @@ class OrderController extends Controller
             }
             if (in_array($order->ss_status, [20, 30])) {
                 \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消闪送");
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if ($result['status'] == 200) {
                     $order->status = 99;
@@ -2235,7 +2252,11 @@ class OrderController extends Controller
             $order->receiver_phone = "15578995421";
             $order->goods_weight = $weight;
 
-            $shansong = app("shansong");
+            if ($order->shipper_type_ss) {
+                $shansong = new ShanSongService(config('ps.shansongservice'));
+            } else {
+                $shansong = app("shansong");
+            }
 
             $res_ss = $shansong->orderCalculate($shop, $order);
 
@@ -2282,7 +2303,11 @@ class OrderController extends Controller
         $error = '失败';
 
         if ($order->ps == 3) {
-            $shansong = app("shansong");
+            if ($order->shipper_type_ss) {
+                $shansong = new ShanSongService(config('ps.shansongservice'));
+            } else {
+                $shansong = app("shansong");
+            }
             $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
             if ($res_ss['status'] === 200) {
                 return $this->success("成功");
