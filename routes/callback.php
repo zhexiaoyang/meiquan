@@ -37,3 +37,8 @@ Route::middleware(['force-json'])->prefix('shansong')->namespace('Api\Callback')
     // 闪送门店绑定回调
     Route::get('auth', "ShanSongAuthController@auth");
 });
+// 达达-服务商
+Route::middleware(['force-json'])->prefix('dada')->namespace('Api\Callback')->group(function () {
+    // 达达门店绑定回调
+    Route::get('auth', "DaDaAuthController@auth");
+});
