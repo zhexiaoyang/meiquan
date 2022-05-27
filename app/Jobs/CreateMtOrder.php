@@ -335,7 +335,7 @@ class CreateMtOrder implements ShouldQueue
                 $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
                 if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
                     // 判断用户金额是否满足达达订单
-                    if ($user->money < ($money_dd + $use_money)) {
+                    if (!$zz_dd && ($user->money < ($money_dd + $use_money))) {
                         if ($order->status < 20) {
                             DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
                         }
@@ -509,7 +509,7 @@ class CreateMtOrder implements ShouldQueue
                 if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
                     if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
                         // 判断用户金额是否满足闪送订单
-                        if ($user->money < ($money_ss + $use_money)) {
+                        if (!$zz_ss && ($user->money < ($money_ss + $use_money))) {
                             if ($order->status < 20) {
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                             }
