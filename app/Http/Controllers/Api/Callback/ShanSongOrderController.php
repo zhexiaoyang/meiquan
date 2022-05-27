@@ -325,6 +325,8 @@ class ShanSongOrderController
                 $order->courier_phone = $phone;
                 $order->courier_lng = $order->receiver_lng;
                 $order->courier_lat = $order->receiver_lat;
+                $order->pay_status = 1;
+                $order->pay_at = date("Y-m-d H:i:s");
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
