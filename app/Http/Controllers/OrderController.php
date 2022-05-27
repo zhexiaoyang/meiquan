@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderDeduction;
@@ -328,6 +329,9 @@ class OrderController extends Controller
 
         $order->status = 8;
         $order->ps = 0;
+        $order->shipper_type_ss = 0;
+        $order->shipper_type_dd = 0;
+        $order->shipper_type_sf = 0;
         $order->save();
         $order = Order::find($order_id);
 
@@ -1048,80 +1052,90 @@ class OrderController extends Controller
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
                 }
             } elseif ($ps == 5) {
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
-                    try {
-                        DB::transaction(function () use ($order) {
-                            // 计算扣款
-                            $jian_money = 0;
-                            if (!empty($order->receive_at)) {
-                                $jian = time() - strtotime($order->receive_at);
-                                if ($jian >= 60 && $jian <= 900) {
-                                    $jian_money = 2;
+                    if ($order->shipper_type_dd == 0) {
+                        try {
+                            DB::transaction(function () use ($order) {
+                                // 计算扣款
+                                $jian_money = 0;
+                                if (!empty($order->receive_at)) {
+                                    $jian = time() - strtotime($order->receive_at);
+                                    if ($jian >= 60 && $jian <= 900) {
+                                        $jian_money = 2;
+                                    }
                                 }
-                            }
-                            if (!empty($order->take_at)) {
-                                $jian_money = $order->money;
-                            }
-                            // 用户余额日志
-                            $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $order->money,
-                                "type" => 1,
-                                "before_money" => $current_user->money,
-                                "after_money" => ($current_user->money + $order->money),
-                                "description" => "[美团外卖]取消[达达]订单：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
-                            if ($jian_money > 0) {
+                                if (!empty($order->take_at)) {
+                                    $jian_money = $order->money;
+                                }
+                                // 用户余额日志
+                                $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
                                     "user_id" => $order->user_id,
-                                    "money" => $jian_money,
-                                    "type" => 2,
-                                    "before_money" => ($current_user->money + $order->money),
-                                    "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "[美团外卖]取消[达达]订单扣款：" . $order->order_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "[美团外卖]取消[达达]订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
-                            }
-                            // 更改订单信息
-                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                'status' => 99,
-                                'dd_status' => 99,
-                                'cancel_at' => date("Y-m-d H:i:s")
-                            ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
-                            if ($jian_money > 0) {
-                                $jian_data = [
-                                    'order_id' => $order->id,
-                                    'money' => $jian_money,
-                                    'ps' => $order->ps
-                                ];
-                                OrderDeduction::create($jian_data);
-                            }
-                            OrderLog::create([
-                                "order_id" => $order->id,
-                                "des" => "[美团外卖]取消[达达]订单"
-                            ]);
-                        });
-                    } catch (\Exception $e) {
-                        $message = [
-                            $e->getCode(),
-                            $e->getFile(),
-                            $e->getLine(),
-                            $e->getMessage()
-                        ];
-                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
-                        $logs = [
-                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
-                            "id" => $order->id,
-                            "ps" => "达达",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                                if ($jian_money > 0) {
+                                    UserMoneyBalance::query()->create([
+                                        "user_id" => $order->user_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "[美团外卖]取消[达达]订单扣款：" . $order->order_id,
+                                        "tid" => $order->id
+                                    ]);
+                                }
+                                // 更改订单信息
+                                DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                    'status' => 99,
+                                    'dd_status' => 99,
+                                    'cancel_at' => date("Y-m-d H:i:s")
+                                ]);
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                                OrderLog::create([
+                                    "order_id" => $order->id,
+                                    "des" => "[美团外卖]取消[达达]订单"
+                                ]);
+                            });
+                        } catch (\Exception $e) {
+                            $message = [
+                                $e->getCode(),
+                                $e->getFile(),
+                                $e->getLine(),
+                                $e->getMessage()
+                            ];
+                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                            $logs = [
+                                "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                                "id" => $order->id,
+                                "ps" => "达达",
+                                "order_id" => $order->order_id
+                            ];
+                            $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                        }
+                    } else {
+                        \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册不扣款");
                     }
                 } else {
                     \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
@@ -1364,7 +1378,13 @@ class OrderController extends Controller
                 }
             }
             if (in_array($order->dd_status, [20, 30])) {
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
                     $order->status = 99;
@@ -1779,80 +1799,90 @@ class OrderController extends Controller
                     $dd->sendMarkdownMsgArray("用户操作取消订单，取消美全达订单返回失败", $logs);
                 }
             } elseif ($ps == 5) {
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
-                    try {
-                        DB::transaction(function () use ($order) {
-                            // 计算扣款
-                            $jian_money = 0;
-                            if (!empty($order->receive_at)) {
-                                $jian = time() - strtotime($order->receive_at);
-                                if ($jian >= 60 && $jian <= 900) {
-                                    $jian_money = 2;
+                    if ($order->shipper_type_dd == 0) {
+                        try {
+                            DB::transaction(function () use ($order) {
+                                // 计算扣款
+                                $jian_money = 0;
+                                if (!empty($order->receive_at)) {
+                                    $jian = time() - strtotime($order->receive_at);
+                                    if ($jian >= 60 && $jian <= 900) {
+                                        $jian_money = 2;
+                                    }
                                 }
-                            }
-                            if (!empty($order->take_at)) {
-                                $jian_money = $order->money;
-                            }
-                            // 用户余额日志
-                            $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $order->money,
-                                "type" => 1,
-                                "before_money" => $current_user->money,
-                                "after_money" => ($current_user->money + $order->money),
-                                "description" => "用户操作取消达达跑腿订单：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
-                            if ($jian_money > 0) {
+                                if (!empty($order->take_at)) {
+                                    $jian_money = $order->money;
+                                }
+                                // 用户余额日志
+                                $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
                                     "user_id" => $order->user_id,
-                                    "money" => $jian_money,
-                                    "type" => 2,
-                                    "before_money" => ($current_user->money + $order->money),
-                                    "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "用户操作取消达达跑腿订单扣款：" . $order->order_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "用户操作取消达达跑腿订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
-                            }
-                            // 更改订单信息
-                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                'status' => 99,
-                                'dd_status' => 99,
-                                'cancel_at' => date("Y-m-d H:i:s")
-                            ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
-                            if ($jian_money > 0) {
-                                $jian_data = [
-                                    'order_id' => $order->id,
-                                    'money' => $jian_money,
-                                    'ps' => $order->ps
-                                ];
-                                OrderDeduction::create($jian_data);
-                            }
-                            OrderLog::create([
-                                "order_id" => $order->id,
-                                "des" => "用户操作取消【达达跑腿】订单"
-                            ]);
-                        });
-                    } catch (\Exception $e) {
-                        $message = [
-                            $e->getCode(),
-                            $e->getFile(),
-                            $e->getLine(),
-                            $e->getMessage()
-                        ];
-                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
-                        $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
-                            "id" => $order->id,
-                            "ps" => "达达",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
+                                if ($jian_money > 0) {
+                                    UserMoneyBalance::query()->create([
+                                        "user_id" => $order->user_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "用户操作取消达达跑腿订单扣款：" . $order->order_id,
+                                        "tid" => $order->id
+                                    ]);
+                                }
+                                // 更改订单信息
+                                DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                    'status' => 99,
+                                    'dd_status' => 99,
+                                    'cancel_at' => date("Y-m-d H:i:s")
+                                ]);
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                                OrderLog::create([
+                                    "order_id" => $order->id,
+                                    "des" => "用户操作取消【达达跑腿】订单"
+                                ]);
+                            });
+                        } catch (\Exception $e) {
+                            $message = [
+                                $e->getCode(),
+                                $e->getFile(),
+                                $e->getLine(),
+                                $e->getMessage()
+                            ];
+                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
+                            $logs = [
+                                "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                                "id" => $order->id,
+                                "ps" => "达达",
+                                "order_id" => $order->order_id
+                            ];
+                            $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
+                        }
+                    } else {
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册，不扣款");
                     }
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消达达订单返回失败", [$result]);
@@ -2107,7 +2137,13 @@ class OrderController extends Controller
             }
             if (in_array($order->dd_status, [20, 30])) {
                 \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消达达");
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
                     $order->status = 99;
@@ -2315,7 +2351,13 @@ class OrderController extends Controller
                 $error = $res_ss['msg'] ?? '失败';
             }
         } else {
-            $dada = app("dada");
+            if ($order->shipper_type_dd) {
+                $config = config('ps.dada');
+                $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                $dada = new DaDaService($config);
+            } else {
+                $dada = app("dada");
+            }
             $res_dada = $dada->sendBack($order->order_id);
             if ($res_dada['code'] === 0) {
                 return $this->success("成功");
