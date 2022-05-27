@@ -22,6 +22,26 @@ class Tool
         $sign = self::md5Verify($str, $encKey);
         return strtoupper($sign);
     }
+    public static function getSignAuth($para, $encKey)
+    {
+        if (empty($para) || empty($encKey)) {
+            return false;
+        }
+        unset($para['redirectUrl']);
+        unset($para['state']);
+        unset($para['resultType']);
+        $value = array_values($para);
+        // \Log::info("aaa1", $value);
+        array_push($value, $encKey);
+        // \Log::info("aaa2", $value);
+        $value = array_flip($value);
+        // \Log::info("aaa2", $value);
+        ksort($value, 2);
+        // \Log::info("aaa3", $value);
+        $sign = implode('', array_keys($value));
+        // \Log::info($sign);
+        return sha1($sign);
+    }
 
     /**
      * @param $param  array 参数数组

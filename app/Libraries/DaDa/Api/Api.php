@@ -2,11 +2,50 @@
 
 namespace App\Libraries\DaDa\Api;
 
+use App\Libraries\DaDa\Tool;
 use App\Models\Order;
 use App\Models\Shop;
+use Illuminate\Support\Facades\Cache;
 
 class Api extends Request
 {
+    public function get_code()
+    {
+        $params = [
+            'appKey' => $this->app_key,
+            'nonce' => (string) rand(1111, 9999),
+        ];
+
+        return $this->auth_get('/third/party/ticket', $params);
+    }
+
+    public function get_url($shop_id, $ticket)
+    {
+        $params = [
+            'appKey' => $this->app_key,
+            'nonce' => (string) rand(1111, 9999),
+            'shopId' => $shop_id,
+            'state' => $shop_id,
+            'ticket' => $ticket,
+            'resultType' => 1,
+            'redirectUrl' => 'https://psapi.meiquanda.com/api/callback/dada/auth'
+        ];
+        $params['sign'] = Tool::getSignAuth($params, $this->app_secret);
+
+        Cache::add('dadaticket:' . $ticket, $shop_id, 3600);
+
+        return $this->url . '/third/party/oauth?' . http_build_query($params);
+    }
+
+    public function get_auth_status($ticket)
+    {
+        $params = [
+            'ticket' => $ticket,
+        ];
+
+        return $this->auth_get('/third/party/auth/info', $params);
+    }
+
     public function cityCode()
     {
         return $this->post('/api/order/cancel/reasons', []);
@@ -131,5 +170,15 @@ class Api extends Request
     public function getOrderInfo($order_id)
     {
         return $this->post('/api/order/status/query', ['order_id' => $order_id]);
+    }
+
+    /**
+     * 门店信息
+     * @param $order_id
+     * @data 2022/5/26 11:53 下午
+     */
+    public function getShopInfo($shop_id)
+    {
+        return $this->post('/api/shop/detail', ['origin_shop_id' => $shop_id]);
     }
 }

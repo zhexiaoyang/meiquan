@@ -6,17 +6,15 @@ use App\Libraries\DaDa\Api\Api;
 
 class DaDa
 {
-    private $config;
-    private $order;
+    private $api;
 
     public function __construct($config)
     {
-        $this->config = $config;
-        $this->order = new Api($config['app_key'], $config['app_secret'], $config['url']);
+        $this->api = new Api($config['app_key'], $config['app_secret'], $config['url'], $config['source_id']);
     }
 
     public function __call($name, $arguments)
     {
-        return $this->order->{$name}(...$arguments);
+        return $this->api->{$name}(...$arguments);
     }
 }
