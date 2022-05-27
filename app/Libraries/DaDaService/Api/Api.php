@@ -5,6 +5,7 @@ namespace App\Libraries\DaDaService\Api;
 use App\Libraries\DaDaService\Tool;
 use App\Models\Order;
 use App\Models\Shop;
+use App\Models\ShopShipper;
 use Illuminate\Support\Facades\Cache;
 
 class Api extends Request
@@ -89,16 +90,17 @@ class Api extends Request
      */
     public function orderCalculate(Shop $shop, Order $order)
     {
+        $shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 5)->first();
         $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
         $data = [
             // 门店信息
-            'shop_no' => $shop->shop_id_dd,
+            'shop_no' => $shipper->three_id,
             'city_code' => $shop->citycode,
             // 订单信息
             'origin_id' => $order->order_id,
             'cargo_price' => $order->goods_value,
             'cargo_weight' => 1,
-            'callback' => 'http://psapi.meiquanda.com/api/waimai/dada/order',
+            'callback' => 'https://psapi.meiquanda.com/api/callback/dada/order',
             'is_prepay' => 0,
             'is_direct_delivery' => 0,
             // 收货信息
