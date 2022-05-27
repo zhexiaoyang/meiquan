@@ -12,6 +12,7 @@ return [
         "app_key" => env("DADA_APP_KEY", ""),
         "app_secret" => env("DADA_APP_SECRET", ""),
         "url" => env("DADA_APP_URL", ""),
+        "source_id" => '118473',
     ],
     // 美全达配送
     "meiquanda" => [

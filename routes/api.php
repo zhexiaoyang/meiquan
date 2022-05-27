@@ -39,6 +39,7 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::post("shipper", "ShipperController@add");
         Route::post("shipper/delete", "ShipperController@delete");
+        Route::post("shipper/dada/auth", "ShipperController@get_dada_auth_url");
         /**
          * 移动端
          */

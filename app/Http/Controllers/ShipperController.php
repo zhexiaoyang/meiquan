@@ -31,6 +31,11 @@ class ShipperController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在');
         }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (\Auth::id() != $shop->own_id) {
+                return $this->error('无权限操作此门店');
+            }
+        }
 
         if ($type == 1) {
             switch ($platform) {
@@ -272,16 +277,44 @@ class ShipperController extends Controller
                 ]);
             }
         } else {
-            if ($shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 3)->first()) {
-                $this->log('用户解绑自有闪送', $shipper->toArray());
-                $shipper->delete();
-                $old_key = 'ss:shop:auth:' . $shipper->shop_id;
-                $old_key_ref = 'ss:shop:auth:ref:' . $shipper->shop_id;
-                Cache::forget($old_key);
-                Cache::forget($old_key_ref);
+            if ($platform == 3) {
+                if ($shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 3)->first()) {
+                    $this->log('用户解绑自有闪送', $shipper->toArray());
+                    $shipper->delete();
+                    $old_key = 'ss:shop:auth:' . $shipper->shop_id;
+                    $old_key_ref = 'ss:shop:auth:ref:' . $shipper->shop_id;
+                    Cache::forget($old_key);
+                    Cache::forget($old_key_ref);
+                }
+            } else if ($platform == 5) {
+                if ($shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 5)->first()) {
+                    $this->log('用户解绑自有达达', $shipper->toArray());
+                    $shipper->delete();;
+                }
             }
         }
 
         return $this->success();
+    }
+
+    public function get_dada_auth_url(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (\Auth::id() != $shop->own_id) {
+                return $this->error('无权限操作此门店');
+            }
+        }
+
+        $dada = app("dada");
+        $ticket_res = $dada->get_code();
+        $ticket = $ticket_res['result'] ?? '';
+        if (!$ticket) {
+            return $this->error('请求达达失败，请稍后再试');
+        }
+
+        return $this->success(['url' => $dada->get_url($shop->id, $ticket)]);
     }
 }
