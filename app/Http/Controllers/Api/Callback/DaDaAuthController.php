@@ -26,7 +26,10 @@ class DaDaAuthController extends Controller
         }
         $this->log('全部参数', $request->all());
 
-        // $shop_id = Cache::get('dadaticket:' . $ticket);
+        $shop_id = Cache::get('dadaticket:' . $ticket);
+        if (!$shop_id) {
+            return '授权失败，门店ID不存在';
+        }
 
         $dada = app('dada');
         $dada_res = $dada->get_auth_status($ticket);
@@ -42,6 +45,7 @@ class DaDaAuthController extends Controller
         if (ShopShipper::where('shop_id', $shop_id)->where('platform', 5)->first()) {
             ShopShipper::where('shop_id', $shop_id)->where('platform', 5)->update([
                 'three_id' => $shop_no,
+                'source_id' => $source_id,
                 'token_time' => date("Y-m-d H:i:s"),
             ]);
         } else {
@@ -54,6 +58,7 @@ class DaDaAuthController extends Controller
                 'shop_id' => $shop->id,
                 'platform' => 5,
                 'three_id' => $shop_no,
+                'source_id' => $source_id,
                 'token_time' => date("Y-m-d H:i:s"),
             ]);
             if ($shop->shop_id_dd) {

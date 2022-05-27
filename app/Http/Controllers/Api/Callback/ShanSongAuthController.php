@@ -51,7 +51,7 @@ class ShanSongAuthController extends Controller
                 'token_time' => date("Y-m-d H:i:s"),
             ]);
         } else {
-            if ($shipper = ShopShipper::where('three_id', $ss_shop_id)->first()) {
+            if ($shipper = ShopShipper::where('three_id', $ss_shop_id)->where('platform', 3)->first()) {
                 $this->log('闪送授权，门店ID已存在，已删除', $shipper->toArray());
                 $shipper->delete();
                 $old_key = 'ss:shop:auth:' . $shipper->shop_id;
