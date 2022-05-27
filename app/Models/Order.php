@@ -39,7 +39,7 @@ class Order extends Model
         'uu_status','money_uu','fail_uu','money_uu_total','money_uu_need',
         'courier_lng', 'courier_lat','pay_status','pay_at','refund_at','add_money','manager_money',
         'receive_at','take_at','over_at','cancel_at','push_at','created_at','updated_at',
-        'shipper_type'
+        'shipper_type_ss','shipper_type_dd','shipper_type_sf'
     ];
 
     public function shop() {
