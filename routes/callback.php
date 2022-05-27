@@ -40,7 +40,7 @@ Route::middleware(['force-json'])->prefix('shansong')->namespace('Api\Callback')
 // 达达-服务商
 Route::middleware(['force-json'])->prefix('dada')->namespace('Api\Callback')->group(function () {
     // 达达订单回调
-    Route::post('order', "DaDaAuthController@order");
+    Route::post('order', "DaDaOrderController@order");
     // 达达门店绑定回调
     Route::get('auth', "DaDaAuthController@auth");
 });
