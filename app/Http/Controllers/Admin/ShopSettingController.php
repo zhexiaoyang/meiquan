@@ -86,6 +86,24 @@ class ShopSettingController extends Controller
                         }
                     }
                 }
+                if ($shipper->platform == 5) {
+                    $result['dd'] = $shipper->three_id;
+                    if (!in_array('dd', $shop_platform)) {
+                        $shop_platform[] = 'dd';
+                        if ($setting['dada']) {
+                            $platform[] = 'dd';
+                        }
+                    }
+                }
+                if ($shipper->platform == 7) {
+                    $result['sf'] = $shipper->three_id;
+                    if (!in_array('sf', $shop_platform)) {
+                        $shop_platform[] = 'sf';
+                        if ($setting['shunfeng']) {
+                            $platform[] = 'sf';
+                        }
+                    }
+                }
             }
         }
 
