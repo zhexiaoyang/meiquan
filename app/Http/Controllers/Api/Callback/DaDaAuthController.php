@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Callback;
 
 use App\Http\Controllers\Controller;
+use App\Libraries\DaDaService\DaDaService;
 use App\Models\Shop;
 use App\Models\ShopShipper;
 use Illuminate\Http\Request;
@@ -31,7 +32,7 @@ class DaDaAuthController extends Controller
             return '授权失败，门店ID不存在';
         }
 
-        $dada = app('dada');
+        $dada = new DaDaService(config('ps.dada'));
         $dada_res = $dada->get_auth_status($ticket);
         $source_id = $dada_res['result']['sourceId'] ?? '';
         $shop_no = $dada_res['result']['shopNo'] ?? '';

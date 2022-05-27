@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Api\Callback;
 
-use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
+use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -16,51 +16,49 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
-class ShanSongOrderController
+class DaDaOrderController
 {
     use LogTool, NoticeTool;
 
-    public $prefix_title = '[闪送服务商订单回调&###]';
+    public $prefix_title = '[达达服务商订单回调&###]';
 
     public function order(Request $request)
     {
-        $res = ['status' => 200, 'msg' => '', 'data' => ''];
+        $res = ['status' => 'ok'];
         // 接收全部参数
         $data = $request->all();
         if (empty($data)) {
             return $res;
         }
         // 商家订单号
-        $ss_order_id = $data['issOrderNo'] ?? '';
-        $order_id = $data['orderNo'] ?? '';
-        // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
-        $status = $data['status'] ?? '';
+        $order_id = $data['order_id'] ?? '';
+        // 订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10, 骑士到店=100,
+        // 创建达达运单失败=1000 可参考文末的状态说明）
+        $status = $data['order_status'] ?? '';
         // 配送员姓名
-        $name = $data['courier']['name'] ?? '';
+        $name = $data['dm_name'] ?? '';
         // 配送员手机号
-        $phone = $data['courier']['mobile'] ?? '';
-        // 闪送员位置经度（百度坐标系）
-        $longitude = $data['courier']['longitude'] ?? '';
-        // 闪送员位置纬度（百度坐标系）
-        $latitude = $data['courier']['latitude'] ?? '';
-        $locations = ['lng' => $longitude, 'lat' => $latitude];
-        if (in_array($status, [30,40])) {
-            if ($longitude && $latitude) {
-                $locations = bd2gd($longitude, $latitude);
-                Log::info("闪送配送员坐标-转换后|order_id:{$order_id}，status:{$status}", $locations);
-            } else {
-                Log::info("闪送配送员坐标-未转换|order_id:{$order_id}，status:{$status}", $locations);
-            }
-        }
-        // 取消类型
-        $abort_type = $data['abortType'] ?? 0;
+        $phone = $data['dm_mobile'] ?? '';
+        $longitude = '';
+        $latitude = '';
         // 定义日志格式
-        $this->prefix = str_replace('###', "中台单号:{$order_id},闪送单号:{$ss_order_id},状态:{$status}", $this->prefix_title);
+        $this->prefix = str_replace('###', "中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $data);
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
             $this->log_info("中台订单状态：{$order->status}");
+            // 获取达达配送员坐标
+            // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
+            if (in_array($status, [2,3])) {
+                $config = config('ps.dada');
+                $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                $dada_app = new DaDaService($config);
+                $dada_info = $dada_app->getOrderInfo($order_id);
+                $longitude = $dada_info['result']['transporterLng'] ?? '';
+                $latitude = $dada_info['result']['transporterLat'] ?? '';
+                $this->log_info("达达配送员坐标|lng:{$longitude},lat:{$latitude}");
+            }
 
             if ($order->status == 99) {
                 $this->log_info("订单已是取消状态");
@@ -70,54 +68,40 @@ class ShanSongOrderController
                 $this->log_info("订单已是完成");
                 return json_encode($res);
             }
-            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是「闪送」发起取消
-            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3 && $order->ps !== 0) && ($status != 60)) {
-                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-开始");
-                $shansong = new ShanSongService(config('ps.shansongservice'));
-                $result = $shansong->cancelOrder($order->ss_order_id);
-                if ($result['status'] != 200) {
-                    $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-失败", [$result]);
-                    $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-失败");
-                    return ['status' => 0, 'msg' => 'err', 'data' => ''];
+
+            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是「达达」发起取消
+            if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5) && ($status != 5)) {
+                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-开始");
+                $config = config('ps.dada');
+                $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                $dada_app = new DaDaService($config);
+                $result = $dada_app->orderCancel($order->order_id);
+                if ($result['code'] != 0) {
+                    $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-失败", [$result]);
+                    $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-失败");
+                    return ['status' => 'err'];
                 }
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 3,
+                    'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "取消「闪送」跑腿订单",
+                    "des" => "取消「达达」跑腿订单",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
-                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「闪送」发起取消-成功");
+                $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-成功");
                 return json_encode($res);
             }
-            // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
+            // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
+            // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
-            if ($status == 20) {
-                $before_time = time();
-                $this->log_info("派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                $this->log_info("派单中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
-                // 派单中
-                // 判断订单状态
-                if ($order->status != 20 && $order->status != 30) {
-                    $this->log_info('待接单回调(待接单)，订单状态不正确，不能操作待接单');
-                    return json_encode($res);
-                }
-                $this->log_info('待接单');
-                return json_encode($res);
-            } elseif ($status == 30) {
+            if ($status == 2) {
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
-                    $this->ding_error("[闪送]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                    $this->ding_error("[达达]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                    sleep(1);
                 }
-                $before_time = time();
-                $this->log_info("取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                $this->log_info("取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
@@ -127,11 +111,11 @@ class ShanSongOrderController
                 // 设置锁，防止其他平台接单
                 if (!Redis::setnx("callback_order_id_" . $order->id, $order->id)) {
                     $this->log_info('设置锁失败');
-                    return ['status' => 0, 'msg' => 'err', 'data' => ''];
+                    return ['status' => 'err'];
                 }
                 Redis::expire("callback_order_id_" . $order->id, 6);
                 // 取消其它平台订单
-                if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->dd_status > 30) || ($order->mqd_status > 30) || ($order->uu_status > 30) || ($order->sf_status > 30)) {
+                if (($order->mt_status > 30) || ($order->fn_status > 30) || ($order->ss_status > 30) || ($order->mqd_status > 30) || ($order->uu_status > 30) || ($order->sf_status > 30)) {
                     $this->log_info('取消其它平台订单');
                 }
                 // 取消美团订单
@@ -174,6 +158,24 @@ class ShanSongOrderController
                     ]);
                     $this->log_info('取消蜂鸟待接单订单成功');
                 }
+                // 取消闪送订单
+                if ($order->ss_status === 20 || $order->ss_status === 30) {
+                    if ($order->shipper_type_ss) {
+                        $shansong = new ShanSongService(config('ps.shansongservice'));
+                    } else {
+                        $shansong = app("shansong");
+                    }
+                    $result = $shansong->cancelOrder($order->ss_order_id);
+                    if ($result['status'] != 200) {
+                        $this->log_info('闪送待接单取消失败');
+                    }
+                    OrderLog::create([
+                        'ps' => 3,
+                        'order_id' => $order->id,
+                        'des' => '取消【闪送】跑腿订单',
+                    ]);
+                    $this->log_info('取消闪送待接单订单成功');
+                }
                 // 取消美全达订单
                 if ($order->mqd_status === 20 || $order->mqd_status === 30) {
                     $meiquanda = app("meiquanda");
@@ -187,20 +189,6 @@ class ShanSongOrderController
                         'des' => '取消【美全达】跑腿订单',
                     ]);
                     $this->log_info('取消美全达待接单订单成功');
-                }
-                // 取消达达订单
-                if ($order->dd_status === 20 || $order->dd_status === 30) {
-                    $dada = app("dada");
-                    $result = $dada->orderCancel($order->order_id);
-                    if ($result['code'] != 0) {
-                        $this->log_info('达达待接单取消失败');
-                    }
-                    OrderLog::create([
-                        'ps' => 5,
-                        'order_id' => $order->id,
-                        'des' => '取消【达达】跑腿订单',
-                    ]);
-                    $this->log_info('取消达达待接单订单成功');
                 }
                 // 取消UU订单
                 if ($order->uu_status === 20 || $order->uu_status === 30) {
@@ -232,54 +220,54 @@ class ShanSongOrderController
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone, $locations) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
-                            'ps' => 3,
-                            'money' => $order->money_ss,
+                            'ps' => 5,
+                            'money' => $order->money_dd,
                             'profit' => 1,
                             'status' => 50,
-                            'ss_status' => 50,
+                            'dd_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,
-                            'fn_status' => $order->ss_status < 20 ?: 7,
+                            'fn_status' => $order->fn_status < 20 ?: 7,
+                            'ss_status' => $order->ss_status < 20 ?: 7,
                             'mqd_status' => $order->mqd_status < 20 ?: 7,
-                            'dd_status' => $order->dd_status < 20 ?: 7,
                             'uu_status' => $order->uu_status < 20 ?: 7,
                             'sf_status' => $order->sf_status < 20 ?: 7,
                             'receive_at' => date("Y-m-d H:i:s"),
-                            'peisong_id' => $order->ss_order_id,
+                            'peisong_id' => $order->dd_order_id,
                             'courier_name' => $name,
                             'courier_phone' => $phone,
-                            'courier_lng' => $locations['lng'] ?? '',
-                            'courier_lat' => $locations['lat'] ?? '',
+                            'courier_lng' => $longitude,
+                            'courier_lat' => $latitude,
                             'pay_status' => 1,
                             'pay_at' => date("Y-m-d H:i:s"),
                         ]);
                         // // 查找扣款用户，为了记录余额日志
                         // $current_user = DB::table('users')->find($order->user_id);
                         // // 减去用户配送费
-                        // DB::table('users')->where('id', $order->user_id)->decrement('money', $order->money_ss);
+                        // DB::table('users')->where('id', $order->user_id)->decrement('money', $order->money_dd);
                         // // 用户余额日志
                         // // DB::table("user_money_balances")->insert();
                         // UserMoneyBalance::create([
                         //     "user_id" => $order->user_id,
-                        //     "money" => $order->money_ss,
+                        //     "money" => $order->money_dd,
                         //     "type" => 2,
                         //     "before_money" => $current_user->money,
-                        //     "after_money" => ($current_user->money - $order->money_ss),
-                        //     "description" => "闪送跑腿订单：" . $order->order_id,
+                        //     "after_money" => ($current_user->money - $order->money_dd),
+                        //     "description" => "达达跑腿订单：" . $order->order_id,
                         //     "tid" => $order->id
                         // ]);
                         // 记录订单日志
                         OrderLog::create([
-                            'ps' => 3,
+                            'ps' => 5,
                             "order_id" => $order->id,
-                            "des" => "「闪送」跑腿,待取货",
+                            "des" => "「达达」跑腿，待取货",
                             'name' => $name,
                             'phone' => $phone,
                         ]);
                     });
-                    $this->log_info('闪送接单，更改信息成功');
+                    $this->log_info('达达接单，更改信息成功');
                 } catch (\Exception $e) {
                     $message = [
                         $e->getCode(),
@@ -289,37 +277,39 @@ class ShanSongOrderController
                     ];
                     $this->log_info('更改信息事务提交失败', $message);
                     $this->ding_error("更改信息事务提交失败");
-                    return ['status' => 0, 'msg' => 'err', 'data' => ''];
+                    return ['code' => 'error'];
                 }
                 // 同步美团外卖配送信息
                 $order = Order::where('order_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
-
-            } elseif ($status == 40) {
+            } elseif ($status == 3) {
+                // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
+                // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
+                // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
                 // 送货中
                 $order->status = 60;
-                $order->ss_status = 60;
+                $order->dd_status = 60;
                 $order->take_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
-                $order->courier_lng = $locations['lng'] ?? '';
-                $order->courier_lat = $locations['lat'] ?? '';
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 3,
+                    'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "「闪送」跑腿,配送中",
+                    "des" => "「达达」跑腿，配送中",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
                 $this->log_info('取件成功，配送中，更改信息成功');
                 return json_encode($res);
-            } elseif ($status == 50) {
+            } elseif ($status == 4) {
                 $order->status = 70;
-                $order->ss_status = 70;
+                $order->dd_status = 70;
                 $order->over_at = date("Y-m-d H:i:s");
                 $order->courier_name = $name;
                 $order->courier_phone = $phone;
@@ -328,9 +318,9 @@ class ShanSongOrderController
                 $order->save();
                 // 记录订单日志
                 OrderLog::create([
-                    'ps' => 3,
+                    'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "「闪送」跑腿,已送达",
+                    "des" => "「达达」跑腿，已送达",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
@@ -343,62 +333,36 @@ class ShanSongOrderController
                 $service_fee = 0.2;
                 DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
                 // 用户余额日志
-                // DB::table("user_money_balances")->insert();
                 UserMoneyBalance::create([
                     "user_id" => $order->user_id,
                     "money" => $service_fee,
                     "type" => 2,
                     "before_money" => $current_user->money,
                     "after_money" => ($current_user->money - $service_fee),
-                    "description" => "闪送跑腿订单服务费：" . $order->order_id,
+                    "description" => "达达跑腿订单服务费：" . $order->order_id,
                     "tid" => $order->id
                 ]);
                 $this->log_info('配送完成，扣款成功');
                 return json_encode($res);
-            } elseif ($status == 60) {
-                if ($abort_type < 3) {
-                    $this->log_info('闪送取消订单通知-商户原因取消');
-                }
+            } elseif ($status == 5) {
                 if ($order->status >= 20 && $order->status < 70 ) {
-                    // 添加延时
-                    $before_time = time();
-                    $this->log_info("接口取消订单-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                    sleep(1);
-                    $after_time = time();
-                    $this->log_info("接口取消订单-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
-                    // 判断闪送订单号
-                    if ($order->ss_order_id !== $ss_order_id) {
-                        $this->log_info("接口取消订单闪送单号不符合|订单中配送单号：{$order->peisong_id}|订单中闪送单号：{$order->ss_order_id}|请求闪送单号：{$ss_order_id}");
-                        return json_encode(['status' => 200, 'msg' => '', 'data' => '']);
-                    }
-                    $this->log_info('发起取消配送');
-                    // 操作取消
                     try {
                         DB::transaction(function () use ($order, $name, $phone) {
                             $update_data = [
-                                'ss_status' => 99
+                                'dd_status' => 99
                             ];
+                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
+                                $update_data = [
+                                    'status' => 99,
+                                    'dd_status' => 99
+                                ];
+                            }
                             Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
-                                'ps' => 3,
+                                'ps' => 5,
                                 'order_id' => $order->id,
-                                'des' => '「闪送」跑腿,发起取消配送',
+                                'des' => '「达达」跑腿，发起取消配送',
                             ]);
-                            if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
-                                $update_data = [
-                                    'status' => 0,
-                                    'ss_status' => 0,
-                                    'ps' => 0
-                                ];
-                                Order::where("id", $order->id)->update($update_data);
-                                dispatch(new CreateMtOrder($order, 2));
-                                OrderLog::create([
-                                    'ps' => 3,
-                                    'order_id' => $order->id,
-                                    'des' => '「闪送」跑腿,发起取消配送，系统重新派单',
-                                ]);
-                            }
-
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -411,6 +375,7 @@ class ShanSongOrderController
                         $this->ding_error('取消订单事务提交失败');
                         return json_encode(['code' => 100]);
                     }
+                    $this->log_info('接口取消订单成功');
                 } else {
                     $this->log_info("取消订单，状态不正确。状态(status)：{$order->status}");
                 }

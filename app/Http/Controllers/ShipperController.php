@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Libraries\DaDaService\DaDaService;
 use App\Models\Shop;
 use App\Models\ShopShipper;
 use App\Models\ShopShipperUnbound;
@@ -308,7 +309,7 @@ class ShipperController extends Controller
             }
         }
 
-        $dada = app("dada");
+        $dada = new DaDaService(config('ps.dada'));
         $ticket_res = $dada->get_code();
         $ticket = $ticket_res['result'] ?? '';
         if (!$ticket) {
