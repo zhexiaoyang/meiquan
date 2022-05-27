@@ -1,6 +1,19 @@
 <?php
 
 /**
+ * 通过门店ID获取达达自主注册source_id
+ * @data 2022/5/27 1:16 下午
+ */
+function get_dada_source_by_shop($shop_id) {
+    $key = 'dada_source_id:' . $shop_id;
+    return \Illuminate\Support\Facades\Cache::remember($key, 0, function () use ($shop_id) {
+        if ($shipper = \App\Models\ShopShipper::where('shop_id', $shop_id)->where('platform', 5)->first()) {
+            return $shipper->source_id;
+        }
+    });
+}
+
+/**
  * 获取美团开放平台分类
  * @param $platform
  * @return string
