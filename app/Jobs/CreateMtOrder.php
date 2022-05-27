@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderSetting;
@@ -158,11 +159,17 @@ class CreateMtOrder implements ShouldQueue
 
         // 自助注册运力判断
         $zz_ss = false;
+        $zz_dd = false;
+        $zz_dd_source = '';
         $shippers = $shop->shippers;
         if (!empty($shippers)) {
             foreach ($shippers as $shipper) {
                 if ($shipper->platform === 3) {
                     $zz_ss = true;
+                }
+                if ($shipper->platform === 5) {
+                    $zz_dd = true;
+                    $zz_dd_source = $shipper->source_id;
                 }
             }
         }
@@ -303,33 +310,46 @@ class CreateMtOrder implements ShouldQueue
             $this->log("已经有「达达」失败信息：{$order->fail_dd}，停止「达达」派单");
         } elseif ($order->dd_status != 0) {
             $this->log("订单状态[{$order->dd_status}]不是0，停止「达达」派单");
-        } elseif (!$shop->shop_id_dd) {
-            $order->fail_dd = "门店不支持达达跑腿";
-            $this->log("门店不支持「达达」跑腿，停止「达达」派单");
+        // } elseif (!$shop->shop_id_dd) {
+        //     $order->fail_dd = "门店不支持达达跑腿";
+        //     $this->log("门店不支持「达达」跑腿，停止「达达」派单");
         } elseif (!$dd_switch) {
             $order->fail_dd = "门店关闭达达跑腿";
             $this->log("门店关闭「达达」跑腿，停止「达达」派单");
         } else {
-            $dada = app("dada");
-            $check_dd= $dada->orderCalculate($shop, $order);
-            $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
-            if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
-                // 判断用户金额是否满足达达订单
-                if ($user->money < ($money_dd + $use_money)) {
-                    if ($order->status < 20) {
-                        DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
-                    }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
-                    $this->log("用户金额不足发「达达」订单，停止派单");
-                    return;
-                }
-                $this->dada_order_id = $check_dd['result']['deliveryNo'];
-                $order->money_dd = $money_dd;
-                $this->services['dada'] = $money_dd;
+            if (!$zz_dd && !$shop->shop_id_dd) {
+                $order->fail_ss = "门店不支持闪送跑腿";
+                $this->log("门店不支持「达达」跑腿，停止「达达」派单");
             } else {
-                $dd_error_msg = $check_dd['msg'] ?? "达达校验订单请求失败";
-                $order->fail_dd = $dd_error_msg;
-                $this->log("「达达」校验订单失败:{$dd_error_msg}，停止「达达」派单");
+                if ($zz_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = $zz_dd_source;
+                    $dada = new DaDaService($config);
+                    $this->log("自助注册「达达」发单");
+                } else {
+                    $dada = app("dada");
+                    $this->log("聚合运力「达达」发单");
+                }
+                $check_dd= $dada->orderCalculate($shop, $order);
+                $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
+                if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
+                    // 判断用户金额是否满足达达订单
+                    if ($user->money < ($money_dd + $use_money)) {
+                        if ($order->status < 20) {
+                            DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                        }
+                        dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
+                        $this->log("用户金额不足发「达达」订单，停止派单");
+                        return;
+                    }
+                    $this->dada_order_id = $check_dd['result']['deliveryNo'];
+                    $order->money_dd = $money_dd;
+                    $this->services['dada'] = $money_dd;
+                } else {
+                    $dd_error_msg = $check_dd['msg'] ?? "达达校验订单请求失败";
+                    $order->fail_dd = $dd_error_msg;
+                    $this->log("「达达」校验订单失败:{$dd_error_msg}，停止「达达」派单");
+                }
             }
         }
 
@@ -581,7 +601,7 @@ class CreateMtOrder implements ShouldQueue
             }
             return;
         } else if ($ps === "dada") {
-            if ($this->dada()) {
+            if ($this->dada($zz_dd, $zz_dd_source)) {
                 if (count($this->services) > 1) {
                     dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
@@ -722,7 +742,7 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function dada()
+    public function dada($zz_dd = false, $zz_dd_source = '')
     {
         $order = Order::find($this->order->id);
 
@@ -735,8 +755,15 @@ class CreateMtOrder implements ShouldQueue
             return false;
         }
 
-        $dada = app("dada");
-        // $money = $this->money_dd;
+        if ($zz_dd) {
+            $config = config('ps.dada');
+            $config['source_id'] = $zz_dd_source;
+            $dada = new DaDaService($config);
+            $this->log("自助注册「达达」发单");
+        } else {
+            $dada = app("dada");
+            $this->log("聚合运力「达达」发单");
+        }
         // 发送达达订单
         $result_dd = $dada->createOrder($this->dada_order_id);
         if ($result_dd['code'] === 0) {
@@ -745,6 +772,7 @@ class CreateMtOrder implements ShouldQueue
             // 写入订单信息
             $update_info = [
                 // 'money_mqd' => $money,
+                'shipper_type_dd' => $zz_dd ? 1 : 0,
                 'dd_order_id' => $this->order->order_id,
                 'dd_status' => 20,
                 'status' => 20,
