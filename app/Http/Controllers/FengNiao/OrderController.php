@@ -4,6 +4,7 @@
 namespace App\Http\Controllers\FengNiao;
 
 use App\Jobs\MtLogisticsSync;
+use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -233,7 +234,13 @@ class OrderController
                 }
                 // 取消达达订单
                 if ($order->dd_status === 20 || $order->dd_status === 30) {
-                    $dada = app("dada");
+                    if ($order->shipper_type_dd) {
+                        $config = config('ps.dada');
+                        $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                        $dada = new DaDaService($config);
+                    } else {
+                        $dada = app("dada");
+                    }
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] != 0) {
                         // $logs = [
