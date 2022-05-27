@@ -326,6 +326,7 @@ class CreateMtOrder implements ShouldQueue
                     $config['source_id'] = $zz_dd_source;
                     $dada = new DaDaService($config);
                     $this->log("自助注册「达达」发单");
+                    $add_money = 0;
                 } else {
                     $dada = app("dada");
                     $this->log("聚合运力「达达」发单");
@@ -496,6 +497,7 @@ class CreateMtOrder implements ShouldQueue
                 $this->log("门店不支持「闪送」跑腿，停止「闪送」派单");
             } else {
                 if ($zz_ss) {
+                    $add_money = 0;
                     $shansong = new ShanSongService(config('ps.shansongservice'));
                     $this->log("自助注册「闪送」发单");
                 } else {
