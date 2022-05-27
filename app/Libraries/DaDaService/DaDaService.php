@@ -2,7 +2,7 @@
 
 namespace App\Libraries\DaDaService;
 
-use App\Libraries\DaDa\Api\Api;
+use App\Libraries\DaDaService\Api\Api;
 
 class DaDaService
 {
