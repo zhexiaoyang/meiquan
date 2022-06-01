@@ -83,7 +83,7 @@ class VipProductController extends Controller
         $total_page = ceil($total / 200);
 
         $products = $data['data'];
-        if (!empty($products)) {
+        if (is_array($products) && !empty($products)) {
             // VipProduct::where('shop_id', $shop->id)->delete();
             // $tmp = [];
             foreach ($products as $product) {
@@ -118,6 +118,8 @@ class VipProductController extends Controller
                     ]);
                 }
             }
+        } else {
+            \Log::info("爬取VIP商品错误", [$products]);
         }
 
         for ($i = 1; $i < $total_page; $i++) {
