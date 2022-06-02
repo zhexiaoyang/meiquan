@@ -17,7 +17,11 @@ class WmOrderController extends Controller
 
         $query = WmOrder::with(['items' => function ($query) {
             $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
-        }, 'receives']);
+        }, 'receives', 'running' => function ($query) {
+            $query->with(['logs' => function ($q) {
+                $q->orderByDesc('id');
+            }])->select('id', 'wm_id', 'courier_name', 'courier_phone', 'status');
+        }]);
 
         $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 
@@ -47,8 +51,8 @@ class WmOrderController extends Controller
 
         if (!empty($data)) {
             foreach ($data as $order) {
-                $order->ctime = date("Y-m-d H:i:s", $order->ctime);
-                $order->estimate_arrival_time = date("Y-m-d H:i:s", $order->estimate_arrival_time);
+                // $order->ctime = date("Y-m-d H:i:s", $order->ctime);
+                // $order->estimate_arrival_time = date("Y-m-d H:i:s", $order->estimate_arrival_time);
                 $ping_fee = 0;
                 $poi_fee = 0;
                 if (!empty($order->receives)) {
