@@ -12,7 +12,7 @@ class VipBillItem extends Model
         'vip_company','vip_operate','vip_city','vip_internal','vip_business','bill_date','order_at','finish_at',
         'refund_at'];
 
-    public $trade_type = [
+    public $trade_types = [
         1 => '美团外卖订单',
         2 => '美团订单退款',
         3 => '美团订单部分退款',
@@ -22,4 +22,9 @@ class VipBillItem extends Model
         101 => '跑腿订单扣款',
         102 => '跑腿订单取消扣款',
     ];
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'id');
+    }
 }

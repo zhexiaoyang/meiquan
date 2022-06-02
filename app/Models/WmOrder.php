@@ -37,4 +37,9 @@ class WmOrder extends Model
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
     }
+
+    public function running()
+    {
+        return $this->hasOne(Order::class, 'wm_id');
+    }
 }
