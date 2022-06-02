@@ -7,12 +7,18 @@ use App\Http\Controllers\Controller;
 use App\Imports\Admin\VipProductImport;
 use App\Models\Shop;
 use App\Models\VipProduct;
+use App\Traits\LogTool;
+use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Maatwebsite\Excel\Facades\Excel;
 
 class VipProductController extends Controller
 {
+    use NoticeTool, LogTool;
+
+    public $prefix_title = "[VIP商品后台管理&###]";
+
     public function index(Request $request)
     {
         $page_size = $request->get('page_size', 10);
@@ -61,6 +67,7 @@ class VipProductController extends Controller
         if (!$shop = Shop::find($request->get('shop_id', 0))) {
             return $this->error('门店不存在');
         }
+        $this->prefix = str_replace('###', "&门店ID:{$shop->id}&门店:{$shop->shop_name}&美团ID:{$shop->mtwm}", $this->prefix_title);
         $shop->vip_sync_status = 1;
         $shop->save();
         // 请求参数组合
@@ -119,7 +126,9 @@ class VipProductController extends Controller
                 }
             }
         } else {
-            \Log::info("爬取VIP商品错误", [$products]);
+            $this->log_info("爬取商品为空", $products);
+            $this->ding_error("爬取商品为空");
+            return $this->error('未获取到商品信息');
         }
 
         for ($i = 1; $i < $total_page; $i++) {
