@@ -180,6 +180,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::delete("order/cancel2/{order}", "OrderController@cancel2")->name("api.order.cancel2");
         // 通过订单获取门店详情（配送平台）
         Route::get("/order/getShopInfoByOrder", "OrderController@getShopInfoByOrder")->name("api.order.getShopInfoByOrder");
+        Route::get("/order/getShopInfoByOrderPrice", "OrderController@getShopInfoByOrderPrice")->name("api.order.getShopInfoByOrderPrice");
         Route::resource("order", "OrderController", ["only" => ["store", "show", "index", "destroy"]]);
         // 获取配送费
         Route::get("order/money/{shop}", "OrderController@money");
