@@ -67,6 +67,7 @@ class VipOrderSettlement implements ShouldQueue
         $vip_business = sprintf("%.2f",$total * $business / 100);
         $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
         $item = [
+            'shop_id' => $order->shop_id,
             'order_id' => $order->id,
             'order_no' => $order->order_id,
             'platform' => $platform,
