@@ -20,7 +20,7 @@ trait LogTool
             $message = $this->prefix . '|' . $message;
         }
 
-        Log::info($message, $data);
+        Log::info($message, is_array($data) ? $data : [$data]);
     }
 
     public function log_error($message = '', $data = [])
@@ -29,6 +29,6 @@ trait LogTool
             $message = $this->prefix . '|' . $message;
         }
 
-        Log::error($message, $data);
+        Log::error($message, is_array($data) ? $data : [$data]);
     }
 }
