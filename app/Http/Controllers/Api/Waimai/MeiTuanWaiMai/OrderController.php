@@ -125,6 +125,7 @@ class OrderController
                                         $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
                                         $item = [
                                             'order_id' => $order->id,
+                                            'shop_id' => $order->shop_id,
                                             'order_no' => $order->order_id,
                                             'platform' => $order->platform,
                                             'app_poi_code' => $order->app_poi_code,

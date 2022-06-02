@@ -59,6 +59,7 @@ class OrderCancelController
                 $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
                 $item = [
                     'order_id' => $wmOrder->id,
+                    'shop_id' => $wmOrder->shop_id,
                     'order_no' => $wmOrder->order_id,
                     'platform' => $wmOrder->platform,
                     'app_poi_code' => $wmOrder->app_poi_code,

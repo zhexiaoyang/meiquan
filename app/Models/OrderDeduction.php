@@ -33,6 +33,7 @@ class OrderDeduction extends Model
                         $vip_business = sprintf("%.2f",$total * $business / 100);
                         $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
                         $item = [
+                            'shop_id' => $wm_order->shop_id,
                             'order_id' => $wm_order->id,
                             'order_no' => $wm_order->order_id,
                             'platform' => $wm_order->platform,
