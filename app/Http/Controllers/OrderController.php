@@ -2411,6 +2411,114 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
+    public function getShopInfoByOrderPrice(Request $request)
+    {
+        if (!$order = Order::find($request->get("order_id", 0))) {
+            return $this->error("订单不存在");
+        }
+        if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
+            return $this->error("门店不存在");
+        }
+        // 加价金额
+        $add_money = $shop->running_add;
+
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                    $check_ss = $shansong->orderCalculate($shop, $order);
+                    if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                        $result['ss'] = $shipper->three_id;
+                        $result['ss_type'] = 3;
+                        $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
+                    }
+                }
+                if ($shipper->platform == 5) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = $shipper->source_id;
+                    $dada = new DaDaService($config);
+                    $check_dd= $dada->orderCalculate($shop, $order);
+                    if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                        $result['dd'] = $shipper->three_id;
+                        $result['dd_type'] = 2;
+                        $result['dd_money'] = $check_dd['result']['fee'];
+                    }
+                }
+                if ($shipper->platform == 7) {
+                    $result['sf'] = $shipper->three_id;
+                    $result['sf_type'] = 2;
+                }
+            }
+        }
+
+        if ($shop->shop_id) {
+            $meituan = app("meituan");
+            $check_mt = $meituan->preCreateByShop($shop, $order);
+            if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
+                $result['mt'] = $shop->shop_id;
+                $result['mt_type'] = 1;
+                $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_fn) {
+            $fengniao = app("fengniao");
+            $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
+            $check_fn = json_decode($check_fn_res['business_data'], true);
+            if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
+                $result['fn'] = $shop->shop_id_fn;
+                $result['fn_type'] = 1;
+                $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+            }
+        }
+        if ($shop->shop_id_ss) {
+            $shansong = app("shansong");
+            $check_ss = $shansong->orderCalculate($shop, $order);
+            if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                $result['ss'] = $shop->shop_id_ss;
+                $result['ss_type'] = 1;
+                $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+            }
+        }
+        if ($shop->shop_id_dd) {
+            $dada = app("dada");
+            $check_dd= $dada->orderCalculate($shop, $order);
+            if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                $result['dd'] = $shop->shop_id_dd;
+                $result['dd_type'] = 1;
+                $result['dd_money'] = $check_dd['result']['fee'];
+            }
+        }
+        if ($shop->shop_id_mqd) {
+            $meiquanda = app('meiquanda');
+            $check_mqd = $meiquanda->orderCalculate($shop, $order);
+            if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
+                $result['mqd'] = $shop->shop_id_mqd;
+                $result['mqd_type'] = 1;
+                $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_uu) {
+            $uu = app("uu");
+            $check_uu= $uu->orderCalculate($order, $shop);
+            if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
+                $result['uu'] = $shop->shop_id_uu;
+                $result['uu_type'] = 1;
+                $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_sf) {
+            $sf = app("shunfeng");
+            $check_sf= $sf->precreateorder($order, $shop);
+            if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                $result['sf'] = $shop->shop_id_sf;
+                $result['sf_type'] = 1;
+                $result['sf_money'] = $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+            }
+        }
+
+        return $this->success($result);
+    }
+
     public function tool(Order $order)
     {
         $order->tool = $order->tool === 8 ? 0 : 8;

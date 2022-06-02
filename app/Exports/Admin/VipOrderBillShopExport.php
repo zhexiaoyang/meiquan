@@ -3,6 +3,7 @@
 namespace App\Exports\Admin;
 
 use App\Models\VipBill;
+use App\Models\VipBillItem;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\Exportable;
@@ -39,9 +40,9 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
 
     public function query()
     {
-        $query = WmOrder::with(['shop' => function ($query) {
+        $query = VipBillItem::with(['shop' => function ($query) {
             $query->with(['manager','operate','internal']);
-        }])->where('is_vip', 1);
+        }]);
 
         if ($this->shop_id) {
             $query->where('shop_id', $this->shop_id);
@@ -57,19 +58,34 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
         $platforms = ['','美团','饿了么','京东到家','美全'];
         $status = [1 => '订单创建成功', 4 => '商家已确认', 7 => '备货完成', 9 => '代发货', 12 => '取货中', 14 => '配送中', 16 => '已收货',
             18 => '已完成', 20 => '已关闭', 30 => '已取消', 40 => '售后中', 45 => '售后完成'];
+        $trade_types = [1 => '美团外卖订单',2 => '美团订单退款',3 => '美团订单部分退款',11 => '饿了么外卖订单',12 => '饿了么订单退款',
+            13 => '饿了么订单部分退款',101 => '跑腿订单扣款',102 => '跑腿订单取消扣款',];
         // 门店名称  下单平台 下单时间， 订单号，订单状态，美团结算金额，商品成本价总计，跑腿费，处方费，完成订单时间，城市经理，运营经理
         return [
             $platforms[$order->platform],
             $order->app_poi_code,
             $order->wm_shop_name,
-            $order->order_id,
-            $order->poi_receive,
+            $order->order_no,
+            $trade_types[$order->trade_type],
+            $order->vip_settlement,
             $order->vip_cost,
-            $order->running_fee,
-            $order->prescription_fee,
+            $order->vip_permission,
+            $order->vip_total,
+            $order->vip_company,
+            $order->vip_operate,
+            $order->vip_city,
+            $order->vip_internal,
+            $order->vip_business,
+            $order->vip_commission_company,
+            $order->vip_commission_operate,
+            $order->vip_commission_city,
+            $order->vip_commission_internal,
+            $order->vip_commission_business,
             $status[$order->status],
             $order->created_at,
+            $order->order_at,
             $order->finish_at,
+            $order->refund_at,
             $order->shop->manager->nickname ?? '',
             $order->shop->operate->nickname ?? '',
             $order->shop->internal->nickname ?? '',
@@ -84,13 +100,26 @@ class VipOrderBillShopExport extends DefaultValueBinder implements WithStrictNul
             '平台ID',
             '门店名称',
             '订单号',
-            '美团结算金额',
-            '商品成本价总计',
-            '跑腿费',
-            '处方费',
+            '交易类型',
+            '结算金额',
+            '成本价',
+            '审方费',
+            '总利润',
+            '公司分佣',
+            '城市分佣',
+            '运营分佣',
+            '内勤分佣',
+            '商家收入',
+            '公司分佣百分比',
+            '城市分佣百分比',
+            '运营分佣百分比',
+            '内勤分佣百分比',
+            '商家收入百分比',
             '订单状态',
+            '结算时间',
             '下单时间',
             '完成时间',
+            '退款时间',
             '城市经理',
             '运营经理',
             '内勤经理',
