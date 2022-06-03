@@ -2485,7 +2485,7 @@ class OrderController extends Controller
             if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
                 $result['dd'] = $shop->shop_id_dd;
                 $result['dd_type'] = 1;
-                $result['dd_money'] = $check_dd['result']['fee'];
+                $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
             }
         }
         if ($shop->shop_id_mqd) {
