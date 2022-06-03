@@ -22,6 +22,8 @@ class WmOrderController extends Controller
             $query->with(['logs' => function ($q) {
                 $q->orderByDesc('id');
             }])->select('id', 'wm_id', 'courier_name', 'courier_phone', 'status');
+        }, 'shop' => function ($query) {
+            $query->select('id', 'shop_lng', 'shop_lat');
         }])->where('shop_id', '>', 0);
 
         // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
