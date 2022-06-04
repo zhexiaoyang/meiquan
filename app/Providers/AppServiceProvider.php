@@ -11,6 +11,7 @@ use App\Libraries\Meituan\MeiTuan;
 use App\Libraries\MeiTuanKaiFang\MeiTuanKaiFang;
 use App\Libraries\Shansong\Shansong;
 use App\Libraries\Shunfeng\Shunfeng;
+use App\Libraries\ShunfengService\ShunfengService;
 use App\Libraries\TaoZi\TaoZi;
 use App\Libraries\Uu\Uu;
 use App\Libraries\Yaogui\Yaogui;
@@ -105,6 +106,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('shunfeng', function () {
             $config = config('ps.shunfeng');
             return new Shunfeng($config);
+        });
+        // 顺丰
+        $this->app->singleton('shunfengservice', function () {
+            $config = config('ps.shunfengservice');
+            return new ShunfengService($config);
         });
         // 桃子
         $this->app->singleton('taozi', function () {

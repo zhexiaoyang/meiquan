@@ -47,7 +47,11 @@ Route::middleware(['force-json'])->prefix('dada')->namespace('Api\Callback')->gr
 // 顺丰-服务商
 Route::middleware(['force-json'])->prefix('shunfeng')->namespace('Api\Callback')->group(function () {
     // 顺丰订单回调
-    Route::post('order', "ShunFengOrderController@order");
+    Route::post('order/status', "ShunFengOrderController@status");
+    Route::post('order/complete', "ShunFengOrderController@complete");
+    Route::post('order/cancel', "ShunFengOrderController@cancel");
+    Route::post('order/exceptional', "ShunFengOrderController@exceptional");
+    Route::post('order/revoke', "ShunFengOrderController@revoke");
     // 顺丰门店绑定回调
     Route::any('auth', "ShunfengAuthController@auth");
 });
