@@ -102,6 +102,12 @@ return [
         "app_key" => env("SHUNFENG_APP_KEY", ""),
         "url" => "https://commit-openic.sf-express.com"
     ],
+    // 顺丰
+    "shunfengservice" => [
+        "app_id" => '1633621660',
+        "app_key" => 'ff6f297bff5349e3822afe0d30376fb9',
+        "url" => "https://commit-openic.sf-express.com"
+    ],
     // Uu跑腿
     "uu" => [
         "app_id" => env("UU_APPID", ""),

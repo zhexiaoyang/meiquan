@@ -44,3 +44,10 @@ Route::middleware(['force-json'])->prefix('dada')->namespace('Api\Callback')->gr
     // 达达门店绑定回调
     Route::get('auth', "DaDaAuthController@auth");
 });
+// 顺丰-服务商
+Route::middleware(['force-json'])->prefix('shunfeng')->namespace('Api\Callback')->group(function () {
+    // 达达订单回调
+    Route::post('order', "ShunFengOrderController@order");
+    // 达达门店绑定回调
+    Route::get('auth', "ShunfengAuthController@auth");
+});
