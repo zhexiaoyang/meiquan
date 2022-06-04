@@ -292,6 +292,11 @@ class ShipperController extends Controller
                     $this->log('用户解绑自有达达', $shipper->toArray());
                     $shipper->delete();;
                 }
+            } else if ($platform == 7) {
+                if ($shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 7)->first()) {
+                    $this->log('用户解绑自有顺丰', $shipper->toArray());
+                    $shipper->delete();;
+                }
             }
         }
 
