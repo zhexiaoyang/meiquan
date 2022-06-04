@@ -19,20 +19,19 @@ class ShunfengAuthController extends Controller
         $this->prefix = str_replace('###', '绑定', $this->prefix_title);
         if (!$shop_id = $request->get('out_shop_id')) {
             $this->log_info('授权失败，没有获取到门店信息，不支持个人账户授权');
-            return false;
+            return '';
         }
         if (!$shop_id_sf = $request->get('shop_id')) {
             $this->log_info('授权失败，没有获取到门店信息，不支持个人账户授权');
-            return false;
+            return '';
         }
 
         $this->log_info('全部参数', $request->all());
 
         if (!$shop = Shop::find($shop_id)) {
             $this->log_info('门店不存在');
-            return false;
+            return '';
         }
-
         if (ShopShipper::where('shop_id', $shop_id)->where('platform', 7)->first()) {
             ShopShipper::where('shop_id', $shop_id)->where('platform', 7)->update([
                 'three_id' => $shop_id_sf,
