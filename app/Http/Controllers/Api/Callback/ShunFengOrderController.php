@@ -21,7 +21,7 @@ class ShunFengOrderController extends Controller
 {
     use LogTool, NoticeTool;
 
-    public $prefix_title = '[顺丰服务商订单回调$###]';
+    public $prefix_title = '[顺丰服务商订单回调&###]';
 
     public function status(Request $request)
     {
@@ -38,7 +38,7 @@ class ShunFengOrderController extends Controller
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "订单状态$中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->prefix = str_replace('###', "订单状态&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
 
         if (in_array($status, [10, 15])) {
