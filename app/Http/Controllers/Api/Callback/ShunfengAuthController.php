@@ -12,7 +12,7 @@ class ShunfengAuthController extends Controller
 {
     use LogTool;
 
-    public $prefix_title = '[达达服务商授权回调$###]';
+    public $prefix_title = '[顺丰服务商授权回调$###]';
 
     public function auth(Request $request)
     {
