@@ -2469,8 +2469,13 @@ class OrderController extends Controller
                     }
                 }
                 if ($shipper->platform == 7) {
-                    $result['sf'] = $shipper->three_id;
-                    $result['sf_type'] = 2;
+                    $sf = app("shunfengservice");
+                    $check_sf= $sf->precreateorder($order, $shop);
+                    if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                        $result['sf'] = $shipper->three_id;
+                        $result['sf_type'] = 2;
+                        $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                    }
                 }
             }
         }
@@ -2531,16 +2536,12 @@ class OrderController extends Controller
             }
         }
         if ($shop->shop_id_sf) {
-            if ($order->shipper_type_sf) {
-                $sf = app("shunfengservice");
-            } else {
-                $sf = app("shunfeng");
-            }
+            $sf = app("shunfeng");
             $check_sf= $sf->precreateorder($order, $shop);
             if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
                 $result['sf'] = $shop->shop_id_sf;
                 $result['sf_type'] = 1;
-                $result['sf_money'] = $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
             }
         }
 
