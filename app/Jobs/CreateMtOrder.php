@@ -160,6 +160,7 @@ class CreateMtOrder implements ShouldQueue
         // 自助注册运力判断
         $zz_ss = false;
         $zz_dd = false;
+        $zz_sf = false;
         $zz_dd_source = '';
         $shippers = $shop->shippers;
         if (!empty($shippers)) {
@@ -170,6 +171,9 @@ class CreateMtOrder implements ShouldQueue
                 if ($shipper->platform === 5) {
                     $zz_dd = true;
                     $zz_dd_source = $shipper->source_id;
+                }
+                if ($shipper->platform === 7) {
+                    $zz_sf = true;
                 }
             }
         }
@@ -226,32 +230,56 @@ class CreateMtOrder implements ShouldQueue
             $this->log("已经有「顺丰」失败信息：{$order->fail_sf}，停止「顺丰」派单");
         } elseif ($order->sf_status != 0) {
             $this->log("订单状态：{$order->sf_status}，不是0，停止「顺丰」派单");
-        } elseif (!$shop->shop_id_sf) {
-            $order->fail_sf = "门店不支持顺丰跑腿";
-            $this->log("门店不支持「顺丰」跑腿，停止「顺丰」派单");
+        // } elseif (!$shop->shop_id_sf) {
+        //     $order->fail_sf = "门店不支持顺丰跑腿";
+        //     $this->log("门店不支持「顺丰」跑腿，停止「顺丰」派单");
         } elseif (!$sf_switch) {
             $order->fail_sf = "门店关闭顺丰跑腿";
             $this->log("门店关闭「顺丰」跑腿，停止「顺丰」派单");
         } else {
-            $sf = app("shunfeng");
-            $check_sf= $sf->precreateorder($order, $shop);
-            $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
-            if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
-                // 判断用户金额是否满足顺丰订单
-                if ($user->money < ($money_sf + $use_money)) {
-                    if ($order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
-                    }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
-                    $this->log("用户金额不足发「顺丰」单，停止派单");
-                    return;
-                }
-                $order->money_sf = $money_sf;
-                $this->services['sf'] = $money_sf;
+            if (!$zz_sf && !$shop->shop_id_sf) {
+                $order->fail_ss = "门店不支持顺丰跑腿";
+                $this->log("门店不支持「顺丰」跑腿，停止「达达」派单");
             } else {
-                $sf_error_msg = $check_sf['error_msg'] ?? "顺丰校验订单请求失败";
-                $order->fail_sf = $sf_error_msg;
-                $this->log("「顺丰」校验订单失败:{$sf_error_msg}，停止「顺丰」派单");
+                if ($zz_sf) {
+                    $sf = app("shunfengservice");
+                    $this->log("自助注册「顺丰」发单");
+                    $add_money = 0;
+                } else {
+                    $sf = app("shunfeng");
+                    $this->log("聚合运力「顺丰」发单");
+                }
+                $check_sf= $sf->precreateorder($order, $shop);
+                $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                $this->log("「顺丰」金额：{$money_sf}");
+                if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
+                    // 判断用户金额是否满足顺丰订单
+                    if ($zz_sf) {
+                        if ($user->money < 0.2) {
+                            if ($order->status < 20) {
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                            }
+                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
+                            $this->log("用户金额不足发0.2元，停止不能发自主运力派单");
+                            return;
+                        }
+                    } else {
+                        if ($user->money < ($money_sf + $use_money)) {
+                            if ($order->status < 20) {
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                            }
+                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
+                            $this->log("用户金额不足发「顺丰」单，停止派单");
+                            return;
+                        }
+                    }
+                    $order->money_sf = $money_sf;
+                    $this->services['sf'] = $money_sf;
+                } else {
+                    $sf_error_msg = $check_sf['error_msg'] ?? "顺丰校验订单请求失败";
+                    $order->fail_sf = $sf_error_msg;
+                    $this->log("「顺丰」校验订单失败:{$sf_error_msg}，停止「顺丰」派单");
+                }
             }
         }
 
@@ -280,6 +308,7 @@ class CreateMtOrder implements ShouldQueue
             if ($addfee > 0) {
                 $this->log("「UU」校验订单有加价：{$addfee}");
             }
+            $this->log("「UU」金额：{$money_uu}");
             if (isset($check_uu['return_code']) && ($check_uu['return_code'] === 'ok') && ($money_uu >= 1) && ($addfee <= 10) ) {
                 // 判断用户金额是否满足UU订单
                 if ($user->money < ($money_uu + $use_money)) {
@@ -318,7 +347,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("门店关闭「达达」跑腿，停止「达达」派单");
         } else {
             if (!$zz_dd && !$shop->shop_id_dd) {
-                $order->fail_ss = "门店不支持闪送跑腿";
+                $order->fail_ss = "门店不支持达达跑腿";
                 $this->log("门店不支持「达达」跑腿，停止「达达」派单");
             } else {
                 if ($zz_dd) {
@@ -333,6 +362,7 @@ class CreateMtOrder implements ShouldQueue
                 }
                 $check_dd= $dada->orderCalculate($shop, $order);
                 $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
+                $this->log("「达达」金额：{$money_dd}");
                 if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
                     // 判断用户金额是否满足达达订单
                     if (!$zz_dd && ($user->money < ($money_dd + $use_money))) {
@@ -375,6 +405,7 @@ class CreateMtOrder implements ShouldQueue
             $check_mqd = $meiquanda->orderCalculate($shop, $order);
             $money_mqd = $check_mqd['data']['pay_fee'] ?? 0;
             $money_mqd += $add_money;
+            $this->log("「美全达」金额：{$money_mqd}");
             if ($money_mqd > 1) {
                 // 判断用户金额是否满足美全达订单
                 if ($user->money < ($money_mqd + $use_money)) {
@@ -414,6 +445,7 @@ class CreateMtOrder implements ShouldQueue
             $check_mt = $meituan->preCreateByShop($shop, $this->order);
             $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
             $money_mt += $add_money;
+            $this->log("「美团」金额：{$money_mt}");
             if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
                 // 判断用户金额是否满足美团订单
                 if ($user->money < ($money_mt + $use_money)) {
@@ -458,6 +490,7 @@ class CreateMtOrder implements ShouldQueue
             $check_fn_res = $fengniao->preCreateOrderNew($shop, $this->order);
             $check_fn = json_decode($check_fn_res['business_data'], true);
             $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+            $this->log("「蜂鸟」金额：{$money_fn}");
             if ($money_fn > 1) {
                 // 判断用户金额是否满足蜂鸟订单
                 if ($user->money < ($money_fn + $use_money)) {
@@ -506,6 +539,7 @@ class CreateMtOrder implements ShouldQueue
                 }
                 $check_ss = $shansong->orderCalculate($shop, $order);
                 $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+                $this->log("「闪送」金额：{$money_ss}");
                 if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
                     if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
                         // 判断用户金额是否满足闪送订单
@@ -621,7 +655,7 @@ class CreateMtOrder implements ShouldQueue
             }
             return;
         } else if ($ps === "sf") {
-            if ($this->sf()) {
+            if ($this->sf($zz_sf)) {
                 if (count($this->services) > 1) {
                     dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
@@ -689,7 +723,7 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function sf()
+    public function sf($zz_sf)
     {
         $order = Order::find($this->order->id);
         $shop_id = $order->warehouse_id ?: $order->shop_id;
@@ -704,7 +738,13 @@ class CreateMtOrder implements ShouldQueue
             return false;
         }
 
-        $sf = app("shunfeng");
+        if ($zz_sf) {
+            $sf = app("shunfengservice");
+            $this->log("自助注册「顺丰」发单");
+        } else {
+            $sf = app("shunfeng");
+            $this->log("聚合运力「顺丰」发单");
+        }
         // 发送顺丰订单
         $result_sf = $sf->createOrder($order, $shop);
         if ($result_sf['error_code'] === 0) {
@@ -714,6 +754,7 @@ class CreateMtOrder implements ShouldQueue
             $money_sf = (($result_sf['result']['real_pay_money'] ?? 0) / 100) + $this->add_money;
             $update_info = [
                 'money_sf' => $money_sf,
+                'shipper_type_sf' => $zz_sf ? 1 : 0,
                 'sf_order_id' => $result_sf['result']['sf_order_id'] ?? $this->order->order_id,
                 'sf_status' => 20,
                 'status' => 20,
