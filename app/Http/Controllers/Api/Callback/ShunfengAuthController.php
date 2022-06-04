@@ -5,23 +5,31 @@ namespace App\Http\Controllers\Api\Callback;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\ShopShipper;
+use App\Traits\LogTool;
 use Illuminate\Http\Request;
 
 class ShunfengAuthController extends Controller
 {
+    use LogTool;
+
+    public $prefix_title = '[达达服务商授权回调$###]';
+
     public function auth(Request $request)
     {
+        $this->prefix = str_replace('###', '绑定', $this->prefix_title);
         if (!$shop_id = $request->get('out_shop_id')) {
-            $this->log('授权失败，没有获取到门店信息，不支持个人账户授权');
+            $this->log_info('授权失败，没有获取到门店信息，不支持个人账户授权');
             return false;
         }
         if (!$shop_id_sf = $request->get('shop_id')) {
-            $this->log('授权失败，没有获取到门店信息，不支持个人账户授权');
+            $this->log_info('授权失败，没有获取到门店信息，不支持个人账户授权');
             return false;
         }
 
+        $this->log_info('全部参数', $request->all());
+
         if (!$shop = Shop::find($shop_id)) {
-            $this->log('门店不存在');
+            $this->log_info('门店不存在');
             return false;
         }
 
@@ -32,7 +40,7 @@ class ShunfengAuthController extends Controller
             ]);
         } else {
             if ($shipper = ShopShipper::where('three_id', $shop_id_sf)->where('platform', 7)->first()) {
-                $this->log('顺丰授权，门店ID已存在，已删除', $shipper->toArray());
+                $this->log_info('顺丰授权，门店ID已存在，已删除', $shipper->toArray());
                 $shipper->delete();
             }
             ShopShipper::create([
@@ -42,11 +50,12 @@ class ShunfengAuthController extends Controller
                 'three_id' => $shop_id_sf,
             ]);
             if ($shop->shop_id_sf) {
-                $this->log('达达授权，达达门店ID已存在，已清除：' . $shop->shop_id_ss);
+                $this->log_info('达达授权，达达门店ID已存在，已清除：' . $shop->shop_id_ss);
                 $shop->shop_id_sf = '';
                 $shop->save();
             }
         }
+        $this->log_info('授权成功');
 
         return json_encode(['error_code' => 0, 'error_msg' => 'success']);
     }
