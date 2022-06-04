@@ -46,8 +46,8 @@ Route::middleware(['force-json'])->prefix('dada')->namespace('Api\Callback')->gr
 });
 // 顺丰-服务商
 Route::middleware(['force-json'])->prefix('shunfeng')->namespace('Api\Callback')->group(function () {
-    // 达达订单回调
+    // 顺丰订单回调
     Route::post('order', "ShunFengOrderController@order");
-    // 达达门店绑定回调
+    // 顺丰门店绑定回调
     Route::any('auth', "ShunfengAuthController@auth");
 });
