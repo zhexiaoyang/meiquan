@@ -49,5 +49,5 @@ Route::middleware(['force-json'])->prefix('shunfeng')->namespace('Api\Callback')
     // 达达订单回调
     Route::post('order', "ShunFengOrderController@order");
     // 达达门店绑定回调
-    Route::get('auth', "ShunfengAuthController@auth");
+    Route::any('auth', "ShunfengAuthController@auth");
 });
