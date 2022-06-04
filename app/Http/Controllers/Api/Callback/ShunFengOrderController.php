@@ -23,7 +23,7 @@ class ShunFengOrderController extends Controller
 
     public $prefix_title = '[顺丰服务商订单回调&###]';
 
-    public function status(Request $request)
+    public function order(Request $request)
     {
         $res = ["error_code" => 0, "error_msg" => "success"];
         // 商家订单ID
