@@ -325,7 +325,7 @@ class ShunFengOrderController extends Controller
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "完成订单$中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
         Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
 
@@ -397,7 +397,7 @@ class ShunFengOrderController extends Controller
         // 商家订单ID
         $order_id = $request->get("shop_order_id", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "取消订单$中台单号:{$order_id}", $this->prefix_title);
+        $this->prefix = str_replace('###', "取消订单&中台单号:{$order_id}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
