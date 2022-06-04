@@ -729,6 +729,8 @@ class CreateMtOrder implements ShouldQueue
         $shop_id = $order->warehouse_id ?: $order->shop_id;
         $shop = Shop::find($shop_id);
 
+        $add_money = $this->add_money;
+
         if ($order->status > 30) {
             $this->log("不能发送「顺丰」订单，订单状态：{$order->status},大于30，停止派单");
         }
@@ -741,6 +743,7 @@ class CreateMtOrder implements ShouldQueue
         if ($zz_sf) {
             $sf = app("shunfengservice");
             $this->log("自助注册「顺丰」发单");
+            $add_money = 0;
         } else {
             $sf = app("shunfeng");
             $this->log("聚合运力「顺丰」发单");
@@ -751,7 +754,7 @@ class CreateMtOrder implements ShouldQueue
             // 订单发送成功
             $this->log("发送「顺丰」订单成功|返回参数", [$result_sf]);
             // 写入订单信息
-            $money_sf = (($result_sf['result']['real_pay_money'] ?? 0) / 100) + $this->add_money;
+            $money_sf = (($result_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
             $update_info = [
                 'money_sf' => $money_sf,
                 'shipper_type_sf' => $zz_sf ? 1 : 0,
