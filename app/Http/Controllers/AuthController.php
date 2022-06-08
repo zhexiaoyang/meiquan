@@ -326,6 +326,7 @@ class AuthController extends Controller
 
         $user = [
             'id' => $request->user()->phone ?? '',
+            'user_id' => $request->user()->id ?? '',
             'name' => $request->user()->phone ?? '',
             'phone' => $request->user()->phone ?? '',
             'nickname' => $request->user()->nickname ?? '',
