@@ -27,11 +27,14 @@ class TaoziController extends Controller
         $status = intval($request->get('code',''));
         if (!empty($data) && in_array($status, [1,2,3,4,5])) {
             $shop_id = $data['thirdUniqueID'];
-            $rp = $data['rp'];
+            $rp = $data['rp'] ?? [];
             if ($shop = Shop::find($shop_id)) {
                 $codes = ['','已开方','拒绝开方','审方通过','审方不通过','处方签章完成'];
                 $img = $rp['rpImgFileUrl'] ?? '';
-                $rp_time = date('Y-m-d H:i:s', $rp['doctorTime'] / 1000);
+                $rp_time = date("Y-m-d H:i:s");
+                if (!empty($rp['doctorTime'])) {
+                    $rp_time = date('Y-m-d H:i:s', $rp['doctorTime'] / 1000);
+                }
                 if (!$order = WmPrescription::where('outOrderID', $order_id)->first()) {
                     $_tmp = [
                         'money' => $this->money,
