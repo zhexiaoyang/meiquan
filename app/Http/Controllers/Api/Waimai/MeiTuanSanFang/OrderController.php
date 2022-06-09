@@ -11,11 +11,15 @@ use App\Models\Shop;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
+use App\Traits\LogTool;
+use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    use LogTool, NoticeTool;
+
     public $prefix_title = '[美团外卖三方服务商-订单回调-###|订单号:$$$]';
 
     public function create(Request $request)
