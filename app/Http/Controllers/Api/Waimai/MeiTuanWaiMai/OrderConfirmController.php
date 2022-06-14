@@ -82,6 +82,7 @@ class OrderConfirmController
                     }
                 }
                 $order_wm_data = [
+                    'user_id' => $shop->user_id,
                     "shop_id" => $shop->id ?? 0,
                     "order_id" => $mt_order_id,
                     "wm_order_id_view" => $mt_order_id,
