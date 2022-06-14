@@ -118,6 +118,7 @@ class OrderConfirmController
                 $mt_shop_id = substr($mt_order_id, 0, 7);
             }
             $order_wm_data = [
+                'user_id' => $shop->user_id,
                 "shop_id" => $shop->id,
                 "order_id" => $mt_order_id,
                 "wm_order_id_view" => $data['wm_order_id_view'],
