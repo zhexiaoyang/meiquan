@@ -10,8 +10,10 @@ use App\Models\VipBillItem;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
+use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -299,10 +301,15 @@ class OrderController
 
     public function remind(Request $request, $platform)
     {
+        $voice = 5;
         $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&催单", $this->prefix_title);
 
         if ($order_id = $request->get("order_id", "")) {
             $this->log_info('全部参数', $request->all());
+            // if ($order = WmOrder::select('user_id')->where('order_id', $order_id)->first()) {
+            //     Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $order->user_id));
+            // }
+            Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, 1), true);
         }
 
         return json_encode(['data' => 'ok']);
