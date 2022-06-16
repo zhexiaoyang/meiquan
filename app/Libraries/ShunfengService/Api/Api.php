@@ -124,7 +124,7 @@ class Api extends Request
         $data = [
             'order_id' => $order->delivery_id,
             'order_type' => 2,
-            "shop_id" => (string) intval($shop->citycode),
+            "shop_id" => (string) intval($shop->id),
             "shop_type" => 2,
         ];
         return $this->post('/open/api/external/cancelorder', $data);
