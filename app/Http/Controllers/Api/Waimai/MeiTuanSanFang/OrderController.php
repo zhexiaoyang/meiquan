@@ -11,8 +11,10 @@ use App\Models\Shop;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
+use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -437,6 +439,7 @@ class OrderController extends Controller
                     'cancel_reason' => $data['reason'] ?? '',
                     'cancel_at' => date("Y-m-d H:i:s")
                 ]);
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $order->user_id), true);
             } else {
                 $this->log("订单状态不正确，不能取消。订单状态：{$order->status}");
             }
@@ -467,6 +470,7 @@ class OrderController extends Controller
                     'refund_fee' => $order->total,
                     'refund_at' => date("Y-m-d H:i:s")
                 ]);
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
             }
         }
 
@@ -574,6 +578,7 @@ class OrderController extends Controller
                     'refund_fee' => $data['money'],
                     'refund_at' => date("Y-m-d H:i:s")
                 ]);
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
             }
         }
 
@@ -582,6 +587,7 @@ class OrderController extends Controller
 
     public function remind(Request $request)
     {
+        $voice = 5;
         $this->prefix_title = str_replace('###', '催单', $this->prefix_title);
         if (!$data = $request->get('pushOrderRemind')) {
             return json_encode(['data' => 'OK']);
@@ -590,6 +596,12 @@ class OrderController extends Controller
         $order_id = $data['orderId'];
         $this->prefix = str_replace('$$$', $order_id, $this->prefix_title);
         $this->log('全部参数', $data);
+
+        if ($order_id) {
+            if ($order = WmOrder::select('user_id')->where('order_id', $order_id)->first()) {
+                Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $order->user_id), true);
+            }
+        }
 
         return json_encode(['data' => 'OK']);
     }

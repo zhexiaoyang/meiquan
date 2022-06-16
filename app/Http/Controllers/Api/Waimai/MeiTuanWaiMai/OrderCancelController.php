@@ -6,7 +6,9 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Shop;
 use App\Models\VipBillItem;
+use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\NoticeTool;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderDeduction;
@@ -87,6 +89,7 @@ class OrderCancelController
                 ];
                 VipBillItem::create($item);
                 \Log::info("VIP订单结算处理，取消订单结算成功");
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $wmOrder->user_id), true);
             }
             // -------------------VIP订单结算-结束----------------------
         } else {

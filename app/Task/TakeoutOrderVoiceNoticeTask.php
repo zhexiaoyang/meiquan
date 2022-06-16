@@ -36,5 +36,19 @@ class TakeoutOrderVoiceNoticeTask extends Task
                 $server->push($fd, $res);
             }
         }
+        if ($fd_str = Redis::hget('h:websocket:note_voice:user', 1)) {
+            $res = [
+                'mes' => 'success',
+                'kind' => 'voice',
+                'voice' => $this->voice
+            ];
+            $res = json_encode($res, true);
+            $fds = explode(',', $fd_str);
+            $server = app('swoole');
+            foreach ($fds as $fd) {
+                \Log::info("fd:{$fd},res:{$res}");
+                $server->push($fd, $res);
+            }
+        }
     }
 }

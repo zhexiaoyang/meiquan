@@ -19,8 +19,10 @@ use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
+use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -370,6 +372,12 @@ class OrderConfirmController
             $this->ding_exception('餐饮创建订单成功');
         });
         $this->log_info("订单创建完成");
+        $delivery_time = $data['delivery_time'];
+        if ($delivery_time > 0) {
+            Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->user_id), true);
+        } else {
+            Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->user_id), true);
+        }
         return json_encode(['code' => '0', 'message' => 'success']);
     }
 
