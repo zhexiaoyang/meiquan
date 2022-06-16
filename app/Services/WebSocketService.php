@@ -42,7 +42,7 @@ class WebSocketService implements WebSocketHandlerInterface
     {
         // $ser = app('swoole');
         // $ser->push($frame->fd, json_encode(['time' => '看来是京东方金黄色的副科级'], true));
-        \Log::info('Received message', [$frame->fd, $frame->data, $frame->opcode, $frame->finish]);
+        // \Log::info('Received message', [$frame->fd, $frame->data, $frame->opcode, $frame->finish]);
         // $server->push($frame->fd, json_encode(['time' => date('Y-m-d H:i:s')], true));
         // throw new \Exception('an exception');// 此时抛出的异常上层会忽略，并记录到Swoole日志，需要开发者try/catch捕获处理
     }
