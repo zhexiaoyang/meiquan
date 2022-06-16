@@ -59,7 +59,7 @@ class UserController extends Controller
             });
         }
 
-        if (in_array($role, [1,2,3,4])) {
+        if (in_array($role, [1,2,3,4,5])) {
             $query->whereHas('roles', function ($query) use ($role) {
                 switch ($role) {
                     case 1:
@@ -73,6 +73,9 @@ class UserController extends Controller
                         break;
                     case 4:
                         $query->where('name', 'shop');
+                        break;
+                    case 5:
+                        $query->where('name', 'marketing');
                         break;
                 }
             });
