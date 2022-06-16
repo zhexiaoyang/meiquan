@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Exceptions\HttpException;
 use App\Services\Delivery;
+use App\Task\TakeoutOrderVoiceNoticeTask;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -106,6 +108,9 @@ class Order extends Model
         });
 
         static::saved(function ($order) {
+            if ($order->status === 50) {
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(11, $order->user_id), true);
+            }
             if ($order->status === 70) {
                 if (!ManagerProfit::where('order_id', $order->id)->first()) {
                     Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
@@ -156,6 +161,7 @@ class Order extends Model
                     } else {
                         Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]-[美全达配送，不算收益]");
                     }
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
                 }
                 if ($wm_order = WmOrder::where('is_vip', 1)->where('id', $order->wm_id)->first()) {
                     if (!VipBillItem::where('trade_type', 101)->where('order_id', 101)->exists()) {
