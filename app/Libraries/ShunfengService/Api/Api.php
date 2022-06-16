@@ -136,7 +136,7 @@ class Api extends Request
         $data = [
             'order_id' => $order->order_id,
             'order_type' => 2,
-            "shop_id" => (string) intval($shop->citycode),
+            "shop_id" => (string) intval($shop->id),
             "shop_type" => 2,
             "notice_ready_time" => time()
         ];
