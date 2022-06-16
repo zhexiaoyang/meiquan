@@ -454,4 +454,11 @@ class ShunFengOrderController extends Controller
 
         return json_encode($res);
     }
+
+    public function revoke(Request $request)
+    {
+        \Log::info("顺丰revoke", $request->all());
+        $res = ["error_code" => 0, "error_msg" => "success"];
+        return json_encode($res);
+    }
 }
