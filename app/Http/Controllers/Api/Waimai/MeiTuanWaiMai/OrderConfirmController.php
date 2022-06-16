@@ -321,14 +321,16 @@ class OrderConfirmController
                     }
                 }
             });
+            if ($shop) {
+                $delivery_time = $data['delivery_time'];
+                if ($delivery_time > 0) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->user_id), true);
+                } else {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->user_id), true);
+                }
+            }
         }
         $this->log_info("-结束");
-        $delivery_time = $data['delivery_time'];
-        if ($delivery_time > 0) {
-            Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->user_id), true);
-        } else {
-            Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->user_id), true);
-        }
         return json_encode(['data' => 'ok']);
     }
 
