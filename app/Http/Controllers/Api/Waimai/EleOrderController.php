@@ -19,8 +19,10 @@ use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
+use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -1229,6 +1231,20 @@ class EleOrderController extends Controller
                 // }
                 // 推送ERP
             });
+            if ($shop) {
+                // 订单类型（1 即时单，2 预约单）
+                $order_type = $order['order']['send_immediately'];
+                // 送达时间
+                $delivery_time = 0;
+                if ($order_type === 2) {
+                    $delivery_time = $order['order']['latest_send_time'];
+                }
+                if ($delivery_time > 0) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->user_id), true);
+                } else {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->user_id), true);
+                }
+            }
         }
         return $this->res("order.status.success");
     }
