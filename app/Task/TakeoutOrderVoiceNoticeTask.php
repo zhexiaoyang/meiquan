@@ -44,11 +44,11 @@ class TakeoutOrderVoiceNoticeTask extends Task
                 'voice' => $this->voice,
                 'date' => date("Y-m-d H:i:s"),
             ];
-            $res = json_encode($res, true);
             $fds = explode(',', $fd_str);
             $server = app('swoole');
             foreach ($fds as $fd) {
                 $res['fd'] = $fd;
+                $res = json_encode($res, true);
                 $server->push($fd, $res);
             }
         }
