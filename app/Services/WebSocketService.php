@@ -21,6 +21,7 @@ class WebSocketService implements WebSocketHandlerInterface
         // 在触发onOpen事件之前Laravel的生命周期已经完结，所以Laravel的Request是可读的，Session是可读写的
         \Log::info('New WebSocket connection', [$request->fd, request()->all(), session()->getId(), session('xxx'), session(['yyy' => time()])]);
         // $server->push($request->fd, json_encode(['mes' => 'Welcome to LaravelS']));
+        $server->push($request->fd, json_encode(['time' => date('Y-m-d H:i:s'), 'fd' => $request->fd], true));
         // throw new \Exception('an exception');// 此时抛出的异常上层会忽略，并记录到Swoole日志，需要开发者try/catch捕获处理
         // Redis::hset('h:feedback', $data['user_id'], $request->fd);
         if (!$user_id = request()->get('user_id')) {
@@ -43,7 +44,7 @@ class WebSocketService implements WebSocketHandlerInterface
         // $ser = app('swoole');
         // $ser->push($frame->fd, json_encode(['time' => '看来是京东方金黄色的副科级'], true));
         // \Log::info('Received message', [$frame->fd, $frame->data, $frame->opcode, $frame->finish]);
-        // $server->push($frame->fd, json_encode(['time' => date('Y-m-d H:i:s')], true));
+        // $server->push($frame->fd, json_encode(['time' => date('Y-m-d H:i:s'), 'fd' => $frame->fd], true));
         // throw new \Exception('an exception');// 此时抛出的异常上层会忽略，并记录到Swoole日志，需要开发者try/catch捕获处理
     }
     public function onClose(Server $server, $fd, $reactorId)
