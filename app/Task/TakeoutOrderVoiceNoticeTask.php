@@ -48,7 +48,7 @@ class TakeoutOrderVoiceNoticeTask extends Task
             $server = app('swoole');
             foreach ($fds as $fd) {
                 \Log::info("fdfdfdfd", [$fd]);
-                $res1['fd'] = $fd;
+                $res1['fdfd'] = $fd;
                 $res1 = json_encode($res1, true);
                 $server->push($fd, $res1);
             }
