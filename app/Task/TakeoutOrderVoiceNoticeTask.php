@@ -47,7 +47,7 @@ class TakeoutOrderVoiceNoticeTask extends Task
             $fds = explode(',', $fd_str);
             $server = app('swoole');
             foreach ($fds as $fd) {
-                $res['fd'] = $fd;
+                // $res['fd'] = $fd;
                 $res = json_encode($res, true);
                 $server->push($fd, $res);
             }
