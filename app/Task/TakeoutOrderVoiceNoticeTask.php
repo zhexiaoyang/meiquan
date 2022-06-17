@@ -41,13 +41,14 @@ class TakeoutOrderVoiceNoticeTask extends Task
             $res = [
                 'mes' => 'success',
                 'kind' => 'voice',
-                'voice' => $this->voice
+                'voice' => $this->voice,
+                'date' => date("Y-m-d H:i:s"),
             ];
             $res = json_encode($res, true);
             $fds = explode(',', $fd_str);
             $server = app('swoole');
             foreach ($fds as $fd) {
-                \Log::info("fd:{$fd},res:{$res}");
+                $res['fd'] = $fd;
                 $server->push($fd, $res);
             }
         }
