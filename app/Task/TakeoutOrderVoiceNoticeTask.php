@@ -38,17 +38,16 @@ class TakeoutOrderVoiceNoticeTask extends Task
             }
         }
         if ($fd_str = Redis::hget('h:websocket:note_voice:user', 1)) {
-            $res1 = [
-                'mes' => 'success',
-                'kind' => 'voice',
-                'voice' => $this->voice,
-                'date' => date("Y-m-d H:i:s"),
-            ];
             $fds = explode(',', $fd_str);
             $server = app('swoole');
             foreach ($fds as $fd) {
-                \Log::info("fdfdfdfd", [$fd]);
-                // $res1['fdfd'] = 111;
+                $res1 = [
+                    'mes' => 'success',
+                    'kind' => 'voice',
+                    'voice' => $this->voice,
+                    'date' => date("Y-m-d H:i:s"),
+                    'fd' => $fd
+                ];
                 $res1 = json_encode($res1, true);
                 $server->push($fd, $res1);
             }
