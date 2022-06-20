@@ -23,15 +23,15 @@ class Http
     public function request($method, $url, $options = [])
     {
         $method = strtoupper($method);
-        Log::debug('饿了么配送请求参数:', compact('url', 'method', 'options'));
+        // Log::debug('饿了么配送请求参数:', compact('url', 'method', 'options'));
         $response = $this->getClient()->request($method, $url, $options);
         // var_dump($response);die;
-        Log::debug('饿了么送响应参数:', [
-            'Status'  => $response->getStatusCode(),
-            'Reason'  => $response->getReasonPhrase(),
-            // 'Headers' => $response->getHeaders(),
-            'Body'    => strval($response->getBody()),
-        ]);
+        // Log::debug('饿了么送响应参数:', [
+        //     'Status'  => $response->getStatusCode(),
+        //     'Reason'  => $response->getReasonPhrase(),
+        //     // 'Headers' => $response->getHeaders(),
+        //     'Body'    => strval($response->getBody()),
+        // ]);
         return $response;
     }
 
