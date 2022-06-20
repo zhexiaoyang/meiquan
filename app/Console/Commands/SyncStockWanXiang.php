@@ -67,7 +67,7 @@ class SyncStockWanXiang extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
-                    $stock_data_ele[] = $item->upc . ':' . $item->stock;
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 foreach ($shop_ids as $shop_id) {
@@ -258,7 +258,7 @@ class SyncStockWanXiang extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
-                    $stock_data_ele[] = $item->upc . ':' . $item->stock;
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '14971401';
