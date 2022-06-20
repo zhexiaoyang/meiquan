@@ -63,7 +63,7 @@ class Tool
         foreach ($para as $key => $val) {
             array_push($data, $key . '=' .$val);
         }
-        \Log::info(implode("&", $data));
+        // \Log::info(implode("&", $data));
         return implode("&", $data);
     }
 
