@@ -47,7 +47,6 @@ class Tool
     public static function argSort($para)
     {
         ksort($para);
-        // \Log::info($para);
         return $para;
     }
 
@@ -58,12 +57,10 @@ class Tool
      */
     public static function createLinkstring($para)
     {
-        // \Log::info($para);
         $data = [];
         foreach ($para as $key => $val) {
             array_push($data, $key . '=' .$val);
         }
-        // \Log::info(implode("&", $data));
         return implode("&", $data);
     }
 
