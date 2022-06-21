@@ -206,7 +206,11 @@ class DaDaOrderController
                 }
                 // 取消顺丰订单
                 if ($order->sf_status === 20 || $order->sf_status === 30) {
-                    $sf = app("shunfeng");
+                    if ($order->shipper_type_sf) {
+                        $sf = app("shunfengservice");
+                    } else {
+                        $sf = app("shunfeng");
+                    }
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] != 0) {
                         $this->log_info('顺丰待接单取消失败');

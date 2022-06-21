@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Callback;
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
+use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -190,7 +191,13 @@ class ShanSongOrderController
                 }
                 // 取消达达订单
                 if ($order->dd_status === 20 || $order->dd_status === 30) {
-                    $dada = app("dada");
+                    if ($order->shipper_type_dd) {
+                        $config = config('ps.dada');
+                        $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                        $dada = new DaDaService($config);
+                    } else {
+                        $dada = app("dada");
+                    }
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] != 0) {
                         $this->log_info('达达待接单取消失败');
@@ -218,7 +225,11 @@ class ShanSongOrderController
                 }
                 // 取消顺丰订单
                 if ($order->sf_status === 20 || $order->sf_status === 30) {
-                    $sf = app("shunfeng");
+                    if ($order->shipper_type_sf) {
+                        $sf = app("shunfengservice");
+                    } else {
+                        $sf = app("shunfeng");
+                    }
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] != 0) {
                         $this->log_info('顺丰待接单取消失败');
