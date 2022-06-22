@@ -90,7 +90,7 @@ class SyncStockWanXiang extends Command
                     $params['medicine_data'] = json_encode($stock_data);
                     $params['access_token'] = $meiquan->getShopToken($shop_id);
 
-                    $meituan->medicineStock($params);
+                    $meiquan->medicineStock($params);
                 }
 
                 foreach ($ele_shop_ids as $ele_shop_id) {
