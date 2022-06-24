@@ -461,4 +461,11 @@ class ShunFengOrderController extends Controller
         $res = ["error_code" => 0, "error_msg" => "success"];
         return json_encode($res);
     }
+
+    public function exceptional(Request $request)
+    {
+        \Log::info("顺丰exceptional", $request->all());
+        $res = ["error_code" => 0, "error_msg" => "success"];
+        return json_encode($res);
+    }
 }
