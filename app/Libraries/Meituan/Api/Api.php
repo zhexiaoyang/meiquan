@@ -625,7 +625,8 @@ class Api extends Request
                 }
             }
             if (!$refresh_token) {
-                $this->ding_error("闪购门店刷新token不存在错误，shop_id:{$shop_id}");
+                // $this->ding_error("闪购门店刷新token不存在错误，shop_id:{$shop_id}");
+                \Log::info("闪购门店刷新token不存在错误，shop_id:{$shop_id}");
                 return false;
             }
             $res = $this->waimaiAuthorizeRef($refresh_token);
