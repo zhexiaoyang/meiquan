@@ -52,7 +52,7 @@ class SyncStockBeiKang extends Command
                 $stock_data = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
-                        'app_medicine_code' => $item->id,
+                        'app_medicine_code' => trim($item->id),
                         'stock' => (int) $item->stock,
                     ];
                 }
