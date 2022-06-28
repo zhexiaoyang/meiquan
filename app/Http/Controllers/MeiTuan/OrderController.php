@@ -288,19 +288,21 @@ class OrderController
                     }
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] != 0) {
+                        Log::info($log_prefix . '顺丰待接单取消失败');
                         // $logs = [
                         //     "des" => "【UU订单回调】顺丰待接单取消失败",
                         //     "id" => $order->id,
                         //     "order_id" => $order->order_id
                         // ];
                         // $dingding->sendMarkdownMsgArray("【ERROR】顺丰待接单取消失败", $logs);
+                    } else {
+                        OrderLog::create([
+                            'ps' => 7,
+                            'order_id' => $order->id,
+                            'des' => '取消【顺丰】跑腿订单',
+                        ]);
+                        Log::info($log_prefix . '取消顺丰待接单订单成功');
                     }
-                    OrderLog::create([
-                        'ps' => 7,
-                        'order_id' => $order->id,
-                        'des' => '取消【顺丰】跑腿订单',
-                    ]);
-                    Log::info($log_prefix . '取消顺丰待接单订单成功');
                 }
                 // 更改信息，扣款
                 try {
