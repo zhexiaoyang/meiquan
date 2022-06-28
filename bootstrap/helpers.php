@@ -113,7 +113,14 @@ function gd2bd($lng,$lat)
 function bd2gd($lng,$lat)
 {
     $url = "https://api.map.baidu.com/geoconv/v1/?coords={$lng},{$lat}&from=5&to=3&ak=fL3camAQGEm7or6773IUG0K2dmPdTEYb";
-    $res = file_get_contents($url);
+    $arrContextOptions = [
+        'ssl' => [
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+        ]
+    ];
+    // $res = file_get_contents($url);
+    $res = file_get_contents($url, false, stream_context_create($arrContextOptions));
     $res = json_decode($res, true);
     if (isset($res['result'][0]['x'])) {
         $data['lng'] = $res['result'][0]['x'];
