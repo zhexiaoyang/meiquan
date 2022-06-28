@@ -62,7 +62,8 @@ class SyncCodeBeiKang extends Command
                 // 绑定商品编码
                 $params['app_poi_code'] = '5910555';
                 $params['medicine_data'] = json_encode($code_data);
-                $minkang->medicineCodeUpdate($params);
+                $res = $minkang->medicineCodeUpdate($params);
+                Log::info('门店「桐君阁大药房（北城天街店）:5910555」编码绑定同步-结束......', [$res]);
             }
         } else {
             $this->info('门店「桐君阁大药房（北城天街店）:5910555」空数据......');
