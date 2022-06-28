@@ -113,6 +113,18 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'beikang' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => '115.29.33.161',
+            'port' => '1433',
+            'database' => 'mt',
+            'username' => 'mt',
+            'password' => 'Mqd@20220222',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 
