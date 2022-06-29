@@ -1204,8 +1204,9 @@ class EleOrderController extends Controller
                         $this->log_info('-到店自取，不发单');
                     }
                 } else {
-                    $this->ding_error("饿了么未开通自动派单,shop_id:{$shop->id},shop_ele_id:{$shop->ele_shop_id},order_id:{$order_id}");
-                    $this->log_info('-未开通自动派单');
+                    // $this->ding_error("饿了么未开通自动派单,shop_id:{$shop->id},shop_ele_id:{$shop->ele_shop_id},order_id:{$order_id}");
+                    $this->log_info("饿了么未开通自动派单,shop_id:{$shop->id},shop_ele_id:{$shop->ele_shop_id},order_id:{$order_id}");
+                    // $this->log_info('-未开通自动派单');
                 }
                 // 打印订单
                 // if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
