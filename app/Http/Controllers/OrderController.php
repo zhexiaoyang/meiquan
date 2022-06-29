@@ -2411,8 +2411,21 @@ class OrderController extends Controller
             return $this->error("门店不存在");
         }
         // 商家设置
+        $warehouse = 0;
         $setting = OrderSetting::where("shop_id", $shop->id)->first();
         if ($setting) {
+            $warehouse = $setting->warehouse ?? 0;
+            if ($setting->warehouse && $setting->warehouse_time) {
+                $time_data = explode('-', $setting->warehouse_time);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        $this->warehouse = $setting->warehouse;
+                        $shop = Shop::find($setting->warehouse);
+                        $setting = OrderSetting::where("shop_id", $shop->id)->first();
+                        \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                    }
+                }
+            }
             $mt_switch = $setting->meituan;
             $fn_switch = $setting->fengniao;
             $ss_switch = $setting->shansong;
@@ -2420,17 +2433,6 @@ class OrderController extends Controller
             $dd_switch = $setting->dada;
             $uu_switch = $setting->uu;
             $sf_switch = $setting->shunfeng;
-
-            if ($setting->warehouse && $setting->warehouse_time) {
-                $time_data = explode('-', $setting->warehouse_time);
-                if (!empty($time_data) && (count($time_data) === 2)) {
-                    if (in_time_status($time_data[0], $time_data[1])) {
-                        $this->warehouse = $setting->warehouse;
-                        $shop = Shop::find($setting->warehouse);
-                        \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
-                    }
-                }
-            }
         }
 
         $result = [
@@ -2448,8 +2450,8 @@ class OrderController extends Controller
             'dd_switch' => $dd_switch ?? 0,
             'uu_switch' => $uu_switch ?? 0,
             'sf_switch' => $sf_switch ?? 0,
-            'warehouse' => $setting->warehouse ?? 0,
-            'warehouse_name' => isset($setting->warehouse) ? $shop->shop_name : '',
+            'warehouse' => $warehouse,
+            'warehouse_name' => $warehouse ? $shop->shop_name : '',
         ];
 
         if (!empty($shop->shippers)) {
