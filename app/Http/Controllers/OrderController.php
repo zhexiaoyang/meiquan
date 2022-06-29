@@ -2401,11 +2401,36 @@ class OrderController extends Controller
      */
     public function getShopInfoByOrder(Request $request)
     {
-        if (!$order = Order::find($request->get("order_id", 0))) {
+        $order_id = $request->get("order_id", 0);
+
+        if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
         }
-        if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
+        // if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
+        if (!$shop = Shop::find($order->shop_id)) {
             return $this->error("门店不存在");
+        }
+        // 商家设置
+        $setting = OrderSetting::where("shop_id", $shop->id)->first();
+        if ($setting) {
+            $mt_switch = $setting->meituan;
+            $fn_switch = $setting->fengniao;
+            $ss_switch = $setting->shansong;
+            $mqd_switch = $setting->meiquanda;
+            $dd_switch = $setting->dada;
+            $uu_switch = $setting->uu;
+            $sf_switch = $setting->shunfeng;
+
+            if ($setting->warehouse && $setting->warehouse_time) {
+                $time_data = explode('-', $setting->warehouse_time);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        $this->warehouse = $setting->warehouse;
+                        $shop = Shop::find($setting->warehouse);
+                        \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                    }
+                }
+            }
         }
 
         $result = [
@@ -2415,7 +2440,16 @@ class OrderController extends Controller
             'sf' => $shop->shop_id_sf ?? 0,
             'dd' => $shop->shop_id_dd ?? 0,
             'mqd' => $shop->shop_id_mqd ?? 0,
-            'uu' => $shop->shop_id_uu ?? 0
+            'uu' => $shop->shop_id_uu ?? 0,
+            'mt_switch' => $mt_switch ?? 0,
+            'fn_switch' => $fn_switch ?? 0,
+            'ss_switch' => $ss_switch ?? 0,
+            'mqd_switch' => $mqd_switch ?? 0,
+            'dd_switch' => $dd_switch ?? 0,
+            'uu_switch' => $uu_switch ?? 0,
+            'sf_switch' => $sf_switch ?? 0,
+            'warehouse' => $setting->warehouse ?? 0,
+            'warehouse_name' => isset($setting->warehouse) ? $shop->shop_name : '',
         ];
 
         if (!empty($shop->shippers)) {
