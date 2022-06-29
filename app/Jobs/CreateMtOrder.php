@@ -347,7 +347,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("门店关闭「达达」跑腿，停止「达达」派单");
         } else {
             if (!$zz_dd && !$shop->shop_id_dd) {
-                $order->fail_ss = "门店不支持达达跑腿";
+                $order->fail_dd = "门店不支持达达跑腿";
                 $this->log("门店不支持「达达」跑腿，停止「达达」派单");
             } else {
                 if ($zz_dd) {
