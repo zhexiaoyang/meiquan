@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Waimai;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
+use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\VipOrderSettlement;
 use App\Libraries\DaDaService\DaDaService;
@@ -19,6 +20,7 @@ use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
+use App\Models\WmPrinter;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
