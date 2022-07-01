@@ -267,6 +267,39 @@ class Api extends Request
         return $this->post('/v2/contract/draft', $data);
     }
 
+
+    /**
+     * ERP对接补充协议
+     * @param OnlineShop $shop
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/7/1 8:52 下午
+     */
+    public function shopDraftErp(OnlineShop $shop)
+    {
+        $data = [
+            'send' => true,
+            'category' => [
+                'id' => '2980478614300041265'
+            ],
+            'signatories' => [
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => '吉林省美全科技有限责任公司'
+                ],
+                [
+                    'tenantType' => 'COMPANY',
+                    'tenantName' => $shop->company_name,
+                    'receiver' => [
+                        'contact' => $shop->applicant_phone,
+                        'contactType' => 'MOBILE'
+                    ]
+                ]
+            ]
+        ];
+        return $this->post('/v2/contract/draft', $data);
+    }
+
     /**
      * 门店签署-获取签署链接
      * @param OnlineShop $shop

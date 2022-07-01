@@ -211,6 +211,8 @@ class ContractController extends Controller
             return $this->contract4($request);
         } elseif ($contract == 5) {
             return $this->contract5($request);
+        } elseif ($contract == 6) {
+            return $this->contract6($request);
         }
 
         return $this->error("该合同暂未开放签署，请稍等", 422);
@@ -555,6 +557,68 @@ class ContractController extends Controller
             if (isset($res['code']) && $res['code'] === 0) {
                 $this->log("-[签署合同5-成功]-[合同订单ID：{$order->id}]");
                 $order->contract_id = 5;
+                $order->three_contract_id = $res['result']['id'];
+                $order->shop_id = $shop->shop_id;
+                $order->online_shop_id = $shop->id;
+                $order->save();
+            } else {
+                return $this->error($res['message'] ?? "系统错误，请稍后再试");
+            }
+        }
+
+        $res = $q->shopContract($shop, $order->three_contract_id);
+
+        if (empty($res['result']['pageUrl'])) {
+            return $this->error($res['message']);
+        }
+
+        return $this->success(['url' => $res['result']['pageUrl'] ?? '']);
+    }
+
+    /**
+     * ERP对接补充协议
+     * @author zhangzhen
+     * @data 2022/7/1 8:47 下午
+     */
+    public function contract6(Request $request)
+    {
+        if (!$shop = OnlineShop::find(intval($request->get("shop_id")))) {
+            return $this->error("门店ID不能为空");
+        }
+
+        if ($shop->contract_auth != 2) {
+            return $this->error("未通过认证，不能签署合同", 422);
+        }
+
+        $user = $request->user();
+
+        if (!$order = ContractOrder::query()->where([
+            ["online_shop_id", $shop->id],
+            ["user_id", $user->id],
+            ['contract_id', 6],
+        ])->first()) {
+
+            $order = ContractOrder::query()->where([
+                ["user_id", $user->id],
+                ["online_shop_id", 0],
+                ['contract_id', 0],
+            ])->orderBy("id")->first();
+
+            if (!$order) {
+                $this->log("-[签署合同6-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+            }
+        }
+        $this->log("-[签署合同6]-[合同订单ID：{$order->id}]");
+
+        $config = config('qiyuesuo');
+        $q = new QiYue($config);
+
+        if (!$order->three_contract_id) {
+            $res = $q->shopDraftErp($shop);
+            if (isset($res['code']) && $res['code'] === 0) {
+                $this->log("-[签署合同6-成功]-[合同订单ID：{$order->id}]");
+                $order->contract_id = 6;
                 $order->three_contract_id = $res['result']['id'];
                 $order->shop_id = $shop->shop_id;
                 $order->online_shop_id = $shop->id;
