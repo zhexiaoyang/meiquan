@@ -1209,27 +1209,27 @@ class EleOrderController extends Controller
                     // $this->log_info('-未开通自动派单');
                 }
                 // 打印订单
-                // if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
-                //     $this->log_info('-打印订单，触发任务');
-                //     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-                // }
+                if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
+                    $this->log_info('-打印订单，触发任务');
+                    dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                }
                 // 转仓库打印
-                // if ($setting) {
-                //     if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
-                //         $this->log_info("-转单打印[setting：{$setting->id}", [$setting]);
-                //         $time_data = explode('-', $setting->warehouse_time);
-                //         $this->log_info("-转单打印-[time_data", [$time_data]);
-                //         if (!empty($time_data) && (count($time_data) === 2)) {
-                //             if (in_time_status($time_data[0], $time_data[1])) {
-                //                 $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
-                //                 if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
-                //                     $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
-                //                     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-                //                 }
-                //             }
-                //         }
-                //     }
-                // }
+                if ($setting) {
+                    if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
+                        $this->log_info("-转单打印[setting：{$setting->id}", [$setting]);
+                        $time_data = explode('-', $setting->warehouse_time);
+                        $this->log_info("-转单打印-[time_data", [$time_data]);
+                        if (!empty($time_data) && (count($time_data) === 2)) {
+                            if (in_time_status($time_data[0], $time_data[1])) {
+                                $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
+                                if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
+                                    $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
+                                    dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                                }
+                            }
+                        }
+                    }
+                }
                 // 推送ERP
             });
             if ($shop) {
