@@ -66,7 +66,7 @@ class SupplierProductController extends Controller
             $query->whereHas("depot", function ($query) use ($first, $second) {
                 $query->where("first_category", $first);
                 if ($second) {
-                    $query->where("second_category", $first);
+                    $query->where("second_category", $second);
                 }
             });
         }
@@ -249,6 +249,11 @@ class SupplierProductController extends Controller
 
         SupplierProduct::where("id", $supplierProduct->id)->increment("review_count");
 
+        $images = explode(",", $supplierProduct->depot->images);
+        if ($supplierProduct->content_images) {
+            $images = explode(",", $supplierProduct->depot->content_images);
+        }
+
         $result = [
             "id" => $supplierProduct->id,
             "number" => $supplierProduct->number,
@@ -275,7 +280,7 @@ class SupplierProductController extends Controller
             "upc" => $supplierProduct->depot->upc,
             "approval" => $supplierProduct->depot->approval,
             "cover" => $supplierProduct->depot->cover,
-            "images" => explode(",", $supplierProduct->depot->images),
+            "images" => $images,
             "generi_name" => $supplierProduct->depot->generi_name,
             "manufacturer" => $supplierProduct->depot->manufacturer
         ];
