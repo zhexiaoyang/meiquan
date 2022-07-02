@@ -92,7 +92,6 @@ class SyncCodeBeiKang extends Command
             $data = DB::connection('beikang')
                 ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
             if (!empty($data)) {
-                // $this->info('门店「桐君阁大药房（北城天街店）:5910555」不是空数据......');
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {
                     $code_data = [];
@@ -106,8 +105,8 @@ class SyncCodeBeiKang extends Command
                     // 绑定商品编码
                     $params['app_poi_code'] = $id;
                     $params['medicine_data'] = json_encode($code_data);
-                    $res = $minkang->medicineCodeUpdate($params);
-                    // Log::info('门店「桐君阁大药房（北城天街店）:5910555」编码绑定同步-结束......', [$res]);
+                    $minkang->medicineCodeUpdate($params);
+                    // $res = $minkang->medicineCodeUpdate($params);
                 }
             } else {
                 $this->info("门店「{$name}}:{$id}」空数据......");
