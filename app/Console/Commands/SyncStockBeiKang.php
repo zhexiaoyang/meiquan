@@ -79,8 +79,8 @@ class SyncStockBeiKang extends Command
         ];
 
         foreach ($shops as $name => $id) {
-            $this->info("门店「{$name}}:{$id}」编码绑定同步-开始......");
-            Log::info("门店「{$name}}:{$id}」编码绑定同步-开始......");
+            $this->info("门店「{$name}}:{$id}」库存同步-开始......");
+            Log::info("门店「{$name}}:{$id}」库存同步-开始......");
             $data = DB::connection('beikang')
                 ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
             if (!empty($data)) {
@@ -99,8 +99,8 @@ class SyncStockBeiKang extends Command
                     $minkang->medicineStock($params);
                 }
             }
-            $this->info("门店「{$name}}:{$id}」编码绑定同步-结束......");
-            Log::info("门店「{$name}}:{$id}」编码绑定同步-结束......");
+            $this->info("门店「{$name}}:{$id}」库存同步-结束......");
+            Log::info("门店「{$name}}:{$id}」库存同步-结束......");
         }
     }
 }
