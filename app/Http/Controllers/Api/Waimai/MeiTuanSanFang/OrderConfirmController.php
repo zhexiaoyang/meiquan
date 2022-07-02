@@ -7,6 +7,8 @@ use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\SendOrderToErp;
 use App\Jobs\VipOrderSettlement;
+use App\Libraries\DaDaService\DaDaService;
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\ErpAccessShop;
 use App\Models\Order;
 use App\Models\OrderDeduction;
@@ -636,59 +638,67 @@ class OrderConfirmController
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消蜂鸟订单返回失败", $logs);
                 }
             } elseif ($ps == 3) {
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     $this->log_info("取消已接单闪送跑腿订单成功");
                     try {
                         DB::transaction(function () use ($order) {
-                            // 计算扣款
-                            $jian_money = 0;
-                            if (!empty($order->receive_at)) {
-                                $jian_money = 2;
-                                $jian = time() - strtotime($order->receive_at);
-                                if ($jian >= 480) {
-                                    $jian_money = 5;
+                            if ($order->shipper_type_ss == 0) {
+                                // 计算扣款
+                                $jian_money = 0;
+                                if (!empty($order->receive_at)) {
+                                    $jian_money = 2;
+                                    $jian = time() - strtotime($order->receive_at);
+                                    if ($jian >= 480) {
+                                        $jian_money = 5;
+                                    }
+                                    if (!empty($order->take_at)) {
+                                        $jian_money = 5;
+                                    }
                                 }
-                                if (!empty($order->take_at)) {
-                                    $jian_money = 5;
-                                }
-                            }
 
-                            $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $order->money,
-                                "type" => 1,
-                                "before_money" => $current_user->money,
-                                "after_money" => ($current_user->money + $order->money),
-                                "description" => "[美团外卖]取消[闪送]订单：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $jian_money,
-                                "type" => 2,
-                                "before_money" => ($current_user->money + $order->money),
-                                "after_money" => ($current_user->money + $order->money - $jian_money),
-                                "description" => "[美团外卖]取消[闪送]订单扣款：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
+                                $current_user = DB::table('users')->find($order->user_id);
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "[美团外卖]取消[闪送]订单：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $jian_money,
+                                    "type" => 2,
+                                    "before_money" => ($current_user->money + $order->money),
+                                    "after_money" => ($current_user->money + $order->money - $jian_money),
+                                    "description" => "[美团外卖]取消[闪送]订单扣款：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                $this->log_info("取消已接单闪送跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                            } else {
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                            }
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'ss_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            $this->log_info("取消已接单闪送跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
-                            if ($jian_money > 0) {
-                                $jian_data = [
-                                    'order_id' => $order->id,
-                                    'money' => $jian_money,
-                                    'ps' => $order->ps
-                                ];
-                                OrderDeduction::create($jian_data);
-                            }
                             OrderLog::create([
                                 "order_id" => $order->id,
                                 "des" => "[美团外卖]取消[闪送]订单"
@@ -778,44 +788,64 @@ class OrderConfirmController
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
                 }
             } elseif ($ps == 5) {
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
                     $this->log_info("取消已接单达达跑腿订单成功");
                     try {
                         DB::transaction(function () use ($order) {
-                            // 计算扣款
-                            $jian_money = 0;
-                            if (!empty($order->receive_at)) {
-                                $jian = time() - strtotime($order->receive_at);
-                                if ($jian >= 60 && $jian <= 900) {
-                                    $jian_money = 2;
+                            if ($order->shipper_type_dd == 0) {
+                                // 计算扣款
+                                $jian_money = 0;
+                                if (!empty($order->receive_at)) {
+                                    $jian = time() - strtotime($order->receive_at);
+                                    if ($jian >= 60 && $jian <= 900) {
+                                        $jian_money = 2;
+                                    }
                                 }
-                            }
-                            if (!empty($order->take_at)) {
-                                $jian_money = $order->money;
-                            }
-                            // 用户余额日志
-                            $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $order->money,
-                                "type" => 1,
-                                "before_money" => $current_user->money,
-                                "after_money" => ($current_user->money + $order->money),
-                                "description" => "[美团外卖]取消[达达]订单：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
-                            if ($jian_money > 0) {
+                                if (!empty($order->take_at)) {
+                                    $jian_money = $order->money;
+                                }
+                                // 用户余额日志
+                                $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
                                     "user_id" => $order->user_id,
-                                    "money" => $jian_money,
-                                    "type" => 2,
-                                    "before_money" => ($current_user->money + $order->money),
-                                    "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "[美团外卖]取消[达达]订单扣款：" . $order->order_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "[美团外卖]取消[达达]订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
+                                if ($jian_money > 0) {
+                                    UserMoneyBalance::query()->create([
+                                        "user_id" => $order->user_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "[美团外卖]取消[达达]订单扣款：" . $order->order_id,
+                                        "tid" => $order->id
+                                    ]);
+                                }
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                $this->log_info("取消已接单达达跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                            } else {
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册不扣款");
                             }
                             // 更改订单信息
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
@@ -823,16 +853,6 @@ class OrderConfirmController
                                 'dd_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            $this->log_info("取消已接单达达跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
-                            if ($jian_money > 0) {
-                                $jian_data = [
-                                    'order_id' => $order->id,
-                                    'money' => $jian_money,
-                                    'ps' => $order->ps
-                                ];
-                                OrderDeduction::create($jian_data);
-                            }
                             OrderLog::create([
                                 "order_id" => $order->id,
                                 "des" => "[美团外卖]取消[达达]订单"
@@ -944,53 +964,61 @@ class OrderConfirmController
                     $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消UU订单返回失败", $logs);
                 }
             } elseif ($ps == 7) {
-                $sf = app("shunfeng");
+                if ($order->shipper_type_sf) {
+                    $sf = app("shunfengservice");
+                } else {
+                    $sf = app("shunfeng");
+                }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     $this->log_info("取消已接单顺丰跑腿订单成功");
                     try {
                         DB::transaction(function () use ($order, $result) {
-                            // 用户余额日志
-                            // 计算扣款
-                            $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
-                            // 当前用户
-                            $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
-                                "user_id" => $order->user_id,
-                                "money" => $order->money,
-                                "type" => 1,
-                                "before_money" => $current_user->money,
-                                "after_money" => ($current_user->money + $order->money),
-                                "description" => "[美团外卖]取消[顺丰]订单：" . $order->order_id,
-                                "tid" => $order->id
-                            ]);
-                            if ($jian_money > 0) {
+                            if ($order->shipper_type_sf == 0) {
+                                // 用户余额日志
+                                // 计算扣款
+                                $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
+                                // 当前用户
+                                $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
                                     "user_id" => $order->user_id,
-                                    "money" => $jian_money,
-                                    "type" => 2,
-                                    "before_money" => ($current_user->money + $order->money),
-                                    "after_money" => ($current_user->money + $order->money - $jian_money),
-                                    "description" => "[美团外卖]取消[顺丰]订单扣款：" . $order->order_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "[美团外卖]取消[顺丰]订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
+                                if ($jian_money > 0) {
+                                    UserMoneyBalance::query()->create([
+                                        "user_id" => $order->user_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "[美团外卖]取消[顺丰]订单扣款：" . $order->order_id,
+                                        "tid" => $order->id
+                                    ]);
+                                }
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                            } else {
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
                             }
                             DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
                                 'status' => 99,
                                 'sf_status' => 99,
                                 'cancel_at' => date("Y-m-d H:i:s")
                             ]);
-                            DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                            $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
-                            if ($jian_money > 0) {
-                                $jian_data = [
-                                    'order_id' => $order->id,
-                                    'money' => $jian_money,
-                                    'ps' => $order->ps
-                                ];
-                                OrderDeduction::create($jian_data);
-                            }
                             OrderLog::create([
                                 "order_id" => $order->id,
                                 "des" => "[美团外卖]取消[顺丰]订单"
