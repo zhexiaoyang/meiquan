@@ -2365,10 +2365,11 @@ class OrderController extends Controller
         if ($order->ps == 3) {
             if ($order->shipper_type_ss) {
                 $shansong = new ShanSongService(config('ps.shansongservice'));
+                $res_ss = $shansong->confirmGoodsReturn($order->shop_id, $order->peisong_id);
             } else {
                 $shansong = app("shansong");
+                $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
             }
-            $res_ss = $shansong->confirmGoodsReturn($order->peisong_id);
             if ($res_ss['status'] === 200) {
                 return $this->success("成功");
             } else {
