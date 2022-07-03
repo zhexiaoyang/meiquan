@@ -106,7 +106,11 @@ class OrderController
                             // 如果是VIP订单，触发结算JOB
                             // dispatch(new VipOrderSettlement($order));
                             // 退款记录
-                            $minkang = app('minkang');
+                            if ($platform == 4) {
+                                $minkang = app('minkang');
+                            } elseif ($platform == 31) {
+                                $minkang = app('meiquan');
+                            }
                             $res = $minkang->getOrderRefundDetail($order_id);
 
                             if (!empty($res['data'])) {
