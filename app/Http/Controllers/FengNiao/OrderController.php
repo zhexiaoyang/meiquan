@@ -84,7 +84,7 @@ class OrderController
                     //     "order_id" => $order->order_id
                     // ];
                     // $dd->sendMarkdownMsgArray("【ERROR】蜂鸟取消订单失败", $logs);
-                    return false;
+                    return;
                 }
                 // 记录订单日志
                 OrderLog::create([
