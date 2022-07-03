@@ -108,10 +108,11 @@ class OrderController
                             // 退款记录
                             if ($platform == 4) {
                                 $minkang = app('minkang');
+                                $res = $minkang->getOrderRefundDetail($order_id);
                             } elseif ($platform == 31) {
                                 $minkang = app('meiquan');
+                                $res = $minkang->getOrderRefundDetail($order_id, false, $order->app_poi_code);
                             }
-                            $res = $minkang->getOrderRefundDetail($order_id);
 
                             if (!empty($res['data'])) {
                                 $shop = Shop::find($order->shop_id);

@@ -420,7 +420,7 @@ class Api extends Request
      * 美团外卖获取退款记录
      * @data 2022/5/9 9:57 下午
      */
-    public function getOrderRefundDetail($order_id, $type = false)
+    public function getOrderRefundDetail($order_id, $type = false, $shop_id = '')
     {
         $params = [
             'wm_order_id_view' => $order_id
@@ -428,6 +428,10 @@ class Api extends Request
         if ($type) {
             // 退款类型：1-全额退款；2-部分退款。如不传此字段代表查询全部类型。
             $params['refund_type'] = $type;
+        }
+
+        if ($shop_id) {
+            $params['access_token'] = $this->getShopToken($shop_id);
         }
         return $this->request_get('v1/ecommerce/order/getOrderRefundDetail', $params);
     }
