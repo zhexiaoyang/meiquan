@@ -52,7 +52,7 @@ class PrescriptionImport implements ToArray
                     // 'clientName' => $v['clientName'] ?? '',
                     'storeID' => $item[1],
                     'storeName' => $item[2],
-                    'outOrderID' => $item[3],
+                    'outOrderID' => trim($item[3]),
                     // 'outRpId' => $v['outRpId'] ?? '',
                     'outDoctorName' => $item[4] ?? '',
                     'orderStatus' => $item[7] ?? '',
@@ -107,7 +107,7 @@ class PrescriptionImport implements ToArray
                     "type" => 2,
                     "before_money" => $current_user->operate_money - $user_money[$shop->user_id] + $item[5],
                     "after_money" => $current_user->operate_money - $user_money[$shop->user_id],
-                    "description" => $item[0] . "处方单:" . $item[3],
+                    "description" => $item[0] . "处方单:" . trim($item[3]),
                     "shop_id" => $shop->id,
                     // "tid" => $data->id,
                     'order_at' => $item[8]
