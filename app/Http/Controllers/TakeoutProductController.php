@@ -93,7 +93,9 @@ class TakeoutProductController extends Controller
 
         $res = [];
         $total = 0;
-        $categories = WmCategory::withCount('products')->where('shop_id', $shop_id)->orderBy('pid')->get();
+        $categories = WmCategory::withCount(['products' => function($query) use ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        }])->where('shop_id', $shop_id)->orderBy('pid')->get();
         if (!empty($categories)) {
             foreach ($categories as $category) {
                 $total += $category->products_count ?? 0;
