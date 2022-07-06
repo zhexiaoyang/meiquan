@@ -554,6 +554,11 @@ class Api extends Request
     {
         return $this->request_get('v1/retail/list', $params);
     }
+    // 根据商品名称和规格名称更换新的商品编码
+    public function updateAppFoodCodeByNameAndSpec(array $params)
+    {
+        return $this->request_post('v1/retail/updateAppFoodCodeByNameAndSpec', $params);
+    }
 
 
     /**

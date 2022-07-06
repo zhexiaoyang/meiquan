@@ -35,6 +35,16 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 外卖商品管理
+         */
+        Route::get("takeout/product", "TakeoutProductController@index");
+        Route::post("takeout/product", "TakeoutProductController@store");
+        Route::post("takeout/product/transfer", "TakeoutProductController@transfer");
+        Route::get("takeout/product/log", "TakeoutProductController@log_index");
+        Route::get("takeout/product/log/export", "TakeoutProductController@export_logs");
+        Route::get("takeout/category", "TakeoutProductController@category_index");
+
+        /**
          * 运力管理
          */
         Route::post("shipper", "ShipperController@add");
