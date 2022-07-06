@@ -694,4 +694,8 @@ class Api extends Request
     {
         return $this->request_post('v1/retail/delete', $params);
     }
+    public function shangouDeleteAll($params)
+    {
+        return $this->request_post('v1/retailCat/batchdelete/catandretail', $params);
+    }
 }
