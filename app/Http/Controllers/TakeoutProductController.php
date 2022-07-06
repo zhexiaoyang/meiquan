@@ -219,7 +219,17 @@ class TakeoutProductController extends Controller
                         $category_params['access_token'] = $access_token;
                     }
                     $res = $mt->retailCatUpdate($category_params);
-                    \Log::info("res", [$res]);
+                    $cat = WmCategory::create([
+                        'shop_id' => $shop->id,
+                        'code' => $category['code'] ?? '',
+                        'name' => $category['name'] ?? '',
+                        'sequence' => $category['sequence'] ?? 0,
+                        'top_flag' => $category['top_flag'] ?? 0,
+                        'weeks_time' => $category['weeks_time'] ?? '',
+                        'period' => $category['period'] ?? '',
+                        'smart_switch' => $category['smart_switch'] ?? 0,
+                    ]);
+                    // \Log::info("res", [$res]);
                     if (!empty($category['children'])) {
                         foreach ($category['children'] as $child) {
                             $category_params2 = [
@@ -234,7 +244,18 @@ class TakeoutProductController extends Controller
                                 $category_params2['access_token'] = $access_token;
                             }
                             $res2 = $mt->retailCatUpdate($category_params2);
-                            \Log::info("res2", [$res2]);
+                            // \Log::info("res2", [$res2]);
+                            WmCategory::create([
+                                'pid' => $cat->id,
+                                'shop_id' => $shop->id,
+                                'code' => $category['code'] ?? '',
+                                'name' => $category['name'] ?? '',
+                                'sequence' => $category['sequence'] ?? 0,
+                                'top_flag' => $category['top_flag'] ?? 0,
+                                'weeks_time' => $category['weeks_time'] ?? '',
+                                'period' => $category['period'] ?? '',
+                                'smart_switch' => $category['smart_switch'] ?? 0,
+                            ]);
                         }
                     }
                 }
@@ -280,6 +301,19 @@ class TakeoutProductController extends Controller
                     \Log::info("商品", [$res]);
                     if ($res['result_code'] == 1) {
                         $logs->success += 1;
+                        $add_product = $product->toArray();
+                        $add_product['shop_id'] = $shop->id;
+                        unset($add_product['id']);
+                        unset($add_product['created_at']);
+                        unset($add_product['updated_at']);
+                        if (!$stock_type) {
+                            $add_product['stock'] = 0;
+                        } else {
+                            if (!$online_type) {
+                                $add_product['is_sold_out'] = 1;
+                            }
+                        }
+                        WmProduct::create($add_product);
                     } elseif ($res['result_code'] == 2){
                         $logs->error += 1;
                         WmProductLogItem::insert([
@@ -297,10 +331,10 @@ class TakeoutProductController extends Controller
                             'description' => $res['error_list'][0]['msg'] ?? ''
                         ]);
                     }
-                    $logs->status = 1;
-                    $logs->total = $logs->success + $logs->error;
-                    $logs->save();
                 }
+                $logs->status = 1;
+                $logs->total = $logs->success + $logs->error;
+                $logs->save();
             }
         }
         return $this->success();
