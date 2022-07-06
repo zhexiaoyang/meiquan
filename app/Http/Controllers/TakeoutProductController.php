@@ -200,6 +200,7 @@ class TakeoutProductController extends Controller
                     'user_id' => $user_id,
                     'success' => 0,
                     'error' => 0,
+                    'fail' => 0,
                 ]);
                 $access_token = '';
                 if ($shop->meituan_bind_platform == 31) {
@@ -248,13 +249,13 @@ class TakeoutProductController extends Controller
                             WmCategory::create([
                                 'pid' => $cat->id,
                                 'shop_id' => $shop->id,
-                                'code' => $category['code'] ?? '',
-                                'name' => $category['name'] ?? '',
-                                'sequence' => $category['sequence'] ?? 0,
-                                'top_flag' => $category['top_flag'] ?? 0,
-                                'weeks_time' => $category['weeks_time'] ?? '',
-                                'period' => $category['period'] ?? '',
-                                'smart_switch' => $category['smart_switch'] ?? 0,
+                                'code' => $child['code'] ?? '',
+                                'name' => $child['name'] ?? '',
+                                'sequence' => $child['sequence'] ?? 0,
+                                'top_flag' => $child['top_flag'] ?? 0,
+                                'weeks_time' => $child['weeks_time'] ?? '',
+                                'period' => $child['period'] ?? '',
+                                'smart_switch' => $child['smart_switch'] ?? 0,
                             ]);
                         }
                     }
@@ -298,7 +299,7 @@ class TakeoutProductController extends Controller
                         $params['access_token'] = $access_token;
                     }
                     $res = $mt->retailInitData($params);
-                    \Log::info("商品", [$res]);
+                    // \Log::info("商品", [$res]);
                     if ($res['result_code'] == 1) {
                         $logs->success += 1;
                         $add_product = $product->toArray();
@@ -323,7 +324,7 @@ class TakeoutProductController extends Controller
                             'description' => $res['error_list'][0]['msg'] ?? ''
                         ]);
                     } else {
-                        $logs->error += 1;
+                        $logs->fail += 1;
                         WmProductLogItem::insert([
                             'log_id' => $logs->id,
                             'name' => $product->name,
