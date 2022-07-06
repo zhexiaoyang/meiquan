@@ -336,7 +336,7 @@ class TakeoutProductController extends Controller
                     }
                 }
                 $logs->status = 1;
-                $logs->total = $logs->success + $logs->error;
+                $logs->total = $logs->success + $logs->error + $logs->fail;
                 $logs->save();
             }
         }
