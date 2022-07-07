@@ -6,6 +6,7 @@ use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\SendOrderToErp;
+use App\Jobs\WarehouseStockSync;
 use App\Models\ErpAccessShop;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -319,6 +320,14 @@ class OrderConfirmController
                     if ($erp_shop->access_id === 4) {
                         $this->log_info("-推送ERP触发任务");
                         dispatch(new SendOrderToErp($data, $erp_shop->id));
+                    }
+                }
+                // 中心仓库存
+                if (OrderSetting::where('warehouse', $shop->id)->first()) {
+                    dispatch(new WarehouseStockSync($shop->id, $products));
+                } else {
+                    if (isset($setting->warehouse)) {
+                        dispatch(new WarehouseStockSync($setting->warehouse, $products));
                     }
                 }
             });

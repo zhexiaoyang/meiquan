@@ -698,4 +698,8 @@ class Api extends Request
     {
         return $this->request_post('v1/retailCat/batchdelete/catandretail', $params);
     }
+    public function retailSkuStock($params)
+    {
+        return $this->request_post('v1/retail/sku/stock', $params);
+    }
 }
