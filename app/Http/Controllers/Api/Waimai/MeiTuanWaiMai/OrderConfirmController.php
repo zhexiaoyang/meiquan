@@ -17,6 +17,7 @@ use App\Models\WmOrder;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
+use App\Models\WmProduct;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
@@ -327,7 +328,9 @@ class OrderConfirmController
                     dispatch(new WarehouseStockSync($shop->id, $products));
                 } else {
                     if ($setting && $setting->warehouse > 0) {
-                        dispatch(new WarehouseStockSync($setting->warehouse, $products));
+                        if (WmProduct::where('shop_id', $setting->warehouse)->first()) {
+                            dispatch(new WarehouseStockSync($setting->warehouse, $products));
+                        }
                     }
                 }
             });
