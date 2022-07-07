@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
+use App\Jobs\WarehouseCancelOrderStockSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Shop;
 use App\Models\VipBillItem;
+use App\Models\WmProduct;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\NoticeTool;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
@@ -92,6 +94,10 @@ class OrderCancelController
                 Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $wmOrder->user_id), true);
             }
             // -------------------VIP订单结算-结束----------------------
+            // 仓库库存
+            if (WmProduct::where('shop_id', $wmOrder->shop_id)->first()) {
+                dispatch(new WarehouseCancelOrderStockSync($wmOrder));
+            }
         } else {
             $this->log_info("外卖订单不存在");
         }

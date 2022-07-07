@@ -682,6 +682,10 @@ class Api extends Request
     {
         return $this->request_get('v1/retail/list', $params);
     }
+    public function retailGet($params)
+    {
+        return $this->request_get('v1/retail/get', $params);
+    }
     public function retailBatchInitData($params)
     {
         return $this->request_post('v1/retail/batchinitdata', $params);
