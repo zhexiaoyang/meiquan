@@ -326,7 +326,7 @@ class OrderConfirmController
                 if (OrderSetting::where('warehouse', $shop->id)->first()) {
                     dispatch(new WarehouseStockSync($shop->id, $products));
                 } else {
-                    if (isset($setting->warehouse)) {
+                    if ($setting && $setting->warehouse > 0) {
                         dispatch(new WarehouseStockSync($setting->warehouse, $products));
                     }
                 }
