@@ -135,6 +135,7 @@ class TakeoutProductController extends Controller
 
     public function transfer(Request $request)
     {
+        \Log::info("开始");
         // 判断门店是否存在
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择提供商品信息的门店');
@@ -234,6 +235,7 @@ class TakeoutProductController extends Controller
                     ]);
                     // \Log::info("res", [$res]);
                     if (!empty($category['children'])) {
+                        $insert_category = [];
                         foreach ($category['children'] as $child) {
                             $category_params2 = [
                                 'app_poi_code' => $shop->waimai_mt,
@@ -248,7 +250,7 @@ class TakeoutProductController extends Controller
                             }
                             $res2 = $mt->retailCatUpdate($category_params2);
                             // \Log::info("res2", [$res2]);
-                            WmCategory::create([
+                            $insert_category[] = [
                                 'pid' => $cat->id,
                                 'shop_id' => $shop->id,
                                 'code' => $child['code'] ?? '',
@@ -258,52 +260,57 @@ class TakeoutProductController extends Controller
                                 'weeks_time' => $child['weeks_time'] ?? '',
                                 'period' => $child['period'] ?? '',
                                 'smart_switch' => $child['smart_switch'] ?? 0,
-                            ]);
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ];
+                        }
+                        if (!empty($insert_category)) {
+                            WmCategory::insert($insert_category);
                         }
                     }
                 }
-                foreach ($products as $product) {
-                    $params = [
-                        'app_poi_code' => $shop->waimai_mt,
-                        'app_food_code' => $product->app_food_code,
-                        'name' => $product->name,
-                        'description' => $product->description,
-                        'standard_upc' => $product->standard_upc,
-                        'skus' => $product->skus,
-                        'price' => $product->price,
-                        'min_order_count' => $product->min_order_count,
-                        'unit' => $product->unit,
-                        'box_num' => $product->box_num,
-                        'box_price' => $product->box_price,
-                        'category_code' => $product->category_code,
-                        'is_sold_out' => $product->is_sold_out,
-                        'picture' => $product->picture,
-                        'sequence' => $product->sequence,
-                        'tag_id' => $product->tag_id,
-                        'picture_contents' => $product->picture_contents,
-                        'is_specialty' => $product->is_specialty,
-                        'video_id' => $product->video_id,
-                        'common_attr_value' => $product->common_attr_value,
-                        'is_show_upc_pic_contents' => $product->is_show_upc_pic_contents,
-                        'limit_sale_info' => $product->limit_sale_info,
-                        // 'sale_type' => $product->sale_type,
-                    ];
-                    if (!$stock_type) {
-                        $skus = json_decode($product->skus, true);
-                        $skus[0]['stock'] = 0;
-                        $params['skus'] = json_encode($skus, JSON_UNESCAPED_UNICODE);
-                    } else {
-                        if (!$online_type) {
-                            $params['is_sold_out'] = 1;
+                $product_data = $products->chunk(200);
+                foreach ($product_data as $products) {
+                    \Log::info("组合数据");
+                    $batch_data = [];
+                    $insert_data = [];
+                    foreach ($products as $product) {
+                        $params = [
+                            // 'app_poi_code' => $shop->waimai_mt,
+                            'app_spu_code' => $product->app_food_code,
+                            'name' => $product->name,
+                            'description' => $product->description,
+                            'standard_upc' => $product->standard_upc,
+                            'skus' => $product->skus,
+                            'price' => $product->price,
+                            'min_order_count' => $product->min_order_count,
+                            'unit' => $product->unit,
+                            'box_num' => $product->box_num,
+                            'box_price' => $product->box_price,
+                            'category_code' => $product->category_code,
+                            'is_sold_out' => $product->is_sold_out,
+                            'picture' => $product->picture,
+                            'sequence' => $product->sequence,
+                            'tag_id' => $product->tag_id,
+                            'picture_contents' => $product->picture_contents,
+                            'is_specialty' => $product->is_specialty,
+                            'video_id' => $product->video_id,
+                            'common_attr_value' => $product->common_attr_value,
+                            'is_show_upc_pic_contents' => $product->is_show_upc_pic_contents,
+                            'limit_sale_info' => $product->limit_sale_info,
+                            // 'sale_type' => $product->sale_type,
+                        ];
+                        if (!$stock_type) {
+                            $skus = json_decode($product->skus, true);
+                            $skus[0]['stock'] = 0;
+                            $params['skus'] = json_encode($skus, JSON_UNESCAPED_UNICODE);
+                        } else {
+                            if (!$online_type) {
+                                $params['is_sold_out'] = 1;
+                            }
                         }
-                    }
-                    if ($access_token) {
-                        $params['access_token'] = $access_token;
-                    }
-                    $res = $mt->retailInitData($params);
-                    // \Log::info("商品", [$res]);
-                    if ($res['result_code'] == 1) {
-                        $logs->success += 1;
+                        $batch_data[] = $params;
+                        // 店铺新增数据
                         $add_product = $product->toArray();
                         $add_product['shop_id'] = $shop->id;
                         unset($add_product['id']);
@@ -316,30 +323,99 @@ class TakeoutProductController extends Controller
                                 $add_product['is_sold_out'] = 1;
                             }
                         }
-                        WmProduct::create($add_product);
-                    } elseif ($res['result_code'] == 2){
-                        $logs->error += 1;
-                        WmProductLogItem::insert([
-                            'log_id' => $logs->id,
-                            'name' => $product->name,
-                            'type' => 1,
-                            'description' => $res['error_list'][0]['msg'] ?? ''
-                        ]);
-                    } else {
-                        $logs->fail += 1;
-                        WmProductLogItem::insert([
-                            'log_id' => $logs->id,
-                            'name' => $product->name,
-                            'type' => 5,
-                            'description' => $res['error_list'][0]['msg'] ?? ''
-                        ]);
+                        $insert_data[$add_product['app_food_code']] = $add_product;
+                        // if ($access_token) {
+                        //     $params['access_token'] = $access_token;
+                        // }
+                        // $res = $mt->retailInitData($params);
+                        // // \Log::info("商品", [$res]);
+                        // if ($res['result_code'] == 1) {
+                        //     $logs->success += 1;
+                        //     $add_product = $product->toArray();
+                        //     $add_product['shop_id'] = $shop->id;
+                        //     unset($add_product['id']);
+                        //     unset($add_product['created_at']);
+                        //     unset($add_product['updated_at']);
+                        //     if (!$stock_type) {
+                        //         $add_product['stock'] = 0;
+                        //     } else {
+                        //         if (!$online_type) {
+                        //             $add_product['is_sold_out'] = 1;
+                        //         }
+                        //     }
+                        //     if (WmProduct::where(['app_food_code' => $product->app_food_code, 'shop_id' => $shop->id])->first()) {
+                        //         WmProduct::where(['app_food_code' => $product->app_food_code, 'shop_id' => $shop->id])->update($add_product);
+                        //     } else {
+                        //         WmProduct::create($add_product);
+                        //     }
+                        // } elseif ($res['result_code'] == 2){
+                        //     $logs->error += 1;
+                        //     WmProductLogItem::insert([
+                        //         'log_id' => $logs->id,
+                        //         'name' => $product->name,
+                        //         'type' => 1,
+                        //         'description' => $res['error_list'][0]['msg'] ?? ''
+                        //     ]);
+                        // } else {
+                        //     $logs->fail += 1;
+                        //     WmProductLogItem::insert([
+                        //         'log_id' => $logs->id,
+                        //         'name' => $product->name,
+                        //         'type' => 5,
+                        //         'description' => $res['error_list'][0]['msg'] ?? ''
+                        //     ]);
+                        // }
                     }
+                    $query_data = [
+                        'app_poi_code' => $shop->waimai_mt,
+                        'food_data' => json_encode($batch_data, JSON_UNESCAPED_UNICODE),
+                    ];
+                    if ($access_token) {
+                        $query_data['access_token'] = $access_token;
+                    }
+                    \Log::info("请求美团创建商品");
+                    $res = $mt->retailBatchInitData($query_data);
+                    \Log::info("商品", [$res]);
+                    $error_list = $res['error_list'];
+                    $logs->success += count($products);
+                    if (!empty($error_list)) {
+                        $error_data = [];
+                        foreach ($error_list as $item) {
+                            if ($item['blockFlag'] == 2) {
+                                $logs->fail += 1;
+                                $logs->success -= 1;
+                                $error_data[] = [
+                                    'log_id' => $logs->id,
+                                    'name' => $insert_data[$item['app_spu_code']]['name'],
+                                    'type' => 1,
+                                    'description' => $res['error_list'][0]['msg'] ?? ''
+                                ];
+                                unset($insert_data[$item['app_spu_code']]);
+                            }
+                            if ($item['blockFlag'] == 1) {
+                                $logs->success -= 1;
+                                $logs->error += 1;
+                                $error_data[] = [
+                                    'log_id' => $logs->id,
+                                    'name' => $insert_data[$item['app_spu_code']]['name'],
+                                    'type' => 5,
+                                    'description' => $res['error_list'][0]['msg'] ?? ''
+                                ];
+                                unset($insert_data[$item['app_spu_code']]);
+                            }
+                        }
+                        if (!empty($error_data)) {
+                            WmProductLogItem::insert($error_data);
+                        }
+                    }
+                    WmProduct::insert($insert_data);
                 }
                 $logs->status = 1;
-                $logs->total = $logs->success + $logs->error + $logs->fail;
+                $logs->total = $logs->success + $logs->fail;
                 $logs->save();
             }
         }
+        \Log::info("结束");
         return $this->success();
     }
 
@@ -546,19 +622,23 @@ class TakeoutProductController extends Controller
                             'sale_type' => $product['sale_type'] ?? 0,
                             'stock' => $stock
                         ];
-                        $pro = WmProduct::create($params);
-                        if (!$app_food_code) {
-                            $product_update_params = [
-                                'app_poi_code' => $shop->waimai_mt,
-                                'name' => $pro->name,
-                                'category_code' => $pro->category_code,
-                                'app_spu_code' => $pro->app_food_code,
-                                'sku_id' => $pro->app_food_code,
-                            ];
-                            if ($access_token) {
-                                $product_update_params['access_token'] = $access_token;
+                        if (WmProduct::where(['app_food_code' => $app_food_code, 'shop_id' => $shop->id])->first()) {
+                            WmProduct::where(['app_food_code' => $app_food_code, 'shop_id' => $shop->id])->update($params);
+                        } else {
+                            $pro = WmProduct::create($params);
+                            if (!$app_food_code) {
+                                $product_update_params = [
+                                    'app_poi_code' => $shop->waimai_mt,
+                                    'name' => $pro->name,
+                                    'category_code' => $pro->category_code,
+                                    'app_spu_code' => $pro->app_food_code,
+                                    'sku_id' => $pro->app_food_code,
+                                ];
+                                if ($access_token) {
+                                    $product_update_params['access_token'] = $access_token;
+                                }
+                                $mt->updateAppFoodCodeByNameAndSpec($product_update_params);
                             }
-                            $mt->updateAppFoodCodeByNameAndSpec($product_update_params);
                         }
                     }
                 } else {
