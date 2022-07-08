@@ -145,7 +145,7 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        // $order = ContractOrder::query()->where("user_id", $user->id)->where(function ($query) use ($shop) {
+        // $order = ContractOrder::where("user_id", $user->id)->where(function ($query) use ($shop) {
         //     $query->where("online_shop_id", 0)->orWhere("online_shop_id", $shop->id);
         // })->orderBy("id")->first();
 
@@ -234,21 +234,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 1],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同1-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同1-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同1]-[合同订单ID：{$order->id}]");
@@ -295,21 +301,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 2],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同2-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同2-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同2]-[合同订单ID：{$order->id}]");
@@ -373,21 +385,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 3],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同3-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同3-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同3]-[合同订单ID：{$order->id}]");
@@ -451,21 +469,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 4],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同4-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同4-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同4]-[合同订单ID：{$order->id}]");
@@ -530,21 +554,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 5],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同5-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同5-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同5]-[合同订单ID：{$order->id}]");
@@ -592,21 +622,27 @@ class ContractController extends Controller
 
         $user = $request->user();
 
-        if (!$order = ContractOrder::query()->where([
+        if (!$order = ContractOrder::where([
             ["online_shop_id", $shop->id],
             ["user_id", $user->id],
             ['contract_id', 6],
         ])->first()) {
 
-            $order = ContractOrder::query()->where([
+            $order = ContractOrder::where([
                 ["user_id", $user->id],
                 ["online_shop_id", 0],
                 ['contract_id', 0],
             ])->orderBy("id")->first();
 
             if (!$order) {
-                $this->log("-[签署合同6-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
-                return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
+                $order = ContractOrder::create([
+                    "user_id" => $user->id,
+                    "order_id" => 0,
+                    "online_shop_id" => 0,
+                    "contract_id" => 0,
+                ]);
+                // $this->log("-[签署合同6-合同次数不足]", array_merge($request->all(), ['user' => $user->id]));
+                // return $this->error("次数不足，请先去商城购买电子合同签章次数", 422);
             }
         }
         $this->log("-[签署合同6]-[合同订单ID：{$order->id}]");
