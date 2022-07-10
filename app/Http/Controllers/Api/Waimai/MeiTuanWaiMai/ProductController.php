@@ -94,7 +94,7 @@ class ProductController
         }
         // 日志格式
         $this->prefix = str_replace('###', "更新商品" . get_meituan_develop_platform($platform) . "&美团门店:{$app_poi_code}", $this->prefix_title);
-        // $this->log_info('全部参数', $request->all());
+        $this->log_info('全部参数', $request->all());
 
         if (!empty($data)) {
             foreach ($data as $v) {
