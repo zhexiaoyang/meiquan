@@ -73,6 +73,10 @@ class ProductController
                         // $this->ding_exception("添加商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                     }
                 }
+
+                if ($app_poi_code == '13676234') {
+                    $this->log_info('公园道店全部参数【创建】', $request->all());
+                }
             }
         }
 
@@ -115,6 +119,10 @@ class ProductController
                         }
                     }
                 }
+
+                if ($app_poi_code == '13676234') {
+                    $this->log_info('公园道店全部参数【更新】', $request->all());
+                }
             }
         }
 
@@ -145,6 +153,10 @@ class ProductController
                             $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                         }
                     }
+                }
+
+                if ($app_poi_code == '13676234') {
+                    $this->log_info('公园道店全部参数【删除】', $request->all());
                 }
             }
         }

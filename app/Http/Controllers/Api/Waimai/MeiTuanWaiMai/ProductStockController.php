@@ -92,9 +92,9 @@ class ProductStockController
             }
         }
 
-        if ($shop_id == '13676234') {
-            $this->log_info('公园道店全部参数', $request->all());
-        }
+        // if ($shop_id == '13676234') {
+        //     $this->log_info('公园道店全部参数', $request->all());
+        // }
 
         return json_encode(["code" => 1, "message" => ""]);
     }
