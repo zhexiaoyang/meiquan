@@ -144,7 +144,10 @@ class ProductController
         if (!empty($data)) {
             foreach ($data as $v) {
                 $app_poi_code = $v['app_poi_code'];
-                $upc = $v['upc'];
+                $upc = $v['upc'] ?? '';
+                if (!$upc) {
+                    continue;
+                }
                 if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         if ($product->delete()) {
