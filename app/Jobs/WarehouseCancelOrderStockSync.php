@@ -93,9 +93,12 @@ class WarehouseCancelOrderStockSync implements ShouldQueue
                                 if (($item->sku_id == '') || ($v['sku_id'] == $item->sku_id)) {
                                     $stock = $v['stock'];
                                     if ($stock > 0) {
-                                        WmProduct::whereIn('shop_id', $shop_ids)->update([
+                                        WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $v['sku_id'])->update([
                                             'stock' => $stock
                                         ]);
+                                        // WmProduct::whereIn('shop_id', $shop_ids)->update([
+                                        //     'stock' => $stock
+                                        // ]);
                                         $skus[] = [
                                             'sku_id' => $v['sku_id'],
                                             'stock' => $stock
@@ -105,9 +108,6 @@ class WarehouseCancelOrderStockSync implements ShouldQueue
                                             'skus' => $skus,
                                         ];
                                     }
-                                    WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $v['sku_id'])->update([
-                                        'stock' => $stock
-                                    ]);
                                     break;
                                 }
                             }

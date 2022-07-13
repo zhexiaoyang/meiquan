@@ -76,7 +76,12 @@ class WarehouseStockSync implements ShouldQueue
                     }
                     if ($_sku) {
                         $_stock = ($_sku->stock - $quantity) > 0 ? ($_sku->stock - $quantity) : 0;
-                        WmProductSku::where('id', $_sku['id'])->update(['stock' => $_stock]);
+                        // WmProductSku::where('id', $_sku['id'])->update(['stock' => $_stock]);
+                        if ($_sku->sku_id) {
+                            WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $_sku->sku_id)->update([
+                                'stock' => $_stock
+                            ]);
+                        }
                         $_food_data = [
                             'app_spu_code' => $_sku->app_food_code,
                             'skus' => [
