@@ -149,6 +149,7 @@ class OrderConfirmController
                             'quantity' => $quantity,
                             'price' => $product['price'] ?? 0,
                             'spec' => $product['spec'] ?? '',
+                            'sku_id' => $product['sku_id'] ?? '',
                             'vip_cost' => 0
                         ];
                         if ($shop->vip_status) {
