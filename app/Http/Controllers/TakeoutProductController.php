@@ -95,6 +95,10 @@ class TakeoutProductController extends Controller
                 $ress = $mt->retailSkuSave($stock_params);
                 \Log::info("ressss", [$ress]);
             }
+            array_push($shop_ids, $shop->id);
+            WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $sku->sku_id)->update([
+                'stock' => $value
+            ]);
             return $this->success();
         }
 

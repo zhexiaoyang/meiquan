@@ -6,6 +6,7 @@ use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\WmOrder;
 use App\Models\WmProduct;
+use App\Models\WmProductSku;
 use App\Traits\LogTool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -59,6 +60,7 @@ class WarehouseCancelOrderStockSync implements ShouldQueue
             return;
         }
         $shop_ids = OrderSetting::where('warehouse', $warehouse)->pluck('shop_id')->toArray();
+        $shop_ids = WmProduct::whereIn('shop_id', $shop_ids)->groupBy('shop_id')->pluck('shop_id')->toArray();
         array_push($shop_ids, $warehouse);
         $this->log_info('需要同步门店ID:', $shop_ids);
         $shops = Shop::select('id', 'shop_name', 'waimai_mt', 'meituan_bind_platform')->whereIn('id', $shop_ids)->get();
@@ -86,19 +88,29 @@ class WarehouseCancelOrderStockSync implements ShouldQueue
                     if (isset($product_res['data']['skus'])) {
                         $skus_str = $product_res['data']['skus'];
                         $skus_arr = json_decode($skus_str, true);
-                        $stock = $skus_arr[0]['stock'];
-                        if ($stock > 0) {
-                            WmProduct::whereIn('shop_id', $shop_ids)->update([
-                                'stock' => $stock
-                            ]);
-                            $skus[] = [
-                                'sku_id' => $product_res['data']['app_spu_code'],
-                                'stock' => $stock
-                            ];
-                            $food_data[] = [
-                                'app_spu_code' => $product_res['data']['app_spu_code'],
-                                'skus' => $skus,
-                            ];
+                        if (!empty($skus_arr)) {
+                            foreach ($skus_arr as $v) {
+                                if (($item->sku_id == '') || ($v['sku_id'] == $item->sku_id)) {
+                                    $stock = $v['stock'];
+                                    if ($stock > 0) {
+                                        WmProduct::whereIn('shop_id', $shop_ids)->update([
+                                            'stock' => $stock
+                                        ]);
+                                        $skus[] = [
+                                            'sku_id' => $v['sku_id'],
+                                            'stock' => $stock
+                                        ];
+                                        $food_data[] = [
+                                            'app_spu_code' => $product_res['data']['app_spu_code'],
+                                            'skus' => $skus,
+                                        ];
+                                    }
+                                    WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $v['sku_id'])->update([
+                                        'stock' => $stock
+                                    ]);
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
