@@ -32,6 +32,10 @@ class TakeoutProductController extends Controller
             return $this->error('商品不存在');
         }
 
+        if (!$sku->sku_id) {
+            return $this->error('sku未绑定，不能进行此操作');
+        }
+
         if (!$shop = Shop::find($sku->shop_id)) {
             return $this->error('门店不存在');
         }
@@ -96,9 +100,15 @@ class TakeoutProductController extends Controller
                 \Log::info("ressss", [$ress]);
             }
             array_push($shop_ids, $shop->id);
-            WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $sku->sku_id)->update([
-                'stock' => $value
-            ]);
+            if ($type == 'stock') {
+                WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $sku->sku_id)->update([
+                    'stock' => $value
+                ]);
+            } elseif ($type == 'price') {
+                WmProductSku::whereIn('shop_id', $shop_ids)->where('sku_id', $sku->sku_id)->update([
+                    'price' => $value
+                ]);
+            }
             return $this->success();
         }
 
