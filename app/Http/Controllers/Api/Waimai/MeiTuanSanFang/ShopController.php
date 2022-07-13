@@ -22,6 +22,7 @@ class ShopController extends Controller
         if ($token && $shop_id) {
             $this->log('全部参数', $request->all());
             if ($shop = Shop::find($shop_id)) {
+                $shop->meituan_bind_platform = 25;
                 $shop->waimai_mt = $shop_id;
                 $shop->save();
                 if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
