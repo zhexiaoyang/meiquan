@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\WmProductLogErrorExport;
+use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\WmCategory;
 use App\Models\WmProduct;
@@ -14,6 +15,91 @@ use Illuminate\Support\Facades\DB;
 
 class TakeoutProductController extends Controller
 {
+    public function update(Request $request)
+    {
+        $sku_id = $request->get('id');
+        $type = $request->get('type');
+        $value = $request->get('value');
+        if (!$sku_id || !$type || is_null($value)) {
+            return $this->error('参数错误');
+        }
+
+        if ($value < 0) {
+            return $this->error('参数错误');
+        }
+
+        if (!$sku = WmProductSku::find($sku_id)) {
+            return $this->error('商品不存在');
+        }
+
+        if (!$shop = Shop::find($sku->shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        $access_token = '';
+        if ($shop->meituan_bind_platform == 31) {
+            $mt = app("meiquan");
+            $access_token = $mt->getShopToken($shop->waimai_mt);
+        } else {
+            $mt = app("minkang");
+        }
+
+        $sku_arr = [];
+        $sku_arr['sku_id'] = $sku->sku_id;
+        if ($type == 'stock') {
+            $sku_arr['stock'] = $value;
+        }
+        if ($type == 'price') {
+            $sku_arr['price'] = $value;
+        }
+
+        $food_data = [
+            $sku_arr
+        ];
+
+        $shop_ids = OrderSetting::where('warehouse', $shop->id)->pluck('shop_id')->toArray();
+        $shop_ids = WmProduct::whereIn('shop_id', $shop_ids)->groupBy('shop_id')->pluck('shop_id')->toArray();
+        // array_push($shop_ids, $shop->id);
+        $shops = Shop::select('id', 'shop_name', 'waimai_mt', 'meituan_bind_platform')->whereIn('id', $shop_ids)->get();
+
+        $stock_params = [
+            'app_poi_code' => $shop->waimai_mt,
+            'app_spu_code' => $sku->app_food_code,
+            'skus' => json_encode($food_data, JSON_UNESCAPED_UNICODE)
+        ];
+        if ($access_token) {
+            $stock_params['access_token'] = $access_token;
+        }
+        $res = $mt->retailSkuSave($stock_params);
+        $res_status = $res['data'] ?? '';
+        if ($res_status == 'ok') {
+            foreach ($shops as $shop_c) {
+                if (!$shop_c->waimai_mt) {
+                    continue;
+                }
+                $access_token = '';
+                if ($shop_c->meituan_bind_platform == 31) {
+                    $mt = app("meiquan");
+                    $access_token = $mt->getShopToken($shop_c->waimai_mt);
+                } else {
+                    $mt = app("minkang");
+                }
+                $stock_params = [
+                    'app_poi_code' => $shop_c->waimai_mt,
+                    'app_spu_code' => $sku->app_food_code,
+                    'skus' => json_encode($food_data, JSON_UNESCAPED_UNICODE)
+                ];
+                if ($access_token) {
+                    $stock_params['access_token'] = $access_token;
+                }
+                $ress = $mt->retailSkuSave($stock_params);
+                \Log::info("ressss", [$ress]);
+            }
+            return $this->success();
+        }
+
+        return $this->error($res['error']['msg'] ?? '更改失败', 422);
+    }
     /**
      * 商品列表
      * @param Request $request
@@ -37,7 +123,9 @@ class TakeoutProductController extends Controller
         }
         $page_size = $request->get('page_size', 10);
 
-        $query = WmProduct::select('id','name','price','cost_price','stock','picture')->where('shop_id', $shop_id);
+        $query = WmProduct::with(['skus' => function ($query) {
+            $query->select('id', 'product_id', 'price', 'stock', 'spec');
+        }])->select('id','name','price','cost_price','stock','picture')->where('shop_id', $shop_id);
 
         if ($category_id = $request->get('category')) {
             if ($category_id != 'all' && $category = WmCategory::find($category_id)) {

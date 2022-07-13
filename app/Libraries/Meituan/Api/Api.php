@@ -706,4 +706,8 @@ class Api extends Request
     {
         return $this->request_post('v1/retail/sku/stock', $params);
     }
+    public function retailSkuSave($params)
+    {
+        return $this->request_post('v1/retail/sku/save', $params);
+    }
 }

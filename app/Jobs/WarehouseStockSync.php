@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\WmProduct;
+use App\Models\WmProductSku;
 use App\Traits\LogTool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -39,6 +40,7 @@ class WarehouseStockSync implements ShouldQueue
     public function handle()
     {
         $shop_ids = OrderSetting::where('warehouse', $this->warehouse)->pluck('shop_id')->toArray();
+        $shop_ids = WmProduct::whereIn('shop_id', $shop_ids)->groupBy('shop_id')->pluck('shop_id')->toArray();
         array_push($shop_ids, $this->warehouse);
         $this->log_info('需要同步门店ID:', $shop_ids);
         $shops = Shop::select('id', 'shop_name', 'waimai_mt', 'meituan_bind_platform')->whereIn('id', $shop_ids)->get();
@@ -53,24 +55,39 @@ class WarehouseStockSync implements ShouldQueue
         foreach ($this->products as $product) {
             $app_food_code = $product['app_food_code'] ?? '';
             $quantity = $product['quantity'] ?? '';
+            $sku_id = $product['sku_id'] ?? '';
+            $spec = $product['spec'] ?? '';
             if ($app_food_code && $quantity) {
-                if ($food = WmProduct::where('shop_id', $this->warehouse)->where('app_food_code', $app_food_code)->first()) {
-                    $stock = 0;
-                    if ($food->stock >= $quantity) {
-                        $stock = $food->stock - $quantity;
+                $skus = WmProductSku::where('shop_id', $this->warehouse)->where('app_food_code', $app_food_code)->get();
+                if (!$skus->isEmpty()) {
+                    $food_data = [];
+                    $_sku = '';
+                    foreach ($skus as $k => $sku) {
+                        $_sku = $sku;
+                        if ($k) {
+                            if ($sku['sku_id'] == $sku_id) {
+                                $_sku = $sku;
+                                break;
+                            } elseif ($sku['spec'] = $spec) {
+                                $_sku = $sku;
+                                break;
+                            }
+                        }
                     }
-                    WmProduct::whereIn('shop_id', $shop_ids)->update([
-                        'stock' => $stock
-                    ]);
-                    $skus[] = [
-                        'sku_id' => $food->app_food_code,
-                        'stock' => $stock
-                    ];
-                    $food_data[] = [
-                        'app_spu_code' => $food->app_food_code,
-                        // 'skus' => json_encode($skus, JSON_UNESCAPED_UNICODE),
-                        'skus' => $skus,
-                    ];
+                    if ($_sku) {
+                        $_stock = ($_sku->stock - $quantity) > 0 ? ($_sku->stock - $quantity) : 0;
+                        WmProductSku::where('id', $_sku['id'])->update(['stock' => $_stock]);
+                        $_food_data = [
+                            'app_spu_code' => $_sku->app_food_code,
+                            'skus' => [
+                                [
+                                    'sku_id' => $_sku->sku_id,
+                                    'stock' => $_stock
+                                ]
+                            ]
+                        ];
+                    }
+                    $food_data[] = $_food_data;
                 }
             }
         }

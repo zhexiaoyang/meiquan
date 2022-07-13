@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WmProductSku extends Model
 {
-    // public $timestamps = false;
+    public $timestamps = false;
 
     // protected $casts = [
     //     'available_times' => 'json',
