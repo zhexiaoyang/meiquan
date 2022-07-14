@@ -109,36 +109,36 @@ class SyncCodeBeiKang extends Command
             '倍康大药房（嘉华路隆达嘉苑合霞店）' => '11889583',
         ];
 
-        // foreach ($shops as $name => $id) {
-        //     $this->info("门店「{$name}}:{$id}」编码绑定同步-开始......");
-        //     Log::info("门店「{$name}}:{$id}」编码绑定同步-开始......");
-        //     // $data = DB::connection('wanxiang_haidian')
-        //     //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
-        //     $data = DB::connection('beikang')
-        //         ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
-        //     if (!empty($data)) {
-        //         $data = array_chunk($data, 200);
-        //         foreach ($data as $items) {
-        //             $code_data = [];
-        //             foreach ($items as $item) {
-        //                 $code_data[] = [
-        //                     'upc' => trim($item->upc),
-        //                     'app_medicine_code_new' => trim($item->id),
-        //                 ];
-        //             }
-        //
-        //             // 绑定商品编码
-        //             $params['app_poi_code'] = $id;
-        //             $params['medicine_data'] = json_encode($code_data);
-        //             $minkang->medicineCodeUpdate($params);
-        //             // $res = $minkang->medicineCodeUpdate($params);
-        //         }
-        //     } else {
-        //         $this->info("门店「{$name}}:{$id}」空数据......");
-        //     }
-        //     $this->info("门店「{$name}}:{$id}」编码绑定同步-结束......");
-        //     Log::info("门店「{$name}}:{$id}」编码绑定同步-结束......");
-        // }
+        foreach ($shops as $name => $id) {
+            $this->info("门店「{$name}}:{$id}」编码绑定同步-开始......");
+            Log::info("门店「{$name}}:{$id}」编码绑定同步-开始......");
+            // $data = DB::connection('wanxiang_haidian')
+            //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
+            $data = DB::connection('beikang')
+                ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            if (!empty($data)) {
+                $data = array_chunk($data, 200);
+                foreach ($data as $items) {
+                    $code_data = [];
+                    foreach ($items as $item) {
+                        $code_data[] = [
+                            'upc' => trim($item->upc),
+                            'app_medicine_code_new' => trim($item->id),
+                        ];
+                    }
+
+                    // 绑定商品编码
+                    $params['app_poi_code'] = $id;
+                    $params['medicine_data'] = json_encode($code_data);
+                    $minkang->medicineCodeUpdate($params);
+                    // $res = $minkang->medicineCodeUpdate($params);
+                }
+            } else {
+                $this->info("门店「{$name}}:{$id}」空数据......");
+            }
+            $this->info("门店「{$name}}:{$id}」编码绑定同步-结束......");
+            Log::info("门店「{$name}}:{$id}」编码绑定同步-结束......");
+        }
 
         foreach ($shops2 as $name => $id) {
             $this->info("门店「{$name}}:{$id}」编码绑定同步-开始......");
