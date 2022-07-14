@@ -180,6 +180,15 @@ class Api extends Request
         return $this->post('wmoper/ng/poi/getPoiExtendInfo', $data, 16);
     }
 
+    public function ng_shop_info($shop_id)
+    {
+        $data = [
+            'epoiIds' => (string) $shop_id,
+            'appAuthToken' => $this->get_token($shop_id),
+        ];
+        return $this->post('wmoper/ng/poi/detail', $data, 16);
+    }
+
     public function get_token($shop_id, $order_id = '')
     {
         $key = 'meituan:open:token:' . $shop_id;
