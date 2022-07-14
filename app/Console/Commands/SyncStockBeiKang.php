@@ -183,7 +183,7 @@ class SyncStockBeiKang extends Command
                         Log::info("仓库同步|闪购|门店「{$name}}:{$id}」库存同步-开始......");
                         $params['app_poi_code'] = $id;
                         $params['medicine_data'] = json_encode($stock_data);
-                        $shangou['access_token'] = $shangou->getShopToken($id);
+                        $params['access_token'] = $shangou->getShopToken($id);
                         $shangou->medicineStock($params);
                     }
                 }
