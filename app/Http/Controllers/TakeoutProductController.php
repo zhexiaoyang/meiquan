@@ -149,6 +149,10 @@ class TakeoutProductController extends Controller
             }
         }
 
+        if ($name = $request->get('name')) {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
         $products = $query->paginate($page_size);
 
         return $this->success($products);
