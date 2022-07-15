@@ -15,6 +15,81 @@ use Illuminate\Support\Facades\DB;
 
 class TakeoutProductController extends Controller
 {
+    public function update_name(Request $request)
+    {
+        $product_id = $request->get('id');
+        $type = $request->get('type');
+        $value = $request->get('value');
+
+        if (!$product_id || !$type || !$value) {
+            return $this->error('参数错误');
+        }
+
+        if (!$product = WmProduct::find($product_id)) {
+            return $this->error('商品不存在');
+        }
+
+        if (!$shop = Shop::find($product->shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        $access_token = '';
+        if ($shop->meituan_bind_platform == 31) {
+            $mt = app("meiquan");
+            $access_token = $mt->getShopToken($shop->waimai_mt);
+        } else {
+            $mt = app("minkang");
+        }
+
+        $shop_ids = OrderSetting::where('warehouse', $shop->id)->pluck('shop_id')->toArray();
+        $shop_ids = WmProduct::whereIn('shop_id', $shop_ids)->groupBy('shop_id')->pluck('shop_id')->toArray();
+        $shops = Shop::select('id', 'shop_name', 'waimai_mt', 'meituan_bind_platform')->whereIn('id', $shop_ids)->get();
+
+        $stock_params = [
+            'app_poi_code' => $shop->waimai_mt,
+            'app_spu_code' => $product->app_food_code,
+            'name' => $value
+        ];
+        if ($access_token) {
+            $stock_params['access_token'] = $access_token;
+        }
+        $res = $mt->retailInitData($stock_params);
+        $res_status = $res['data'] ?? '';
+        if ($res_status == 'ok') {
+            foreach ($shops as $shop_c) {
+                if (!$shop_c->waimai_mt) {
+                    continue;
+                }
+                $access_token = '';
+                if ($shop_c->meituan_bind_platform == 31) {
+                    $mt = app("meiquan");
+                    $access_token = $mt->getShopToken($shop_c->waimai_mt);
+                } else {
+                    $mt = app("minkang");
+                }
+                $stock_params = [
+                    'app_poi_code' => $shop_c->waimai_mt,
+                    'app_spu_code' => $product->app_food_code,
+                    'name' => $value
+                ];
+                if ($access_token) {
+                    $stock_params['access_token'] = $access_token;
+                }
+                $ress = $mt->retailInitData($stock_params);
+                \Log::info("ressss", [$ress]);
+            }
+            array_push($shop_ids, $shop->id);
+            if ($type == 'name') {
+                WmProduct::whereIn('shop_id', $shop_ids)->where('app_food_code', $product->app_food_code)->update([
+                    'name' => $value
+                ]);
+            }
+            return $this->success();
+        }
+
+        return $this->error($res['error']['msg'] ?? '更改失败', 422);
+    }
+
     public function update(Request $request)
     {
         $sku_id = $request->get('id');

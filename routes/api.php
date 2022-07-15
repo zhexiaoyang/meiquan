@@ -38,6 +38,7 @@ Route::middleware(["force-json"])->group(function() {
          * 外卖商品管理
          */
         Route::get("takeout/product", "TakeoutProductController@index");
+        Route::put("takeout/product/name", "TakeoutProductController@update_name");
         Route::put("takeout/product", "TakeoutProductController@update");
         Route::post("takeout/product", "TakeoutProductController@store");
         Route::post("takeout/product/transfer", "TakeoutProductController@transfer");
