@@ -171,6 +171,7 @@ class ShopController extends Controller
                 // 商城
                 $tmp['shopping'] = $shop->auth;
                 // 三方ID
+                $tmp['meituan_bind_platform'] = $shop->meituan_bind_platform;
                 $tmp['mtwm'] = $shop->mtwm;
                 $tmp['mtwm_status'] = (bool) $shop->mtwm;
                 $tmp['mtwm_apply_id'] = $shop->apply_three_id->mtwm ?? '';
