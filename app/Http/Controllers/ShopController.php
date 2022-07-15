@@ -1110,7 +1110,14 @@ class ShopController extends Controller
             return $this->error('门店不存在');
         }
 
-        $url = Tool::binding($shop_id);
+        $type = $request->get("type");
+
+        if ($type == 2) {
+            $url = Tool::unbinding($shop_id);
+        } else {
+            $url = Tool::binding($shop_id);
+        }
+
 
         return $this->success(['url' => $url]);
     }
