@@ -2,6 +2,7 @@
 
 namespace App\Task;
 
+use App\Models\User;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Support\Facades\Redis;
 
@@ -23,6 +24,13 @@ class TakeoutOrderVoiceNoticeTask extends Task
 
     public function handle()
     {
+        if (!$user = User::find($this->user_id)) {
+            return;
+        }
+        if (!$user->voice_status) {
+            \Log::info("用户关闭声音提醒：" . $this->user_id);
+            return;
+        }
         if ($fd_str = Redis::hget('h:websocket:note_voice:user', $this->user_id)) {
             $res = [
                 'mes' => 'success',
