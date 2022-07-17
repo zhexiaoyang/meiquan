@@ -117,6 +117,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("user/me", "AuthController@me");
         // 个人中心-用户信息-修改
         Route::put("user/me", "AuthController@update");
+        // 个人中心-用户信息-声音状态修改
+        Route::post("user/update_voice_status", "AuthController@update_voice_status");
         // 个人中心-用户余额明细
         Route::get("user/balance", "UserMoneyBalanceController@index");
         // 个人中心-用户冻结余额明细

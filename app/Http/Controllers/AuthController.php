@@ -327,6 +327,7 @@ class AuthController extends Controller
         $user = [
             'id' => $request->user()->phone ?? '',
             'user_id' => $request->user()->id ?? '',
+            'voice_status' => (bool) $request->user()->voice_status,
             'name' => $request->user()->phone ?? '',
             'phone' => $request->user()->phone ?? '',
             'nickname' => $request->user()->nickname ?? '',
@@ -472,6 +473,17 @@ class AuthController extends Controller
 
         $user = $request->user();
         $user->nickname = $nick;
+        $user->save();
+
+        return $this->success();
+    }
+
+    public function update_voice_status(Request $request)
+    {
+        $status = $request->get('status');
+
+        $user = $request->user();
+        $user->voice_status = $status ? true : false;
         $user->save();
 
         return $this->success();
