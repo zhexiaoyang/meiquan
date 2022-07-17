@@ -27,7 +27,6 @@ class TakeoutOrderVoiceNoticeTask extends Task
         if (!$user = User::find($this->user_id)) {
             return;
         }
-        \Log::info("声音提醒用户", [$user]);
         if (!$user->voice_status) {
             \Log::info("用户关闭声音提醒：" . $this->user_id);
             return;
@@ -61,6 +60,13 @@ class TakeoutOrderVoiceNoticeTask extends Task
         //         $server->push($fd, $res1);
         //     }
         // }
+        if (!$user = User::find(32)) {
+            return;
+        }
+        if (!$user->voice_status) {
+            \Log::info("用户关闭声音提醒：" . 32);
+            return;
+        }
         if ($fd_str = Redis::hget('h:websocket:note_voice:user', 32)) {
             $res2 = [
                 'mes' => 'success',
