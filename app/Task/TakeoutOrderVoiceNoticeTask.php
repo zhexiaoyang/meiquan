@@ -27,6 +27,7 @@ class TakeoutOrderVoiceNoticeTask extends Task
         if (!$user = User::find($this->user_id)) {
             return;
         }
+        \Log::info("声音提醒用户", [$user]);
         if (!$user->voice_status) {
             \Log::info("用户关闭声音提醒：" . $this->user_id);
             return;
