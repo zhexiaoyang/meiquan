@@ -251,9 +251,17 @@ class WmOrderController extends Controller
             return $this->error("订单不存在");
         }
 
-        if ($print = WmPrinter::where('shop_id', $order->shop_id)->first()) {
-            dispatch(new PrintWaiMaiOrder($order, $print));
+        if (!$print = WmPrinter::where('shop_id', $order->shop_id)->first()) {
+            return $this->error("该订单门店没有绑定打印机");
         }
+
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if ($order->user_id !=  $request->user()->id) {
+                return $this->error('无权限操作此订单');
+            }
+        }
+
+        dispatch(new PrintWaiMaiOrder($order, $print));
 
         return $this->success();
     }
