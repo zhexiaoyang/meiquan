@@ -184,10 +184,14 @@ class Api extends Request
         return $this->post('sku.stock.update.batch', $data);
     }
 
-    public function skuList($data = [])
+    public function skuList($shop_id, $upc = '')
     {
-        $data['shop_id'] = '1105417150';
-        $data['upc'] = '6910439000387';
+        if ($shop_id) {
+            $data['shop_id'] = $shop_id;
+        }
+        if ($upc) {
+            $data['upc'] = $upc;
+        }
         $data['pagesize'] = 100;
 
         return $this->post('sku.list', $data);
