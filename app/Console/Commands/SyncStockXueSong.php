@@ -65,7 +65,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036929678';
+                $ele_params['shop_id'] = '32267693594';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -94,7 +94,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036899958';
+                $ele_params['shop_id'] = '32267693595';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -123,7 +123,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036859853';
+                $ele_params['shop_id'] = '32267693596';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -152,7 +152,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036829931';
+                $ele_params['shop_id'] = '32267693597';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -181,7 +181,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036829932';
+                $ele_params['shop_id'] = '32267693598';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -210,7 +210,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036899959';
+                $ele_params['shop_id'] = '32267693599';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -239,7 +239,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036929679';
+                $ele_params['shop_id'] = '32267693600';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -268,7 +268,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036939922';
+                $ele_params['shop_id'] = '32267693601';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -297,7 +297,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036839962';
+                $ele_params['shop_id'] = '32267693602';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -326,7 +326,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036829933';
+                $ele_params['shop_id'] = '32267693603';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -355,7 +355,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036839963';
+                $ele_params['shop_id'] = '32267693604';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -384,7 +384,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036929680';
+                $ele_params['shop_id'] = '32267693605';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -413,7 +413,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036939923';
+                $ele_params['shop_id'] = '32267693606';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -442,7 +442,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036939924';
+                $ele_params['shop_id'] = '32267693607';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -471,7 +471,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036939925';
+                $ele_params['shop_id'] = '32267693609';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -500,7 +500,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036849945';
+                $ele_params['shop_id'] = '32267693610';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -529,7 +529,7 @@ class SyncStockXueSong extends Command
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
 
-                $ele_params['shop_id'] = '2036859854';
+                $ele_params['shop_id'] = '32267693611';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
                 $ele->skuStockUpdate($ele_params);
             }
@@ -558,7 +558,7 @@ class SyncStockXueSong extends Command
         //         $params['medicine_data'] = json_encode($stock_data);
         //         $minkang->medicineStock($params);
         //
-        //         $ele_params['shop_id'] = '2036859854';
+        //         $ele_params['shop_id'] = '32267693608';
         //         $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
         //         $ele->skuStockUpdate($ele_params);
         //     }
