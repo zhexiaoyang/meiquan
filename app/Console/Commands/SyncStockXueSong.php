@@ -41,26 +41,33 @@ class SyncStockXueSong extends Command
     {
         $this->info('------------雪松同步库存开始------------');;
         $minkang = app("minkang");
+        $ele = app("ele");
 
         // --------------------- 雪松青年桥店:9493159 ---------------------
         $this->info('门店「雪松青年桥店:9493159」库存同步-开始......');
         Log::info('门店「雪松青年桥店:9493159」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493159' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493159' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493159';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036929678';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松青年桥店:9493159」库存同步-结束......');
@@ -70,11 +77,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松站前店:9493161」库存同步-开始......');
         Log::info('门店「雪松站前店:9493161」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493161' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493161' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -85,6 +93,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493161';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036899958';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松站前店:9493161」库存同步-结束......');
@@ -94,11 +106,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松金山店:9493163」库存同步-开始......');
         Log::info('门店「雪松金山店:9493163」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493163' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493163' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -109,6 +122,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493163';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036859853';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松金山店:9493163」库存同步-结束......');
@@ -118,11 +135,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松湖西店:9493216」库存同步-开始......');
         Log::info('门店「雪松湖西店:9493216」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493216' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493216' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -133,6 +151,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493216';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036829931';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松湖西店:9493216」库存同步-结束......');
@@ -142,11 +164,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松海棠店:9493164」库存同步-开始......');
         Log::info('门店「雪松海棠店:9493164」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493164' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493164' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -157,6 +180,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493164';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036829932';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松海棠店:9493164」库存同步-结束......');
@@ -166,11 +193,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松旗舰店:9492506」库存同步-开始......');
         Log::info('门店「雪松旗舰店:9492506」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492506' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492506' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -181,6 +209,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492506';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036899959';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松旗舰店:9492506」库存同步-结束......');
@@ -190,11 +222,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松阳光店:9493165」库存同步-开始......');
         Log::info('门店「雪松阳光店:9493165」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493165' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493165' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -205,6 +238,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493165';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036929679';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松阳光店:9493165」库存同步-结束......');
@@ -214,11 +251,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松爱心店:9493089」库存同步-开始......');
         Log::info('门店「雪松爱心店:9493089」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493089' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493089' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -229,6 +267,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493089';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036939922';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松爱心店:9493089」库存同步-结束......');
@@ -238,11 +280,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松春天店:9493167」库存同步-开始......');
         Log::info('门店「雪松春天店:9493167」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493167' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493167' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -253,6 +296,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493167';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036839962';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松春天店:9493167」库存同步-结束......');
@@ -262,11 +309,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松河畔店:9492507」库存同步-开始......');
         Log::info('门店「雪松河畔店:9492507」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492507' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492507' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -277,6 +325,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492507';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036829933';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松河畔店:9492507」库存同步-结束......');
@@ -286,11 +338,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松健康店:9492509」库存同步-开始......');
         Log::info('门店「雪松健康店:9492509」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492509' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492509' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -301,6 +354,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492509';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036839963';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松健康店:9492509」库存同步-结束......');
@@ -310,11 +367,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松溪畔店:9493168」库存同步-开始......');
         Log::info('门店「雪松溪畔店:9493168」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493168' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493168' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -325,6 +383,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493168';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036929680';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松溪畔店:9493168」库存同步-结束......');
@@ -334,11 +396,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松兴隆店:9493172」库存同步-开始......');
         Log::info('门店「雪松兴隆店:9493172」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493172' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9493172' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -349,6 +412,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9493172';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036939923';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松兴隆店:9493172」库存同步-结束......');
@@ -358,11 +425,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松碧桂园:9492664」库存同步-开始......');
         Log::info('门店「雪松碧桂园:9492664」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492664' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492664' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -373,6 +441,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492664';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036939924';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松碧桂园:9492664」库存同步-结束......');
@@ -382,11 +454,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松迎春店:9492666」库存同步-开始......');
         Log::info('门店「雪松迎春店:9492666」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492666' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492666' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -397,6 +470,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492666';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036939925';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松迎春店:9492666」库存同步-结束......');
@@ -406,11 +483,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松桂花店:9492670」库存同步-开始......');
         Log::info('门店「雪松桂花店:9492670」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492670' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492670' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -421,6 +499,10 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492670';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036849945';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松桂花店:9492670」库存同步-结束......');
@@ -430,11 +512,12 @@ class SyncStockXueSong extends Command
         $this->info('门店「雪松丁香店:9492671」库存同步-开始......');
         Log::info('门店「雪松丁香店:9492671」库存同步-开始......');
         $data = DB::connection('xuesong')
-            ->select("SELECT bianhao as id, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492671' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492671' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
         if (!empty($data)) {
-            $data = array_chunk($data, 200);
+            $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
+                $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
@@ -445,9 +528,42 @@ class SyncStockXueSong extends Command
                 $params['app_poi_code'] = '9492671';
                 $params['medicine_data'] = json_encode($stock_data);
                 $minkang->medicineStock($params);
+
+                $ele_params['shop_id'] = '2036859854';
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
         }
         $this->info('门店「雪松丁香店:9492671」库存同步-结束......');
         Log::info('门店「雪松丁香店:9492671」库存同步-结束......');
+
+        // --------------------- 雪松陈相店:9492665 ---------------------
+        // $this->info('门店「雪松陈相店:9492665」库存同步-开始......');
+        // Log::info('门店「雪松陈相店:9492665」库存同步-开始......');
+        // $data = DB::connection('xuesong')
+        //     ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'9492671' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        // if (!empty($data)) {
+        //     $data = array_chunk($data, 100);
+        //     foreach ($data as $items) {
+        //         $stock_data = [];
+        //         $stock_data_ele = [];
+        //         foreach ($items as $item) {
+        //             $stock_data[] = [
+        //                 'app_medicine_code' => $item->id,
+        //                 'stock' => (int) $item->stock,
+        //             ];
+        //         }
+        //
+        //         $params['app_poi_code'] = '9492665';
+        //         $params['medicine_data'] = json_encode($stock_data);
+        //         $minkang->medicineStock($params);
+        //
+        //         $ele_params['shop_id'] = '2036859854';
+        //         $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+        //         $ele->skuStockUpdate($ele_params);
+        //     }
+        // }
+        // $this->info('门店「雪松陈相店:9492665」库存同步-结束......');
+        // Log::info('门店「雪松陈相店:9492665」库存同步-结束......');
     }
 }
