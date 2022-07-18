@@ -309,7 +309,7 @@ class OrderConfirmController
                             if (in_time_status($time_data[0], $time_data[1])) {
                                 $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
                                 if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
-                                    $this->ding_error("转单打印成功");
+                                    // $this->ding_error("转单打印成功");
                                     $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
                                     dispatch(new PrintWaiMaiOrder($order_wm, $print));
                                 }
