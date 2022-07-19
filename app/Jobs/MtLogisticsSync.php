@@ -236,7 +236,7 @@ class MtLogisticsSync implements ShouldQueue
                     "courier_phone" => $this->order->courier_phone,
                     "logistics_status" => $status,
                     "access_token" => $meituan->getShopToken($shop->waimai_mt),
-                    "app_poi_code" => $shop->mt_shop_id,
+                    "app_poi_code" => $shop->waimai_mt,
                     "third_carrier_order_id" => $this->order->peisong_id,
                     'logistics_provider_code' => $codes[$this->order->ps ?: 4],
                     'latitude' => $this->order->courier_lat,
