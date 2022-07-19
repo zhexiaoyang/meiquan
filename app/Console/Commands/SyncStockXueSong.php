@@ -88,6 +88,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493161';
@@ -117,6 +118,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493163';
@@ -146,6 +148,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493216';
@@ -175,6 +178,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493164';
@@ -204,6 +208,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492506';
@@ -233,6 +238,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493165';
@@ -262,6 +268,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493089';
@@ -291,6 +298,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493167';
@@ -320,6 +328,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492507';
@@ -349,6 +358,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492509';
@@ -378,6 +388,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493168';
@@ -407,6 +418,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9493172';
@@ -436,6 +448,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492664';
@@ -465,6 +478,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492666';
@@ -494,6 +508,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492670';
@@ -523,6 +538,7 @@ class SyncStockXueSong extends Command
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
+                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
                 $params['app_poi_code'] = '9492671';
@@ -552,6 +568,7 @@ class SyncStockXueSong extends Command
         //                 'app_medicine_code' => $item->id,
         //                 'stock' => (int) $item->stock,
         //             ];
+        //             $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
         //         }
         //
         //         $params['app_poi_code'] = '9492665';
