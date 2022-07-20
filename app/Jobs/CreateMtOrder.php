@@ -226,6 +226,7 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  顺  丰  跑  腿  ***********************************
         // **********************************************************************************
         // 判断是否开启顺丰跑腿(是否存在顺丰的门店ID，设置是否打开，没用失败信息)
+        $sf_add_money = $add_money;
         if ($order->fail_sf) {
             $this->log("已经有「顺丰」失败信息：{$order->fail_sf}，停止「顺丰」派单");
         } elseif ($order->sf_status != 0) {
@@ -244,13 +245,13 @@ class CreateMtOrder implements ShouldQueue
                 if ($zz_sf) {
                     $sf = app("shunfengservice");
                     $this->log("自助注册「顺丰」发单");
-                    $add_money = 0;
+                    $sf_add_money = 0;
                 } else {
                     $sf = app("shunfeng");
                     $this->log("聚合运力「顺丰」发单");
                 }
                 $check_sf= $sf->precreateorder($order, $shop);
-                $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                $money_sf = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $sf_add_money;
                 $this->log("「顺丰」金额：{$money_sf}");
                 if (isset($check_sf['error_code']) && ($check_sf['error_code'] == 0) && ($money_sf >= 1)) {
                     // 判断用户金额是否满足顺丰订单
@@ -287,6 +288,7 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  U  U  跑  腿  ************************************
         // **********************************************************************************
         // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没有失败信息)
+        $uu_add_money = $add_money;
         if ($order->fail_uu) {
             $this->log("已经有「UU」失败信息：{$order->fail_uu}，停止「UU」派单");
         } elseif ($order->uu_status != 0) {
@@ -300,7 +302,7 @@ class CreateMtOrder implements ShouldQueue
         } else {
             $uu = app("uu");
             $check_uu= $uu->orderCalculate($order, $shop);
-            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + $add_money;
+            $money_uu = (($check_uu['need_paymoney'] ?? 0)) + $uu_add_money;
             $addfee =  isset($check_uu['addfee']) ? intval($check_uu['addfee']) : 0;
             $money_uu_total = $check_uu['total_money'] ?? 0;
             $money_uu_need = $check_uu['need_paymoney'] ?? 0;
@@ -335,6 +337,7 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  达  达  跑  腿  ***********************************
         // **********************************************************************************
         // 判断是否开启达达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
+        $dd_add_money = $add_money;
         if ($order->fail_dd) {
             $this->log("已经有「达达」失败信息：{$order->fail_dd}，停止「达达」派单");
         } elseif ($order->dd_status != 0) {
@@ -355,13 +358,13 @@ class CreateMtOrder implements ShouldQueue
                     $config['source_id'] = $zz_dd_source;
                     $dada = new DaDaService($config);
                     $this->log("自助注册「达达」发单");
-                    $add_money = 0;
+                    $dd_add_money = 0;
                 } else {
                     $dada = app("dada");
                     $this->log("聚合运力「达达」发单");
                 }
                 $check_dd= $dada->orderCalculate($shop, $order);
-                $money_dd = (($check_dd['result']['fee'] ?? 0)) + $add_money;
+                $money_dd = (($check_dd['result']['fee'] ?? 0)) + $dd_add_money;
                 $this->log("「达达」金额：{$money_dd}");
                 if (isset($check_dd['code']) && ($check_dd['code'] === 0) && ($money_dd > 1) ) {
                     // 判断用户金额是否满足达达订单
@@ -388,6 +391,7 @@ class CreateMtOrder implements ShouldQueue
         // *****************************  美  全  达  跑  腿  *********************************
         // **********************************************************************************
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
+        // $dd_add_money = $add_money;
         if (false) {
             // $this->log("关闭美全达派单");
         } elseif ($order->fail_mqd) {
@@ -513,6 +517,7 @@ class CreateMtOrder implements ShouldQueue
         // **********************************************************************************
         // ******************************  闪  送  跑  腿  ***********************************
         // **********************************************************************************
+        $dd_add_money = $add_money;
         // 判断闪送是否可以接单、并加入数组
         if ($order->fail_ss) {
             $this->log("已经有「闪送」失败信息：{$order->fail_ss}，停止「闪送」派单");
@@ -530,7 +535,7 @@ class CreateMtOrder implements ShouldQueue
                 $this->log("门店不支持「闪送」跑腿，停止「闪送」派单");
             } else {
                 if ($zz_ss) {
-                    $add_money = 0;
+                    $dd_add_money = 0;
                     $shansong = new ShanSongService(config('ps.shansongservice'));
                     $this->log("自助注册「闪送」发单");
                 } else {
@@ -538,7 +543,7 @@ class CreateMtOrder implements ShouldQueue
                     $this->log("聚合运力「闪送」发单");
                 }
                 $check_ss = $shansong->orderCalculate($shop, $order);
-                $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+                $money_ss = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $dd_add_money;
                 $this->log("「闪送」金额：{$money_ss}");
                 if (isset($check_ss['status']) && ($check_ss['status'] === 200) && ($money_ss > 1) ) {
                     if (isset($check_ss['data']['feeInfoList']) && !empty($check_ss['data']['feeInfoList'])) {
