@@ -15,6 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class TakeoutProductController extends Controller
 {
+    /**
+     * 更改名称
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/7/20 9:11 下午
+     */
     public function update_name(Request $request)
     {
         $product_id = $request->get('id');
@@ -90,6 +97,13 @@ class TakeoutProductController extends Controller
         return $this->error($res['error']['msg'] ?? '更改失败', 422);
     }
 
+    /**
+     * 更新价格、库存
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/7/20 9:12 下午
+     */
     public function update(Request $request)
     {
         $sku_id = $request->get('id');
@@ -189,6 +203,7 @@ class TakeoutProductController extends Controller
 
         return $this->error($res['error']['msg'] ?? '更改失败', 422);
     }
+
     /**
      * 商品列表
      * @param Request $request
