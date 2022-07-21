@@ -293,7 +293,8 @@ class SyncStockWanXiang extends Command
 
                 $params['app_poi_code'] = '10493939';
                 $params['medicine_data'] = json_encode($stock_data);
-                $meiquan->medicineStock($params);
+                $res = $meiquan->medicineStock($params);
+                Log::info("res", $res);
 
                 $ele_params['shop_id'] = '503071024';
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
