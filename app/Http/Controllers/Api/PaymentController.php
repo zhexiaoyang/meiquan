@@ -45,7 +45,7 @@ class PaymentController
                 'amount'        => $data->total_fee / 100,
             ]);
             \Log::info("将订单标记为已支付结束");
-            $user = User::query()->find($order->user_id);
+            $user = User::find($order->user_id);
 
             if ($order->type === 3) {
                 \Log::info("运营余额充值");
@@ -161,7 +161,7 @@ class PaymentController
                 'amount'        => $data->total_fee / 100,
             ]);
             \Log::info("将订单标记为已支付结束");
-            $user = User::query()->find($order->user_id);
+            $user = User::find($order->user_id);
 
             if ($order->type === 3) {
                 \Log::info("运营余额充值");
@@ -281,7 +281,7 @@ class PaymentController
                 'amount'        => $data->total_fee / 100,
             ]);
             \Log::info("将订单标记为已支付结束");
-            $user = User::query()->find($order->user_id);
+            $user = User::find($order->user_id);
             if ($order->type === 3) {
                 \Log::info("运营余额充值-增加运营余额");
                 DB::table('users')->where("id", $order->user_id)->increment('operate_money', $order->amount);
@@ -354,7 +354,7 @@ class PaymentController
             ]);
             \Log::info("将订单标记为已支付结束");
 
-            $user = User::query()->find($order->user_id);
+            $user = User::find($order->user_id);
             if ($order->type === 2) {
                 \Log::info("冻结余额充值");
                 \Log::info("增加冻结余额");
@@ -430,12 +430,12 @@ class PaymentController
         $data  = Pay::wechat(config("pay.wechat_supplier"))->verify($request->getContent());
         \Log::info('[商城订单-微信支付回调-全部参数]', [$data]);
         // 找到对应的订单
-        $orders = SupplierOrder::query()->where('no', $data->out_trade_no)->get();
+        $orders = SupplierOrder::where('no', $data->out_trade_no)->get();
 
         // 订单不存在
         if ($orders->isEmpty()) {
             \Log::info('商城订单-微信支付回调-订单号为空', [ $data ]);
-            $orders = SupplierOrder::query()->where('pay_no', $data->out_trade_no)->get();
+            $orders = SupplierOrder::where('pay_no', $data->out_trade_no)->get();
             if ($orders->isEmpty()) {
                 \Log::info('商城订单-微信支付回调-交易单号为空', [ $data ]);
                 return $this->wechat();
