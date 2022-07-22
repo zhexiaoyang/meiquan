@@ -461,11 +461,15 @@ class Api extends Request
         return $this->request_get('v1/ecommerce/order/syncEstimateArrivalTime', $params);
     }
 
-    public function orderConfirm($order_id)
+    public function orderConfirm($order_id, $mt_shop_id = '')
     {
         $params = [
             'order_id' => $order_id,
         ];
+
+        if ($mt_shop_id) {
+            $params['access_token'] = $this->getShopToken($mt_shop_id);
+        }
         return $this->request_get('v1/order/confirm', $params);
     }
 
