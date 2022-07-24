@@ -13,8 +13,18 @@ class WmProductSku extends Model
     // ];
 
     protected $fillable = ['shop_id','app_poi_code','app_food_code','product_id','box_num','box_price','ladder_box_num',
-        'ladder_box_price','location_code','min_order_count','price','sku_id','spec','unit','upc','weight_unit',
+        'ladder_box_price','location_code','min_order_count','price','cost','sku_id','spec','unit','upc','weight_unit',
         'isSellFlag','weight_for_unit','stock','limit_open_sync_stock_now','available_times'];
+
+    public function product()
+    {
+        return $this->belongsTo(WmProduct::class, 'product_id', 'id');
+    }
+
+    public function shop()
+    {
+        return $this->belongsTo(Shop::class, 'shop_id', 'id');
+    }
 
     // protected static function boot()
     // {

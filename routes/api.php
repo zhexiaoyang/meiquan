@@ -38,6 +38,7 @@ Route::middleware(["force-json"])->group(function() {
          * 外卖商品管理
          */
         Route::get("takeout/product", "TakeoutProductController@index");
+        Route::put("takeout/product/cost", "TakeoutProductController@update_cost");
         Route::put("takeout/product/name", "TakeoutProductController@update_name");
         Route::put("takeout/product", "TakeoutProductController@update");
         Route::post("takeout/product", "TakeoutProductController@store");
@@ -45,6 +46,10 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("takeout/product/log", "TakeoutProductController@log_index");
         Route::get("takeout/product/log/export", "TakeoutProductController@export_logs");
         Route::get("takeout/category", "TakeoutProductController@category_index");
+        // VIP商品-导入
+        Route::post('takeout/product/import', 'TakeoutProductController@import');
+        // VIP商品-导出
+        Route::get('takeout/product/export', 'TakeoutProductController@export');
 
         /**
          * 运力管理
