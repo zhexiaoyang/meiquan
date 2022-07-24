@@ -82,7 +82,7 @@ class DaDaOrderController
                     return ['status' => 'err'];
                 }
                 if ($result['msg'] == '订单已取消,无法重复取消') {
-                    return ['status' => 'err'];
+                    return ['status' => 'false'];
                 }
                 // 记录订单日志
                 OrderLog::create([
