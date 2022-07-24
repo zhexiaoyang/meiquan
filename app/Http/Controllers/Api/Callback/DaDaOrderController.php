@@ -81,6 +81,9 @@ class DaDaOrderController
                     $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-失败");
                     return ['status' => 'err'];
                 }
+                if ($result['msg'] == '订单已取消,无法重复取消') {
+                    return ['status' => 'err'];
+                }
                 // 记录订单日志
                 OrderLog::create([
                     'ps' => 5,
