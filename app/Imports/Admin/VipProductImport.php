@@ -18,7 +18,7 @@ class VipProductImport implements ToArray
         if (!empty($array)) {
             if (!empty($array)) {
                 foreach ($array as $item) {
-                    if (is_numeric($item[0])) {
+                    if (is_numeric($item[0]) && is_numeric($item[7])) {
                         VipProduct::where('id', $item[0])->update(['cost' => $item[7], 'updated_at' => date("Y-m-d H:i:s")]);
                     }
                 }
