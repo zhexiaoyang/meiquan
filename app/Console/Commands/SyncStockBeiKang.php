@@ -160,7 +160,7 @@ class SyncStockBeiKang extends Command
             $this->info("仓库同步......");
             Log::info("仓库同步......");
             $data = DB::connection('beikang')
-                ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'5910555' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+                ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'11889499' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
             if (!empty($data)) {
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {
