@@ -48,6 +48,7 @@ class TakeoutProductExport extends DefaultValueBinder implements WithStrictNullC
             $sku->product->name ?? '',
             $sku->spec,
             $sku->upc,
+            $sku->stock,
             $sku->price,
             $sku->cost,
         ];
@@ -61,6 +62,7 @@ class TakeoutProductExport extends DefaultValueBinder implements WithStrictNullC
             '商品名称',
             '商品规格',
             '条码',
+            '库存',
             '销售价格',
             '成本价格',
         ];
