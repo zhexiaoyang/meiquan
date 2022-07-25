@@ -19,8 +19,8 @@ class TakeoutProductImport implements ToArray
         if (!empty($array)) {
             if (!empty($array)) {
                 foreach ($array as $item) {
-                    if (is_numeric($item[0]) && is_numeric($item[6])) {
-                        WmProductSku::where('id', $item[0])->update(['cost' => $item[6]]);
+                    if (is_numeric($item[0]) && is_numeric($item[7])) {
+                        WmProductSku::where('id', $item[0])->update(['cost' => $item[7]]);
                     }
                 }
             }
