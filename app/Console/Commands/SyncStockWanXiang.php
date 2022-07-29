@@ -248,7 +248,7 @@ class SyncStockWanXiang extends Command
             ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
         if (!empty($data)) {
             $data = array_chunk($data, 100);
-            $meituan = app("minkang");
+            $meituan = app("meiquan");
             $ele = app("ele");
             foreach ($data as $items) {
                 $stock_data = [];
