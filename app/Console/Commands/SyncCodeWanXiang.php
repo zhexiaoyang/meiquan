@@ -257,6 +257,7 @@ class SyncCodeWanXiang extends Command
                 // 绑定商品编码
                 $params['app_poi_code'] = '14971401';
                 $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('14971401');
                 $meituan->medicineCodeUpdate($params);
             }
         }
