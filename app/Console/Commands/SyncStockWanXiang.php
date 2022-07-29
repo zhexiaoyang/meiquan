@@ -263,6 +263,7 @@ class SyncStockWanXiang extends Command
 
                 $params['app_poi_code'] = '14971401';
                 $params['medicine_data'] = json_encode($stock_data);
+                $params['access_token'] = $meiquan->getShopToken('14971401');
                 $meituan->medicineStock($params);
 
                 $ele_params['shop_id'] = '1105417150';
