@@ -410,7 +410,7 @@ class OrderConfirmController
         }
         if ($order_pt = Order::where('order_id', $order_id)->first()) {
             if ($order_pt->status == 0) {
-                $order_pt->status = 70;
+                $order_pt->status = 75;
                 $order_pt->over_at = date("Y-m-d H:i:s");
                 $order_pt->save();
                 OrderLog::create([
@@ -646,22 +646,26 @@ class OrderConfirmController
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     $this->log_info("取消已接单闪送跑腿订单成功");
+                    // 计算扣款
+                    $jian_money = 0;
+                    if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
+                        $jian_money = $result['data']['deductAmount'];
+                        \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
+                    } else {
+                        if (!empty($order->receive_at)) {
+                            $jian_money = 2;
+                            $jian = time() - strtotime($order->receive_at);
+                            if ($jian >= 480) {
+                                $jian_money = 5;
+                            }
+                            if (!empty($order->take_at)) {
+                                $jian_money = 5;
+                            }
+                        }
+                    }
                     try {
-                        DB::transaction(function () use ($order) {
+                        DB::transaction(function () use ($order, $jian_money) {
                             if ($order->shipper_type_ss == 0) {
-                                // 计算扣款
-                                $jian_money = 0;
-                                if (!empty($order->receive_at)) {
-                                    $jian_money = 2;
-                                    $jian = time() - strtotime($order->receive_at);
-                                    if ($jian >= 480) {
-                                        $jian_money = 5;
-                                    }
-                                    if (!empty($order->take_at)) {
-                                        $jian_money = 5;
-                                    }
-                                }
-
                                 $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
                                     "user_id" => $order->user_id,
