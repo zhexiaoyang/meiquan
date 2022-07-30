@@ -410,7 +410,7 @@ class CreateMtOrder implements ShouldQueue
             $money_mqd = $check_mqd['data']['pay_fee'] ?? 0;
             $money_mqd += $add_money;
             $this->log("「美全达」金额：{$money_mqd}");
-            if ($money_mqd > 1) {
+            if ($money_mqd > 0) {
                 // 判断用户金额是否满足美全达订单
                 if ($user->money < ($money_mqd + $use_money)) {
                     if ($order->status < 20) {
