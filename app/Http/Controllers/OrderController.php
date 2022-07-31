@@ -147,6 +147,29 @@ class OrderController extends Controller
         return $this->success($orders);
     }
 
+    public function index_statistics(Request $request)
+    {
+        $orders = Order::query()->select(DB::raw('
+            count(status=0 or null) as xin,
+            count(status=30 or null) as wei,
+            count(status=50 or null) as qu,
+            count(status=60 or null) as song,
+            count(status=null) as yi,
+            count(status=null) as tui,
+            count(status=null) as cui
+        '))
+            ->whereIn('status', [0, 30, 50, 60])
+            ->first()->toArray();
+
+        foreach ($orders as $k => $v) {
+            if (!$v) {
+                $orders[$k] = '-';
+            }
+        }
+
+        return $this->success($orders);
+    }
+
     /**
      * 创建订单
      * @param Request $request
