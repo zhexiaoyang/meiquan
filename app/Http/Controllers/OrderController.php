@@ -405,6 +405,7 @@ class OrderController extends Controller
     {
         // $order->status = $order->status_label;
         $order->load("deduction");
+        $order->load("products");
         $order->load(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }]);
