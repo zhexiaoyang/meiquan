@@ -404,12 +404,34 @@ class OrderController extends Controller
     public function show(Order $order)
     {
         // $order->status = $order->status_label;
+        $order->load("order.receives");
         $order->load("deduction");
         $order->load("products");
         $order->load(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }]);
         $order->load("logs");
+        if ($wm_order = $order->order) {
+            unset($order->order);
+            $order->online_payment = $wm_order->online_payment;
+            $order->service_fee = $wm_order->service_fee;
+            $order->logistics_fee = $wm_order->logistics_fee;
+            $order->poi_receive = $wm_order->poi_receive;
+
+            $ping_fee = 0;
+            $poi_fee = 0;
+            if (!empty($wm_order->receives)) {
+                foreach ($wm_order->receives as $receive) {
+                    if ($receive->type == 1) {
+                        $ping_fee += $receive->money;
+                    } else {
+                        $poi_fee += $receive->money;
+                    }
+                }
+            }
+            $order->ping_fee = $ping_fee;
+            $order->poi_fee = $poi_fee;
+        }
         return $this->success($order);
     }
 
