@@ -156,9 +156,9 @@ class OrderController extends Controller
             count(status=50 or null) as qu,
             count(status=60 or null) as song,
             count(status=5 or status=7 or status=10 or null) as yi,
-            // count(status=null) as tui,
             count(status=null) as cui
         '))
+            // count(status=null) as tui,
             ->whereIn('status', [0, 20, 50, 60])
             ->first()->toArray();
 
