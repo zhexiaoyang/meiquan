@@ -151,11 +151,12 @@ class OrderController extends Controller
     {
         $orders = Order::query()->select(DB::raw('
             count(status=0 or null) as xin,
+            count(status=8 or status=2 or null) as fa,
             count(status=20 or null) as wei,
             count(status=50 or null) as qu,
             count(status=60 or null) as song,
-            count(status=null) as yi,
-            count(status=null) as tui,
+            count(status=5 or status=7 or status=10 or null) as yi,
+            // count(status=null) as tui,
             count(status=null) as cui
         '))
             ->whereIn('status', [0, 20, 50, 60])
