@@ -149,7 +149,7 @@ class OrderController extends Controller
 
     public function index_statistics(Request $request)
     {
-        $orders = Order::query()->select(DB::raw('
+        $orders = Order::select(DB::raw('
             count(status=0 or null) as xin,
             count(status=8 or status=3 or null) as fa,
             count(status=20 or null) as wei,
@@ -160,6 +160,7 @@ class OrderController extends Controller
         '))
             // count(status=null) as tui,
             ->whereIn('status', [0, 20, 50, 60, 3,8,5,7])
+            ->where('created_at', '>=', date("Y-m-d H:i:s", time() - 86400 * 2))
             ->first()->toArray();
 
         foreach ($orders as $k => $v) {
