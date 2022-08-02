@@ -151,7 +151,7 @@ class OrderController extends Controller
     {
         $orders = Order::query()->select(DB::raw('
             count(status=0 or null) as xin,
-            count(status=8 or status=2 or null) as fa,
+            count(status=8 or status=3 or null) as fa,
             count(status=20 or null) as wei,
             count(status=50 or null) as qu,
             count(status=60 or null) as song,
@@ -159,7 +159,7 @@ class OrderController extends Controller
             count(status=null) as cui
         '))
             // count(status=null) as tui,
-            ->whereIn('status', [0, 20, 50, 60])
+            ->whereIn('status', [0, 20, 50, 60, 3,8,5,7])
             ->first()->toArray();
 
         foreach ($orders as $k => $v) {
