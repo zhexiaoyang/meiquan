@@ -408,7 +408,7 @@ class OrderController extends Controller
         $order->load("deduction");
         $order->load("products");
         $order->load(['shop' => function($query) {
-            $query->select('id', 'shop_id', 'shop_name');
+            $query->select('id', 'shop_id', 'shop_name', 'shop_lng', 'shop_lat');
         }]);
         $order->load("logs");
         if ($wm_order = $order->order) {
