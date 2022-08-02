@@ -45,6 +45,121 @@ class OrderController extends Controller
             $query->select('id', 'order_id', 'food_name', 'quantity', 'spec', 'price');
         }, 'order' => function($query) {
             $query->select('id', 'order_id', 'ctime');
+        }])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
+            'receiver_address','tool','ps',
+            'mt_status','money_mt','fail_mt',
+            'fn_status','money_fn','fail_fn',
+            'ss_status','money_ss','fail_ss',
+            'mqd_status','money_mqd','fail_mqd',
+            'dd_status','money_dd','fail_dd',
+            'uu_status','money_uu','fail_uu',
+            'sf_status','money_sf','fail_sf',
+            'courier_name','courier_phone','warehouse_id','day_seq','wm_poi_name','caution','wm_id',
+            'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
+            'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
+
+        // 关键字搜索
+        if ($search_key) {
+            $query->where(function ($query) use ($search_key) {
+                $query->where('delivery_id', 'like', "%{$search_key}%")
+                    ->orWhere('order_id', 'like', "%{$search_key}%")
+                    ->orWhere('peisong_id', 'like', "%{$search_key}%")
+                    ->orWhere('receiver_name', 'like', "%{$search_key}%")
+                    ->orWhere('receiver_phone', 'like', "%{$search_key}%");
+            });
+        }
+
+        if ($shop_id) {
+            $query->where("shop_id", $shop_id);
+        }
+
+        // 判断可以查询的药店
+        // if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+
+        // 状态查询
+        if (!is_null($status)) {
+            if (is_numeric($status)) {
+                $query->where('status', $status);
+            } else {
+                // $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+                // $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+                // $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+                // $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+                if ($status === 'dai') {
+                    $query->whereIn("status", [0,3,5,7,8,10]);
+                } elseif ($status === 'jin') {
+                    $query->whereIn("status", [20,30,40,50,60]);
+                } elseif ($status === 'wan') {
+                    $query->where("status", 70);
+                } elseif ($status === 'qu') {
+                    $query->whereIn("status", [80,99]);
+                }
+            }
+        }
+
+        // 查询订单
+        $orders = $query->withCount(['products as products_sum' => function($query){
+            $query->select(DB::raw("sum(quantity) as products_sum"));
+        }])->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
+
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if (in_array($order->status, [3,8,20 ,30 ,40 ,50 ,60])) {
+                    $order->is_cancel = 1;
+                } else {
+                    $order->is_cancel = 0;
+                }
+                // $order->status_code = $order->status;
+                // $order->status = $order->status_label;
+                if (isset($order->shop->shop_name)) {
+                    $order->shop_name = $order->shop->shop_name;
+                } else {
+                    $order->shop_name = "";
+                }
+                if (isset($order->warehouse->shop_name)) {
+                    $order->warehouse_name = $order->warehouse->shop_name;
+                } else {
+                    $order->warehouse = "";
+                }
+                $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
+                $number = 0;
+                if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
+                    if ($setting = OrderSetting::query()->where("shop_id", $order->shop_id)->first()) {
+                        $ttl = $setting->delay_send;
+                    } else {
+                        $ttl = config("ps.shop_setting.delay_send");
+                    }
+                    $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
+                }
+                if ($order->status == 8 && $number == 0 ) {
+                    $order->status = 0;
+                }
+                $order->number = $number;
+                $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
+                unset($order->order);
+                unset($order->shop);
+                unset($order->warehouse);
+            }
+        }
+        return $this->success($orders);
+    }
+    public function index_app(Request $request)
+    {
+        $page_size = $request->get('page_size', 10);
+        $shop_id = $request->get('shop_id', 0);
+        $search_key = $request->get('search_key', '');
+        $status = $request->get('status');
+        $query = Order::with(['shop' => function($query) {
+            $query->select('id', 'shop_id', 'shop_name');
+        }, 'warehouse' => function($query) {
+            $query->select('id', 'shop_id', 'shop_name');
+        }, 'products' => function($query) {
+            $query->select('id', 'order_id', 'food_name', 'quantity', 'spec', 'price');
+        }, 'order' => function($query) {
+            $query->select('id', 'order_id', 'ctime');
         }, 'logs'])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
             'receiver_address','tool','ps',
             'mt_status','money_mt','fail_mt',
@@ -147,6 +262,13 @@ class OrderController extends Controller
         return $this->success($orders);
     }
 
+    /**
+     * APP 个状态订单统计
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/8/2 11:25 下午
+     */
     public function index_statistics(Request $request)
     {
         $orders = Order::select(DB::raw('

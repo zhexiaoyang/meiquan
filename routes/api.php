@@ -184,6 +184,8 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 订管管理
          */
+        // 小程序订单列表
+        Route::get("order/app", "OrderController@index_app")->name("order.index.app");
         // 小程序订单各个状态数量
         Route::get("order/statistics/number", "OrderController@index_statistics")->name("order.statistics.number");
         // 订单
