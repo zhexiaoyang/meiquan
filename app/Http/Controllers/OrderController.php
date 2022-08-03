@@ -152,6 +152,12 @@ class OrderController extends Controller
         $shop_id = $request->get('shop_id', 0);
         $search_key = $request->get('search_key', '');
         $status = $request->get('status');
+
+        if (!in_array($status, [0, 20, 50, 60, 'dai', 'yichang', 'cui'])) {
+            return $this->error('参数错误');
+        }
+
+        // 查询数据
         $query = Order::with(['shop' => function($query) {
             $query->select('id', 'shop_id', 'shop_name');
         }, 'warehouse' => function($query) {
@@ -199,18 +205,10 @@ class OrderController extends Controller
             if (is_numeric($status)) {
                 $query->where('status', $status);
             } else {
-                // $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
-                // $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
-                // $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
-                // $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
-                if ($status === 'dai') {
-                    $query->whereIn("status", [0,3,5,7,8,10]);
-                } elseif ($status === 'jin') {
-                    $query->whereIn("status", [20,30,40,50,60]);
-                } elseif ($status === 'wan') {
-                    $query->where("status", 70);
-                } elseif ($status === 'qu') {
-                    $query->whereIn("status", [80,99]);
+                if ($status === 'fa') {
+                    $query->whereIn("status", [3,8]);
+                } elseif ($status === 'yichang') {
+                    $query->whereIn("status", [5,7,10]);
                 }
             }
         }
