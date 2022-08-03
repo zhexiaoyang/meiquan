@@ -247,9 +247,9 @@ class OrderController extends Controller
                     }
                     $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
                 }
-                if ($order->status == 8 && $number == 0 ) {
-                    $order->status = 0;
-                }
+                // if ($order->status == 8 && $number == 0 ) {
+                //     $order->status = 0;
+                // }
                 $order->number = $number;
                 $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
                 unset($order->order);
