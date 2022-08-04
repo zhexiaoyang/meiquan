@@ -52,7 +52,7 @@ class DaDaOrderController
             // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
             if (in_array($status, [2,3])) {
                 $config = config('ps.dada');
-                $config['source_id'] = get_dada_source_by_shop($order->shop_id) ?? '';
+                $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                 $dada_app = new DaDaService($config);
                 $dada_info = $dada_app->getOrderInfo($order_id);
                 $longitude = $dada_info['result']['transporterLng'] ?? '';
@@ -73,7 +73,7 @@ class DaDaOrderController
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5) && ($status != 5)) {
                 $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-开始");
                 $config = config('ps.dada');
-                $config['source_id'] = get_dada_source_by_shop($order->shop_id) ?? '';
+                $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                 $dada_app = new DaDaService($config);
                 $result = $dada_app->orderCancel($order->order_id);
                 if ($result['code'] != 0) {
