@@ -886,7 +886,6 @@ class TakeoutProductController extends Controller
         foreach ($products as $product) {
             // MeiTuanTakeoutProductSave::dispatch(1, $product, $shop)->onConnection('product');
             MeiTuanTakeoutProductSave::dispatch(1, $product, $shop);
-            break;
         }
         \Log::info("同步商品结束时间" . date("Y-m-d H:i:s"));
 
