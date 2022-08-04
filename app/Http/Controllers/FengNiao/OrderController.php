@@ -236,7 +236,7 @@ class OrderController
                 if ($order->dd_status === 20 || $order->dd_status === 30) {
                     if ($order->shipper_type_dd) {
                         $config = config('ps.dada');
-                        $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                        $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                         $dada = new DaDaService($config);
                     } else {
                         $dada = app("dada");
