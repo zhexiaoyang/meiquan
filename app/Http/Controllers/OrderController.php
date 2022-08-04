@@ -148,14 +148,14 @@ class OrderController extends Controller
     }
     public function index_app(Request $request)
     {
-        $page_size = $request->get('page_size', 10);
+        $page_size = $request->get('page_size', 30);
         $shop_id = $request->get('shop_id', 0);
         $search_key = $request->get('search_key', '');
         $status = $request->get('status');
 
-        if (!in_array($status, [0, 20, 50, 60, 'dai', 'yichang', 'cui'])) {
-            return $this->error('参数错误');
-        }
+        // if (!in_array($status, [0, 20, 50, 60, 'dai', 'yichang', 'cui'])) {
+        //     return $this->error('参数错误');
+        // }
 
         // 查询数据
         $query = Order::with(['shop' => function($query) {
@@ -216,7 +216,7 @@ class OrderController extends Controller
         // 查询订单
         $orders = $query->withCount(['products as products_sum' => function($query){
             $query->select(DB::raw("sum(quantity) as products_sum"));
-        }])->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
+        }])->where('status', '>', -10)->orderBy('id', 'desc')->paginate($page_size);
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -1222,7 +1222,7 @@ class OrderController extends Controller
             } elseif ($ps == 5) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
@@ -1556,7 +1556,7 @@ class OrderController extends Controller
             if (in_array($order->dd_status, [20, 30])) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
@@ -1981,7 +1981,7 @@ class OrderController extends Controller
             } elseif ($ps == 5) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
@@ -2327,7 +2327,7 @@ class OrderController extends Controller
                 \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，取消达达");
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
@@ -2546,7 +2546,7 @@ class OrderController extends Controller
         } else {
             if ($order->shipper_type_dd) {
                 $config = config('ps.dada');
-                $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                 $dada = new DaDaService($config);
             } else {
                 $dada = app("dada");
