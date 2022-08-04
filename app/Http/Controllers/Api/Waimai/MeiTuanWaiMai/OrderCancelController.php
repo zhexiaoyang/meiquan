@@ -454,7 +454,7 @@ class OrderCancelController
             } elseif ($ps == 5) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
@@ -791,7 +791,7 @@ class OrderCancelController
             if (in_array($order->dd_status, [20, 30])) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");

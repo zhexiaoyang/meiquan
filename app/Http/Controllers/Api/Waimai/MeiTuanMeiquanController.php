@@ -457,21 +457,25 @@ class MeiTuanMeiquanController extends Controller
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] == 200) {
                         if ($order->shipper_type_ss == 0) {
-                            try {
-                                DB::transaction(function () use ($order) {
-                                    // 计算扣款
-                                    $jian_money = 0;
-                                    if (!empty($order->receive_at)) {
-                                        $jian_money = 2;
-                                        $jian = time() - strtotime($order->receive_at);
-                                        if ($jian >= 480) {
-                                            $jian_money = 5;
-                                        }
-                                        if (!empty($order->take_at)) {
-                                            $jian_money = 5;
-                                        }
+                            // 计算扣款
+                            $jian_money = 0;
+                            if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
+                                $jian_money = $result['data']['deductAmount'];
+                                \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
+                            } else {
+                                if (!empty($order->receive_at)) {
+                                    $jian_money = 2;
+                                    $jian = time() - strtotime($order->receive_at);
+                                    if ($jian >= 480) {
+                                        $jian_money = 5;
                                     }
-
+                                    if (!empty($order->take_at)) {
+                                        $jian_money = 5;
+                                    }
+                                }
+                            }
+                            try {
+                                DB::transaction(function () use ($order, $jian_money) {
                                     $current_user = DB::table('users')->find($order->user_id);
                                     UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
@@ -597,7 +601,7 @@ class MeiTuanMeiquanController extends Controller
                 } elseif ($ps == 5) {
                     if ($order->shipper_type_dd) {
                         $config = config('ps.dada');
-                        $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                        $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                         $dada = new DaDaService($config);
                     } else {
                         $dada = app("dada");
