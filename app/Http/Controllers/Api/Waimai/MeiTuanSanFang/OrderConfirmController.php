@@ -294,7 +294,9 @@ class OrderConfirmController
             if ($delivery_time > 0) {
                 $this->log_info("-跑腿订单,预约单,送达时间:" . strtotime("Y-m-d H:i:s", $delivery_time));
                 // [预约单]待发送
-                $order_pt_data['status'] = 3;
+                // if ($shop->mt_shop_id) {
+                //     $order_pt_data['status'] = 3;
+                // }
                 $order_pt_data['order_type'] = 1;
                 $order_pt_data['expected_pickup_time'] = $delivery_time - 3600;
                 $order_pt_data['expected_delivery_time'] = $delivery_time;
@@ -324,6 +326,9 @@ class OrderConfirmController
                         if ($order_pt->distance <= 2) {
                             $qu = 1800;
                         }
+                        $order_pt->status = 3;
+                        $order_pt->expected_send_time = time() + $qu;
+                        $order_pt->save();
                         dispatch(new PushDeliveryOrder($order_pt, ($order_pt->expected_delivery_time - time() - $qu)));
                         $this->log_info("-预约单派单成功，{$qu}秒后发单");
                     } else {
@@ -794,7 +799,7 @@ class OrderConfirmController
             } elseif ($ps == 5) {
                 if ($order->shipper_type_dd) {
                     $config = config('ps.dada');
-                    $config['source_id'] = get_dada_source_by_shop($order->shop_id);
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                     $dada = new DaDaService($config);
                 } else {
                     $dada = app("dada");
