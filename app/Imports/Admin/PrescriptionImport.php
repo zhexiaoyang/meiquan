@@ -125,20 +125,20 @@ class PrescriptionImport implements ToArray
                         WmPrescription::insert($prescriptions_datum);
                     }
                 }
-                $balances_data = array_chunk($balances, 800);
-                if (!empty($balances_data)) {
-                    foreach ($balances_data as $balances_datum) {
-                        UserOperateBalance::insert($balances_datum);
-                    }
-                }
-                $import_log_data = array_chunk($import_log, 800);
-                if (!empty($import_log_data)) {
-                    foreach ($import_log_data as $import_log_datum) {
-                        WmPrescriptionImport::create($import_log_datum);
-                    }
-                }
-                // UserOperateBalance::insert($balances);
-                // WmPrescriptionImport::create($import_log);
+                // $balances_data = array_chunk($balances, 800);
+                // if (!empty($balances_data)) {
+                //     foreach ($balances_data as $balances_datum) {
+                //         UserOperateBalance::insert($balances_datum);
+                //     }
+                // }
+                // $import_log_data = array_chunk($import_log, 800);
+                // if (!empty($import_log_data)) {
+                //     foreach ($import_log_data as $import_log_datum) {
+                //         WmPrescriptionImport::create($import_log_datum);
+                //     }
+                // }
+                UserOperateBalance::insert($balances);
+                WmPrescriptionImport::create($import_log);
                 foreach ($user_money as $user_id => $money) {
                     User::where('id', $user_id)->decrement('operate_money', $money);
                     $_user = User::find($user_id);
