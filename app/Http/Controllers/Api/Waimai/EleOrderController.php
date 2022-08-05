@@ -442,26 +442,26 @@ class EleOrderController extends Controller
                     }
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] == 200) {
-                        if ($order->shipper_type_ss == 0) {
-                            // 计算扣款
-                            $jian_money = 0;
-                            if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
-                                $jian_money = $result['data']['deductAmount'];
-                                \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
-                            } else {
-                                if (!empty($order->receive_at)) {
-                                    $jian_money = 2;
-                                    $jian = time() - strtotime($order->receive_at);
-                                    if ($jian >= 480) {
-                                        $jian_money = 5;
+                        try {
+                            DB::transaction(function () use ($order) {
+                                if ($order->shipper_type_ss == 0) {
+                                    // 计算扣款
+                                    $jian_money = 0;
+                                    if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
+                                        $jian_money = $result['data']['deductAmount'];
+                                        \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
+                                    } else {
+                                        if (!empty($order->receive_at)) {
+                                            $jian_money = 2;
+                                            $jian = time() - strtotime($order->receive_at);
+                                            if ($jian >= 480) {
+                                                $jian_money = 5;
+                                            }
+                                            if (!empty($order->take_at)) {
+                                                $jian_money = 5;
+                                            }
+                                        }
                                     }
-                                    if (!empty($order->take_at)) {
-                                        $jian_money = 5;
-                                    }
-                                }
-                            }
-                            try {
-                                DB::transaction(function () use ($order, $jian_money) {
                                     $current_user = DB::table('users')->find($order->user_id);
                                     UserMoneyBalance::query()->create([
                                         "user_id" => $order->user_id,
@@ -481,10 +481,6 @@ class EleOrderController extends Controller
                                         "description" => "取消闪送跑腿订单扣款：" . $order->order_id,
                                         "tid" => $order->id
                                     ]);
-                                    DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                        'status' => 99,
-                                        'ss_status' => 99,
-                                    ]);
                                     // $current_user->increment('money', ($order->money - $jian_money));
                                     DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                                     \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户");
@@ -496,29 +492,33 @@ class EleOrderController extends Controller
                                         ];
                                         OrderDeduction::create($jian_data);
                                     }
-                                    OrderLog::create([
-                                        "order_id" => $order->id,
-                                        "des" => "（饿了么）取消【闪送】跑腿订单"
-                                    ]);
-                                });
-                            } catch (\Exception $e) {
-                                $message = [
-                                    $e->getCode(),
-                                    $e->getFile(),
-                                    $e->getLine(),
-                                    $e->getMessage()
-                                ];
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
-                                $logs = [
-                                    "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
-                                    "id" => $order->id,
-                                    "ps" => "闪送",
-                                    "order_id" => $order->order_id
-                                ];
-                                $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
-                            }
-                        } else {
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                                } else {
+                                    \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                                }
+                                DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                    'status' => 99,
+                                    'ss_status' => 99,
+                                ]);
+                                OrderLog::create([
+                                    "order_id" => $order->id,
+                                    "des" => "（饿了么）取消【闪送】跑腿订单"
+                                ]);
+                            });
+                        } catch (\Exception $e) {
+                            $message = [
+                                $e->getCode(),
+                                $e->getFile(),
+                                $e->getLine(),
+                                $e->getMessage()
+                            ];
+                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
+                            $logs = [
+                                "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
+                                "id" => $order->id,
+                                "ps" => "闪送",
+                                "order_id" => $order->order_id
+                            ];
+                            $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
@@ -726,9 +726,9 @@ class EleOrderController extends Controller
                     }
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] == 0) {
-                        if ($order->shipper_type_sf == 0) {
-                            try {
-                                DB::transaction(function () use ($order, $result) {
+                        try {
+                            DB::transaction(function () use ($order, $result) {
+                                if ($order->shipper_type_sf == 0) {
                                     // 用户余额日志
                                     // 计算扣款
                                     $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
@@ -755,11 +755,6 @@ class EleOrderController extends Controller
                                             "tid" => $order->id
                                         ]);
                                     }
-                                    DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                        'status' => 99,
-                                        'sf_status' => 99,
-                                        'cancel_at' => date("Y-m-d H:i:s")
-                                    ]);
                                     DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
                                     \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户");
                                     if ($jian_money > 0) {
@@ -770,29 +765,34 @@ class EleOrderController extends Controller
                                         ];
                                         OrderDeduction::create($jian_data);
                                     }
+                                    DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                        'status' => 99,
+                                        'sf_status' => 99,
+                                        'cancel_at' => date("Y-m-d H:i:s")
+                                    ]);
                                     OrderLog::create([
                                         "order_id" => $order->id,
                                         "des" => "（饿了么）取消【顺丰跑腿】跑腿订单"
                                     ]);
-                                });
-                            } catch (\Exception $e) {
-                                $message = [
-                                    $e->getCode(),
-                                    $e->getFile(),
-                                    $e->getLine(),
-                                    $e->getMessage()
-                                ];
-                                \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户失败", $message);
-                                $logs = [
-                                    "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
-                                    "id" => $order->id,
-                                    "ps" => "顺丰",
-                                    "order_id" => $order->order_id
-                                ];
-                                $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
-                            }
-                        } else {
-                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
+                                } else {
+                                    \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
+                                }
+                            });
+                        } catch (\Exception $e) {
+                            $message = [
+                                $e->getCode(),
+                                $e->getFile(),
+                                $e->getLine(),
+                                $e->getMessage()
+                            ];
+                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户失败", $message);
+                            $logs = [
+                                "des" => "【饿了么接口取消订单】更改信息、将钱返回给用户失败",
+                                "id" => $order->id,
+                                "ps" => "顺丰",
+                                "order_id" => $order->order_id
+                            ];
+                            $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-取消顺丰订单返回失败", [$result]);
