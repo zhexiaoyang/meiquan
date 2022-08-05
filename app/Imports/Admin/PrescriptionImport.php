@@ -114,14 +114,31 @@ class PrescriptionImport implements ToArray
                 ];
             }
             // \Log::info('$shops', $shops);
-            \Log::info('$prescriptions', $prescriptions);
-            \Log::info('$balances', $balances);
-            \Log::info('$user_money', $user_money);
-            \Log::info('$import_log', $import_log);
+            // \Log::info('$prescriptions', $prescriptions);
+            // \Log::info('$balances', $balances);
+            // \Log::info('$user_money', $user_money);
+            // \Log::info('$import_log', $import_log);
             DB::transaction(function () use ($prescriptions, $balances, $user_money, $import_log) {
-                WmPrescription::insert($prescriptions);
-                UserOperateBalance::insert($balances);
-                WmPrescriptionImport::create($import_log);
+                $prescriptions_data = array_chunk($prescriptions, 800);
+                if (!empty($prescriptions_data)) {
+                    foreach ($prescriptions_data as $prescriptions_datum) {
+                        WmPrescription::insert($prescriptions_datum);
+                    }
+                }
+                $balances_data = array_chunk($balances, 800);
+                if (!empty($balances_data)) {
+                    foreach ($balances_data as $balances_datum) {
+                        UserOperateBalance::insert($balances_datum);
+                    }
+                }
+                $import_log_data = array_chunk($import_log, 800);
+                if (!empty($import_log_data)) {
+                    foreach ($import_log_data as $import_log_datum) {
+                        WmPrescriptionImport::create($import_log_datum);
+                    }
+                }
+                // UserOperateBalance::insert($balances);
+                // WmPrescriptionImport::create($import_log);
                 foreach ($user_money as $user_id => $money) {
                     User::where('id', $user_id)->decrement('operate_money', $money);
                     $_user = User::find($user_id);
