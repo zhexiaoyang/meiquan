@@ -518,7 +518,7 @@ class EleOrderController extends Controller
                                 $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                             }
                         } else {
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
@@ -636,7 +636,7 @@ class EleOrderController extends Controller
                                 $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                             }
                         } else {
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册不扣款");
+                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册不扣款");
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
@@ -792,7 +792,7 @@ class EleOrderController extends Controller
                                 $dd->sendMarkdownMsgArray("饿了么接口取消订单将钱返回给用户失败", $logs);
                             }
                         } else {
-                            \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                            \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-取消顺丰订单返回失败", [$result]);
