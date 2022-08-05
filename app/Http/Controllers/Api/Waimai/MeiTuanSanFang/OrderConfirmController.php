@@ -292,7 +292,7 @@ class OrderConfirmController
             ];
             // 判断是否预约单
             if ($delivery_time > 0) {
-                $this->log_info("-跑腿订单,预约单,送达时间:" . strtotime("Y-m-d H:i:s", $delivery_time));
+                $this->log_info("-跑腿订单,预约单,送达时间:" . date("Y-m-d H:i:s", $delivery_time));
                 // [预约单]待发送
                 // if ($shop->mt_shop_id) {
                 //     $order_pt_data['status'] = 3;
