@@ -31,7 +31,7 @@ class PrescriptionImport implements ToArray
             foreach ($array as $key => $item) {
                 $import_log['count']++;
                 $line = $key + 2;
-                if (WmPrescription::select('id')->where('outOrderID', $item[3])->exists()) {
+                if (WmPrescription::where('outOrderID', $item[3])->exists()) {
                     $import_log['exists']++;
                     $import_log['text'] .= $item[3] . ',';
                     continue;
