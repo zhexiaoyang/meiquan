@@ -165,7 +165,7 @@ class OrderController extends Controller
         }, 'products' => function($query) {
             $query->select('id', 'order_id', 'food_name', 'quantity', 'spec', 'price');
         }, 'order' => function($query) {
-            $query->select('id', 'order_id', 'ctime');
+            $query->select('id', 'order_id', 'ctime', 'estimate_arrival_time');
         }, 'logs'])->select('id','shop_id','order_id','peisong_id','receiver_name','receiver_phone','money','failed',
             'receiver_address','tool','ps',
             'mt_status','money_mt','fail_mt',
