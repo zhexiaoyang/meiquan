@@ -260,8 +260,8 @@ class OrderController extends Controller
                 $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
                 $order->estimate_arrival_time = $estimate_arrival_time;
                 $order->current_time = time();
-                $order->create_pass = floor((time() - $order->ctime) / 60);
-                $order->arrival_pass = $order->estimate_arrival_time > 0 ? (floor(($estimate_arrival_time - time()) / 60)) : 0;
+                $order->create_pass = ceil((time() - $order->ctime) / 60);
+                $order->arrival_pass = $order->estimate_arrival_time > 0 ? (ceil(($estimate_arrival_time - time()) / 60)) : 0;
 
                 unset($order->order);
                 unset($order->shop);
