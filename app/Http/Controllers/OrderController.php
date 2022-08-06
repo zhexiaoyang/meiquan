@@ -177,7 +177,7 @@ class OrderController extends Controller
             'sf_status','money_sf','fail_sf',
             'courier_name','courier_phone','warehouse_id','day_seq','wm_poi_name','caution','wm_id',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
-            'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
+            'platform','receiver_lng','expected_delivery_time','receiver_lat','status','expected_send_time');
 
         // 关键字搜索
         if ($search_key) {
