@@ -251,13 +251,17 @@ class OrderController extends Controller
                 // if ($order->status == 8 && $number == 0 ) {
                 //     $order->status = 0;
                 // }
+                $estimate_arrival_time = $order->order->estimate_arrival_time ?? 0;
+                if ($estimate_arrival_time) {
+                    $estimate_arrival_time = strtotime(date("Y-m-d H:i", $estimate_arrival_time));
+                }
                 $order->number = $number;
                 $order->receive_time = strtotime($order->receive_at);
                 $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
-                $order->estimate_arrival_time = $order->order->estimate_arrival_time ?? 0;
+                $order->estimate_arrival_time = $estimate_arrival_time;
                 $order->current_time = time();
                 $order->create_pass = floor((time() - $order->ctime) / 60);
-                $order->arrival_pass = $order->estimate_arrival_time > 0 ? (floor(($order->estimate_arrival_time - time()) / 60)) : 0;
+                $order->arrival_pass = $order->estimate_arrival_time > 0 ? (floor(($estimate_arrival_time - time()) / 60)) : 0;
 
                 unset($order->order);
                 unset($order->shop);
