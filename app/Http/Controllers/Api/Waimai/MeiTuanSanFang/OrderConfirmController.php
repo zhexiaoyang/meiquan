@@ -322,9 +322,9 @@ class OrderConfirmController
                 if ($pick_type == 0) {
                     if ($order_pt->order_type) {
                         $this->log_info("-预约单");
-                        $qu = 2400;
-                        if ($order_pt->distance <= 2) {
-                            $qu = 1800;
+                        $qu = 3000;
+                        if ($order_pt->distance <= 2 && $order_pt->distance > 0) {
+                            $qu = 2400;
                         }
                         $order_pt->status = 3;
                         $order_pt->expected_send_time = $order_pt->expected_delivery_time - $qu;
