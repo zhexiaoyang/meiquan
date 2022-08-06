@@ -255,12 +255,17 @@ class OrderController extends Controller
                 if ($estimate_arrival_time) {
                     $estimate_arrival_time = strtotime(date("Y-m-d H:i", $estimate_arrival_time));
                 }
+                // 发单倒计时
                 $order->number = $number;
+                // 接单时间
                 $order->receive_time = strtotime($order->receive_at);
                 $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
                 $order->estimate_arrival_time = $estimate_arrival_time;
                 $order->current_time = time();
+                // 下单几分钟
                 $order->create_pass = ceil((time() - $order->ctime) / 60);
+                // 接单几分钟
+                $order->receive_pass = ceil((time() - $order->receive_time) / 60);
                 $order->arrival_pass = $order->estimate_arrival_time > 0 ? (ceil(($estimate_arrival_time - time()) / 60)) : 0;
 
                 unset($order->order);
