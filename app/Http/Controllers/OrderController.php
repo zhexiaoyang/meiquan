@@ -254,9 +254,10 @@ class OrderController extends Controller
                 $order->number = $number;
                 $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
                 $order->estimate_arrival_time = $order->order->estimate_arrival_time ?? 0;
+                $order->current_time = time();
                 $order->create_pass = intval((time() - $order->ctime) / 60);
                 // 小于0 就是没这个值
-                $order->current_time = $order->estimate_arrival_time > 0 ? (intval((time() - $order->estimate_arrival_time) / 60)) : -1;
+                $order->arrival_pass = $order->estimate_arrival_time > 0 ? (intval((time() - $order->estimate_arrival_time) / 60)) : -1;
 
                 unset($order->order);
                 unset($order->shop);
