@@ -182,12 +182,17 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("/index/manager/online", "IndexController@city_manager_online");
 
         /**
-         * 订管管理
+         * App 订单接口
          */
         // 小程序订单列表
-        Route::get("order/app", "OrderController@index_app")->name("order.index.app");
+        Route::get("order/app/index/status", "OrderAppController@index_status")->name("order.app.index.status");
         // 小程序订单各个状态数量
-        Route::get("order/statistics/number", "OrderController@index_statistics")->name("order.statistics.number");
+        Route::get("order/app/index/statistics", "OrderAppController@index_statistics")->name("order.app.index.statistics");
+        // 忽略订单配送
+        Route::post("order/app/ignore/{order}", "OrderAppController@ignore")->name("order.app.ignore");
+        /**
+         * 订管管理
+         */
         // 订单
         Route::post("order/send/{order}", "OrderController@send")->name("order.send");
         // 订单
