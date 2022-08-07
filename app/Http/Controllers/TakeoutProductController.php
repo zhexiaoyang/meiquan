@@ -680,6 +680,9 @@ class TakeoutProductController extends Controller
                                 unset($insert_sku_data[$item['app_spu_code']]);
                             }
                         }
+                        if (!empty($error_data)) {
+                            WmProductLogItem::insert($error_data);
+                        }
                     }
                     // \Log::info("insert_data", $insert_data);
                     // \Log::info("insert_sku_data", $insert_sku_data);
