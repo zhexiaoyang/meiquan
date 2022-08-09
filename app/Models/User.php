@@ -72,6 +72,11 @@ class User extends Authenticatable
         return $this->hasMany(Shop::class, 'own_id', 'id');
     }
 
+    public function im()
+    {
+        return $this->hasOne(UserWebIm::class, 'user_id', 'id');
+    }
+
     public function carts()
     {
         return $this->hasMany(SupplierCart::class);

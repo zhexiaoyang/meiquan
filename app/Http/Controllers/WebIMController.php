@@ -34,7 +34,16 @@ class WebIMController extends Controller
                 return $this->error('无权限操作此门店');
             }
         }
-        $mt = app('meiquan');
+        $mt = null;
+        if ($shop->meituan_bind_platform == 4) {
+            $mt = app('minkang');
+        } elseif ($shop->meituan_bind_platform == 31) {
+            $mt = app('meiquan');
+        }
+
+        if (!$mt) {
+            return $this->error('该门店不支持IM聊天');
+        }
         $url = $mt->webim_index($user_id, 1, $shop->waimai_mt);
         return $this->success(['url' => $url]);
     }

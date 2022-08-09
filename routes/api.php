@@ -35,6 +35,12 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * WebMI
+         */
+        Route::get("web/mi/mt/chain", "WebIMController@mt_chain");
+        Route::get("web/mi/mt/shop", "WebIMController@mt_shop");
+
+        /**
          * 外卖商品管理
          */
         Route::get("takeout/product", "TakeoutProductController@index");
@@ -497,6 +503,12 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * 用户
              */
+            // IM用户-列表
+            Route::get("/user/im", "UserController@im_index");
+            // IM用户-更新
+            Route::post("/user/im/update", "UserController@im_update");
+            // IM用户-删除
+            Route::post("/user/im/delete", "UserController@im_delete");
             // 用户管理-所有用户余额统计
             Route::get("/user/statistics", "UserController@statistics");
             // 用户管理-用户列表-余额消费明细

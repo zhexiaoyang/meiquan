@@ -7,6 +7,7 @@ use App\Exports\UserBalanceExport;
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
 use App\Models\UserOperateBalance;
+use App\Models\UserWebIm;
 use Illuminate\Http\Request;
 use App\Models\Deposit;
 use App\Models\User;
@@ -17,6 +18,123 @@ use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
+    public function im_index(Request $request)
+    {
+        $page_size = $request->get('page_size', 15);
+        $name = $request->get('name', '');
+        $phone = $request->get('phone', '');
+        $nickname = $request->get('nickname', '');
+        $search_key_shop = $request->get('shop', '');
+
+        $query = User::with(['shops', 'im'])->select("id","name","phone","nickname","created_at", "status");
+
+        if ($name) {
+            $query->where('name', 'like', "%{$name}%");
+        }
+
+        if ($phone) {
+            $query->where('phone', 'like', "%{$phone}%");
+        }
+
+        if ($nickname) {
+            $query->where('nickname', 'like', "%{$nickname}%");
+        }
+
+        if ($search_key_shop) {
+            $query->whereHas("my_shops", function ($query) use ($search_key_shop) {
+                $query->where('shop_name', 'like', "%{$search_key_shop}%");
+            });
+        }
+
+        $users = $query->orderBy('id', 'desc')->paginate($page_size);
+
+        if (!empty($users)) {
+            foreach ($users as $user) {
+                $shops = [];
+                if (!empty($user->my_shops)) {
+                    foreach ($user->my_shops as $shop) {
+                        $shops[] = [
+                            "id" => $shop->id,
+                            "mt_shop_id" => $shop->mt_shop_id,
+                            "shop_name" => $shop->shop_name,
+                            "contact_name" => $shop->contact_name,
+                            "contact_phone" => $shop->contact_phone,
+                            "shop_address" => $shop->shop_address,
+                        ];
+                    }
+                }
+                unset($user->my_shops);
+                $shop_ids = [];
+                if (!empty($user->shops)) {
+                    foreach ($user->shops as $v) {
+                        $shop_ids[] = (string) $v->id;
+                    }
+                }
+                unset($user->shops);
+                $user->my_shops = $shops;
+                $user->shops = $shop_ids;
+
+                // 权限
+                // if (!empty($user->im->auth)) {
+                //     if ($user->im->)
+                //     $user->im->auth = explode(',', $user->im->auth);
+                // }
+            }
+        }
+
+
+        return $this->page($users, false, 'data');
+    }
+
+    public function im_update(Request $request)
+    {
+        if (!$user_id = $request->get('user_id')) {
+            return $this->error('用户不存在');
+        }
+        if (!$auth = $request->get('auth')) {
+            return $this->error('权限不能为空');
+        }
+        if (!$description = $request->get('description')) {
+            return $this->error('描述不能为空');
+        }
+        if (!in_array($auth, [1, 21])) {
+            return $this->error('权限不存在');
+        }
+        if (!$user = User::find($user_id)) {
+            return $this->error('用户不存在!');
+        }
+
+        if ($im = UserWebIm::where('user_id', $user_id)->first()) {
+            $im->auth = $auth;
+            $im->description = $description;
+            $im->update([
+                'auth' => $auth,
+                'description' => $description,
+            ]);
+        } else {
+            UserWebIm::create([
+                'user_id' => $user_id,
+                'auth' => $auth,
+                'description' => $description,
+            ]);
+        }
+
+        return $this->success();
+    }
+
+    public function im_delete(Request $request)
+    {
+        if (!$user_id = $request->get('user_id')) {
+            return $this->error('用户不存在');
+        }
+        if (!$user = User::find($user_id)) {
+            return $this->error('用户不存在!');
+        }
+        UserWebIm::where('user_id', $user_id)->delete();
+
+        return $this->success();
+    }
+
     /**
      * 用户管理-统计数据
      */
