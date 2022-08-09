@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Shop;
 use App\Models\User;
+use App\Models\UserWebIm;
 use App\Traits\PassportToken;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -336,6 +337,7 @@ class AuthController extends Controller
             'operate_money' => $request->user()->operate_money ?? '',
             'created_at' => isset($request->user()->created_at) ? date("Y年m月d日", strtotime($request->user()->created_at)) : '',
             'role' => $data,
+            'user_im_mt' => UserWebIm::where('user_id', $request->user()->id)->exists()
         ];
         return $this->success($user);
     }
