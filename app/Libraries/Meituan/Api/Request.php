@@ -7,10 +7,10 @@ namespace App\Libraries\Meituan\Api;
 class Request
 {
 
-    private $http;
-    private $appKey;
-    private $secret;
-    private $url;
+    public $http;
+    public $appKey;
+    public $secret;
+    public $url;
 
     // const URL = 'https://peisongopen.meituan.com/api/';
 
@@ -96,7 +96,28 @@ class Request
         return $result;
     }
 
-    private function concatParams($params) {
+    public function request_get_html(string $method, array $params)
+    {
+        $params = array_merge($params, [
+            'app_id' => $this->appKey,
+            'timestamp' => time(),
+        ]);
+
+        $sig = $this->generate_signature($method, $params);
+
+        $http = $this->getHttp();
+
+        $url = $this->url.$method."?sig=".$sig."&".$this->concatParams($params);
+
+        $response = $http->get($url, $params);
+        $result = (string) $response->getBody();
+        // \Log::info($result);
+
+        // return $http->get($url, $params)->getBody();
+        return $result;
+    }
+
+    public function concatParams($params) {
         ksort($params);
         $pairs = array();
         foreach($params as $key=>$val) {
@@ -105,7 +126,7 @@ class Request
         return join('&', $pairs);
     }
 
-    private function generate_signature($action, $params) {
+    public function generate_signature($action, $params) {
         $params = $this->concatParams($params);
         $str = $this->url.$action.'?'.$params.$this->secret;
         return md5($str);
@@ -126,7 +147,7 @@ class Request
     }
 
 
-    private function checkErrorAndThrow($result)
+    public function checkErrorAndThrow($result)
     {
         // if (!$result || $result['code'] != 0) {
 //            throw new MeituanDispatchException($result['message'], $result['code']);
