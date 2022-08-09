@@ -714,4 +714,42 @@ class Api extends Request
     {
         return $this->request_post('v1/retail/sku/save', $params);
     }
+
+    /**
+     * @param $user_id
+     * @param int $type (1 民康，2 闪购)
+     * @param string $auth
+     * @return string
+     * @author zhangzhen
+     * @data 2022/8/9 5:55 下午
+     */
+    public function webim_index($user_id, $type = 2, $auth = '21')
+    {
+        $this->url = 'https://open-shangou.meituan.com/';
+        $action = 'webim/api/index';
+
+        if ($type === 1) {
+            $action = 'webim/api/singlepoi/chat';
+        }
+
+        $params = [
+            'app_id' => $this->appKey,
+            'timestamp' => time(),
+            'accountId' => (string) $user_id,
+            // 'authScope' => $auth,
+            // 'appPoiCode' => '13676234',
+        ];
+
+        if ($type === 1) {
+            $params['appPoiCode'] = $auth;
+        } else {
+            $params['authScope'] = $auth;
+        }
+
+        $sig = $this->generate_signature($action, $params);
+
+        $url = $this->url . $action . "?sig=".$sig."&".$this->concatParams($params);
+
+        return $url;
+    }
 }
