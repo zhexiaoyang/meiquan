@@ -90,6 +90,9 @@ class OrderConfirmController
         }
         $this->log_info("-门店信息,ID:{$shop->id},名称:{$shop->shop_name}");
         DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2) {
+            $receive_address_long = $data2['recipientAddress'] ?? '';
+            $receive_address_arr = explode("@#", $receive_address_long);
+            $receive_address = $receive_address_arr[0];
             /******************** 操作逻辑 *************** 操作逻辑 **************** 操作逻辑 *****************/
             // 状态
             $status_filter = [1 => 1, 2 => 1, 4 => 4, 6 => 14, 8 => 18, 9 => 30];
@@ -134,7 +137,8 @@ class OrderConfirmController
                 "wm_shop_name" => $data['wm_poi_name'],
                 "recipient_name" => $data2['recipientName'] ?? ($data['recipient_name'] ?? '无名客人'),
                 "recipient_phone" => $data2['recipientPhone'] ?? ($data['recipient_phone'] ?? ''),
-                "recipient_address" => $data2['recipientAddressDesensitization'] ?? '',
+                // "recipient_address" => $data2['recipientAddressDesensitization'] ?? '',
+                "recipient_address" => $receive_address,
                 // "recipient_address" => $data2['recipientAddress'],
                 // "recipient_address_detail" => $data2['recipientAddress'],
                 "latitude" => $data['latitude'],
@@ -275,7 +279,8 @@ class OrderConfirmController
                 'delivery_service_code' => "4011",
                 "receiver_name" => $data2['recipientName'] ?? ($data['recipient_name'] ?? '无名客人'),
                 "receiver_phone" => $data2['recipientPhone'] ?? ($data['recipient_phone'] ?? ''),
-                "receiver_address" => $data2['recipientAddressDesensitization'] ?? '',
+                // "receiver_address" => $data2['recipientAddressDesensitization'] ?? '',
+                "receiver_address" => $receive_address,
                 "receiver_lng" => $data['longitude'],
                 "receiver_lat" => $data['latitude'],
                 "caution" => $data['caution'],
