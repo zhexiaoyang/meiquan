@@ -460,7 +460,7 @@ class MeiTuanMeiquanController extends Controller
                             // 计算扣款
                             $jian_money = 0;
                             if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
-                                $jian_money = $result['data']['deductAmount'];
+                                $jian_money = $result['data']['deductAmount'] / 100;
                                 \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
                             } else {
                                 if (!empty($order->receive_at)) {
