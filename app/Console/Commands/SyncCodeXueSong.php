@@ -437,5 +437,54 @@ class SyncCodeXueSong extends Command
         }
         $this->info('门店「雪松丁香店:9492671」编码绑定同步-结束......');
 
+        $meiquan = app("meiquan");
+        // --------------------- 雪松大药房（幸福店）:15440082 ---------------------
+        $this->info('门店「雪松大药房（幸福店）:15440082」编码绑定同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15440082' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 200);
+            foreach ($data as $items) {
+                $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->id,
+                    ];
+                }
+
+                // 绑定商品编码
+                $params['app_poi_code'] = '15440082';
+                $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('15440082');
+                $meiquan->medicineCodeUpdate($params);
+            }
+        }
+        $this->info('门店「雪松大药房（幸福店）:15440082」编码绑定同步-结束......');
+
+        // ---------------------雪松大药房（枫杨路店）:15437138 ---------------------
+        $this->info('门店「雪松大药房（枫杨路店）:15437138」编码绑定同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15437138' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 200);
+            foreach ($data as $items) {
+                $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->id,
+                    ];
+                }
+
+                // 绑定商品编码
+                $params['app_poi_code'] = '15437138';
+                $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('15437138');
+                $meiquan->medicineCodeUpdate($params);
+            }
+        }
+        $this->info('门店「雪松大药房（枫杨路店）:15437138」编码绑定同步-结束......');
+
     }
 }
