@@ -168,10 +168,11 @@ class YaoguiController extends Controller
 
         if ($order_id) {
 
-            $order = Order::query()->where('order_id', $order_id)->first();
+            $order = Order::where('order_id', $order_id)->first();
 
             if (!$order) {
                 \Log::info('药柜接口取消订单-订单未找到', ['请求参数' => $request->all()]);
+                return '';
             }
 
             \Log::info('药柜接口取消订单-信息', ['请求参数' => $request->all(), '订单信息' => $order->toArray()]);
