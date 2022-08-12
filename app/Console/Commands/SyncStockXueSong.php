@@ -582,5 +582,70 @@ class SyncStockXueSong extends Command
         // }
         // $this->info('门店「雪松陈相店:9492665」库存同步-结束......');
         // Log::info('门店「雪松陈相店:9492665」库存同步-结束......');
+
+
+        $meiquan = app("meiquan");
+        // --------------------- 雪松大药房（幸福店）:15440082 ---------------------
+        $this->info('门店「雪松大药房（幸福店）:15440082」库存同步-开始......');
+        Log::info('门店「雪松大药房（幸福店）:15440082」库存同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15440082' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 100);
+            foreach ($data as $items) {
+                $stock_data = [];
+                // $stock_data_ele = [];
+                foreach ($items as $item) {
+                    $stock_data[] = [
+                        'app_medicine_code' => $item->upc,
+                        'stock' => (int) $item->stock,
+                    ];
+                    // $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
+                }
+
+                $params['app_poi_code'] = '15440082';
+                $params['medicine_data'] = json_encode($stock_data);
+                $params['access_token'] = $meiquan->getShopToken('15440082');
+                $meiquan->medicineStock($params);
+
+                // $ele_params['shop_id'] = '32267693611';
+                // $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                // $ele->skuStockUpdate($ele_params);
+            }
+        }
+        $this->info('门店「雪松大药房（幸福店）:15440082」库存同步-结束......');
+        Log::info('门店「雪松大药房（幸福店）:15440082」库存同步-结束......');
+
+
+        // --------------------- 雪松大药房（枫杨路店）:15437138 ---------------------
+        $this->info('门店「雪松大药房（枫杨路店）:15437138」库存同步-开始......');
+        Log::info('门店「雪松大药房（枫杨路店）:15437138」库存同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc, kucun as stock FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15437138' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 100);
+            foreach ($data as $items) {
+                $stock_data = [];
+                // $stock_data_ele = [];
+                foreach ($items as $item) {
+                    $stock_data[] = [
+                        'app_medicine_code' => $item->upc,
+                        'stock' => (int) $item->stock,
+                    ];
+                    // $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
+                }
+
+                $params['app_poi_code'] = '15437138';
+                $params['medicine_data'] = json_encode($stock_data);
+                $params['access_token'] = $meiquan->getShopToken('15437138');
+                $meiquan->medicineStock($params);
+
+                // $ele_params['shop_id'] = '32267693611';
+                // $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                // $ele->skuStockUpdate($ele_params);
+            }
+        }
+        $this->info('门店「雪松大药房（枫杨路店）:15437138」库存同步-结束......');
+        Log::info('门店「雪松大药房（枫杨路店）:15437138」库存同步-结束......');
     }
 }
