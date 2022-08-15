@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Libraries\DaDaService\DaDaService;
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderSetting;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -178,11 +181,158 @@ class OrderAppController extends Controller
         return $this->success($orders);
     }
 
-    public function ignore(Request $request, Order $order)
+    /**
+     * 忽略配送订单
+     * @param Order $order
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/8/15 10:14 下午
+     */
+    public function ignore(Order $order)
     {
         $order->status = -5;
         $order->save();
 
+        return $this->success();
+    }
+
+    /**
+     * 订单派送
+     * @param Order $order
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/8/15 10:14 下午
+     */
+    public function advance(Order $order)
+    {
+        if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
+            return $this->error("门店不存在");
+        }
+        $result = [
+            'id' => $order->id,
+            'receiver_name' => $order->receiver_name,
+            'receiver_address' => $order->receiver_address,
+            'receiver_phone' => $order->receiver_phone,
+            'expected_delivery_time' => $order->expected_delivery_time,
+            'day_seq' => $order->day_seq,
+            'ctime' => $order->ctime,
+            'wm_poi_name' => $order->wm_poi_name,
+            'shop_name' => $order->shop_name,
+            'mt_status' => $order->mt_status,
+            'fn_status' => $order->fn_status,
+            'ss_status' => $order->ss_status,
+            'mqd_status' => $order->mqd_status,
+            'dd_status' => $order->dd_status,
+            'uu_status' => $order->uu_status,
+            'sf_status' => $order->sf_status,
+        ];
+        // 加价金额
+        $add_money = $shop->running_add;
+        // 聚合运力
+        if ($shop->shop_id) {
+            $meituan = app("meituan");
+            $check_mt = $meituan->preCreateByShop($shop, $order);
+            if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
+                $result['mt'] = $shop->shop_id;
+                $result['mt_type'] = 1;
+                $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_fn) {
+            $fengniao = app("fengniao");
+            $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
+            $check_fn = json_decode($check_fn_res['business_data'], true);
+            if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
+                $result['fn'] = $shop->shop_id_fn;
+                $result['fn_type'] = 1;
+                $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+            }
+        }
+        if ($shop->shop_id_ss) {
+            $shansong = app("shansong");
+            $check_ss = $shansong->orderCalculate($shop, $order);
+            if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                $result['ss'] = $shop->shop_id_ss;
+                $result['ss_type'] = 1;
+                $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+            }
+        }
+        if ($shop->shop_id_dd) {
+            $dada = app("dada");
+            $check_dd= $dada->orderCalculate($shop, $order);
+            if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                $result['dd'] = $shop->shop_id_dd;
+                $result['dd_type'] = 1;
+                $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_mqd) {
+            $meiquanda = app('meiquanda');
+            $check_mqd = $meiquanda->orderCalculate($shop, $order);
+            if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
+                $result['mqd'] = $shop->shop_id_mqd;
+                $result['mqd_type'] = 1;
+                $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_uu) {
+            $uu = app("uu");
+            $check_uu= $uu->orderCalculate($order, $shop);
+            if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
+                $result['uu'] = $shop->shop_id_uu;
+                $result['uu_type'] = 1;
+                $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
+            }
+        }
+        if ($shop->shop_id_sf) {
+            $sf = app("shunfeng");
+            $check_sf= $sf->precreateorder($order, $shop);
+            if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                $result['sf'] = $shop->shop_id_sf;
+                $result['sf_type'] = 1;
+                $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+            }
+        }
+        // 自有运力列表
+        if (!empty($shop->shippers)) {
+            foreach ($shop->shippers as $shipper) {
+                if ($shipper->platform == 3) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                    $check_ss = $shansong->orderCalculate($shop, $order);
+                    if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                        $result['ss'] = $shipper->three_id;
+                        $result['ss_type'] = 3;
+                        $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
+                    }
+                }
+                if ($shipper->platform == 5) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = $shipper->source_id;
+                    $dada = new DaDaService($config);
+                    $check_dd= $dada->orderCalculate($shop, $order);
+                    if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                        $result['dd'] = $shipper->three_id;
+                        $result['dd_type'] = 2;
+                        $result['dd_money'] = $check_dd['result']['fee'];
+                    }
+                }
+                if ($shipper->platform == 7) {
+                    $sf = app("shunfengservice");
+                    $check_sf= $sf->precreateorder($order, $shop);
+                    if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                        $result['sf'] = $shipper->three_id;
+                        $result['sf_type'] = 2;
+                        $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                    }
+                }
+            }
+        }
+
+        return $this->success($result);
+    }
+
+    public function cancel(Order $order)
+    {
         return $this->success();
     }
 }

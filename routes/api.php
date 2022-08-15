@@ -196,6 +196,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("order/app/index/statistics", "OrderAppController@index_statistics")->name("order.app.index.statistics");
         // 忽略订单配送
         Route::post("order/app/ignore/{order}", "OrderAppController@ignore")->name("order.app.ignore");
+        // 发送订单
+        Route::post("order/app/advance/{order}", "OrderAppController@advance")->name("order.app.advance");
         /**
          * 订管管理
          */
