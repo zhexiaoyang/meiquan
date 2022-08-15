@@ -237,7 +237,7 @@ class OrderAppController extends Controller
                 $result['mt'] = $shop->shop_id;
                 $result['mt_decr'] = 0;
                 $result['mt_type'] = 1;
-                $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
+                $result['mt_money'] = (float) sprintf("%.2f", $check_mt['data']['delivery_fee'] + $add_money);
             }
         }
         if ($shop->shop_id_fn) {
@@ -248,7 +248,7 @@ class OrderAppController extends Controller
                 $result['fn'] = $shop->shop_id_fn;
                 $result['fn_decr'] = 0;
                 $result['fn_type'] = 1;
-                $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+                $result['fn_money'] = (float) sprintf("%.2f", (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100);
             }
         }
         if ($shop->shop_id_ss) {
@@ -259,7 +259,7 @@ class OrderAppController extends Controller
                 $result['ss'] = $shop->shop_id_ss;
                 $result['ss_decr'] = $ss1_decr;
                 $result['ss_type'] = 1;
-                $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+                $result['ss_money'] = (float) sprintf("%.2f", (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money);
             }
         }
         if ($shop->shop_id_dd) {
@@ -269,7 +269,7 @@ class OrderAppController extends Controller
                 $result['dd'] = $shop->shop_id_dd;
                 $result['dd_decr'] = 0;
                 $result['dd_type'] = 1;
-                $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
+                $result['dd_money'] = (float) sprintf("%.2f", $check_dd['result']['fee'] + $add_money);
             }
         }
         if ($shop->shop_id_mqd) {
@@ -279,7 +279,7 @@ class OrderAppController extends Controller
                 $result['mqd'] = $shop->shop_id_mqd;
                 $result['mqd_decr'] = 0;
                 $result['mqd_type'] = 1;
-                $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+                $result['mqd_money'] = (float) sprintf("%.2f", $check_mqd['data']['pay_fee'] + $add_money);
             }
         }
         if ($shop->shop_id_uu) {
@@ -289,7 +289,7 @@ class OrderAppController extends Controller
                 $result['uu'] = $shop->shop_id_uu;
                 $result['uu_decr'] = 0;
                 $result['uu_type'] = 1;
-                $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
+                $result['uu_money'] = (float) sprintf("%.2f", $check_uu['need_paymoney'] + $add_money);
             }
         }
         if ($shop->shop_id_sf) {
@@ -302,7 +302,7 @@ class OrderAppController extends Controller
                 $result['sf'] = $shop->shop_id_sf;
                 $result['sf_decr'] = $sf1_decr > 0 ? $sf1_decr : 0;
                 $result['sf_type'] = 1;
-                $result['sf_money'] = $sf1_real_money + $add_money;
+                $result['sf_money'] = (float) sprintf("%.2f", $sf1_real_money + $add_money);
             }
         }
         // 自有运力列表
@@ -316,7 +316,7 @@ class OrderAppController extends Controller
                         $result['ss'] = $shipper->three_id;
                         $result['ss_decr'] = $ss2_decr;
                         $result['ss_type'] = 2;
-                        $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
+                        $result['ss_money'] = (float) sprintf("%.2f", (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100));
                     }
                 }
                 if ($shipper->platform == 5) {
@@ -328,7 +328,7 @@ class OrderAppController extends Controller
                         $result['dd'] = $shipper->three_id;
                         $result['dd_decr'] = 0;
                         $result['dd_type'] = 2;
-                        $result['dd_money'] = $check_dd['result']['fee'];
+                        $result['dd_money'] = (float) sprintf("%.2f", $check_dd['result']['fee']);
                     }
                 }
                 if ($shipper->platform == 7) {
@@ -341,7 +341,7 @@ class OrderAppController extends Controller
                         $result['sf'] = $shipper->three_id;
                         $result['sf_decr'] = $sf2_decr > 0 ? $sf2_decr : 0;
                         $result['sf_type'] = 2;
-                        $result['sf_money'] = $sf2_real_money;
+                        $result['sf_money'] = (float) sprintf("%.2f", $sf2_real_money);
                     }
                 }
             }
