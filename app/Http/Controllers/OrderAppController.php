@@ -208,6 +208,7 @@ class OrderAppController extends Controller
         if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
             return $this->error("门店不存在");
         }
+        $order->load('order');
         $result = [
             'id' => $order->id,
             'receiver_name' => $order->receiver_name,
@@ -215,9 +216,9 @@ class OrderAppController extends Controller
             'receiver_phone' => $order->receiver_phone,
             'expected_delivery_time' => $order->expected_delivery_time,
             'day_seq' => $order->day_seq,
-            'ctime' => $order->ctime,
+            'ctime' => $order->order->ctime ?? 0,
             'wm_poi_name' => $order->wm_poi_name,
-            'shop_name' => $order->shop_name,
+            'shop_name' => $shop->shop_name,
             'mt_status' => $order->mt_status,
             'fn_status' => $order->fn_status,
             'ss_status' => $order->ss_status,
