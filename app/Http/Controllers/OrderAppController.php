@@ -235,6 +235,7 @@ class OrderAppController extends Controller
             $check_mt = $meituan->preCreateByShop($shop, $order);
             if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
                 $result['mt'] = $shop->shop_id;
+                $result['mt_decr'] = 0;
                 $result['mt_type'] = 1;
                 $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
             }
@@ -245,6 +246,7 @@ class OrderAppController extends Controller
             $check_fn = json_decode($check_fn_res['business_data'], true);
             if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
                 $result['fn'] = $shop->shop_id_fn;
+                $result['fn_decr'] = 0;
                 $result['fn_type'] = 1;
                 $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
             }
@@ -253,7 +255,9 @@ class OrderAppController extends Controller
             $shansong = app("shansong");
             $check_ss = $shansong->orderCalculate($shop, $order);
             if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                $ss1_decr = ($check_ss['data']['couponSaveFee'] ?? 0) / 100;
                 $result['ss'] = $shop->shop_id_ss;
+                $result['ss_decr'] = $ss1_decr;
                 $result['ss_type'] = 1;
                 $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
             }
@@ -263,6 +267,7 @@ class OrderAppController extends Controller
             $check_dd= $dada->orderCalculate($shop, $order);
             if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
                 $result['dd'] = $shop->shop_id_dd;
+                $result['dd_decr'] = 0;
                 $result['dd_type'] = 1;
                 $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
             }
@@ -272,6 +277,7 @@ class OrderAppController extends Controller
             $check_mqd = $meiquanda->orderCalculate($shop, $order);
             if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
                 $result['mqd'] = $shop->shop_id_mqd;
+                $result['mqd_decr'] = 0;
                 $result['mqd_type'] = 1;
                 $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
             }
@@ -281,6 +287,7 @@ class OrderAppController extends Controller
             $check_uu= $uu->orderCalculate($order, $shop);
             if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
                 $result['uu'] = $shop->shop_id_uu;
+                $result['uu_decr'] = 0;
                 $result['uu_type'] = 1;
                 $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
             }
@@ -289,9 +296,13 @@ class OrderAppController extends Controller
             $sf = app("shunfeng");
             $check_sf= $sf->precreateorder($order, $shop);
             if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                $sf1_total_price = ($check_sf['result']['total_price'] ?? 0) / 100;
+                $sf1_real_money = ($check_sf['result']['real_pay_money'] ?? 0) / 100;
+                $sf1_decr = $sf1_total_price - $sf1_real_money;
                 $result['sf'] = $shop->shop_id_sf;
+                $result['sf_decr'] = $sf1_decr > 0 ? $sf1_decr : 0;
                 $result['sf_type'] = 1;
-                $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                $result['sf_money'] = $sf1_real_money + $add_money;
             }
         }
         // 自有运力列表
@@ -301,8 +312,10 @@ class OrderAppController extends Controller
                     $shansong = new ShanSongService(config('ps.shansongservice'));
                     $check_ss = $shansong->orderCalculate($shop, $order);
                     if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                        $ss2_decr = ($check_ss['data']['couponSaveFee'] ?? 0) / 100;
                         $result['ss'] = $shipper->three_id;
-                        $result['ss_type'] = 3;
+                        $result['ss_decr'] = $ss2_decr;
+                        $result['ss_type'] = 2;
                         $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
                     }
                 }
@@ -313,6 +326,7 @@ class OrderAppController extends Controller
                     $check_dd= $dada->orderCalculate($shop, $order);
                     if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
                         $result['dd'] = $shipper->three_id;
+                        $result['dd_decr'] = 0;
                         $result['dd_type'] = 2;
                         $result['dd_money'] = $check_dd['result']['fee'];
                     }
@@ -321,9 +335,13 @@ class OrderAppController extends Controller
                     $sf = app("shunfengservice");
                     $check_sf= $sf->precreateorder($order, $shop);
                     if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                        $sf2_total_price = ($check_sf['result']['total_price'] ?? 0) / 100;
+                        $sf2_real_money = ($check_sf['result']['real_pay_money'] ?? 0) / 100;
+                        $sf2_decr = $sf2_total_price - $sf2_real_money;
                         $result['sf'] = $shipper->three_id;
+                        $result['sf_decr'] = $sf2_decr > 0 ? $sf2_decr : 0;
                         $result['sf_type'] = 2;
-                        $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                        $result['sf_money'] = $sf2_real_money;
                     }
                 }
             }
