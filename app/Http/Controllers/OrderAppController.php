@@ -339,11 +339,11 @@ class OrderAppController extends Controller
                 $result['dd_send_error'] = '设置关闭';
             }
         }
-        if ($mqd_switch) {
+        if ($shop->shop_id_mqd) {
             $result['mqd'] = $shop->shop_id_mqd;
             $result['mqd_type'] = 1;
             $result['mqd_send_error'] = '';
-            if ($setting->meiquanda) {
+            if ($mqd_switch) {
                 $meiquanda = app('meiquanda');
                 $check_mqd = $meiquanda->orderCalculate($shop, $order);
                 if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
@@ -356,11 +356,11 @@ class OrderAppController extends Controller
                 $result['mqd_send_error'] = '设置关闭';
             }
         }
-        if ($dd_switch) {
+        if ($shop->shop_id_uu) {
             $result['uu'] = $shop->shop_id_uu;
             $result['uu_type'] = 1;
             $result['uu_send_error'] = '';
-            if ($setting->uu) {
+            if ($uu_switch) {
                 $uu = app("uu");
                 $check_uu= $uu->orderCalculate($order, $shop);
                 if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
@@ -373,11 +373,11 @@ class OrderAppController extends Controller
                 $result['uu_send_error'] = '设置关闭';
             }
         }
-        if ($sf_switch) {
+        if ($shop->shop_id_sf) {
             $result['sf'] = $shop->shop_id_sf;
             $result['sf_type'] = 1;
             $result['sf_send_error'] = '';
-            if ($setting->shunfeng) {
+            if ($sf_switch) {
                 $sf = app("shunfeng");
                 $check_sf= $sf->precreateorder($order, $shop);
                 if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
