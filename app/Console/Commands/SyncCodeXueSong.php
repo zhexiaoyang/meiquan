@@ -486,5 +486,53 @@ class SyncCodeXueSong extends Command
         }
         $this->info('门店「雪松大药房（枫杨路店）:15437138」编码绑定同步-结束......');
 
+        // ---------------------雪松大药房（奥园店）:15473187 ---------------------
+        $this->info('门店「雪松大药房（奥园店）:15473187」编码绑定同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15473187' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 200);
+            foreach ($data as $items) {
+                $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->upc,
+                    ];
+                }
+
+                // 绑定商品编码
+                $params['app_poi_code'] = '15473187';
+                $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('15473187');
+                $meiquan->medicineCodeUpdate($params);
+            }
+        }
+        $this->info('门店「雪松大药房（奥园店）:15473187」编码绑定同步-结束......');
+
+        // ---------------------雪松大药房（恒大名都店）:15473753 ---------------------
+        $this->info('门店「雪松大药房（恒大名都店）:15473753」编码绑定同步-开始......');
+        $data = DB::connection('xuesong')
+            ->select("SELECT bianhao as id, tiaoma as upc FROM [dbo].[v_meituan_kucun] WHERE [meituan] = N'15473753' AND [tiaoma] <> '' AND [tiaoma] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 200);
+            foreach ($data as $items) {
+                $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->upc,
+                    ];
+                }
+
+                // 绑定商品编码
+                $params['app_poi_code'] = '15473753';
+                $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('15473753');
+                $meiquan->medicineCodeUpdate($params);
+            }
+        }
+        $this->info('门店「雪松大药房（恒大名都店）:15473753」编码绑定同步-结束......');
+
     }
 }
