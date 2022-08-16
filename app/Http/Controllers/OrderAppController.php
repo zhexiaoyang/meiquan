@@ -210,17 +210,34 @@ class OrderAppController extends Controller
         }
         $order->load('order');
         // 商家设置
-        $setting = OrderSetting::where("shop_id", $shop->id)->first();
         $warehouse = '';
-        if ($setting->warehouse && $setting->warehouse_time) {
-            $time_data = explode('-', $setting->warehouse_time);
-            if (!empty($time_data) && (count($time_data) === 2)) {
-                if (in_time_status($time_data[0], $time_data[1])) {
-                    // DB::table('orders')->where('id', $this->order->id)->update(['warehouse_id' => $setting->warehouse]);
-                    $shop = Shop::find($setting->warehouse);
-                    $warehouse = $shop->shop_name;
+        if ($setting = OrderSetting::where("shop_id", $shop->id)->first()) {
+            if ($setting->warehouse && $setting->warehouse_time) {
+                $time_data = explode('-', $setting->warehouse_time);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        // DB::table('orders')->where('id', $this->order->id)->update(['warehouse_id' => $setting->warehouse]);
+                        $shop = Shop::find($setting->warehouse);
+                        $warehouse = $shop->shop_name;
+                    }
                 }
             }
+            $mt_switch = $setting->meituan;
+            $fn_switch = $setting->fengniao;
+            $ss_switch = $setting->shansong;
+            $mqd_switch = $setting->meiquanda;
+            $dd_switch = $setting->dada;
+            $uu_switch = $setting->uu;
+            $sf_switch = $setting->shunfeng;
+        } else {
+            $default_settimg = config("ps.shop_setting");
+            $mt_switch = $default_settimg['meituan'];
+            $fn_switch = $default_settimg['fengniao'];
+            $ss_switch = $default_settimg['shansong'];
+            $mqd_switch = $default_settimg['meiquanda'];
+            $dd_switch = $default_settimg['dada'];
+            $uu_switch = $default_settimg['uu'];
+            $sf_switch = $default_settimg['shunfeng'];
         }
         $result = [
             'id' => $order->id,
@@ -256,7 +273,7 @@ class OrderAppController extends Controller
             $result['mt'] = $shop->shop_id;
             $result['mt_type'] = 1;
             $result['mt_send_error'] = '';
-            if ($setting->fengniao) {
+            if ($mt_switch) {
                 $meituan = app("meituan");
                 $check_mt = $meituan->preCreateByShop($shop, $order);
                 if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
@@ -273,7 +290,7 @@ class OrderAppController extends Controller
             $result['fn'] = $shop->shop_id_fn;
             $result['fn_type'] = 1;
             $result['fn_send_error'] = '';
-            if ($setting->fengniao) {
+            if ($fn_switch) {
                 $fengniao = app("fengniao");
                 $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
                 $check_fn = json_decode($check_fn_res['business_data'], true);
@@ -291,7 +308,7 @@ class OrderAppController extends Controller
             $result['ss'] = $shop->shop_id_ss;
             $result['ss_type'] = 1;
             $result['ss_send_error'] = '';
-            if ($setting->shansong) {
+            if ($ss_switch) {
                 $shansong = app("shansong");
                 $check_ss = $shansong->orderCalculate($shop, $order);
                 if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
@@ -309,7 +326,7 @@ class OrderAppController extends Controller
             $result['dd'] = $shop->shop_id_dd;
             $result['dd_type'] = 1;
             $result['dd_send_error'] = '';
-            if ($setting->dada) {
+            if ($dd_switch) {
                 $dada = app("dada");
                 $check_dd= $dada->orderCalculate($shop, $order);
                 if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
@@ -322,7 +339,7 @@ class OrderAppController extends Controller
                 $result['dd_send_error'] = '设置关闭';
             }
         }
-        if ($shop->shop_id_mqd) {
+        if ($mqd_switch) {
             $result['mqd'] = $shop->shop_id_mqd;
             $result['mqd_type'] = 1;
             $result['mqd_send_error'] = '';
@@ -339,7 +356,7 @@ class OrderAppController extends Controller
                 $result['mqd_send_error'] = '设置关闭';
             }
         }
-        if ($shop->shop_id_uu) {
+        if ($dd_switch) {
             $result['uu'] = $shop->shop_id_uu;
             $result['uu_type'] = 1;
             $result['uu_send_error'] = '';
@@ -356,7 +373,7 @@ class OrderAppController extends Controller
                 $result['uu_send_error'] = '设置关闭';
             }
         }
-        if ($shop->shop_id_sf) {
+        if ($sf_switch) {
             $result['sf'] = $shop->shop_id_sf;
             $result['sf_type'] = 1;
             $result['sf_send_error'] = '';
@@ -384,7 +401,7 @@ class OrderAppController extends Controller
                     $result['ss'] = $shipper->three_id;
                     $result['ss_type'] = 2;
                     $result['ss_send_error'] = '';
-                    if ($setting->shansong) {
+                    if ($ss_switch) {
                         $shansong = new ShanSongService(config('ps.shansongservice'));
                         $check_ss = $shansong->orderCalculate($shop, $order);
                         if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
@@ -402,7 +419,7 @@ class OrderAppController extends Controller
                     $result['dd'] = $shipper->three_id;
                     $result['dd_type'] = 2;
                     $result['dd_send_error'] = '';
-                    if ($setting->dada) {
+                    if ($dd_switch) {
                         $config = config('ps.dada');
                         $config['source_id'] = $shipper->source_id;
                         $dada = new DaDaService($config);
@@ -421,7 +438,7 @@ class OrderAppController extends Controller
                     $result['sf'] = $shipper->three_id;
                     $result['sf_type'] = 2;
                     $result['sf_send_error'] = '';
-                    if ($setting->shunfeng) {
+                    if ($sf_switch) {
                         $sf = app("shunfengservice");
                         $check_sf= $sf->precreateorder($order, $shop);
                         if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
