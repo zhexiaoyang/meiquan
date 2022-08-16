@@ -233,6 +233,7 @@ class OrderAppController extends Controller
             'wm_poi_name' => $order->wm_poi_name,
             'shop_name' => $shop->shop_name,
             'warehouse' => $warehouse,
+            'status' => $order->status,
             'mt_status' => $order->mt_status,
             'fn_status' => $order->fn_status,
             'ss_status' => $order->ss_status,
