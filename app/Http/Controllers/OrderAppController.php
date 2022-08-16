@@ -313,7 +313,7 @@ class OrderAppController extends Controller
                 $check_ss = $shansong->orderCalculate($shop, $order);
                 if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
                     $ss1_decr = ($check_ss['data']['couponSaveFee'] ?? 0) / 100;
-                    $result['ss_decr'] = $ss1_decr;
+                    $result['ss_decr'] = (float) sprintf("%.2f", $ss1_decr);
                     $result['ss_money'] = (float) sprintf("%.2f", (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money);
                 } else {
                     $result['ss_send_error'] = '无法发单';
@@ -384,7 +384,7 @@ class OrderAppController extends Controller
                     $sf1_total_price = ($check_sf['result']['total_price'] ?? 0) / 100;
                     $sf1_real_money = ($check_sf['result']['real_pay_money'] ?? 0) / 100;
                     $sf1_decr = $sf1_total_price - $sf1_real_money;
-                    $result['sf_decr'] = $sf1_decr > 0 ? $sf1_decr : 0;
+                    $result['sf_decr'] = $sf1_decr > 0 ? (float) sprintf("%.2f", $sf1_decr) : 0;
                     $result['sf_type'] = 1;
                     $result['sf_money'] = (float) sprintf("%.2f", $sf1_real_money + $add_money);
                 } else {
@@ -406,7 +406,7 @@ class OrderAppController extends Controller
                         $check_ss = $shansong->orderCalculate($shop, $order);
                         if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
                             $ss2_decr = ($check_ss['data']['couponSaveFee'] ?? 0) / 100;
-                            $result['ss_decr'] = $ss2_decr;
+                            $result['ss_decr'] = (float) sprintf("%.2f", $ss2_decr);
                             $result['ss_money'] = (float) sprintf("%.2f", (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100));
                         } else {
                             $result['ss_send_error'] = '无法发单';
@@ -445,7 +445,7 @@ class OrderAppController extends Controller
                             $sf2_total_price = ($check_sf['result']['total_price'] ?? 0) / 100;
                             $sf2_real_money = ($check_sf['result']['real_pay_money'] ?? 0) / 100;
                             $sf2_decr = $sf2_total_price - $sf2_real_money;
-                            $result['sf_decr'] = $sf2_decr > 0 ? $sf2_decr : 0;
+                            $result['sf_decr'] = $sf2_decr > 0 ? (float) sprintf("%.2f", $sf2_decr) : 0;
                             $result['sf_money'] = (float) sprintf("%.2f", $sf2_real_money);
                         } else {
                             $result['sf_send_error'] = '无法发单';
