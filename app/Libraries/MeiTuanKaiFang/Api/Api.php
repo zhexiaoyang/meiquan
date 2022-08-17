@@ -191,6 +191,7 @@ class Api extends Request
 
     public function uploadDataTransRecord($order_id, $target_id = 100331, $source_id = 106791)
     {
+        \Log::info("美团订单打印上报:{$order_id}");
         $data = [
             "sourceDeveloperId" => $source_id,
             "targetDeveloperId" => $target_id,
