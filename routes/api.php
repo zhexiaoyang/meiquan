@@ -194,10 +194,16 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("order/app/index/status", "OrderAppController@index_status")->name("order.app.index.status");
         // 小程序订单各个状态数量
         Route::get("order/app/index/statistics", "OrderAppController@index_statistics")->name("order.app.index.statistics");
+        // 小程序订单各个状态数量
+        Route::get("order/app/{order}", "OrderAppController@show")->name("order.app.show");
         // 忽略订单配送
         Route::post("order/app/ignore/{order}", "OrderAppController@ignore")->name("order.app.ignore");
-        // 发送订单
+        // 预发送订单
         Route::get("order/app/advance/{order}", "OrderAppController@advance")->name("order.app.advance");
+        // 重置订单
+        Route::post("order/app/reset/{order}", "OrderAppController@reset")->name("order.app.reset");
+        // 订单派送
+        Route::post("order/app/send", "OrderAppController@send")->name("order.app.send");
         /**
          * 订管管理
          */

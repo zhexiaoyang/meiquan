@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class OrderAppController extends Controller
@@ -149,6 +150,90 @@ class OrderAppController extends Controller
         return $this->success($orders);
     }
 
+    public function show(Order $order)
+    {
+        $order->load("order.receives");
+        $order->load("deduction");
+        $order->load("products");
+        $order->load("warehouse");
+        $order->load(['shop' => function($query) {
+            $query->select('id', 'shop_id', 'shop_name', 'shop_lng', 'shop_lat');
+        }]);
+        $order->load("logs");
+        if ($wm_order = $order->order) {
+            unset($order->order);
+            $order->online_payment = $wm_order->online_payment;
+            $order->service_fee = $wm_order->service_fee;
+            $order->logistics_fee = $wm_order->logistics_fee;
+            $order->poi_receive = $wm_order->poi_receive;
+
+            $ping_fee = 0;
+            $poi_fee = 0;
+            if (!empty($wm_order->receives)) {
+                foreach ($wm_order->receives as $receive) {
+                    if ($receive->type == 1) {
+                        $ping_fee += $receive->money;
+                    } else {
+                        $poi_fee += $receive->money;
+                    }
+                }
+            }
+            $order->ping_fee = $ping_fee;
+            $order->poi_fee = $poi_fee;
+        }
+        if (in_array($order->status, [3,8,20 ,30 ,40 ,50 ,60])) {
+            $order->is_cancel = 1;
+        } else {
+            $order->is_cancel = 0;
+        }
+        // $order->status_code = $order->status;
+        // $order->status = $order->status_label;
+        if (isset($order->shop->shop_name)) {
+            $order->shop_name = $order->shop->shop_name;
+        } else {
+            $order->shop_name = "";
+        }
+        if (isset($order->warehouse->shop_name)) {
+            $order->warehouse_name = $order->warehouse->shop_name;
+        } else {
+            $order->warehouse = "";
+        }
+        $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
+        $number = 0;
+        if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
+            if ($setting = OrderSetting::query()->where("shop_id", $order->shop_id)->first()) {
+                $ttl = $setting->delay_send;
+            } else {
+                $ttl = config("ps.shop_setting.delay_send");
+            }
+            $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
+        }
+        // if ($order->status == 8 && $number == 0 ) {
+        //     $order->status = 0;
+        // }
+        $estimate_arrival_time = $order->order->estimate_arrival_time ?? 0;
+        if ($estimate_arrival_time) {
+            $estimate_arrival_time = strtotime(date("Y-m-d H:i", $estimate_arrival_time));
+        }
+        // 发单倒计时
+        $order->number = $number;
+        // 接单时间
+        $order->receive_time = strtotime($order->receive_at);
+        $order->ctime = $order->order->ctime ?? strtotime($order->created_at);
+        $order->estimate_arrival_time = $estimate_arrival_time;
+        $order->current_time = time();
+        // 下单几分钟
+        $order->create_pass = ceil((time() - $order->ctime) / 60);
+        // 接单几分钟
+        $order->receive_pass = ceil((time() - $order->receive_time) / 60);
+        $order->arrival_pass = $order->estimate_arrival_time > 0 ? (ceil(($estimate_arrival_time - time()) / 60)) : 0;
+
+        unset($order->order);
+        unset($order->warehouse);
+
+        return $this->success($order);
+    }
+
     /**
      * APP 个状态订单统计
      * @param Request $request
@@ -197,7 +282,7 @@ class OrderAppController extends Controller
     }
 
     /**
-     * 订单派送
+     * 订单派送-预发单
      * @param Order $order
      * @return mixed
      * @author zhangzhen
@@ -458,6 +543,40 @@ class OrderAppController extends Controller
         }
 
         return $this->success($result);
+    }
+
+    /**
+     * 重置订单
+     * @param Order $order
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/8/16 9:02 下午
+     */
+    public function reset(Order $order)
+    {
+        $order->status = 0;
+        $order->mt_status = 0;
+        $order->fn_status = 0;
+        $order->ss_status = 0;
+        $order->mqd_status = 0;
+        $order->dd_status = 0;
+        $order->uu_status = 0;
+        $order->sf_status = 0;
+        $order->save();
+        return $this->success();
+    }
+
+    public function send(Request $request)
+    {
+        \Log::info("123", $request->all());
+        $order_id = $request->get("order_id", 0);
+        // 判断30秒内是否发过订单
+        $lock = Cache::lock("send_order_job:{$order_id}", 30);
+        if (!$lock->get()) {
+            return $this->error("刚刚派单过，稍后再试");
+        }
+        $lock->release();
+        return $this->success();
     }
 
     public function cancel(Order $order)
