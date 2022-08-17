@@ -189,6 +189,19 @@ class Api extends Request
         return $this->post('wmoper/ng/poi/detail', $data, 16);
     }
 
+    public function uploadDataTransRecord($order_id, $target_id = 100331, $source_id = 106791)
+    {
+        $data = [
+            "sourceDeveloperId" => $source_id,
+            "targetDeveloperId" => $target_id,
+            "businessId" => 16,
+            "transporterType" => 1,
+            "dataType" => 1,
+            "data" => $order_id
+        ];
+        return $this->post2('common/developer/uploadDataTransRecord', $data, 16);
+    }
+
     public function get_token($shop_id, $order_id = '')
     {
         $key = 'meituan:open:token:' . $shop_id;

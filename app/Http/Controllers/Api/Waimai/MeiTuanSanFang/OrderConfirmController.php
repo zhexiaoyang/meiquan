@@ -89,7 +89,7 @@ class OrderConfirmController
             }
         }
         $this->log_info("-门店信息,ID:{$shop->id},名称:{$shop->shop_name}");
-        DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2) {
+        DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2, $mt) {
             $receive_address_long = $data2['recipientAddress'] ?? '';
             $receive_address_arr = explode("@#", $receive_address_long);
             $receive_address = $receive_address_arr[0];
@@ -353,27 +353,29 @@ class OrderConfirmController
                 $this->log_info('-未开通自动派单');
             }
             // 打印订单
-            // if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
-            //     $this->log_info('-打印订单，触发任务');
-            //     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-            // }
+            if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
+                $this->log_info('-打印订单，触发任务');
+                dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                $mt->uploadDataTransRecord($order_wm->order_id);
+            }
             // 转仓库打印
-            // if ($setting) {
-            //     if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
-            //         $this->log_info("-转单打印[setting：{$setting->id}", [$setting]);
-            //         $time_data = explode('-', $setting->warehouse_time);
-            //         $this->log_info("-转单打印-[time_data", [$time_data]);
-            //         if (!empty($time_data) && (count($time_data) === 2)) {
-            //             if (in_time_status($time_data[0], $time_data[1])) {
-            //                 $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
-            //                 if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
-            //                     $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
-            //                     dispatch(new PrintWaiMaiOrder($order_wm, $print));
-            //                 }
-            //             }
-            //         }
-            //     }
-            // }
+            if ($setting) {
+                if ($setting->warehouse && $setting->warehouse_time && $setting->warehouse_print) {
+                    $this->log_info("-转单打印[setting：{$setting->id}", [$setting]);
+                    $time_data = explode('-', $setting->warehouse_time);
+                    $this->log_info("-转单打印-[time_data", [$time_data]);
+                    if (!empty($time_data) && (count($time_data) === 2)) {
+                        if (in_time_status($time_data[0], $time_data[1])) {
+                            $this->log_info("-转单打印-[仓库ID：{$setting->warehouse}");
+                            if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
+                                $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
+                                dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                                $mt->uploadDataTransRecord($order_wm->order_id);
+                            }
+                        }
+                    }
+                }
+            }
             // 推送ERP
             if ($erp_shop = ErpAccessShop::where("mt_shop_id", $wm_shop_id)->first()) {
                 if ($erp_shop->access_id === 4) {

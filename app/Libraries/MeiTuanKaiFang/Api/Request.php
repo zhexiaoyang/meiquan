@@ -55,6 +55,35 @@ class Request
         return $result;
     }
 
+    public function post2(string $method, array $data, $businessId = 2)
+    {
+        $params = [
+            'developerId' => (int) $this->app_id,
+            'timestamp' => time(),
+            'charset' => 'utf-8',
+            'version' => 2,
+            'businessId' => $businessId,
+            'biz' => json_encode($data)
+        ];
+
+        $params = array_merge($data, $params);
+
+        // $params['sign'] = Tool::get_sign($params, $this->app_key);
+        $sign = Tool::get_sign($params, $this->app_key);
+        $params['sign'] = $sign;
+        $url = $this->url . $method."?sign=".$sign."&".Tool::concat_params($params);
+
+        $http = $this->getHttp();
+
+        $response = $http->post($url, $params);
+
+        $result = json_decode(strval($response->getBody()), true);
+
+        $this->checkErrorAndThrow($result);
+
+        return $result;
+    }
+
     public function get(string $method, array $data)
     {
         $params = [
