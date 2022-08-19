@@ -2446,7 +2446,8 @@ class OrderController extends Controller
                         $this->warehouse = $setting->warehouse;
                         $shop = Shop::find($setting->warehouse);
                         $setting = OrderSetting::where("shop_id", $shop->id)->first();
-                        \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                        // \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                        \Log::info("仓库重新发单 | 订单号：{{ $order_id }}，名称：{{ $shop->shop_name }}", [$setting]);
                     }
                 }
             }
