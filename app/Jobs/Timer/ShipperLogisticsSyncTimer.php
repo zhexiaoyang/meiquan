@@ -37,6 +37,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                 if ($order->ps == 0) {
                     \Log::info("同步骑手位置异常|订单没有配送平台|id:{$order->id},order_id:{$order->order_id}");
                 }
+                $mt_params = [];
                 $mt_status = $order->status == 50 ? 20 : 30;
                 $shipper_name = '';
                 $shipper_phone = '';
@@ -176,8 +177,8 @@ class ShipperLogisticsSyncTimer extends CronJob
                         \Log::info("同步骑手位置|寝趣|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
                     }else if ($order->type == 31) {
                         if ($shop = Shop::find($order->shop_id)) {
-                            $mt['access_token'] = $shangou->getShopToken($shop->waimai_mt);
-                            $mt['app_poi_code'] = $shop->waimai_mt;
+                            $mt_params['access_token'] = $shangou->getShopToken($shop->waimai_mt);
+                            $mt_params['app_poi_code'] = $shop->waimai_mt;
                             $res = $shangou->logisticsSync($mt_params);
                             \Log::info("同步骑手位置|闪购|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
                         } else {
