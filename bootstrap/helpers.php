@@ -1,5 +1,29 @@
 <?php
 
+//腾讯转百度坐标转换
+function coordinate_switchf($a,$b){
+    $x = (double)$b ;
+    $y = (double)$a;
+    $x_pi = 3.14159265358979324;
+    $z = sqrt($x * $x+$y * $y) + 0.00002 * sin($y * $x_pi);
+    $theta = atan2($y,$x) + 0.000003 * cos($x*$x_pi);
+    $gb = number_format($z * cos($theta) + 0.0065,6);
+    $ga = number_format($z * sin($theta) + 0.006,6);
+    return ['latitude'=>$ga,'longitude'=>$gb];
+}
+
+//百度转腾讯坐标转换
+function coordinate_switch($a,$b){
+    $x = (double)$b - 0.0065;
+    $y = (double)$a - 0.006;
+    $x_pi = 3.14159265358979324;
+    $z = sqrt($x * $x+$y * $y) - 0.00002 * sin($y * $x_pi);
+    $theta = atan2($y,$x) - 0.000003 * cos($x*$x_pi);
+    $gb = number_format($z * cos($theta),15);
+    $ga = number_format($z * sin($theta),15);
+    return ['latitude'=>$ga,'longitude'=>$gb];
+}
+
 /**
  * 通过门店ID获取达达自主注册source_id
  * @data 2022/5/27 1:16 下午
