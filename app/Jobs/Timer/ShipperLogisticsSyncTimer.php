@@ -12,7 +12,7 @@ class ShipperLogisticsSyncTimer extends CronJob
 {
     public function interval()
     {
-        return 60000 * 10;// 每60秒运行一次
+        return 60000 * 3;// 每60秒运行一次
     }
 
     public function isImmediate()
@@ -51,7 +51,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $latitude = $shipper_res['data']['lat'] / 1000000;
                     } else {
                         \Log::info("同步骑手位置异常|美团未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 2) {
                     $fengniao = app("fengniao");
@@ -63,7 +63,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $latitude = $shipper_res['data']['latitude'];
                     } else {
                         \Log::info("同步骑手位置异常|蜂鸟未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 3) {
                     // 百度坐标
@@ -85,7 +85,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         }
                     } else {
                         \Log::info("同步骑手位置异常|闪送未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 4) {
                     $meiquanda = app("meiquanda");
@@ -95,7 +95,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $latitude = $shipper_res['data']['latitude'];
                     } else {
                         \Log::info("同步骑手位置异常|美全达未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 5) {
                     if ($order->shipper_type_dd) {
@@ -113,7 +113,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $latitude = $shipper_res['result']['transporterLat'];
                     } else {
                         \Log::info("同步骑手位置异常|达达未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 6) {
                     // 百度坐标
@@ -131,7 +131,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         }
                     } else {
                         \Log::info("同步骑手位置异常|UU未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 } else if ($order->ps === 7) {
                     if ($order->shipper_type_sf) {
@@ -147,12 +147,12 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $latitude = $shipper_res['result']['rider_lat'];
                     } else {
                         \Log::info("同步骑手位置异常|顺丰未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
-                        return;
+                        continue;
                     }
                 }
                 if (!$longitude || !$latitude) {
                     \Log::info("同步骑手位置异常|经纬度不存在|id:{$order->id},order_id:{$order->order_id}");
-                    return;
+                    continue;
                 }
                 \Log::info("同步骑手位置经纬度|经度：{$longitude},纬度:{$latitude}|id:{$order->id},order_id:{$order->order_id}");
                 if (in_array($order->type, [3,4,5,31])) {
