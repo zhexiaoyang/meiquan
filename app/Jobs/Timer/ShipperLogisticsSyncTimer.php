@@ -6,8 +6,9 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\Shop;
+use Hhxsv5\LaravelS\Swoole\Timer\CronJob;
 
-class ShipperLogisticsSyncTimer
+class ShipperLogisticsSyncTimer extends CronJob
 {
     public function interval()
     {
