@@ -95,4 +95,9 @@ class Api extends Request
     {
         return $this->post('/open.Order/repealOrder', ['trade_no' => $order_id, 'reason' => '不需要配送']);
     }
+
+    public function getCourierTag($order_id)
+    {
+        return $this->get('/open.Order/getCourierTag', ['trade_no' => $order_id]);
+    }
 }
