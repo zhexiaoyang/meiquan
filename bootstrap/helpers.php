@@ -9,7 +9,7 @@ function coordinate_switchf($a,$b){
     $theta = atan2($y,$x) + 0.000003 * cos($x*$x_pi);
     $gb = number_format($z * cos($theta) + 0.0065,6);
     $ga = number_format($z * sin($theta) + 0.006,6);
-    return ['latitude'=>$ga,'longitude'=>$gb];
+    return ['longitude'=>$ga,'latitude'=>$gb];
 }
 
 //百度转腾讯坐标转换
@@ -21,7 +21,7 @@ function coordinate_switch($a,$b){
     $theta = atan2($y,$x) - 0.000003 * cos($x*$x_pi);
     $gb = number_format($z * cos($theta),15);
     $ga = number_format($z * sin($theta),15);
-    return ['latitude'=>$ga,'longitude'=>$gb];
+    return ['longitude'=>$ga,'latitude'=>$gb];
 }
 
 /**
