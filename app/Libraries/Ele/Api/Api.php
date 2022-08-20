@@ -184,6 +184,11 @@ class Api extends Request
         return $this->post('sku.stock.update.batch', $data);
     }
 
+    public function selfDeliveryLocationSync($data)
+    {
+        return $this->post('order.selfDeliveryLocationSync', $data);
+    }
+
     public function skuList($shop_id, $upc = '')
     {
         if ($shop_id) {
