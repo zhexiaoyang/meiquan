@@ -38,7 +38,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                     \Log::info("同步骑手位置异常|订单没有配送平台|id:{$order->id},order_id:{$order->order_id}");
                 }
                 $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
-                $mt_status = $order->status == 50 ? 20 : 30;
+                $mt_status = $order->status == 50 ? 10 : 20;
                 $shipper_name = '';
                 $shipper_phone = '';
                 $longitude = 0;
