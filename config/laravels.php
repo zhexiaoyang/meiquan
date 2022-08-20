@@ -37,7 +37,7 @@ return [
         'jobs'          => [
             \App\Jobs\Timer\AccountMoneyCronJob::class, // 检查闪送、达达账号余额
             \App\Jobs\CheckOrderJob::class, // 检查订单状态
-            // \App\Jobs\Timer\ShipperLogisticsSyncTimer::class, // 同步订单骑手位置
+            \App\Jobs\Timer\ShipperLogisticsSyncTimer::class, // 同步订单骑手位置
             // Enable LaravelScheduleJob to run `php artisan schedule:run` every 1 minute, replace Linux Crontab
             //\Hhxsv5\LaravelS\Illuminate\LaravelScheduleJob::class,
             // Two ways to configure parameters:
