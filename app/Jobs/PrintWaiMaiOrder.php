@@ -39,7 +39,7 @@ class PrintWaiMaiOrder implements ShouldQueue
     {
         if (!$order = WmOrder::find($this->order_id)) {
             $ding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
-            $ding->sendTextMsg('打印订单不存在：' . $this->order_id);
+            $ding->sendTextMsg("打印订单不存在|订单号：{$this->order_id}|打印机：{$this->printer->id}");
         }
         $printer = $this->printer;
 
