@@ -37,7 +37,6 @@ class ShipperLogisticsSyncTimer extends CronJob
                 if ($order->ps == 0) {
                     \Log::info("同步骑手位置异常|订单没有配送平台|id:{$order->id},order_id:{$order->order_id}");
                 }
-                $mt_params = [];
                 $mt_status = $order->status == 50 ? 20 : 30;
                 $shipper_name = '';
                 $shipper_phone = '';
@@ -210,7 +209,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                             'backFlowTime' => time()
                         ];
 
-                        $res = $meituan->logistics_sync($cy_params, $order->shop_id);
+                        $res = $canyin->logistics_sync($cy_params, $order->shop_id);
                         \Log::info("同步骑手位置|餐饮|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
                     }
                 }

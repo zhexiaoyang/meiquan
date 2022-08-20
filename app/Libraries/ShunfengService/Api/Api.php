@@ -167,13 +167,13 @@ class Api extends Request
         return $this->post('/open/api/external/listorderfeed', $data);
     }
 
-    public function position()
+    public function position($order_id)
     {
         $data = [
-            'order_id' => '16026532192333',
-            'order_type' => 2,
-            "shop_id" => "test_001",
-            "shop_type" => 2,
+            'order_id' => $order_id,
+            'order_type' => 1,
+            // "shop_id" => "test_001",
+            // "shop_type" => 2,
         ];
         return $this->post('/open/api/external/riderlatestposition', $data);
     }
