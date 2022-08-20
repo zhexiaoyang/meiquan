@@ -184,35 +184,35 @@ class ShipperLogisticsSyncTimer extends CronJob
                         } else {
                             \Log::info("同步骑手位置异常|闪购|未找到门店|id:{$order->id},order_id:{$order->order_id}");
                         }
-                    } else if ($order->type == 21) {
-                        $ele_params = [
-                            'order_id' => $order->order_id,
-                            'location' => [
-                                'UTC' => time(),
-                                'altitude' => 20,
-                                'latitude' => $latitude,
-                                'longitude' => $longitude,
-                            ]
-                        ];
-                        $res = $ele->selfDeliveryLocationSync($ele_params);
-                        \Log::info("同步骑手位置结果|饿了么|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
-
-                    } else if ($order->type == 7) {
-                        $cy_params = [
-                            "orderId" => $order->order_id,
-                            "courierName" => $shipper_name ?: $order->courier_name,
-                            "courierPhone" => $shipper_phone ?: $order->courier_phone,
-                            "logisticsStatus" => $mt_status,
-                            "thirdCarrierId" => $order->peisong_id,
-                            'thirdLogisticsId' => $codes[$order->ps ?: 4],
-                            'latitude' => $order->courier_lat,
-                            'longitude' => $order->courier_lng,
-                            'backFlowTime' => time()
-                        ];
-
-                        $res = $canyin->logistics_sync($cy_params, $order->shop_id);
-                        \Log::info("同步骑手位置结果|餐饮|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
                     }
+                } else if ($order->type == 21) {
+                    $ele_params = [
+                        'order_id' => $order->order_id,
+                        'location' => [
+                            'UTC' => time(),
+                            'altitude' => 20,
+                            'latitude' => $latitude,
+                            'longitude' => $longitude,
+                        ]
+                    ];
+                    $res = $ele->selfDeliveryLocationSync($ele_params);
+                    \Log::info("同步骑手位置结果|饿了么|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+
+                } else if ($order->type == 7) {
+                    $cy_params = [
+                        "orderId" => $order->order_id,
+                        "courierName" => $shipper_name ?: $order->courier_name,
+                        "courierPhone" => $shipper_phone ?: $order->courier_phone,
+                        "logisticsStatus" => $mt_status,
+                        "thirdCarrierId" => $order->peisong_id,
+                        'thirdLogisticsId' => $codes[$order->ps ?: 4],
+                        'latitude' => $order->courier_lat,
+                        'longitude' => $order->courier_lng,
+                        'backFlowTime' => time()
+                    ];
+
+                    $res = $canyin->logistics_sync($cy_params, $order->shop_id);
+                    \Log::info("同步骑手位置结果|餐饮|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
                 }
             }
         } else {
