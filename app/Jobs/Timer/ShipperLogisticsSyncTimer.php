@@ -153,6 +153,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                     \Log::info("同步骑手位置异常|经纬度不存在|id:{$order->id},order_id:{$order->order_id}");
                     return;
                 }
+                \Log::info("同步骑手位置异常|经度：{$longitude},纬度:{$latitude}|id:{$order->id},order_id:{$order->order_id}");
                 if (in_array($order->type, [3,4,5,31])) {
                     $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
                     $mt_params = [
@@ -217,5 +218,6 @@ class ShipperLogisticsSyncTimer extends CronJob
         } else {
             \Log::info("同步骑手位置|没有订单-结束");
         }
+        \Log::info("同步骑手位置|结束");
     }
 }
