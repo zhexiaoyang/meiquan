@@ -300,7 +300,7 @@ class OrderConfirmController
                 // 打印订单
                 if ($print = WmPrinter::where('shop_id', $shop->id)->first()) {
                     $this->log_info('-打印订单，触发任务');
-                    dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                    dispatch(new PrintWaiMaiOrder($order_wm->id, $print));
                 }
                 // 转仓库打印
                 if ($setting) {
@@ -314,7 +314,7 @@ class OrderConfirmController
                                 if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
                                     // $this->ding_error("转单打印成功");
                                     $this->log_info("-转单打印-[订单ID：{$order_wm->id}，订单号：{$order_wm->order_id}，门店ID：{$order_wm->shop_id}，仓库ID：{$setting->warehouse}]");
-                                    dispatch(new PrintWaiMaiOrder($order_wm, $print));
+                                    dispatch(new PrintWaiMaiOrder($order_wm->id, $print));
                                 }
                             }
                         }

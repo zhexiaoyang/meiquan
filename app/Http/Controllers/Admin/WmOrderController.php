@@ -3,11 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\PrintWaiMaiOrder;
-use App\Libraries\Feie\Feie;
-use App\Models\Shop;
 use App\Models\WmOrder;
-use App\Models\WmPrinter;
 use Illuminate\Http\Request;
 
 class WmOrderController extends Controller

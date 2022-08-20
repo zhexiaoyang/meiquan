@@ -221,7 +221,7 @@ class SaveMeiTuanOrder implements ShouldQueue
         });
 
         if ($print = WmPrinter::where('shop_id', $this->shop_id)->first()) {
-            dispatch(new PrintWaiMaiOrder($order, $print));
+            dispatch(new PrintWaiMaiOrder($order->id, $print));
         }
 
         // 转仓库打印
@@ -236,7 +236,7 @@ class SaveMeiTuanOrder implements ShouldQueue
                         Log::info("[保存外卖订单]-[转单打印]-[仓库ID：{$setting->warehouse}");
                         if ($print = WmPrinter::where('shop_id', $setting->warehouse)->first()) {
                             Log::info("[保存外卖订单]-[转单打印]-[订单ID：{$order->id}，订单号：{$order->order_id}，门店ID：{$order->shop_id}，仓库ID：{$setting->warehouse}]");
-                            dispatch(new PrintWaiMaiOrder($order, $print));
+                            dispatch(new PrintWaiMaiOrder($order->id, $print));
                         }
                     }
                 }

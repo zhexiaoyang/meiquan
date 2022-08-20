@@ -261,7 +261,7 @@ class WmOrderController extends Controller
             }
         }
 
-        dispatch(new PrintWaiMaiOrder($order, $print));
+        dispatch(new PrintWaiMaiOrder($order->id, $print));
 
         return $this->success();
     }

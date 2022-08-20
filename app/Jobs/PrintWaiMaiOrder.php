@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\Feie\Feie;
 use App\Models\WmOrder;
 use App\Models\WmPrinter;
@@ -15,7 +16,7 @@ class PrintWaiMaiOrder implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private $order;
+    private $order_id;
     private $printer;
 
     /**
@@ -23,9 +24,9 @@ class PrintWaiMaiOrder implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(WmOrder $order, WmPrinter $printer)
+    public function __construct(int $order_id, WmPrinter $printer)
     {
-        $this->order = $order;
+        $this->order_id = $order_id;
         $this->printer = $printer;
     }
 
@@ -36,7 +37,10 @@ class PrintWaiMaiOrder implements ShouldQueue
      */
     public function handle()
     {
-        $order = $this->order;
+        if (!$order = WmOrder::find($this->order_id)) {
+            $ding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+            $ding->sendTextMsg('打印订单不存在：' . $this->order_id);
+        }
         $printer = $this->printer;
 
         $platform = [ '', '美团外卖', '饿了么'];
