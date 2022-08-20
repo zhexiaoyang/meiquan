@@ -167,19 +167,19 @@ class ShipperLogisticsSyncTimer extends CronJob
                     ];
                     if ($order->type == 3) {
                         $res = $jay->logisticsSync($mt_params);
-                        \Log::info('同步骑手位置|洁爱眼|结果', [$res]);
+                        \Log::info('同步骑手位置|洁爱眼|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
                     }else if ($order->type == 4) {
                         $res = $minkang->logisticsSync($mt_params);
-                        \Log::info('同步骑手位置|民康|结果', [$res]);
+                        \Log::info('同步骑手位置|民康|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
                     }else if ($order->type == 5) {
                         $res = $qinqu->logisticsSync($mt_params);
-                        \Log::info('同步骑手位置|寝趣|结果', [$res]);
+                        \Log::info('同步骑手位置|寝趣|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
                     }else if ($order->type == 31) {
                         if ($shop = Shop::find($order->shop_id)) {
                             $mt['access_token'] = $shangou->getShopToken($shop->waimai_mt);
                             $mt['app_poi_code'] = $shop->waimai_mt;
                             $res = $shangou->logisticsSync($mt_params);
-                            \Log::info('同步骑手位置|闪购|结果', [$res]);
+                            \Log::info('同步骑手位置|闪购|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
                         } else {
                             \Log::info("同步骑手位置异常|闪购|未找到门店|id:{$order->id},order_id:{$order->order_id}");
                         }
@@ -194,7 +194,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                             ]
                         ];
                         $res = $ele->selfDeliveryLocationSync($ele_params);
-                        \Log::info('同步骑手位置|饿了么|结果', [$res]);
+                        \Log::info('同步骑手位置|饿了么|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
 
                     } else if ($order->type == 7) {
                         $cy_params = [
@@ -210,7 +210,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         ];
 
                         $res = $meituan->logistics_sync($cy_params, $order->shop_id);
-                        \Log::info('同步骑手位置|餐饮|结果', [$res]);
+                        \Log::info('同步骑手位置|餐饮|id:{$order->id},order_id:{$order->order_id}|结果', [$res]);
                     }
                 }
             }
