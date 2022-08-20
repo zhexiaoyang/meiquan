@@ -17,7 +17,7 @@ class ShipperLogisticsSyncTimer extends CronJob
 
     public function isImmediate()
     {
-        return false;// 是否立即执行第一次，false则等待间隔时间后执行第一次
+        return true;// 是否立即执行第一次，false则等待间隔时间后执行第一次
     }
 
     public function run()
