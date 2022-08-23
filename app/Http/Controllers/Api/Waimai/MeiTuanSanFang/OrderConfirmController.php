@@ -1165,7 +1165,11 @@ class OrderConfirmController
                 }
             }
             if (in_array($order->sf_status, [20, 30])) {
-                $sf = app("shunfeng");
+                if ($order->shipper_type_sf) {
+                    $sf = app("shunfengservice");
+                } else {
+                    $sf = app("shunfeng");
+                }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     $order->status = 99;
