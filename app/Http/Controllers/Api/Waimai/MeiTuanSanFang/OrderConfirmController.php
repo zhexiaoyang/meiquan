@@ -1109,7 +1109,11 @@ class OrderConfirmController
                 }
             }
             if (in_array($order->ss_status, [20, 30])) {
-                $shansong = app("shansong");
+                if ($order->shipper_type_ss) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                } else {
+                    $shansong = app("shansong");
+                }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if ($result['status'] == 200) {
                     $order->status = 99;
@@ -1137,7 +1141,13 @@ class OrderConfirmController
                 }
             }
             if (in_array($order->dd_status, [20, 30])) {
-                $dada = app("dada");
+                if ($order->shipper_type_dd) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    $dada = app("dada");
+                }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
                     $order->status = 99;
