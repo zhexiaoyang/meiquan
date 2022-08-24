@@ -110,7 +110,6 @@ class ProductController
                         if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                             if (VipProduct::query()->where('id', $product->id)->update(['price' => $price])) {
                                 $this->log_info("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                                $this->ding_exception("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                             } else {
                                 // $this->ding_exception("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                             }
