@@ -49,7 +49,7 @@ class OrderConfirmController
             return json_encode(['code' => '0', 'message' => 'success']);
         }
         \Log::info('餐饮来单全部参数', $request->all());
-        $this->ding_exception('餐饮来单');
+        // $this->ding_exception('餐饮来单');
         // 全部参数
         $status_texts = [2 => '用户已支付', 4 => '商家已接单', 8 => '订单已完成', 9 => '订单已取消'];
         $status_text = $status_texts[$status] ?? '状态不存在';
@@ -383,7 +383,7 @@ class OrderConfirmController
                     dispatch(new SendOrderToErp($data, $erp_shop->id));
                 }
             }
-            $this->ding_exception('餐饮创建订单成功');
+            // $this->ding_exception('餐饮创建订单成功');
         });
         $this->log_info("订单创建完成");
         if ($shop) {
