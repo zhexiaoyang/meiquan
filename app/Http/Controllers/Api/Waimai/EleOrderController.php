@@ -343,13 +343,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消美团订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "美团",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消美团订单返回失败", $logs);
+                        $this->ding_error("取消已接单美团跑腿订单失败");
                     }
                 } elseif ($ps == 2) {
                     $fengniao = app("fengniao");
@@ -426,13 +420,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消蜂鸟订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "蜂鸟",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消蜂鸟订单返回失败", $logs);
+                        $this->ding_error("取消已接单蜂鸟跑腿订单失败");
                     }
                 } elseif ($ps == 3) {
                     if ($order->shipper_type_ss) {
@@ -522,13 +510,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消蜂鸟订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "闪送",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消闪送订单返回失败", $logs);
+                        $this->ding_error("取消已接单闪送跑腿订单失败");
                     }
                 } elseif ($ps == 4) {
                     $fengniao = app("meiquanda");
@@ -576,13 +558,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消美全达订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "美全达",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消美全达订单返回失败", $logs);
+                        $this->ding_error("取消已接单美全达跑腿订单失败");
                     }
                 } elseif ($ps == 5) {
                     if ($order->shipper_type_dd) {
@@ -672,13 +648,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消美全达订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消达达订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "达达",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消达达订单返回失败", $logs);
+                        $this->ding_error("取消已接单达达跑腿订单失败");
                     }
                 } elseif ($ps == 6) {
                     $uu = app("uu");
@@ -742,13 +712,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消UU订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消UU订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "UU",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消达达订单返回失败", $logs);
+                        $this->ding_error("取消已接单UU跑腿订单失败");
                     }
                 } elseif ($ps == 7) {
                     if ($order->shipper_type_sf) {
@@ -828,13 +792,7 @@ class EleOrderController extends Controller
                         }
                     } else {
                         \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-取消顺丰订单返回失败", [$result]);
-                        $logs = [
-                            "des" => "【饿了么接口取消订单】取消顺丰订单返回失败",
-                            "id" => $order->id,
-                            "ps" => "顺丰",
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("饿了么接口取消订单，取消顺丰订单返回失败", $logs);
+                        $this->ding_error("取消已接单顺丰跑腿订单失败");
                     }
                 }
                 return $this->res("order.status.success");
@@ -856,6 +814,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【美团】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消美团订单失败");
                     }
                 }
                 if (in_array($order->fn_status, [20, 30])) {
@@ -874,6 +834,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【蜂鸟】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消蜂鸟订单失败");
                     }
                 }
                 if (in_array($order->ss_status, [20, 30])) {
@@ -891,6 +853,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【闪送】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消闪送订单失败");
                     }
                 }
                 if (in_array($order->mqd_status, [20, 30])) {
@@ -904,6 +868,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【美全达】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消美全达订单失败");
                     }
                 }
                 if (in_array($order->dd_status, [20, 30])) {
@@ -923,6 +889,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【达达】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消达达订单失败");
                     }
                 }
                 if (in_array($order->uu_status, [20, 30])) {
@@ -937,6 +905,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【UU】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消UU订单失败");
                     }
                 }
                 if (in_array($order->sf_status, [20, 30])) {
@@ -955,6 +925,8 @@ class EleOrderController extends Controller
                             "order_id" => $order->id,
                             "des" => "（饿了么）取消【顺丰】跑腿订单"
                         ]);
+                    } else {
+                        $this->ding_error("取消顺丰订单失败");
                     }
                 }
                 return $this->res("order.status.success");

@@ -548,13 +548,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单美团跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消美团订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "美团",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美团订单返回失败", $logs);
+                    $this->ding_error("取消已接单美团跑腿订单失败");
                 }
             } elseif ($ps == 2) {
                 $fengniao = app("fengniao");
@@ -641,13 +635,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单蜂鸟跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消蜂鸟订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "蜂鸟",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消蜂鸟订单返回失败", $logs);
+                    $this->ding_error("取消已接单蜂鸟跑腿订单失败");
                 }
             } elseif ($ps == 3) {
                 if ($order->shipper_type_ss) {
@@ -738,13 +726,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单闪送跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消闪送订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "闪送",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消闪送订单返回失败", $logs);
+                    $this->ding_error("取消已接单闪送跑腿订单失败");
                 }
             } elseif ($ps == 4) {
                 $fengniao = app("meiquanda");
@@ -795,13 +777,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单美全达跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消美全达订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "美全达",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消美全达订单返回失败", $logs);
+                    $this->ding_error("取消已接单美全达跑腿订单失败");
                 }
             } elseif ($ps == 5) {
                 if ($order->shipper_type_dd) {
@@ -892,13 +868,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单达达跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消达达订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "达达",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消达达订单返回失败", $logs);
+                    $this->ding_error("取消已接单达达跑腿订单失败");
                 }
             } elseif ($ps == 6) {
                 $uu = app("uu");
@@ -971,13 +941,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单UU跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消UU订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "UU",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消UU订单返回失败", $logs);
+                    $this->ding_error("取消已接单UU跑腿订单失败");
                 }
             } elseif ($ps == 7) {
                 if ($order->shipper_type_sf) {
@@ -1058,13 +1022,7 @@ class OrderConfirmController
                     }
                 } else {
                     $this->log_info("取消已接单顺丰跑腿订单失败");
-                    $logs = [
-                        "des" => "【美团外卖接口取消订单】取消顺丰订单返回失败",
-                        "id" => $order->id,
-                        "ps" => "顺丰",
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("美团外卖接口取消订单，取消顺丰订单返回失败", $logs);
+                    $this->ding_error("取消已接单顺丰跑腿订单失败");
                 }
             }
             return json_encode(["data" => "ok"]);
@@ -1087,6 +1045,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[美团跑腿]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消美团订单失败");
                 }
             }
             if (in_array($order->fn_status, [20, 30])) {
@@ -1106,6 +1066,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[蜂鸟]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消蜂鸟订单失败");
                 }
             }
             if (in_array($order->ss_status, [20, 30])) {
@@ -1124,6 +1086,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[闪送]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消闪送订单失败");
                 }
             }
             if (in_array($order->mqd_status, [20, 30])) {
@@ -1138,6 +1102,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[美全达]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消美全达订单失败");
                 }
             }
             if (in_array($order->dd_status, [20, 30])) {
@@ -1158,6 +1124,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[达达]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消达达订单失败");
                 }
             }
             if (in_array($order->uu_status, [20, 30])) {
@@ -1172,6 +1140,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[UU]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消UU订单失败");
                 }
             }
             if (in_array($order->sf_status, [20, 30])) {
@@ -1190,6 +1160,8 @@ class OrderConfirmController
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[顺丰]订单"
                     ]);
+                } else {
+                    $this->ding_error("取消顺丰订单失败");
                 }
             }
             return json_encode(["data" => "ok"]);
