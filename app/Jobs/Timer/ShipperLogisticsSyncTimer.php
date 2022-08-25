@@ -12,7 +12,7 @@ class ShipperLogisticsSyncTimer extends CronJob
 {
     public function interval()
     {
-        return 60000 * 3;// 每60秒运行一次
+        return 60000 * 2;// 每60秒运行一次
     }
 
     public function isImmediate()
