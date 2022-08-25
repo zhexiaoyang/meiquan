@@ -9,7 +9,7 @@ class WmProduct extends Model
     protected $fillable = ['shop_id','app_food_code','name','description','standard_upc','price','unit','cost_price',
         'box_num','min_order_count','box_price','category_code','is_sold_out','picture','sequence','tag_id','sale_type',
         'picture_contents','is_specialty','video_id','common_attr_value','is_show_upc_pic_contents','limit_sale_info',
-        'category_name','stock','app_poi_code'];
+        'category_name','stock','app_poi_code','ele_id','ele_error'];
 
     protected static function boot()
     {

@@ -201,4 +201,51 @@ class Api extends Request
 
         return $this->post('sku.list', $data);
     }
+
+    public function add_category($data)
+    {
+        return $this->post('sku.shop.category.create', $data);
+    }
+
+    public function delete_category($data)
+    {
+        return $this->post('sku.shop.category.delete', $data);
+    }
+
+    public function add_product($data)
+    {
+        return $this->post('sku.create', $data);
+    }
+
+    public function category_list()
+    {
+        // 201223557 其他
+        // 201232918 情趣助力
+        $data = [
+            'keyword' => '',
+            'depth' => 3,
+            'parent_id' => 201221734
+        ];
+        return $this->post('sku.category.list', $data);
+    }
+
+    public function uploadrtf($shop_id, $str)
+    {
+        $tail = '';
+        $images = explode(',', $str);
+        foreach ($images as $image) {
+            $end = stripos($image, '?');
+            if ($end !== false) {
+                $image = substr($image, 0, $end);
+            }
+            $tail .= "<img src='{$image}'><br/>";
+        }
+        $tail = '<div>' . $tail . '</div>';
+        \Log::info("$tail");
+        $data = [
+            'shop_id' => (string) $shop_id,
+            'rtf_detail' => $tail,
+        ];
+        return $this->post('sku.uploadrtf', $data);
+    }
 }

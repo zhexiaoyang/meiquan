@@ -48,6 +48,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::put("takeout/product/name", "TakeoutProductController@update_name");
         Route::put("takeout/product", "TakeoutProductController@update");
         Route::post("takeout/product", "TakeoutProductController@store");
+        Route::post("takeout/product/ele", "TakeoutProductController@store_ele");
         Route::post("takeout/product/transfer", "TakeoutProductController@transfer");
         Route::get("takeout/product/log", "TakeoutProductController@log_index");
         Route::get("takeout/product/log/export", "TakeoutProductController@export_logs");
