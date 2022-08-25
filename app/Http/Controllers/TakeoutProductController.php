@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\TakeoutProductExport;
 use App\Exports\WmProductLogErrorExport;
 use App\Imports\TakeoutProductImport;
+use App\Jobs\EleUploadProduct;
 use App\Jobs\MeiTuanTakeoutProductSave;
 use App\Models\OrderSetting;
 use App\Models\Shop;
@@ -905,5 +906,90 @@ class TakeoutProductController extends Controller
     {
         Excel::import($import, $request->file('file'));
         return back()->with('success', '导入成功');
+    }
+
+    public function store_ele(Request $request)
+    {
+        \Log::info("同步饿了么商品开始");
+        // 判断门店是否存在
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择同步商品的门店');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        if (!$shop->waimai_ele) {
+            return $this->error('未绑定开发者');
+        }
+        // 获取权限和用户
+        $has_permission = $request->user()->hasPermissionTo('currency_shop_all');
+        $user_id = $request->user()->id;
+        // 判断是否可以操作此门店
+        if (!$has_permission) {
+            if ($shop->own_id != $user_id) {
+                return $this->error('门店不存在！');
+            }
+        }
+        // 判断门店是否有分类
+        $categories = [];
+        $cat_res = WmCategory::where('shop_id', $shop->id)->orderBy('pid')->get();
+        if ($cat_res->isEmpty()) {
+            return $this->error('门店没有商品分类');
+        }
+        foreach ($cat_res->toArray() as $cat) {
+            if ($cat['pid'] == 0) {
+                $categories[$cat['id']] = $cat;
+            } else {
+                $categories[$cat['pid']]['children'][] = $cat;
+            }
+        }
+        // 判断门店是否有商品
+        $products = WmProduct::with(['skus'])->where('shop_id', $shop->id)->get();
+        if ($products->isEmpty()) {
+            return $this->error('门店没有商品');
+        }
+        // 同步类型
+        $stock_type = $request->get('stock_type');
+        $online_type = $request->get('online_type');
+
+        // 饿了么接口
+        $ele = app("ele");
+
+        // 同步分类
+        foreach ($categories as $category) {
+            $category_params = [
+                'shop_id' => $shop->waimai_ele,
+                'parent_category_id' => 0,
+                'name' => $category['name'],
+                'rank' => 10000 - $category['sequence'],
+            ];
+            $res = $ele->add_category($category_params);
+            // \Log::info("res", [$res]);
+            $category_id = $res['body']['data']['category_id'] ?? '';
+            if ($category_id) {
+                WmCategory::where('id', $category['id'])->update(['ele_id' => $category_id]);
+                if (!empty($category['children'])) {
+                    foreach ($category['children'] as $child) {
+                        $category_params2 = [
+                            'shop_id' => $shop->waimai_ele,
+                            'parent_category_id' => $category_id,
+                            'name' => $child['name'],
+                            'rank' => 10000 - $child['sequence'],
+                        ];
+                        $res2 = $ele->add_category($category_params2);
+                        $category_id2 = $res2['body']['data']['category_id'] ?? '';
+                        if ($category_id2) {
+                            WmCategory::where('id', $child['id'])->update(['ele_id' => $category_id2]);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 同步商品
+        foreach ($products as $product) {
+            dispatch(new EleUploadProduct($product, $shop->waimai_ele));
+        }
+
     }
 }
