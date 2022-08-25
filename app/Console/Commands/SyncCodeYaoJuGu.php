@@ -71,8 +71,8 @@ class SyncCodeYaoJuGu extends Command
         ];
 
         foreach ($shops_minkang as $name => $id) {
-            $this->info("门店「{$name}}:{$id}」库存同步-开始......");
-            Log::info("门店「{$name}}:{$id}」库存同步-开始......");
+            $this->info("门店「{$name}}:{$id}」绑定编码-开始......");
+            Log::info("门店「{$name}}:{$id}」绑定编码-开始......");
             $data = DB::connection('yaojugu')
                 ->select("SELECT 商品编码 as id, 商品条形码 as upc FROM [dbo].[v_busi_store] WHERE [美团门店ID] = N'{$id}' AND [商品条形码] <> '' AND [商品条形码] IS NOT NULL");
             if (!empty($data)) {
@@ -91,13 +91,13 @@ class SyncCodeYaoJuGu extends Command
                     $minkang->medicineCodeUpdate($params);
                 }
             }
-            $this->info("门店「{$name}}:{$id}」库存同步-结束......");
-            Log::info("门店「{$name}}:{$id}」库存同步-结束......");
+            $this->info("门店「{$name}}:{$id}」绑定编码-结束......");
+            Log::info("门店「{$name}}:{$id}」绑定编码-结束......");
         }
 
         foreach ($shops_shangou as $name => $id) {
-            $this->info("门店「{$name}}:{$id}」库存同步-开始......");
-            Log::info("门店「{$name}}:{$id}」库存同步-开始......");
+            $this->info("门店「{$name}}:{$id}」绑定编码-开始......");
+            Log::info("门店「{$name}}:{$id}」绑定编码-开始......");
             $data = DB::connection('yaojugu')
                 ->select("SELECT 商品编码 as id, 商品条形码 as upc FROM [dbo].[v_busi_store] WHERE [美团门店ID] = N'{$id}' AND [商品条形码] <> '' AND [商品条形码] IS NOT NULL");
             if (!empty($data)) {
@@ -117,8 +117,8 @@ class SyncCodeYaoJuGu extends Command
                     $shangou->medicineCodeUpdate($params);
                 }
             }
-            $this->info("门店「{$name}}:{$id}」库存同步-结束......");
-            Log::info("门店「{$name}}:{$id}」库存同步-结束......");
+            $this->info("门店「{$name}}:{$id}」绑定编码-结束......");
+            Log::info("门店「{$name}}:{$id}」绑定编码-结束......");
         }
     }
 }
