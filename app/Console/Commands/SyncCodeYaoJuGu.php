@@ -38,6 +38,7 @@ class SyncCodeYaoJuGu extends Command
     public function handle()
     {
         $this->info('------------药聚谷绑定编码------------');
+        Log::info("------------药聚谷绑定编码------------");
 
         $minkang = app("minkang");
         $shangou = app("meiquan");

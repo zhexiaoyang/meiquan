@@ -41,6 +41,8 @@ class SyncStockYaoJuGu extends Command
     {
         $minkang = app("minkang");
         $shangou = app("meiquan");
+        $this->info('------------药聚谷同步库存------------');
+        Log::info("------------药聚谷同步库存------------");
 
         // 民康
         $shops_minkang = [
