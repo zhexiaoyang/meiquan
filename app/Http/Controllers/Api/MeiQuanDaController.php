@@ -361,24 +361,28 @@ class MeiQuanDaController extends Controller
             } elseif ($status == 5) {
                 // 美全达跑腿状态【4：取单中(已接单，已抢单)，5：送单中(已取单)，6：送达订单 ，7：撤销订单】
                 // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
-                // 送货中
-                $order->status = 60;
-                $order->mqd_status = 60;
-                $order->take_at = date("Y-m-d H:i:s");
-                $order->courier_name = $name;
-                $order->courier_phone = $phone;
-                $order->courier_lng = $longitude;
-                $order->courier_lat = $latitude;
-                $order->save();
-                // 记录订单日志
-                OrderLog::create([
-                    'ps' => 4,
-                    "order_id" => $order->id,
-                    "des" => "【美全达】跑腿，配送中",
-                    'name' => $name,
-                    'phone' => $phone,
-                ]);
-                dispatch(new MtLogisticsSync($order));
+                if ($order->status < 60) {
+                    // 送货中
+                    $order->status = 60;
+                    $order->mqd_status = 60;
+                    $order->take_at = date("Y-m-d H:i:s");
+                    $order->courier_name = $name;
+                    $order->courier_phone = $phone;
+                    $order->courier_lng = $longitude;
+                    $order->courier_lat = $latitude;
+                    $order->save();
+                    // 记录订单日志
+                    OrderLog::create([
+                        'ps' => 4,
+                        "order_id" => $order->id,
+                        "des" => "【美全达】跑腿，配送中",
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                    dispatch(new MtLogisticsSync($order));
+                } else {
+                    Log::info($log_prefix . '订单已取货');
+                }
                 return json_encode($res);
             } elseif ($status == 6) {
                 $order->status = 70;
