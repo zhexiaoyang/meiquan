@@ -125,6 +125,18 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'yaojugu' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => '183.71.244.66',
+            'port' => '8888',
+            'database' => 'hydee_ls',
+            'username' => 'yjgMT',
+            'password' => 'Yjg@0824.Mt',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 
