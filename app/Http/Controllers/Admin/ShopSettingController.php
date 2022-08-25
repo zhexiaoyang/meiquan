@@ -159,7 +159,7 @@ class ShopSettingController extends Controller
         $setting->call = $call;
         // 延时发单
         $delay_send = intval($request->get('delay_send', 0));
-        if ($delay_send < 0 || $delay_send > 300) {
+        if ($delay_send < 0 || $delay_send > 900) {
             return $this->error("延时发单时间不正确");
         }
         $setting->delay_send = $delay_send;
