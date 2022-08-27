@@ -23,7 +23,6 @@ class ShipperLogisticsSyncTimer extends CronJob
     public function run()
     {
         $orders = Order::query()->whereIn('status', [50, 60])->orderBy('id')->get();
-        \Log::info("同步骑手位置|开始");
 
         if (!empty($orders)) {
             $jay = app("jay"); // 3
@@ -35,7 +34,8 @@ class ShipperLogisticsSyncTimer extends CronJob
 
             foreach ($orders as $order) {
                 if ($order->ps == 0) {
-                    \Log::info("同步骑手位置异常|订单没有配送平台|id:{$order->id},order_id:{$order->order_id}");
+                    \Log::info("同步骑手位置{$order->order_id}|开始");
+                    \Log::info("同步骑手位置{$order->order_id}|异常|订单没有配送平台");
                 }
                 $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
                 $mt_status = $order->status == 50 ? 10 : 20;
@@ -50,7 +50,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $longitude = $shipper_res['data']['lng'] / 1000000;
                         $latitude = $shipper_res['data']['lat'] / 1000000;
                     } else {
-                        \Log::info("同步骑手位置异常|美团未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|美团未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 2) {
@@ -62,7 +62,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $longitude = $shipper_res['data']['longitude'];
                         $latitude = $shipper_res['data']['latitude'];
                     } else {
-                        \Log::info("同步骑手位置异常|蜂鸟未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|蜂鸟未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 3) {
@@ -84,7 +84,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                             $latitude = $ss_to['latitude'];
                         }
                     } else {
-                        \Log::info("同步骑手位置异常|闪送未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|闪送未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 4) {
@@ -94,7 +94,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $longitude = $shipper_res['data']['longitude'];
                         $latitude = $shipper_res['data']['latitude'];
                     } else {
-                        \Log::info("同步骑手位置异常|美全达未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|美全达未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 5) {
@@ -112,7 +112,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $longitude = $shipper_res['result']['transporterLng'];
                         $latitude = $shipper_res['result']['transporterLat'];
                     } else {
-                        \Log::info("同步骑手位置异常|达达未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|达达未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 6) {
@@ -130,7 +130,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                             $latitude = $uu_to['latitude'];
                         }
                     } else {
-                        \Log::info("同步骑手位置异常|UU未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|UU未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 } else if ($order->ps === 7) {
@@ -146,15 +146,15 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $longitude = $shipper_res['result']['rider_lng'];
                         $latitude = $shipper_res['result']['rider_lat'];
                     } else {
-                        \Log::info("同步骑手位置异常|顺丰未返回经纬度|id:{$order->id},order_id:{$order->order_id}", [$shipper_res]);
+                        \Log::info("同步骑手位置{$order->order_id}|异常|顺丰未返回经纬度", [$shipper_res]);
                         continue;
                     }
                 }
                 if (!$longitude || !$latitude) {
-                    \Log::info("同步骑手位置异常|经纬度不存在|id:{$order->id},order_id:{$order->order_id}");
+                    \Log::info("同步骑手位置{$order->order_id}|异常|经纬度不存在");
                     continue;
                 }
-                \Log::info("同步骑手位置经纬度|经度：{$longitude},纬度:{$latitude}|id:{$order->id},order_id:{$order->order_id}");
+                \Log::info("同步骑手位置{$order->order_id}|经纬度|{$longitude},{$latitude}");
                 if (in_array($order->type, [3,4,5,31])) {
                     $mt_params = [
                         "order_id" => $order->order_id,
@@ -168,21 +168,21 @@ class ShipperLogisticsSyncTimer extends CronJob
                     ];
                     if ($order->type == 3) {
                         $res = $jay->logisticsSync($mt_params);
-                        \Log::info("同步骑手位置结果|洁爱眼|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                        \Log::info("同步骑手位置{$order->order_id}|洁爱眼|结果", [$res]);
                     }else if ($order->type == 4) {
                         $res = $minkang->logisticsSync($mt_params);
-                        \Log::info("同步骑手位置结果|民康|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                        \Log::info("同步骑手位置{$order->order_id}|民康", [$res]);
                     }else if ($order->type == 5) {
                         $res = $qinqu->logisticsSync($mt_params);
-                        \Log::info("同步骑手位置结果|寝趣|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                        \Log::info("同步骑手位置{$order->order_id}|寝趣|结果", [$res]);
                     }else if ($order->type == 31) {
                         if ($shop = Shop::find($order->shop_id)) {
                             $mt_params['access_token'] = $shangou->getShopToken($shop->waimai_mt);
                             $mt_params['app_poi_code'] = $shop->waimai_mt;
                             $res = $shangou->logisticsSync($mt_params);
-                            \Log::info("同步骑手位置结果|闪购|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                            \Log::info("同步骑手位置{$order->order_id}|闪购|结果", [$res]);
                         } else {
-                            \Log::info("同步骑手位置异常|闪购|未找到门店|id:{$order->id},order_id:{$order->order_id}");
+                            \Log::info("同步骑手位置{$order->order_id}|异常|闪购|未找到门店");
                         }
                     }
                 } else if ($order->type == 21) {
@@ -196,7 +196,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         ]
                     ];
                     $res = $ele->selfDeliveryLocationSync($ele_params);
-                    \Log::info("同步骑手位置结果|饿了么|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                    \Log::info("同步骑手位置{$order->order_id}|饿了么|结果", [$res]);
 
                 } else if ($order->type == 7) {
                     $cy_params = [
@@ -212,8 +212,9 @@ class ShipperLogisticsSyncTimer extends CronJob
                     ];
 
                     $res = $canyin->logistics_sync($cy_params, $order->shop_id);
-                    \Log::info("同步骑手位置结果|餐饮|id:{$order->id},order_id:{$order->order_id}|结果", [$res]);
+                    \Log::info("同步骑手位置{$order->order_id}|餐饮|结果", [$res]);
                 }
+                \Log::info("同步骑手位置{$order->order_id}|结束");
             }
         } else {
             \Log::info("同步骑手位置|没有订单-结束");
