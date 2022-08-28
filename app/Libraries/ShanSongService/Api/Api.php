@@ -199,19 +199,19 @@ class Api extends Request
     //     return $this->post('/openapi/developer/v5/orderInfo', $data);
     // }
     //
-    // /**
-    //  * 配送员信息
-    //  * @param $order_id
-    //  * @return mixed
-    //  */
-    // public function carrier($order_id)
-    // {
-    //     $data = [
-    //         'issOrderNo' => $order_id
-    //     ];
-    //
-    //     return $this->post('/openapi/developer/v5/courierInfo', $data);
-    // }
+    /**
+     * 配送员信息
+     * @param $order_id
+     * @return mixed
+     */
+    public function carrier($order_id)
+    {
+        $data = [
+            'issOrderNo' => $order_id
+        ];
+
+        return $this->post('/openapi/developer/v5/courierInfo', $data);
+    }
 
     /**
      * 确认物品送回
