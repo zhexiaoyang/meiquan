@@ -150,9 +150,9 @@ class ProductController
                 if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         if ($product->delete()) {
-                            $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                            $this->log_info("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                         } else {
-                            $this->ding_exception("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                            $this->log_info("删除VIP商品失败|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                         }
                     }
                 }
