@@ -497,7 +497,9 @@ class ShopController extends Controller
         $manager_ids = DB::table('model_has_roles')->where('role_id', 4)->pluck('model_id')->toArray();
         DB::transaction(function () use ($manager_ids, $shop, $user) {
             DB::table('user_has_shops')->where('shop_id', $shop->id)->whereIn('user_id', $manager_ids)->delete();
-            DB::table('shops')->where('shop_id', $shop->id)->update(['manager_id' => $user->id]);
+            // DB::table('shops')->where('shop_id', $shop->id)->update(['manager_id' => $user->id]);
+            $shop->manager_id = $user->id;
+            $shop->save();
             DB::table('user_has_shops')->insert(['shop_id' => $shop->id, 'user_id' => $user->id]);
         });
         return $this->success($manager_ids);
