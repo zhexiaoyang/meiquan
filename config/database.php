@@ -137,6 +137,18 @@ return [
             'prefix' => '',
             'prefix_indexes' => true,
         ],
+        'ruizhijia' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => 'cd5.db.gjpyun1.com',
+            'port' => '2114',
+            'database' => 'FZYUN150218',
+            'username' => 'gikzf150218',
+            'password' => '6!Q#865E!JO8ogLe@606g75c',
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
     ],
 
