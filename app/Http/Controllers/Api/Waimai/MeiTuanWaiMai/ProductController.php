@@ -33,7 +33,8 @@ class ProductController
                 $upc = $v['upc'];
                 if ($shop = Shop::select('id','shop_name')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
                     if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                        $this->ding_exception("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                        // $this->ding_exception("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                        $this->log_info("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                     } else {
                         $tmp = [
                             'platform_id' => $app_poi_code,
