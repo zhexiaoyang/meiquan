@@ -153,20 +153,24 @@ class OrderConfirmController
                             'vip_cost' => 0
                         ];
                         if ($shop->vip_status) {
-                            $upc = $product['upc'];
-                            $cost = VipProduct::select('cost')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
-                            if (isset($cost->cost)) {
-                                $cost = $cost->cost;
-                                if ($cost > 0) {
-                                    $cost_money += ($cost * $quantity);
-                                    $_tmp['vip_cost'] = $cost;
-                                    // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
-                                    $this->log_info("-VIP订单成本价,upc:{$upc},价格:{$cost}");
+                            $upc = $product['upc'] ?? '';
+                            if ($upc) {
+                                $cost = VipProduct::select('cost')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
+                                if (isset($cost->cost)) {
+                                    $cost = $cost->cost;
+                                    if ($cost > 0) {
+                                        $cost_money += ($cost * $quantity);
+                                        $_tmp['vip_cost'] = $cost;
+                                        // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                                        $this->log_info("-VIP订单成本价,upc:{$upc},价格:{$cost}");
+                                    } else {
+                                        $this->log_info("-VIP订单成本价小于等于0,upc:{$upc},价格:{$cost}");
+                                    }
                                 } else {
-                                    $this->log_info("-VIP订单成本价小于等于0,upc:{$upc},价格:{$cost}");
+                                    $this->log_info("-成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
                                 }
                             } else {
-                                $this->log_info("-成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
+                                $this->log_info("-UPC不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
                             }
                         }
                         $items[] = $_tmp;
