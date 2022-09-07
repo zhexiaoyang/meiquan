@@ -163,7 +163,85 @@ class PrintWaiMaiOrder implements ShouldQueue
                 @$nums += $prices;
             }
         }
-        $content .= "<BOLD>总件数：{$total_num}</BOLD><BR>";
+
+        // 其它费用
+        $order->load("receives");
+        // $content .= '名称            单价  数量 金额<BR>';
+        $content .= '--------------------------------<BR>';
+        $content .= '其它费用                        <BR>';
+        $content .= '--------------------------------<BR>';
+        if (!empty($order->receives)) {
+            $A = 24;
+            $B = 5;
+            $C = 2;
+            $D = 5;
+            foreach ($order->receives as $item) {
+                // \Log::info($item['comment']);
+                $name = $item['comment'];
+                $price = '-' . $item['money'];
+                $num = '';
+                $kw3 = '';
+                $kw1 = '';
+                $kw2 = '  ';
+                $kw4 = '';
+                $str = $name;
+                $blankNum = $A;//名称控制为14个字节
+                $lan = mb_strlen($str,'utf-8');
+                $m = 0;
+                $j=1;
+                $blankNum++;
+                $result = array();
+                if(strlen($price) < $D){
+                    $k1 = $D - strlen($price);
+                    for($q=0;$q<$k1;$q++){
+                        $kw1 .= ' ';
+                    }
+                    $price = $price.$kw1;
+                }
+                for ($i=0;$i<$lan;$i++){
+                    $new = mb_substr($str,$m,$j,'utf-8');
+                    $j++;
+                    if(mb_strwidth($new,'utf-8')<$blankNum) {
+                        if($m+$j>$lan) {
+                            $m = $m+$j;
+                            $tail = $new;
+                            $lenght = iconv("UTF-8", "GBK//IGNORE", $new);
+                            $k = $A - strlen($lenght);
+                            for($q=0;$q<$k;$q++){
+                                $kw3 .= ' ';
+                            }
+                            if($m==$j){
+                                $tail .= $kw3.' '.$num.' '.$price;
+                            }else{
+                                $tail .= $kw3.'<BR>';
+                            }
+                            break;
+                        }else{
+                            $next_new = mb_substr($str,$m,$j,'utf-8');
+                            if(mb_strwidth($next_new,'utf-8')<$blankNum) continue;
+                            else{
+                                $m = $i+1;
+                                $result[] = $new;
+                                $j=1;
+                            }
+                        }
+                    }
+                }
+                $head = '';
+                foreach ($result as $key=>$value) {
+                    if($key < 1){
+                        $v_lenght = iconv("UTF-8", "GBK//IGNORE", $value);
+                        $v_lenght = strlen($v_lenght);
+                        if($v_lenght == 13) $value = $value." ";
+                        $head .= $value.' '.$num.' '.$price;
+                    }else{
+                        $head .= $value.'<BR>';
+                    }
+                }
+                $content .= $head.$tail;
+            }
+        }
+        $content .= "<BR><BOLD>总件数：{$total_num}</BOLD><BR>";
         $content .= '--------------------------------<BR>';
         $content .= "订单编号：{$order->order_id}<BR>";
         $ctime = date("Y-m-d H:i:s", $order->ctime);
