@@ -104,7 +104,7 @@ class OrderConfirmController
             // 商品信息
             $products = json_decode(urldecode($data['wmAppOrderFoods']), true);
             // 对账信息
-            $poi_receive_detail = json_decode($data['poiReceiveDetail'], true);
+            $poi_receive_detail = json_decode($data['poiReceiveDetail'] ?? '', true);
             // 配送模式
             $logistics_code = isset($data['logistics_code']) ? intval($data['logistics_code']) : 0;
             if ($logistics_code > 0) {
