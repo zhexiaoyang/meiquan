@@ -238,7 +238,8 @@ class ShopController extends Controller
         if (!$shop_id = $request->get('id')) {
             return $this->error('门店ID不能为空');
         }
-        if (!$warehouse = $request->get('warehouse')) {
+        $warehouse = $request->get('warehouse');
+        if (is_null($warehouse) || !is_numeric($warehouse)) {
             return $this->error('仓库ID不能为空');
         }
         if (!$stime = $request->get('stime')) {
