@@ -70,9 +70,17 @@ class TakeoutProductExport extends DefaultValueBinder implements WithStrictNullC
 
     public function bindValue(Cell $cell, $value)
     {
+        if ($cell->getRow() == 1) {
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
         $column = $cell->getColumn();
         if (in_array( $column, ['E'])) {
             $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
+        if (in_array( $column, ['H'])) {
+            $cell->setValueExplicit($value, DataType::TYPE_NUMERIC);
             return true;
         }
         return parent::bindValue($cell, $value);
