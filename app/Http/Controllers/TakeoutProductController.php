@@ -266,7 +266,7 @@ class TakeoutProductController extends Controller
         $page_size = $request->get('page_size', 10);
 
         $query = WmProduct::with(['skus' => function ($query) {
-            $query->select('id', 'product_id', 'price', 'stock', 'spec');
+            $query->select('id', 'product_id', 'price', 'cost', 'stock', 'spec');
         }])->select('id','name','price','cost_price','stock','picture')->where('shop_id', $shop_id);
 
         if ($category_id = $request->get('category')) {
