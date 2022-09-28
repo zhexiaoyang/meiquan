@@ -25,7 +25,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'apply_three_id', 'setting.shop', 'contract','users','erp']);
+        }, 'apply_three_id', 'setting.shop', 'contract','users','user','erp']);
 
         // 搜索条件
         if ($shop_id = $request->get('shop_id')) {
@@ -104,6 +104,7 @@ class ShopController extends Controller
             $contracts = Contract::select('id', 'name')->get()->toArray();
             foreach ($shops as $shop) {
                 $tmp['id'] = $shop->id;
+                $tmp['username'] = $shop->user->name ?? '';
                 $tmp['shop_name'] = $shop->shop_name;
                 $tmp['shop_address'] = $shop->shop_address;
                 $tmp['shop_lng'] = $shop->shop_lng;
@@ -504,5 +505,58 @@ class ShopController extends Controller
             DB::table('user_has_shops')->insert(['shop_id' => $shop->id, 'user_id' => $user->id]);
         });
         return $this->success($manager_ids);
+    }
+
+    public function transfer(Request $request)
+    {
+        if (!$request->user()->hasRole('super_man')) {
+            return $this->error('无权限此操作');
+        }
+        if (!$new = $request->get('new')) {
+            return $this->error('目标账号不能为空');
+        }
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('目标账号不能为空');
+        }
+        if (!$user = User::where('name', $new)->first()) {
+            return $this->error('目标用户不存在，请核对');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        if ($shop->user_id == $user->id) {
+            return $this->error('该门店已在此账号下，无需转移');
+        }
+
+        try {
+            DB::transaction(function () use ($user, $shop, $request) {
+                $old_user_id = $shop->user_id;
+                $new_user_id = $user->id;
+                // 日志
+                DB::table('shop_transfers')->insert([
+                    'shop_id' => $shop->id,
+                    'old_user_id' => $old_user_id,
+                    'new_user_id' => $new_user_id,
+                    'action_user_id' => $request->user()->id,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'updated_at' => date("Y-m-d H:i:s"),
+                ]);
+                // 修改门店
+                DB::table('shops')->where('id', $shop->id)->update(['user_id' => $user->id, 'own_id' => $user->id]);
+                // $shop->user_id = $new_user_id;
+                // $shop->own_id = $new_user_id;
+                // $shop->save();
+                // 修改权限
+                DB::table('user_has_shops')->where('shop_id', $shop->id)
+                    ->where('user_id', $old_user_id)->update(['user_id' => $user->id]);
+                // 修改外卖资料
+                DB::table('online_shops')->where('shop_id', $shop->id)->update(['user_id' => $user->id]);
+                // 修改跑腿订单
+                DB::table('orders')->where('shop_id', $shop->id)->update(['user_id' => $user->id]);
+            });
+        } catch (\Exception $exception) {
+            return $this->error('操作失败，请稍后再试');
+        }
+        return $this->success();
     }
 }

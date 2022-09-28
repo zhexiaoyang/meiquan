@@ -35,6 +35,10 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 药品管理
+         */
+        Route::get("medicine/shops", "MedicineController@shops");
+        /**
          * WebMI
          */
         Route::get("web/mi/mt/chain", "WebIMController@mt_chain");
@@ -452,6 +456,8 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * 门店后台管理
              */
+            // 门店迁移
+            Route::post("shop/transfer", "ShopController@transfer")->name("admin.shop.transfer");
             // 门店导出
             Route::post("shop/manager/update", "ShopController@manager_update")->name("admin.shop.manager.update");
             // 门店导出
