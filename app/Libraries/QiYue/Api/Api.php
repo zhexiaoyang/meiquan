@@ -295,6 +295,16 @@ class Api extends Request
                         'contactType' => 'MOBILE'
                     ]
                 ]
+            ],
+            'templateParams' => [
+                [
+                    "name" => "甲方公司名称",
+                    "value" => $shop->company_name
+                ],
+                [
+                    "name" => "甲方联系人",
+                    "value" => $shop->applicant
+                ]
             ]
         ];
         return $this->post('/v2/contract/draft', $data);
