@@ -54,6 +54,8 @@ class Request
 
     public function request_post(string $method, array $params)
     {
+        $result = [];
+
         $params = array_merge($params, [
             'app_id' => $this->appKey,
             'timestamp' => time(),
@@ -66,7 +68,9 @@ class Request
 
         $response = $http->post($this->url . $method, $params);
 
-        $result = json_decode(strval($response->getBody()), true);
+        if ($response) {
+            $result = json_decode(strval($response->getBody()), true);
+        }
 
         // $this->checkErrorAndThrow($result);
 
