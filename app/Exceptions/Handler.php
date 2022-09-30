@@ -67,6 +67,7 @@ class Handler extends ExceptionHandler
                 "\n\n时间" => date("Y-m-d H:i:s"),
             ];
             $dingding->sendMarkdownMsgArray("中台异常", $logs);
+            \Log::info("异常全部信息", [$fe->getClass(),$fe->toArray()]);
         }
 
         parent::report($exception);
