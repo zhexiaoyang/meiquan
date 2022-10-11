@@ -33,7 +33,7 @@ class PrescriptionImport implements ToArray
                 $line = $key + 2;
                 if (WmPrescription::where('outOrderID', trim($item[3]))->exists()) {
                     $import_log['exists']++;
-                    $import_log['text'] .= trim($item[3]) . ',';
+                    // $import_log['text'] .= trim($item[3]) . ',';
                     continue;
                 }
                 if (!in_array($item[0], ['美团', '饿了么'])) {
