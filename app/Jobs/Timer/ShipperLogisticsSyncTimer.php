@@ -22,9 +22,11 @@ class ShipperLogisticsSyncTimer extends CronJob
 
     public function run()
     {
-        $orders = Order::query()->whereIn('status', [50, 60])->orderBy('id')->get();
+        $orders = Order::where('created_at', '>', date("Y-m-d H:i:s", time() - 86400*2))
+            ->whereIn('status', [50, 60])->orderBy('id')->get();
 
         if (!empty($orders)) {
+            \Log::info("同步骑手位置订单总数量：{$orders->count()}");
             $jay = app("jay"); // 3
             $minkang = app("minkang"); // 4
             $qinqu = app("qinqu"); // 5
