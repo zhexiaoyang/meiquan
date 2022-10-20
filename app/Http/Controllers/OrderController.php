@@ -1255,7 +1255,7 @@ class OrderController extends Controller
                     $sf = app("shunfeng");
                 }
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] == 0) {
+                if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
                     try {
                         DB::transaction(function () use ($order, $result) {
                             // 用户余额日志
@@ -2016,7 +2016,7 @@ class OrderController extends Controller
                     $sf = app("shunfeng");
                 }
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] == 0) {
+                if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
                         try {
                             DB::transaction(function () use ($order, $result) {
                                 // 用户余额日志
