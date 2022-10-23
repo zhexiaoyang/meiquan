@@ -50,12 +50,25 @@ class RunningFundrecordExport implements WithStrictNullComparison, Responsable, 
 
     public function map($order): array
     {
-        return [
+        $shipper = '聚合运力';
+        if ($order->ps == 3 && $order->shipper_type_ss == 1) {
+            $shipper = '自主闪送';
+        }
+        if ($order->ps == 5 && $order->shipper_type_dd == 1) {
+            $shipper = '自主达达';
+        }
+        if ($order->ps == 7 && $order->shipper_type_sf == 1) {
+            $shipper = '自主顺丰';
+        }
+        $res = [
             "'" . $order->order_id,
             $order->shop->shop_name,
             $order->money,
             $order->over_at,
+            $shipper
         ];
+
+        return $res;
     }
 
     public function headings(): array
@@ -65,6 +78,7 @@ class RunningFundrecordExport implements WithStrictNullComparison, Responsable, 
             '门店名称',
             '金额(元)',
             '完成时间',
+            '运力类型',
         ];
     }
 
