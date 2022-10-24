@@ -380,9 +380,11 @@ class TakeoutProductController extends Controller
         \Log::info("迁移商品开始");
         // 判断门店是否存在
         if (!$shop_id = $request->get('shop_id')) {
+            \Log::info("迁移商品开始-请选择提供商品信息的门店");
             return $this->error('请选择提供商品信息的门店');
         }
         if (!$master_shop = Shop::find($shop_id)) {
+            \Log::info("迁移商品开始-提供商品信息的门店不存在");
             return $this->error('提供商品信息的门店不存在');
         }
         // 获取权限和用户
@@ -391,6 +393,7 @@ class TakeoutProductController extends Controller
         // 判断是否可以操作此门店
         if (!$has_permission) {
             if ($master_shop->own_id != $request->user()->id) {
+                \Log::info("迁移商品开始-提供商品信息的门店不存在");
                 return $this->error('提供商品信息的门店不存在');
             }
         }
@@ -398,6 +401,7 @@ class TakeoutProductController extends Controller
         $categories = [];
         $cat_res = WmCategory::where('shop_id', $master_shop->id)->orderBy('pid')->get();
         if ($cat_res->isEmpty()) {
+            \Log::info("迁移商品开始-提供商品信息的门店没有商品");
             return $this->error('提供商品信息的门店没有商品！');
         }
         foreach ($cat_res->toArray() as $cat) {
@@ -410,6 +414,7 @@ class TakeoutProductController extends Controller
         // 判断门店是否有商品
         $products = WmProduct::with(['skus'])->where('shop_id', $master_shop->id)->get();
         if ($products->isEmpty()) {
+            \Log::info("迁移商品开始-提供商品信息的门店没有商品");
             return $this->error('提供商品信息的门店没有商品');
         }
         // return count($products);
@@ -417,6 +422,7 @@ class TakeoutProductController extends Controller
         // 判断补充商品门店
         $select_shops = $request->get('select_ids');
         if (empty($select_shops)) {
+            \Log::info("迁移商品开始-请选择要补充商品的门店");
             return $this->error('请选择要补充商品的门店');
         }
 
@@ -425,6 +431,7 @@ class TakeoutProductController extends Controller
             if ($shop = Shop::find($item)) {
                 if ($has_permission || ($shop->own_id == $user_id)) {
                     if (!$shop->waimai_mt) {
+                        \Log::info("迁移商品开始-{$shop->shop_name}未绑定开发者");
                         return $this->error($shop->shop_name . ' 未绑定开发者');
                     }
                     $shops[] = $shop;
@@ -475,7 +482,7 @@ class TakeoutProductController extends Controller
                         'period' => $category['period'] ?? '',
                         'smart_switch' => $category['smart_switch'] ?? 0,
                     ]);
-                    // \Log::info("res", [$res]);
+                    \Log::info("迁移商品开始-同步分类结果", [$res]);
                     if (!empty($category['children'])) {
                         $insert_category = [];
                         foreach ($category['children'] as $child) {
@@ -491,7 +498,7 @@ class TakeoutProductController extends Controller
                                 $category_params2['access_token'] = $access_token;
                             }
                             $res2 = $mt->retailCatUpdate($category_params2);
-                            // \Log::info("res2", [$res2]);
+                            \Log::info("迁移商品开始-同步二级分类结果", [$res2]);
                             $insert_category[] = [
                                 'pid' => $cat->id,
                                 'shop_id' => $shop->id,
@@ -512,7 +519,7 @@ class TakeoutProductController extends Controller
                     }
                 }
                 $product_data = $products->chunk(200);
-                foreach ($product_data as $products) {
+                foreach ($product_data as $key => $products) {
                     // \Log::info("组合数据");
                     $batch_data = [];
                     $insert_data = [];
@@ -646,6 +653,7 @@ class TakeoutProductController extends Controller
                     if ($access_token) {
                         $query_data['access_token'] = $access_token;
                     }
+                    \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res2]);
                     // \Log::info("商品", [$insert_data]);
                     // \Log::info("商品", [$batch_data]);
                     \Log::info("请求美团创建商品");
