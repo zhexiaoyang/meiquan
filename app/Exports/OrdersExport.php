@@ -59,6 +59,16 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
     public function map($order): array
     {
         $ps = ["", "美团", "蜂鸟", "闪送", "美全达", "达达", "UU", "顺丰"];
+        $shipper = '聚合运力';
+        if ($order->ps == 3 && $order->shipper_type_ss == 1) {
+            $shipper = '自主';
+        }
+        if ($order->ps == 5 && $order->shipper_type_dd == 1) {
+            $shipper = '自主';
+        }
+        if ($order->ps == 7 && $order->shipper_type_sf == 1) {
+            $shipper = '自主';
+        }
         return [
             "`".$order->order_id,
             $order->money,
@@ -66,6 +76,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             $order->shop->mt_shop_id ?? '',
             $order->shop->city ?? '',
             $ps[$order->ps],
+            $shipper,
             $order->over_at,
         ];
     }
@@ -79,6 +90,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             '美团门店ID',
             '城市',
             '配送平台',
+            '运力类型',
             '完成时间',
         ];
     }
