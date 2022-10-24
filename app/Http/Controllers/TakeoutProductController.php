@@ -656,6 +656,7 @@ class TakeoutProductController extends Controller
                     // \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res2]);
                     // \Log::info("商品", [$insert_data]);
                     // \Log::info("商品", [$batch_data]);
+                    \Log::info("迁移商品开始-同步第{$key}批商品", [$batch_data]);
                     \Log::info("迁移商品开始-请求美团创建商品");
                     $res = $mt->retailBatchInitData($query_data);
                     \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res]);
