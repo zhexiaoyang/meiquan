@@ -44,7 +44,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
             $end_date = date('Y-m-t', strtotime('-1 month'));
         }
 
-        $query = Order::with("shop")->select("id","order_id","shop_id","ps","money","over_at")->where("status", 70)
+        $query = Order::with("shop")->where("status", 70)
             ->where("over_at", ">=", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
