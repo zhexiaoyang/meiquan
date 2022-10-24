@@ -59,7 +59,7 @@ class OrdersExport implements WithStrictNullComparison, Responsable, FromQuery, 
     public function map($order): array
     {
         $ps = ["", "美团", "蜂鸟", "闪送", "美全达", "达达", "UU", "顺丰"];
-        $shipper = '聚合运力';
+        $shipper = '聚合';
         if ($order->ps == 3 && $order->shipper_type_ss == 1) {
             $shipper = '自主';
         }
