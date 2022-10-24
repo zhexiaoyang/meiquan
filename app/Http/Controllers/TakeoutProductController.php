@@ -653,12 +653,13 @@ class TakeoutProductController extends Controller
                     if ($access_token) {
                         $query_data['access_token'] = $access_token;
                     }
-                    \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res2]);
+                    // \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res2]);
                     // \Log::info("商品", [$insert_data]);
                     // \Log::info("商品", [$batch_data]);
-                    \Log::info("请求美团创建商品");
+                    \Log::info("迁移商品开始-请求美团创建商品");
                     $res = $mt->retailBatchInitData($query_data);
-                    \Log::info("商品", [$res]);
+                    \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res]);
+                    // \Log::info("商品", [$res]);
                     $error_list = $res['error_list'] ?? [];
                     $logs->success += count($products);
                     if (!empty($error_list)) {
@@ -714,7 +715,7 @@ class TakeoutProductController extends Controller
                             // }
                         }
                     } else {
-                        \Log::info('商品数组为空');
+                        \Log::info('迁移商品开始-商品数组为空');
                     }
                     // WmProduct::insert($insert_data);
                 }
@@ -723,7 +724,7 @@ class TakeoutProductController extends Controller
                 $logs->save();
             }
         }
-        \Log::info("迁移商品结束");
+        \Log::info("迁移商品开始-结束");
         return $this->success();
     }
 
