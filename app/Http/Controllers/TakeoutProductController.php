@@ -653,7 +653,6 @@ class TakeoutProductController extends Controller
                     if ($access_token) {
                         $query_data['access_token'] = $access_token;
                     }
-                    // \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res2]);
                     // \Log::info("商品", [$insert_data]);
                     // \Log::info("商品", [$batch_data]);
                     \Log::info("迁移商品开始-同步第{$key}批商品", [$batch_data]);
@@ -664,6 +663,7 @@ class TakeoutProductController extends Controller
                     $error_list = $res['error_list'] ?? [];
                     $logs->success += count($products);
                     if (!empty($error_list)) {
+                        \Log::info("迁移商品开始-有失败商品");
                         $error_data = [];
                         foreach ($error_list as $item) {
                             if ($item['blockFlag'] == 2) {
@@ -698,6 +698,7 @@ class TakeoutProductController extends Controller
                     // \Log::info("insert_data", $insert_data);
                     // \Log::info("insert_sku_data", $insert_sku_data);
                     if (!empty($insert_data)) {
+                        \Log::info("迁移商品开始-插入商品");
                         foreach ($insert_data as $m) {
                             if (!empty($insert_sku_data[$m['app_food_code']])) {
                                 MeiTuanTakeoutProductSave::dispatch(2, $m, null, $insert_sku_data[$m['app_food_code']]);
