@@ -672,29 +672,30 @@ class TakeoutProductController extends Controller
                         $error_data = [];
                         foreach ($error_list as $item) {
                             $blockFlag = $item['blockFlag'] ?? 1;
+                            $_code = $item['app_spu_code'] ?? $item['code'];
                             if ($blockFlag == 2) {
                                 $logs->fail += 1;
                                 $logs->success -= 1;
                                 $error_data[] = [
                                     'log_id' => $logs->id,
-                                    'name' => $insert_data[$item['app_spu_code']]['name'],
+                                    'name' => $insert_data[$_code]['name'],
                                     'type' => 1,
                                     'description' => $res['error_list'][0]['msg'] ?? ''
                                 ];
-                                unset($insert_data[$item['app_spu_code']]);
-                                unset($insert_sku_data[$item['app_spu_code']]);
+                                unset($insert_data[$_code]);
+                                unset($insert_sku_data[$_code]);
                             }
                             if ($blockFlag == 1) {
                                 $logs->success -= 1;
                                 $logs->error += 1;
                                 $error_data[] = [
                                     'log_id' => $logs->id,
-                                    'name' => $insert_data[$item['app_spu_code']]['name'],
+                                    'name' => $insert_data[$_code]['name'],
                                     'type' => 5,
                                     'description' => $res['error_list'][0]['msg'] ?? ''
                                 ];
-                                unset($insert_data[$item['app_spu_code']]);
-                                unset($insert_sku_data[$item['app_spu_code']]);
+                                unset($insert_data[$_code]);
+                                unset($insert_sku_data[$_code]);
                             }
                         }
                         if (!empty($error_data)) {
