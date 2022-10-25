@@ -248,7 +248,9 @@ class MtLogisticsSync implements ShouldQueue
             }
         } elseif ($this->order->type == 7) {
             // 同步美团餐饮-订单状态
-            $meituan = app("mtkf");
+            $order_id = $this->order->order_id;
+            \Log::info("美团餐饮同步配送信息{$order_id}-开始");
+            \Log::info("美团餐饮同步配送信息{$order_id}-订单状态：" . $this->order->status);
             $status = 5;
             if ($this->order->status == 40) {
                 $status = 10;
@@ -262,6 +264,7 @@ class MtLogisticsSync implements ShouldQueue
                 $status = 40;
             }
             // $shop = Shop::query()->select("id","mt_shop_id")->find($this->order->shop_id);
+            \Log::info("美团餐饮同步配送信息{$order_id}-美团订单状态：" . $status);
             $params = [
                 "orderId" => $this->order->order_id,
                 "courierName" => $this->order->courier_name,
@@ -276,8 +279,10 @@ class MtLogisticsSync implements ShouldQueue
                 'backFlowTime' => time()
             ];
 
+            $meituan = app("mtkf");
             $result = $meituan->logistics_sync($params, $this->order->shop_id);
-            \Log::info('美团外卖餐饮同步配送信息结束', compact("params", "result"));
+            \Log::info("美团餐饮同步配送信息{$order_id}-结束");
+            \Log::info("美团餐饮同步配送信息{$order_id}参数信息", compact("params", "result"));
         }
 
         // 同步外卖订单跑腿费用
