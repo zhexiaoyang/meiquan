@@ -417,6 +417,7 @@ class TakeoutProductController extends Controller
             \Log::info("迁移商品开始-提供商品信息的门店没有商品");
             return $this->error('提供商品信息的门店没有商品');
         }
+        \Log::info("迁移商品开始-迁移商品数量：" . count($products));
         // return count($products);
 
         // 判断补充商品门店
@@ -519,8 +520,11 @@ class TakeoutProductController extends Controller
                     }
                 }
                 $product_data = $products->chunk(200);
+                \Log::info("迁移商品开始批数：" . count($product_data));
                 foreach ($product_data as $key => $products) {
+                    $pi = $key + 1;
                     // \Log::info("组合数据");
+                    \Log::info("迁移商品开始-第{$pi}批迁移商品数量：" . count($products));
                     $batch_data = [];
                     $insert_data = [];
                     $insert_sku_data = [];
@@ -655,15 +659,16 @@ class TakeoutProductController extends Controller
                     }
                     // \Log::info("商品", [$insert_data]);
                     // \Log::info("商品", [$batch_data]);
-                    \Log::info("迁移商品开始-同步第{$key}批商品", [$batch_data]);
+                    // \Log::info("迁移商品开始-同步第{$key}批商品", [$batch_data]);
+                    \Log::info("迁移商品开始-同步第{$pi}批商品");
                     \Log::info("迁移商品开始-请求美团创建商品");
                     $res = $mt->retailBatchInitData($query_data);
-                    \Log::info("迁移商品开始-同步第{$key}批商品返回结果", [$res]);
+                    \Log::info("迁移商品开始-同步第{$pi}批商品返回结果", [$res]);
                     // \Log::info("商品", [$res]);
                     $error_list = $res['error_list'] ?? [];
                     $logs->success += count($products);
                     if (!empty($error_list)) {
-                        \Log::info("迁移商品开始-有失败商品");
+                        \Log::info("迁移商品开始-同步第{$pi}批商品,有失败商品");
                         $error_data = [];
                         foreach ($error_list as $item) {
                             if ($item['blockFlag'] == 2) {
@@ -697,8 +702,9 @@ class TakeoutProductController extends Controller
                     }
                     // \Log::info("insert_data", $insert_data);
                     // \Log::info("insert_sku_data", $insert_sku_data);
+                    \Log::info("迁移商品开始-同步第{$pi}批商品,准备插入数据");
                     if (!empty($insert_data)) {
-                        \Log::info("迁移商品开始-插入商品");
+                        \Log::info("迁移商品开始-同步第{$pi}批商品,插入数据");
                         foreach ($insert_data as $m) {
                             if (!empty($insert_sku_data[$m['app_food_code']])) {
                                 MeiTuanTakeoutProductSave::dispatch(2, $m, null, $insert_sku_data[$m['app_food_code']]);
@@ -717,10 +723,13 @@ class TakeoutProductController extends Controller
                             // }
                         }
                     } else {
-                        \Log::info('迁移商品开始-商品数组为空');
+                        \Log::info("迁移商品开始-同步第{$pi}批商品,商品数组为空");
+                        // \Log::info('迁移商品开始-商品数组为空');
                     }
                     // WmProduct::insert($insert_data);
+                    \Log::info("迁移商品开始-同步第{$pi}批商品,结束");
                 }
+                \Log::info("迁移商品开始-更改日志");
                 $logs->status = 1;
                 $logs->total = $logs->success + $logs->fail;
                 $logs->save();
