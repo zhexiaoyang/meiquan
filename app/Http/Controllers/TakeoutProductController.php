@@ -597,7 +597,7 @@ class TakeoutProductController extends Controller
                             'unit' => $product->unit,
                             'box_num' => $product->box_num,
                             'box_price' => $product->box_price,
-                            'category_code' => $product->category_code,
+                            'category_name' => $product->category_name,
                             'is_sold_out' => $product->is_sold_out,
                             'picture' => $product->picture,
                             'sequence' => $product->sequence,
