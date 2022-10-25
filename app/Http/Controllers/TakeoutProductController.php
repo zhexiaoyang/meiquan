@@ -671,7 +671,8 @@ class TakeoutProductController extends Controller
                         \Log::info("迁移商品开始-同步第{$pi}批商品,有失败商品");
                         $error_data = [];
                         foreach ($error_list as $item) {
-                            if ($item['blockFlag'] == 2) {
+                            $blockFlag = $item['blockFlag'] ?? 1;
+                            if ($blockFlag == 2) {
                                 $logs->fail += 1;
                                 $logs->success -= 1;
                                 $error_data[] = [
@@ -683,7 +684,7 @@ class TakeoutProductController extends Controller
                                 unset($insert_data[$item['app_spu_code']]);
                                 unset($insert_sku_data[$item['app_spu_code']]);
                             }
-                            if ($item['blockFlag'] == 1) {
+                            if ($blockFlag == 1) {
                                 $logs->success -= 1;
                                 $logs->error += 1;
                                 $error_data[] = [
