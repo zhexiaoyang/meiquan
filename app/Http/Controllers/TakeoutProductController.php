@@ -462,63 +462,63 @@ class TakeoutProductController extends Controller
                 } else {
                     $mt = app("minkang");
                 }
-                foreach ($categories as $category) {
-                    $category_params = [
-                        'app_poi_code' => $shop->waimai_mt,
-                        'category_code' => $category['code'],
-                        'category_name' => $category['name'],
-                        'sequence' => $category['sequence'],
-                    ];
-                    if ($access_token) {
-                        $category_params['access_token'] = $access_token;
-                    }
-                    $res = $mt->retailCatUpdate($category_params);
-                    $cat = WmCategory::create([
-                        'shop_id' => $shop->id,
-                        'code' => $category['code'] ?? '',
-                        'name' => $category['name'] ?? '',
-                        'sequence' => $category['sequence'] ?? 0,
-                        'top_flag' => $category['top_flag'] ?? 0,
-                        'weeks_time' => $category['weeks_time'] ?? '',
-                        'period' => $category['period'] ?? '',
-                        'smart_switch' => $category['smart_switch'] ?? 0,
-                    ]);
-                    \Log::info("迁移商品开始-同步分类结果", [$res]);
-                    if (!empty($category['children'])) {
-                        $insert_category = [];
-                        foreach ($category['children'] as $child) {
-                            $category_params2 = [
-                                'app_poi_code' => $shop->waimai_mt,
-                                'category_name_origin' => $category['name'],
-                                'category_name' => $category['name'],
-                                'secondary_category_name' => $child['name'],
-                                'secondary_category_code' => $child['code'],
-                                'sequence' => $child['sequence'],
-                            ];
-                            if ($access_token) {
-                                $category_params2['access_token'] = $access_token;
-                            }
-                            $res2 = $mt->retailCatUpdate($category_params2);
-                            \Log::info("迁移商品开始-同步二级分类结果", [$res2]);
-                            $insert_category[] = [
-                                'pid' => $cat->id,
-                                'shop_id' => $shop->id,
-                                'code' => $child['code'] ?? '',
-                                'name' => $child['name'] ?? '',
-                                'sequence' => $child['sequence'] ?? 0,
-                                'top_flag' => $child['top_flag'] ?? 0,
-                                'weeks_time' => $child['weeks_time'] ?? '',
-                                'period' => $child['period'] ?? '',
-                                'smart_switch' => $child['smart_switch'] ?? 0,
-                                'created_at' => date("Y-m-d H:i:s"),
-                                'updated_at' => date("Y-m-d H:i:s"),
-                            ];
-                        }
-                        if (!empty($insert_category)) {
-                            WmCategory::insert($insert_category);
-                        }
-                    }
-                }
+                // foreach ($categories as $category) {
+                //     $category_params = [
+                //         'app_poi_code' => $shop->waimai_mt,
+                //         'category_code' => $category['code'],
+                //         'category_name' => $category['name'],
+                //         'sequence' => $category['sequence'],
+                //     ];
+                //     if ($access_token) {
+                //         $category_params['access_token'] = $access_token;
+                //     }
+                //     $res = $mt->retailCatUpdate($category_params);
+                //     $cat = WmCategory::create([
+                //         'shop_id' => $shop->id,
+                //         'code' => $category['code'] ?? '',
+                //         'name' => $category['name'] ?? '',
+                //         'sequence' => $category['sequence'] ?? 0,
+                //         'top_flag' => $category['top_flag'] ?? 0,
+                //         'weeks_time' => $category['weeks_time'] ?? '',
+                //         'period' => $category['period'] ?? '',
+                //         'smart_switch' => $category['smart_switch'] ?? 0,
+                //     ]);
+                //     \Log::info("迁移商品开始-同步分类结果", [$res]);
+                //     if (!empty($category['children'])) {
+                //         $insert_category = [];
+                //         foreach ($category['children'] as $child) {
+                //             $category_params2 = [
+                //                 'app_poi_code' => $shop->waimai_mt,
+                //                 'category_name_origin' => $category['name'],
+                //                 'category_name' => $category['name'],
+                //                 'secondary_category_name' => $child['name'],
+                //                 'secondary_category_code' => $child['code'],
+                //                 'sequence' => $child['sequence'],
+                //             ];
+                //             if ($access_token) {
+                //                 $category_params2['access_token'] = $access_token;
+                //             }
+                //             $res2 = $mt->retailCatUpdate($category_params2);
+                //             \Log::info("迁移商品开始-同步二级分类结果", [$res2]);
+                //             $insert_category[] = [
+                //                 'pid' => $cat->id,
+                //                 'shop_id' => $shop->id,
+                //                 'code' => $child['code'] ?? '',
+                //                 'name' => $child['name'] ?? '',
+                //                 'sequence' => $child['sequence'] ?? 0,
+                //                 'top_flag' => $child['top_flag'] ?? 0,
+                //                 'weeks_time' => $child['weeks_time'] ?? '',
+                //                 'period' => $child['period'] ?? '',
+                //                 'smart_switch' => $child['smart_switch'] ?? 0,
+                //                 'created_at' => date("Y-m-d H:i:s"),
+                //                 'updated_at' => date("Y-m-d H:i:s"),
+                //             ];
+                //         }
+                //         if (!empty($insert_category)) {
+                //             WmCategory::insert($insert_category);
+                //         }
+                //     }
+                // }
                 $product_data = $products->chunk(200);
                 \Log::info("迁移商品开始批数：" . count($product_data));
                 foreach ($product_data as $key => $products) {
@@ -672,7 +672,7 @@ class TakeoutProductController extends Controller
                         $error_data = [];
                         foreach ($error_list as $item) {
                             $blockFlag = $item['blockFlag'] ?? 1;
-                            $_code = $item['app_spu_code'] ?? $item['code'];
+                            $_code = $item['app_spu_code'];
                             if ($blockFlag == 2) {
                                 $logs->fail += 1;
                                 $logs->success -= 1;
