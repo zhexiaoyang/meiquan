@@ -342,7 +342,7 @@ class ShopController extends Controller
         $name = $request->get('name');
 
         if ($name) {
-            $query = Shop::select("id", "shop_name");
+            $query = Shop::select("id", "shop_name")->where('status', '>', 0);
 
             $query->where('shop_name', 'like', "%{$name}%");
 
