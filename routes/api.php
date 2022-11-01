@@ -37,7 +37,16 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 药品管理
          */
+        // 药品门店列表
         Route::get("medicine/shops", "MedicineController@shops");
+        // 药品门店分类
+        Route::get("medicine/categories", "MedicineCategoryController@index");
+        // 同步品库分类到中台
+        Route::get("medicine/category/sync", "MedicineCategoryController@sync");
+        // 药品门店商品列表
+        Route::get("medicine/product", "MedicineController@product");
+        // 药品门店导入
+        Route::post("medicine/import", "MedicineController@import");
         /**
          * WebMI
          */
@@ -350,6 +359,11 @@ Route::middleware(["force-json"])->group(function() {
          * 管理员操作
          */
         Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
+            /**
+             * 品库管理
+             */
+            Route::get("depot/medicine/categories", "DepotMedicineCategoryController@index")->name("depot.medicine.categories.index");
+            Route::get("depot/medicine/product", "DepotMedicineController@index")->name("depot.medicine.product.index");
             /**
              * 审核管理
              */
