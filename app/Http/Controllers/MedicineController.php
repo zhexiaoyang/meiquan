@@ -63,8 +63,7 @@ class MedicineController extends Controller
             return $this->error('请选择门店');
         }
         $import->shop_id = $shop_id;
-        $res = Excel::import($import, $request->file('file'));
-        \Log::info("12312", [$res]);
-        return back()->with('success', '导入成功');
+        Excel::import($import, $request->file('file'));
+        return $this->success();
     }
 }

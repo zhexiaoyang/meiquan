@@ -2,6 +2,7 @@
 
 namespace App\Imports;
 
+use App\Exceptions\InvalidRequestException;
 use App\Models\Medicine;
 use App\Models\MedicineDepot;
 use Illuminate\Database\Eloquent\Model;
@@ -17,22 +18,28 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
     public function collection(Collection $row)
     {
         $row = $row->toArray();
+        // $upcs = [];
+        // \Log::info("导入总数量：". count($row));
+        // \Log::info("shop_id：". $this->shop_id);
+        if (count($row) > 5000) {
+            throw new InvalidRequestException('药品数量不能超过5000', 422);
+        }
+        if (count($row) < 1) {
+            throw new InvalidRequestException('药品数量为空', 422);
+        }
         foreach ($row as $item) {
             $upc = trim($item['商品条码']);
             $price = floatval($item['销售价']);
             $cost = floatval($item['成本价']);
 
-            if (!$upc) {
-                continue;
-            }
-
-            if ($medicine = Medicine::where('upc', $upc)->first()) {
+            if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
                 $medicine->update([
                     'price' => $price,
                     'guidance_price' => $cost,
                 ]);
             } else {
                 if ($depot = MedicineDepot::where('upc', $upc)->first()) {
+                    \Log::info('upc3:' . $upc);
                     $medicine_arr = [
                         'shop_id' => $this->shop_id,
                         'name' => $depot->name,

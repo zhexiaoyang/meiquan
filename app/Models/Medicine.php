@@ -19,13 +19,13 @@ class Medicine extends Model
             if ($model->depot_id != 0) {
                 $category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $model->depot_id)->get()->pluck('category_id');
                 if (!empty($category_ids)) {
-                    $categories = MedicineDepotCategory::query()->whereIn('id', $category_ids)->get();
+                    $categories = MedicineDepotCategory::whereIn('id', $category_ids)->get();
                     if (!empty($categories)) {
                         foreach ($categories as $category) {
-                            if (!$c = MedicineCategory::query()->where('shop_id', $model->shop_id)->where('name', $category->name)->first()) {
+                            if (!$c = MedicineCategory::where('shop_id', $model->shop_id)->where('name', $category->name)->first()) {
                                 $pid = 0;
                                 if ($category->pid != 0) {
-                                    if ($category_parent = MedicineDepotCategory::query()->find($category->pid)) {
+                                    if ($category_parent = MedicineDepotCategory::find($category->pid)) {
                                         $w_c_p = MedicineCategory::firstOrCreate([
                                             'shop_id' => $model->shop_id,
                                             'pid' => 0,
@@ -47,7 +47,7 @@ class Medicine extends Model
                     }
                 }
             } else {
-                if (!$c = MedicineCategory::query()->where('shop_id', $model->shop_id)->where('name', '暂未分类')->first()) {
+                if (!$c = MedicineCategory::where('shop_id', $model->shop_id)->where('name', '暂未分类')->first()) {
                     $c = MedicineCategory::create([
                         'shop_id' => $model->shop_id,
                         'pid' => 0,
