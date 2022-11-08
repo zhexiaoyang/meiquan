@@ -38,14 +38,16 @@ class MedicineCategoryController extends Controller
 
         if (!empty($categories)) {
             foreach ($categories as $category) {
+                $number = $category_count[$category['id']] ?? 0;
                 if ($category['pid'] === 0) {
                     $data[$category['id']] = $category;
                     $data[$category['id']]['children'] = [];
-                    $data[$category['id']]['products_count'] = $category_count[$category['id']] ?? 0;
+                    $data[$category['id']]['products_count'] = $number;
+                    $count += $number;
                 } else {
-                    $count += $category_count[$category['id']] ?? 0;
-                    $category['products_count'] = $count;
-                    $data[$category['pid']]['products_count'] += $category_count[$category['id']] ?? 0;
+                    $count += $number;
+                    $category['products_count'] = $number;
+                    $data[$category['pid']]['products_count'] += $number;
                     $data[$category['pid']]['children'][] = $category;
                 }
             }

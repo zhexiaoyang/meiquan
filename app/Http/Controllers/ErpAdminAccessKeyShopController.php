@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ErpAccessShop;
+use App\Models\Shop;
 use Illuminate\Http\Request;
 
 class ErpAdminAccessKeyShopController extends Controller
@@ -16,7 +17,7 @@ class ErpAdminAccessKeyShopController extends Controller
 
         $data = ErpAccessShop::query()->where("access_id", $access_id)->paginate($page_size);
 
-        return $this->page($data);
+        return $this->page($data, [], 'data');
     }
 
     public function store(Request $request)
@@ -26,24 +27,29 @@ class ErpAdminAccessKeyShopController extends Controller
         }
         $data['access_id'] = $access_id;
 
-        if (!$shop_name = $request->get("shop_name")) {
-            return $this->error("门店名称不能为空");
+        if (!$shop_id = $request->get("mq_shop_id")) {
+            return $this->error("请选择门店");
         }
-        $data['shop_name'] = $shop_name;
 
-        if (!$mt_shop_id = $request->get("mt_shop_id")) {
-            return $this->error("美团ID不能为空");
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error("门店不存在");
         }
-        $data['shop_id'] = $mt_shop_id;
-        $data['mt_shop_id'] = $mt_shop_id;
+        if (!$shop->waimai_mt) {
+            return $this->error("该门店没有绑定美团外卖，请先绑定");
+        }
+        if (!in_array($shop->meituan_bind_platform, [31, 4])) {
+            return $this->error("该门店未绑定到民康或者闪购，请核对");
+        }
 
-        if (!$type = $request->get("type")) {
-            return $this->error("品牌不能为空");
-        }
-        if (!in_array($type, [1, 4])) {
-            return $this->error("品牌错误");
-        }
-        $data['type'] = $type;
+        $data['shop_name'] = $shop->shop_name;
+        $data['shop_id'] = $shop->id;
+        $data['mt_shop_id'] = $shop->waimai_mt;
+        $data['ele_shop_id'] = $shop->waimai_ele;
+
+        // if (!$type = $request->get("type")) {
+        //     return $this->error("品牌不能为空");
+        // }
+        $data['type'] = $shop->meituan_bind_platform;
 
         ErpAccessShop::query()->create($data);
 

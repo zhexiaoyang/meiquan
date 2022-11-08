@@ -20,7 +20,7 @@ class ErpAdminAccessKeyController extends Controller
 
         $data = $query->orderByDesc('id')->paginate($page_size);
 
-        return $this->page($data);
+        return $this->page($data, [],'data');
     }
 
     public function info(Request $request)
