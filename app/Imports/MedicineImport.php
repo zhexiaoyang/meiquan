@@ -31,6 +31,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
             $upc = trim($item['商品条码']);
             $price = floatval($item['销售价']);
             $cost = floatval($item['成本价']);
+            $stock = intval($item['库存']);
 
             if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
                 $medicine->update([
@@ -47,6 +48,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
                         'brand' => $depot->brand,
                         'spec' => $depot->spec,
                         'price' => $price,
+                        'stock' => $stock,
                         'guidance_price' => $cost,
                         'depot_id' => $depot->id,
                     ];
@@ -59,6 +61,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
                         'brand' => '',
                         'spec' => '',
                         'price' => $price,
+                        'stock' => $stock,
                         'guidance_price' => $cost,
                         'depot_id' => 0,
                     ];
