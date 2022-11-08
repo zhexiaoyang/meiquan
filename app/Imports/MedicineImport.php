@@ -36,6 +36,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
             if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
                 $medicine->update([
                     'price' => $price,
+                    'stock' => $stock,
                     'guidance_price' => $cost,
                 ]);
             } else {
