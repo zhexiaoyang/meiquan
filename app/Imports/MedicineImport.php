@@ -22,6 +22,10 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
             $price = floatval($item['销售价']);
             $cost = floatval($item['成本价']);
 
+            if (!$upc) {
+                continue;
+            }
+
             if ($medicine = Medicine::where('upc', $upc)->first()) {
                 $medicine->update([
                     'price' => $price,
