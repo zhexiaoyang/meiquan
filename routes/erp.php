@@ -13,6 +13,9 @@ Route::middleware(['force-json'])->prefix("erp")->namespace("Erp")->group(functi
         Route::post("test/product/add", "ProductController@testAdd");
         Route::post("product/code/update", "ProductController@codeUpdate");
     });
+    Route::prefix("v2")->namespace("V2")->group(function() {
+        Route::post("product/stock", "ProductController@stock");
+    });
 });
 Route::middleware(['force-json'])->prefix("test/erp")->namespace("Erp")->group(function() {
     Route::prefix("v1")->namespace("V1")->group(function() {
