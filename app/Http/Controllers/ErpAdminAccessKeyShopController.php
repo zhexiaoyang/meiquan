@@ -15,7 +15,9 @@ class ErpAdminAccessKeyShopController extends Controller
         }
         $page_size = $request->get("page_size", 10);
 
-        $data = ErpAccessShop::query()->where("access_id", $access_id)->paginate($page_size);
+        $data = ErpAccessShop::with(['shop' => function($query) {
+            $query->select('id', 'waimai_mt', 'waimai_ele');
+        }])->where("access_id", $access_id)->paginate($page_size);
 
         return $this->page($data, [], 'data');
     }
@@ -44,6 +46,7 @@ class ErpAdminAccessKeyShopController extends Controller
         $data['shop_name'] = $shop->shop_name;
         $data['shop_id'] = $shop->id;
         $data['mt_shop_id'] = $shop->waimai_mt;
+        $data['mq_shop_id'] = $shop->id;
         $data['ele_shop_id'] = $shop->waimai_ele;
 
         // if (!$type = $request->get("type")) {
