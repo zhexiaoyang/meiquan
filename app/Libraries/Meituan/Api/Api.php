@@ -505,6 +505,13 @@ class Api extends Request
         return $this->request_post('v1/medicine/code/update', $params);
     }
 
+    /*
+     * 创建药品
+     */
+    public function medicineSave(array $params)
+    {
+        return $this->request_post('v1/medicine/save', $params);
+    }
     /**
      * 批量创建药品
      * @param array $params
@@ -558,7 +565,15 @@ class Api extends Request
     {
         return $this->request_get('v1/retail/list', $params);
     }
-    // 根据商品名称和规格名称更换新的商品编码
+    public function getSpTagIds(array $params = [])
+    {
+        return $this->request_get('v1/retail/getSpTagIds', $params);
+    }
+    public function getCategoryAttrList($id)
+    {
+        return $this->request_get('v1/gw/category/attr/list', ['tag_id' => $id]);
+    }
+    // 根据商品名称和规格名称更换新的商品编码 200005793
     public function updateAppFoodCodeByNameAndSpec(array $params)
     {
         return $this->request_post('v1/retail/updateAppFoodCodeByNameAndSpec', $params);
