@@ -13,22 +13,21 @@ class MedicineCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $user_id = $request->user()->id;
-        $data = [];
         if (!$shop_id = $request->get('shop_id')) {
-            if ($shop = Shop::where('user_id', $user_id)->orderBy('id')->first()) {
-                $shop_id = $shop->id;
-            } else {
-                return $this->error('暂无门店，请先创建门店');
-            }
-        } else {
-            if (!Shop::where('id', $shop_id)->where('user_id', $user_id)->first()) {
+            return $this->error('请选择门店');
+        }
+        if (!Shop::find($shop_id)) {
+            return $this->error('门店错误.');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
                 return $this->error('门店错误');
             }
         }
 
         $categories = MedicineCategory::select('id', 'name', 'pid')->where('shop_id', $shop_id)->orderBy('pid')->orderBy('sort')->get()->toArray();
         $category_ids = [];
+        $data = [];
         foreach ($categories as $v) {
             $category_ids[] = $v['id'];
         }

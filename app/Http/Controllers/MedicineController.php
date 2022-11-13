@@ -14,29 +14,25 @@ class MedicineController extends Controller
 {
     public function shops(Request $request)
     {
-        $shops = Shop::query()->select('id', 'shop_name')
-            // ->where('')
-            ->where('user_id', $request->user()->id)
-            ->orderBy('id')->get();
+        $query = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            // \Log::info("没有全部门店权限");
+            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+        }
+        if ($name = $request->get('name')) {
+            $shops = $query->where('shop_name', 'like', "%{$name}%")->orderBy('id')->limit(30)->get();
+        } else {
+            $shops = $query->orderBy('id')->limit(15)->get();
+        }
 
         return $this->success($shops);
     }
 
     public function sync_log(Request $request)
     {
-        $user_id = $request->user()->id;
         if (!$shop_id = $request->get('shop_id')) {
-            if ($shop = Shop::where('user_id', $user_id)->orderBy('id')->first()) {
-                $shop_id = $shop->id;
-            } else {
-                return $this->error('暂无门店，请先创建门店');
-            }
-        } else {
-            if (!Shop::where('id', $shop_id)->where('user_id', $user_id)->first()) {
-                return $this->error('门店错误');
-            }
+            return $this->success();
         }
-
         $logs = MedicineSyncLog::where('shop_id', $shop_id)->orderByDesc('id')->limit(2)->get();
 
         return $this->success($logs);
@@ -44,15 +40,14 @@ class MedicineController extends Controller
 
     public function product(Request $request)
     {
-        $user_id = $request->user()->id;
         if (!$shop_id = $request->get('shop_id')) {
-            if ($shop = Shop::where('user_id', $user_id)->orderBy('id')->first()) {
-                $shop_id = $shop->id;
-            } else {
-                return $this->error('暂无门店，请先创建门店');
-            }
-        } else {
-            if (!Shop::where('id', $shop_id)->where('user_id', $user_id)->first()) {
+            return $this->error('请选择门店');
+        }
+        if (!Shop::find($shop_id)) {
+            return $this->error('门店错误.');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
                 return $this->error('门店错误');
             }
         }
@@ -111,8 +106,13 @@ class MedicineController extends Controller
             return $this->error('门店不存在，请核对');
         }
 
-        if ($shop->user_id !== $request->user()->id) {
-            return $this->error('门店不存在');
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('门店不存在');
+            }
+            // if ($shop->user_id !== $request->user()->id) {
+            //     return $this->error('门店不存在');
+            // }
         }
 
         MedicineSyncJob::dispatch($shop, $platform);
