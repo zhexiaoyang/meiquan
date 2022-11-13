@@ -60,8 +60,8 @@ class Medicine extends Model
         });
     }
 
-    public function category()
+    public function categories()
     {
-        return $this->belongsToMany(MedicineDepotCategory::class, "wm_medicine_category", "medicine_id", "category_id");
+        return $this->belongsToMany(MedicineCategory::class, "wm_medicine_category", "medicine_id", "category_id");
     }
 }

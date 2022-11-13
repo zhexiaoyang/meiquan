@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepotCategory;
 use App\Models\Shop;
@@ -14,7 +15,6 @@ class MedicineCategoryController extends Controller
     {
         $user_id = $request->user()->id;
         $data = [];
-        $count = 0;
         if (!$shop_id = $request->get('shop_id')) {
             if ($shop = Shop::where('user_id', $user_id)->orderBy('id')->first()) {
                 $shop_id = $shop->id;
@@ -43,9 +43,7 @@ class MedicineCategoryController extends Controller
                     $data[$category['id']] = $category;
                     $data[$category['id']]['children'] = [];
                     $data[$category['id']]['products_count'] = $number;
-                    $count += $number;
                 } else {
-                    $count += $number;
                     $category['products_count'] = $number;
                     $data[$category['pid']]['products_count'] += $number;
                     $data[$category['pid']]['children'][] = $category;
@@ -53,7 +51,7 @@ class MedicineCategoryController extends Controller
             }
         }
 
-        return $this->success(['list' => array_values($data), 'count' => $count]);
+        return $this->success(['list' => array_values($data), 'count' => Medicine::where('shop_id', $shop_id)->count()]);
     }
 
     public function sync(Request $request)

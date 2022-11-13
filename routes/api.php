@@ -47,6 +47,9 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/product", "MedicineController@product");
         // 药品门店导入
         Route::post("medicine/import", "MedicineController@import");
+        // 药品管理-同步
+        Route::post("medicine/takeout/sync", "MedicineController@sync");
+        Route::post("medicine/takeout/sync/log", "MedicineController@sync_log");
         /**
          * WebMI
          */
