@@ -117,6 +117,9 @@ class MedicineSyncJob implements ShouldQueue
                     'category_name' => implode(',', $medicine_category),
                     'sequence' => $medicine->sequence,
                 ];
+                if ($this->shop->meituan_bind_platform == 31) {
+                    $medicine_data['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
+                }
                 try {
                     $res = $meituan->medicineSave($medicine_data);
                     \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
@@ -235,7 +238,109 @@ class MedicineSyncJob implements ShouldQueue
 
     public function ele()
     {
-
+        // $ele = app('ele');
+        // // 添加日志
+        // $log = MedicineSyncLog::create([
+        //     'shop_id' => $this->shop->id,
+        //     'platform' => $this->platform,
+        //     'total' => 0,
+        //     'success' => 0,
+        //     'fail' => 0,
+        //     'error' => 0,
+        // ]);
+        // $total = 0;
+        // $success = 0;
+        // $fail = 0;
+        // // 创建药品分类
+        // $categories = MedicineCategory::where('shop_id', $this->shop->id)->orderBy('pid')->orderBy('sort')->get();
+        // $category_key = [];
+        // foreach ($categories as $k => $category) {
+        //     $category_key[$category->id] = $category->name;
+        //     $category_key[$category->id] = $category->name;
+        //     if ($category->pid == 0) {
+        //         $cat_params = [
+        //             'app_poi_code' => $this->shop->waimai_mt,
+        //             'category_name' => $category->name,
+        //             'sequence' => $category->sort,
+        //         ];
+        //     } else {
+        //         $cat_params = [
+        //             'app_poi_code' => $this->shop->waimai_mt,
+        //             'category_name' => $category_key[$category->pid],
+        //             'second_category_name' => $category->name,
+        //             'second_sequence' => $category->sort,
+        //         ];
+        //     }
+        //     if ($this->shop->meituan_bind_platform == 31) {
+        //         $cat_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
+        //     }
+        //     \Log::info("药品管理任务|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
+        //     $res = $meituan->medicineCatSave($cat_params);
+        //     \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
+        // }
+        // // 单个上传
+        // $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
+        //     ->whereIn('mt_status', [0, 2])->limit(8000)->get();
+        // if (!empty($medicine_list)) {
+        //     foreach ($medicine_list as $medicine) {
+        //         $total++;
+        //         $medicine_category = [];
+        //         if (!empty($medicine->categories)) {
+        //             foreach ($medicine->categories as $item) {
+        //                 $medicine_category[] = $item->name;
+        //             }
+        //         }
+        //         $medicine_data = [
+        //             'app_poi_code' => $this->shop->waimai_mt,
+        //             'app_medicine_code' => $medicine->upc,
+        //             'upc' => $medicine->upc,
+        //             'price' => (float) $medicine->price,
+        //             'stock' => $medicine->stock,
+        //             'category_name' => implode(',', $medicine_category),
+        //             'sequence' => $medicine->sequence,
+        //         ];
+        //         try {
+        //             $res = $meituan->medicineSave($medicine_data);
+        //             \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+        //             if ($res['data'] === 'ok') {
+        //                 $success++;
+        //                 Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
+        //                 if ($medicine->depot_id === 0) {
+        //                     $this->add_depot($medicine);
+        //                 }
+        //             } elseif ($res['data'] === 'ng') {
+        //                 $error_msg = $res['error']['msg'] ?? '';
+        //                 if (strpos($error_msg, '已存在') !== false) {
+        //                     $success++;
+        //                     Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
+        //                     if ($medicine->depot_id === 0) {
+        //                         $this->add_depot($medicine);
+        //                     }
+        //                 } else {
+        //                     $fail++;
+        //                     Medicine::where('id', $medicine->id)->update([
+        //                         'mt_error' => $res['error']['msg'] ?? '',
+        //                         'mt_status' => 2
+        //                     ]);
+        //                 }
+        //             }
+        //         } catch (\Exception $exception) {
+        //             $fail++;
+        //             Medicine::where('id', $medicine->id)
+        //                 ->update([
+        //                     'mt_error' => '上传失败',
+        //                     'mt_status' => 2
+        //                 ]);
+        //         }
+        //     }
+        // }
+        //
+        // $log->update([
+        //     'total' => $total,
+        //     'success' => $success,
+        //     'fail' => $fail,
+        //     'status' => 2,
+        // ]);
     }
 
     public function add_depot(Medicine $medicine)
