@@ -17,6 +17,13 @@ class MedicineSyncJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * 任务可以执行的最大秒数 (超时时间)。
+     *
+     * @var int
+     */
+    public $timeout = 600;
+
     protected $shop;
     // 平台 1、美团，2、饿了么
     protected $platform;
@@ -131,7 +138,7 @@ class MedicineSyncJob implements ShouldQueue
                         }
                     } elseif ($res['data'] === 'ng') {
                         $error_msg = $res['error']['msg'] ?? '';
-                        if (strpos($error_msg, '已存在') !== false) {
+                        if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
                             $success++;
                             Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
                             if ($medicine->depot_id === 0) {
