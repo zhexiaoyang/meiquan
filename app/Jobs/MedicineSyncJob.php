@@ -56,11 +56,8 @@ class MedicineSyncJob implements ShouldQueue
     public function meituan()
     {
 
-        if ($this->shop->meituan_bind_platform === 4) {
-            $meituan = app('minkang');
-        } elseif ($this->shop->meituan_bind_platform === 31) {
-            $meituan = app('meiquan');
-        } else {
+        if (MedicineSyncLog::where('shop_id', $this->shop->id)->where('status', 1)->where('created_at', '>', date("Y-m-d H:i:s", time() - 610))->first()) {
+            \Log::info('药品管理任务|已存在进行中任务停止任务');
             return;
         }
 
@@ -73,6 +70,14 @@ class MedicineSyncJob implements ShouldQueue
             'fail' => 0,
             'error' => 0,
         ]);
+
+        if ($this->shop->meituan_bind_platform === 4) {
+            $meituan = app('minkang');
+        } elseif ($this->shop->meituan_bind_platform === 31) {
+            $meituan = app('meiquan');
+        } else {
+            return;
+        }
         $total = 0;
         $success = 0;
         $fail = 0;

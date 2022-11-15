@@ -115,6 +115,11 @@ class MedicineController extends Controller
             // }
         }
 
+        if (MedicineSyncLog::where('shop_id', $shop_id)->where('status', 1)->where('created_at', '>', date("Y-m-d H:i:s", time() - 610))->first()) {
+            \Log::info('药品管理任务控制器|已存在进行中任务停止任务');
+            return $this->error('已有进行中的任务，请等待');
+        }
+
         MedicineSyncJob::dispatch($shop, $platform);
 
         return $this->success();
