@@ -112,137 +112,142 @@ class MedicineSyncJob implements ShouldQueue
         // 单个上传
         $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
             ->whereIn('mt_status', [0, 2])->limit(8000)->get();
-        if (!empty($medicine_list)) {
-            foreach ($medicine_list as $medicine) {
-                $total++;
-                $medicine_category = [];
-                if (!empty($medicine->categories)) {
-                    foreach ($medicine->categories as $item) {
-                        $medicine_category[] = $item->name;
+        if ($medicine_list->count() > 200) {
+            \Log::info("走的批量上传");
+            // 批量上传
+            $medicine_list = $medicine_list->chunk(180);
+            \Log::info("走的批量上传，组数：" . count($medicine_list));
+            if (!empty($medicine_list)) {
+                foreach ($medicine_list as $k => $medicines) {
+                    if (!empty($medicines)) {
+                        $total += $medicines->count();
+                        $success += $medicines->count();
+                        $medicine_data = [];
+                        $medicine_ids = [];
+                        foreach ($medicines as $medicine) {
+                            $medicine_ids[] = $medicine->id;
+                            $medicine_category = [];
+                            if (!empty($medicine->categories)) {
+                                foreach ($medicine->categories as $item) {
+                                    $medicine_category[] = $item->name;
+                                }
+                            }
+                            if (!empty($medicine_category)) {
+                                $medicine_data[] = [
+                                    'app_medicine_code' => $medicine->upc,
+                                    'upc' => $medicine->upc,
+                                    'price' => (float) $medicine->price,
+                                    'stock' => $medicine->stock,
+                                    'category_name' => implode(',', $medicine_category),
+                                    'sequence' => $medicine->sequence,
+                                ];
+                            }
+                        }
+                        $medicine_params = [
+                            'app_poi_code' => $this->shop->waimai_mt,
+                            'medicine_data' => json_encode($medicine_data, JSON_UNESCAPED_UNICODE),
+                        ];
+                        if ($this->shop->meituan_bind_platform == 31) {
+                            $medicine_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
+                        }
+                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-药品参数：{$k}", $medicine_params);
+                        $res = $meituan->medicineBatchSave($medicine_params);
+                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+                        if (isset($res['data'])) {
+                            $res_list = [];
+                            if ($res['data'] === 'ok') {
+                                if (is_array($res['msg'])) {
+                                    $res_list = $res['msg'];
+                                } elseif (is_string($res['msg'])) {
+                                    $res_string = $res['msg'];
+                                    $res_string = str_replace('批量添加药品结果：', '', $res_string);
+                                    $res_list = json_decode($res_string, true);
+                                }
+                            } else if ($res['data'] === 'ng') {
+                                $error_string = $res['error']['msg'] ?? '';
+                                $error_string = str_replace('批量添加药品结果：', '', $error_string);
+                                $res_list = json_decode($error_string, true);
+                            }
+                            if (!empty($res_list)) {
+                                Medicine::whereIn('id', $medicine_ids)->update(['mt_status' => 1]);
+                                foreach ($res_list as $v) {
+                                    if ((strpos($v['error_msg'], '已存在') !== false) || (strpos($v['error_msg'], '已经存在') !== false)) {
+                                        $success--;
+                                        $fail++;
+                                        $upc = $v['app_medicine_code'];
+                                        Medicine::where('shop_id', $this->shop->id)->where('upc', $upc)
+                                            ->update([
+                                                'mt_error' => $v['error_msg'],
+                                                'mt_status' => 2
+                                            ]);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-                $medicine_data = [
-                    'app_poi_code' => $this->shop->waimai_mt,
-                    'app_medicine_code' => $medicine->upc,
-                    'upc' => $medicine->upc,
-                    'price' => (float) $medicine->price,
-                    'stock' => $medicine->stock,
-                    'category_name' => implode(',', $medicine_category),
-                    'sequence' => $medicine->sequence,
-                    'is_sold_out' => 0,
-                ];
-                if ($this->shop->meituan_bind_platform == 31) {
-                    $medicine_data['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
-                }
-                try {
-                    $res = $meituan->medicineSave($medicine_data);
-                    \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
-                    if ($res['data'] === 'ok') {
-                        Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
-                        if ($medicine->depot_id === 0) {
-                            $this->add_depot($medicine);
+            }
+        } else {
+            \Log::info("走的单个上传");
+            if (!empty($medicine_list)) {
+                foreach ($medicine_list as $medicine) {
+                    $total++;
+                    $medicine_category = [];
+                    if (!empty($medicine->categories)) {
+                        foreach ($medicine->categories as $item) {
+                            $medicine_category[] = $item->name;
                         }
-                        $success++;
-                    } elseif ($res['data'] === 'ng') {
-                        $error_msg = $res['error']['msg'] ?? '';
-                        if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                    }
+                    $medicine_data = [
+                        'app_poi_code' => $this->shop->waimai_mt,
+                        'app_medicine_code' => $medicine->upc,
+                        'upc' => $medicine->upc,
+                        'price' => (float) $medicine->price,
+                        'stock' => $medicine->stock,
+                        'category_name' => implode(',', $medicine_category),
+                        'sequence' => $medicine->sequence,
+                        'is_sold_out' => 0,
+                    ];
+                    if ($this->shop->meituan_bind_platform == 31) {
+                        $medicine_data['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
+                    }
+                    try {
+                        $res = $meituan->medicineSave($medicine_data);
+                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+                        if ($res['data'] === 'ok') {
                             Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
                             if ($medicine->depot_id === 0) {
                                 $this->add_depot($medicine);
                             }
                             $success++;
-                        } else {
-                            $fail++;
-                            Medicine::where('id', $medicine->id)->update([
-                                'mt_error' => $res['error']['msg'] ?? '',
+                        } elseif ($res['data'] === 'ng') {
+                            $error_msg = $res['error']['msg'] ?? '';
+                            if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                                Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
+                                if ($medicine->depot_id === 0) {
+                                    $this->add_depot($medicine);
+                                }
+                                $success++;
+                            } else {
+                                $fail++;
+                                Medicine::where('id', $medicine->id)->update([
+                                    'mt_error' => $res['error']['msg'] ?? '',
+                                    'mt_status' => 2
+                                ]);
+                            }
+                        }
+                    } catch (\Exception $exception) {
+                        \Log::info('$exception', [$exception->getMessage()]);
+                        $fail++;
+                        Medicine::where('id', $medicine->id)
+                            ->update([
+                                'mt_error' => '上传失败',
                                 'mt_status' => 2
                             ]);
-                        }
                     }
-                } catch (\Exception $exception) {
-                    \Log::info('$exception', [$exception->getMessage()]);
-                    $fail++;
-                    Medicine::where('id', $medicine->id)
-                        ->update([
-                            'mt_error' => '上传失败',
-                            'mt_status' => 2
-                        ]);
                 }
             }
         }
-        // -------------------
-        // $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)->limit(8000)->get()->chunk(200);
-        // if (!empty($medicine_list)) {
-        //     foreach ($medicine_list as $k => $medicines) {
-        //         if (!empty($medicines)) {
-        //             $total += $medicines->count();
-        //             $success += $medicines->count();
-        //             $medicine_data = [];
-        //             $medicine_ids = [];
-        //             foreach ($medicines as $medicine) {
-        //                 $medicine_ids[] = $medicine->id;
-        //                 $medicine_category = [];
-        //                 if (!empty($medicine->categories)) {
-        //                     foreach ($medicine->categories as $item) {
-        //                         $medicine_category[] = $item->name;
-        //                     }
-        //                 }
-        //                 if (!empty($medicine_category)) {
-        //                     $medicine_data[] = [
-        //                         'app_medicine_code' => $medicine->upc,
-        //                         'upc' => $medicine->upc,
-        //                         'price' => (float) $medicine->price,
-        //                         'stock' => $medicine->stock,
-        //                         'category_name' => implode(',', $medicine_category),
-        //                         'sequence' => $medicine->sequence,
-        //                     ];
-        //                 }
-        //             }
-        //             $medicine_params = [
-        //                 'app_poi_code' => $this->shop->waimai_mt,
-        //                 'medicine_data' => json_encode($medicine_data, JSON_UNESCAPED_UNICODE),
-        //             ];
-        //             if ($this->shop->meituan_bind_platform == 31) {
-        //                 $medicine_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
-        //             }
-        //             \Log::info("药品管理任务|门店ID:{$this->shop->id}-药品参数：{$k}", $medicine_params);
-        //             $res = $meituan->medicineBatchSave($medicine_params);
-        //             \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
-        //             if (isset($res['data'])) {
-        //                 $res_list = [];
-        //                 if ($res['data'] === 'ok') {
-        //                     if (is_array($res['msg'])) {
-        //                         $res_list = $res['msg'];
-        //                     } elseif (is_string($res['msg'])) {
-        //                         $res_string = $res['msg'];
-        //                         $res_string = str_replace('批量添加药品结果：', '', $res_string);
-        //                         $res_list = json_decode($res_string, true);
-        //                     }
-        //                 } else if ($res['data'] === 'ng') {
-        //                     $error_string = $res['error']['msg'] ?? '';
-        //                     $error_string = str_replace('批量添加药品结果：', '', $error_string);
-        //                     $res_list = json_decode($error_string, true);
-        //                 }
-        //                 if (!empty($res_list)) {
-        //                     Medicine::whereIn('id', $medicine_ids)->update(['mt_status' => 1]);
-        //                     foreach ($res_list as $v) {
-        //                         if (strpos($v['error_msg'], '已存在') === false) {
-        //                             $success--;
-        //                             $fail++;
-        //                             $upc = $v['app_medicine_code'];
-        //                             Medicine::where('shop_id', $this->shop->id)->where('upc', $upc)
-        //                                 ->update([
-        //                                     'mt_error' => $v['error_msg'],
-        //                                     'mt_status' => 2
-        //                                 ]);
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        // -------------------
         $log->update([
             'total' => $total,
             'success' => $success,
