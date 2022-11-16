@@ -39,7 +39,7 @@ class MedicineSyncJob implements ShouldQueue
     {
         $this->shop = $shop;
         $this->platform = $platform;
-        $this->key = microtime();
+        $this->key = uniqid();
     }
 
     public function log(string $name, array $data = [])
