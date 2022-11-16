@@ -28,6 +28,7 @@ class MedicineSyncJob implements ShouldQueue
     protected $shop;
     // 平台 1、美团，2、饿了么
     protected $platform;
+    protected $key;
 
     /**
      * Create a new job instance.
@@ -38,6 +39,14 @@ class MedicineSyncJob implements ShouldQueue
     {
         $this->shop = $shop;
         $this->platform = $platform;
+        $this->key = microtime();
+    }
+
+    public function log(string $name, array $data = [])
+    {
+        $platform = $this->platform === 1 ? '美团' : '饿了么';
+        $name = "同步药品JOB|{$this->key}|{$platform}|{$this->shop->id}|{$this->shop->shop_name}|{$name}";
+        \Log::info($name, $data);
     }
 
     /**
@@ -58,7 +67,7 @@ class MedicineSyncJob implements ShouldQueue
     {
 
         if (MedicineSyncLog::where('shop_id', $this->shop->id)->where('status', 1)->where('created_at', '>', date("Y-m-d H:i:s", time() - 610))->first()) {
-            \Log::info('药品管理任务|已存在进行中任务停止任务');
+            $this->log('已存在进行中任务停止任务');
             return;
         }
 
@@ -105,23 +114,27 @@ class MedicineSyncJob implements ShouldQueue
             if ($this->shop->meituan_bind_platform == 31) {
                 $cat_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
             }
-            \Log::info("药品管理任务|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
+            $this->log('分类参数', $cat_params);
+            // \Log::info("药品管理任务|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
             $res = $meituan->medicineCatSave($cat_params);
-            \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
+            $this->log('创建分类返回', [$res]);
+            // \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
         }
         // 单个上传
         $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
             ->whereIn('mt_status', [0, 2])->limit(8000)->get();
         if ($medicine_list->count() > 200) {
-            \Log::info("走的批量上传");
+            // \Log::info("走的批量上传");
+            $this->log('走的批量上传');
             // 批量上传
             $medicine_list = $medicine_list->chunk(180);
-            \Log::info("走的批量上传，组数：" . count($medicine_list));
+            $this->log("走的批量上传，组数：" . count($medicine_list));
+            // \Log::info("走的批量上传，组数：" . count($medicine_list));
             if (!empty($medicine_list)) {
                 foreach ($medicine_list as $k => $medicines) {
                     if (!empty($medicines)) {
                         $total += $medicines->count();
-                        $success += $medicines->count();
+                        // $success += $medicines->count();
                         $medicine_data = [];
                         $medicine_ids = [];
                         foreach ($medicines as $medicine) {
@@ -150,12 +163,15 @@ class MedicineSyncJob implements ShouldQueue
                         if ($this->shop->meituan_bind_platform == 31) {
                             $medicine_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
                         }
-                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-药品参数：{$k}", $medicine_params);
+                        $this->log('药品参数', $medicine_params);
+                        // \Log::info("药品管理任务|门店ID:{$this->shop->id}-药品参数：{$k}", $medicine_params);
                         $res = $meituan->medicineBatchSave($medicine_params);
-                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+                        $this->log('创建药品返回', [$res]);
+                        // \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
                         if (isset($res['data'])) {
                             $res_list = [];
                             if ($res['data'] === 'ok') {
+                                $success += $medicines->count();
                                 if (is_array($res['msg'])) {
                                     $res_list = $res['msg'];
                                 } elseif (is_string($res['msg'])) {
@@ -164,6 +180,7 @@ class MedicineSyncJob implements ShouldQueue
                                     $res_list = json_decode($res_string, true);
                                 }
                             } else if ($res['data'] === 'ng') {
+                                $fail += $medicines->count();
                                 $error_string = $res['error']['msg'] ?? '';
                                 $error_string = str_replace('批量添加药品结果：', '', $error_string);
                                 $res_list = json_decode($error_string, true);
@@ -188,7 +205,7 @@ class MedicineSyncJob implements ShouldQueue
                 }
             }
         } else {
-            \Log::info("走的单个上传");
+            $this->log('走的单个上传');
             if (!empty($medicine_list)) {
                 foreach ($medicine_list as $medicine) {
                     $total++;
@@ -213,7 +230,7 @@ class MedicineSyncJob implements ShouldQueue
                     }
                     try {
                         $res = $meituan->medicineSave($medicine_data);
-                        \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+                        $this->log('创建药品返回', [$res]);
                         if ($res['data'] === 'ok') {
                             Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
                             if ($medicine->depot_id === 0) {
