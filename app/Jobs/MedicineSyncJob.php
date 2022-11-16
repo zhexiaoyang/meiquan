@@ -7,6 +7,7 @@ use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
 use App\Models\MedicineSyncLog;
 use App\Models\Shop;
+use App\Models\WmCategory;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -128,6 +129,7 @@ class MedicineSyncJob implements ShouldQueue
                     'stock' => $medicine->stock,
                     'category_name' => implode(',', $medicine_category),
                     'sequence' => $medicine->sequence,
+                    'is_sold_out' => 0,
                 ];
                 if ($this->shop->meituan_bind_platform == 31) {
                     $medicine_data['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
@@ -136,19 +138,19 @@ class MedicineSyncJob implements ShouldQueue
                     $res = $meituan->medicineSave($medicine_data);
                     \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
                     if ($res['data'] === 'ok') {
-                        $success++;
                         Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
                         if ($medicine->depot_id === 0) {
                             $this->add_depot($medicine);
                         }
+                        $success++;
                     } elseif ($res['data'] === 'ng') {
                         $error_msg = $res['error']['msg'] ?? '';
                         if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                            $success++;
                             Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
                             if ($medicine->depot_id === 0) {
                                 $this->add_depot($medicine);
                             }
+                            $success++;
                         } else {
                             $fail++;
                             Medicine::where('id', $medicine->id)->update([
@@ -158,6 +160,7 @@ class MedicineSyncJob implements ShouldQueue
                         }
                     }
                 } catch (\Exception $exception) {
+                    \Log::info('$exception', [$exception->getMessage()]);
                     $fail++;
                     Medicine::where('id', $medicine->id)
                         ->update([
@@ -250,109 +253,122 @@ class MedicineSyncJob implements ShouldQueue
 
     public function ele()
     {
-        // $ele = app('ele');
-        // // 添加日志
-        // $log = MedicineSyncLog::create([
-        //     'shop_id' => $this->shop->id,
-        //     'platform' => $this->platform,
-        //     'total' => 0,
-        //     'success' => 0,
-        //     'fail' => 0,
-        //     'error' => 0,
-        // ]);
-        // $total = 0;
-        // $success = 0;
-        // $fail = 0;
-        // // 创建药品分类
-        // $categories = MedicineCategory::where('shop_id', $this->shop->id)->orderBy('pid')->orderBy('sort')->get();
-        // $category_key = [];
-        // foreach ($categories as $k => $category) {
-        //     $category_key[$category->id] = $category->name;
-        //     $category_key[$category->id] = $category->name;
-        //     if ($category->pid == 0) {
-        //         $cat_params = [
-        //             'app_poi_code' => $this->shop->waimai_mt,
-        //             'category_name' => $category->name,
-        //             'sequence' => $category->sort,
-        //         ];
-        //     } else {
-        //         $cat_params = [
-        //             'app_poi_code' => $this->shop->waimai_mt,
-        //             'category_name' => $category_key[$category->pid],
-        //             'second_category_name' => $category->name,
-        //             'second_sequence' => $category->sort,
-        //         ];
-        //     }
-        //     if ($this->shop->meituan_bind_platform == 31) {
-        //         $cat_params['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
-        //     }
-        //     \Log::info("药品管理任务|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
-        //     $res = $meituan->medicineCatSave($cat_params);
-        //     \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
-        // }
-        // // 单个上传
-        // $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
-        //     ->whereIn('mt_status', [0, 2])->limit(8000)->get();
-        // if (!empty($medicine_list)) {
-        //     foreach ($medicine_list as $medicine) {
-        //         $total++;
-        //         $medicine_category = [];
-        //         if (!empty($medicine->categories)) {
-        //             foreach ($medicine->categories as $item) {
-        //                 $medicine_category[] = $item->name;
-        //             }
-        //         }
-        //         $medicine_data = [
-        //             'app_poi_code' => $this->shop->waimai_mt,
-        //             'app_medicine_code' => $medicine->upc,
-        //             'upc' => $medicine->upc,
-        //             'price' => (float) $medicine->price,
-        //             'stock' => $medicine->stock,
-        //             'category_name' => implode(',', $medicine_category),
-        //             'sequence' => $medicine->sequence,
-        //         ];
-        //         try {
-        //             $res = $meituan->medicineSave($medicine_data);
-        //             \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
-        //             if ($res['data'] === 'ok') {
-        //                 $success++;
-        //                 Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
-        //                 if ($medicine->depot_id === 0) {
-        //                     $this->add_depot($medicine);
-        //                 }
-        //             } elseif ($res['data'] === 'ng') {
-        //                 $error_msg = $res['error']['msg'] ?? '';
-        //                 if (strpos($error_msg, '已存在') !== false) {
-        //                     $success++;
-        //                     Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
-        //                     if ($medicine->depot_id === 0) {
-        //                         $this->add_depot($medicine);
-        //                     }
-        //                 } else {
-        //                     $fail++;
-        //                     Medicine::where('id', $medicine->id)->update([
-        //                         'mt_error' => $res['error']['msg'] ?? '',
-        //                         'mt_status' => 2
-        //                     ]);
-        //                 }
-        //             }
-        //         } catch (\Exception $exception) {
-        //             $fail++;
-        //             Medicine::where('id', $medicine->id)
-        //                 ->update([
-        //                     'mt_error' => '上传失败',
-        //                     'mt_status' => 2
-        //                 ]);
-        //         }
-        //     }
-        // }
-        //
-        // $log->update([
-        //     'total' => $total,
-        //     'success' => $success,
-        //     'fail' => $fail,
-        //     'status' => 2,
-        // ]);
+        $ele = app('ele');
+        // 添加日志
+        $log = MedicineSyncLog::create([
+            'shop_id' => $this->shop->id,
+            'platform' => $this->platform,
+            'total' => 0,
+            'success' => 0,
+            'fail' => 0,
+            'error' => 0,
+        ]);
+        $total = 0;
+        $success = 0;
+        $fail = 0;
+        // 创建药品分类
+        $categories = MedicineCategory::where('shop_id', $this->shop->id)->orderBy('pid')->orderBy('sort')->get();
+        $category_key = [];
+        foreach ($categories as $k => $category) {
+            $category_key[$category->id] = $category->name;
+            $category_key[$category->id] = $category->name;
+            if ($category->pid == 0) {
+                $cat_params = [
+                    'shop_id' => $this->shop->waimai_ele,
+                    'parent_category_id' => 0,
+                    'name' => $category->name,
+                    'rank' => $category->sort,
+                ];
+            } else {
+                $parent = MedicineCategory::find($category->pid);
+                $cat_params = [
+                    'shop_id' => $this->shop->waimai_ele,
+                    'parent_category_id' => $parent->ele_id,
+                    'name' => $category->name,
+                    'rank' => $category->sort,
+                ];
+            }
+            \Log::info("药品管理任务饿了么|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
+            $res = $ele->add_category($cat_params);
+            if (isset($res['body']['data']['category_id'])) {
+                $category->ele_id = $res['body']['data']['category_id'];
+                $category->save();
+            }
+            \Log::info("药品管理任务饿了么|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
+        }
+
+        // 单个上传
+        $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
+            ->whereIn('ele_status', [0, 2])->limit(8000)->get();
+        if (!empty($medicine_list)) {
+            foreach ($medicine_list as $medicine) {
+                $total++;
+                $medicine_category = [];
+                if (!empty($medicine->categories)) {
+                    foreach ($medicine->categories as $item) {
+                        $medicine_category[] = [
+                            'category_name' => $item->name
+                        ];
+                    }
+                }
+                $medicine_data = [
+                    'shop_id' => $this->shop->waimai_ele,
+                    'app_medicine_code' => $medicine->upc,
+                    'name' => $medicine->name,
+                    'upc' => $medicine->upc,
+                    'custom_sku_id' => $medicine->upc,
+                    'sale_price' => (int) ($medicine->price * 100),
+                    'left_num' => $medicine->stock,
+                    'category_list' => $medicine_category,
+                    // 'sequence' => $medicine->sequence,
+                    'status' => 1,
+                    'base_rec_enable' => true,
+                    'photo_rec_enable' => true,
+                    'summary_rec_enable' => true,
+                    'cat_prop_rec_enable' => true,
+                ];
+                try {
+                    $res = $ele->add_product($medicine_data);
+                    \Log::info("药品管理任务饿了么|门店ID:{$this->shop->id}-创建药品返回：{$k}", [$res]);
+                    if ($res['body']['error'] === 'success') {
+                        $success++;
+                        Medicine::where('id', $medicine->id)->update(['ele_status' => 1]);
+                        if ($medicine->depot_id === 0) {
+                            $this->add_depot($medicine);
+                        }
+                    } else {
+                        $error_msg = $res['body']['error'] ?? '';
+                        if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                            $success++;
+                            Medicine::where('id', $medicine->id)->update(['ele_status' => 1]);
+                            if ($medicine->depot_id === 0) {
+                                $this->add_depot($medicine);
+                            }
+                        } else {
+                            $fail++;
+                            Medicine::where('id', $medicine->id)->update([
+                                'ele_error' => $res['body']['error'] ?? '',
+                                'ele_status' => 2
+                            ]);
+                        }
+                    }
+                } catch (\Exception $exception) {
+                    $fail++;
+                    Medicine::where('id', $medicine->id)
+                        ->update([
+                            'ele_error' => '上传失败',
+                            'ele_status' => 2
+                        ]);
+                }
+            }
+        }
+
+        $log->update([
+            'total' => $total,
+            'success' => $success,
+            'fail' => $fail,
+            'status' => 2,
+        ]);
     }
 
     public function add_depot(Medicine $medicine)

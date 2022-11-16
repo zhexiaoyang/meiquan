@@ -217,15 +217,56 @@ class Api extends Request
         return $this->post('sku.create', $data);
     }
 
-    public function category_list()
+    public function category_property_list($cat3_id = 201221734)
+    {
+        $data = [
+            // 'cat3_id' => $cat3_id,
+            'shop_id' => '1109198270',
+        ];
+        // $e = app('ele');
+        // $cats = \DB::table('a_cats')->where('depth', 3)->get();
+        // foreach ($cats as $cat) {
+        //     $res = $e->category_property_list($cat['cat_id']);
+        //     foreach ($res['body']['data'] as $v) {
+        //         $insert = [
+        //             'cat_id' => $cat['id'],
+        //             'category_id' => $cat['categoryId'],
+        //             'property_id' => $v['propertyId'],
+        //             'property_name' => $v['propertyName'],
+        //             'required' => (int) $v['required'],
+        //             'multi_select' => (int) $v['multiSelect'],
+        //             'enum_prop' => (int) $v['enumProp'],
+        //             'input_prop' => (int) $v['inputProp'],
+        //             'sale_prop' => (int) $v['saleProp'],
+        //             'sort_order' => (int) $v['sortOrder'],
+        //         ];
+        //         $id = \DB::table('a_property')->insertGetId($insert);
+        //         if (isset($v['propertyValues'])) {
+        //             foreach ($v['propertyValues'] as $m) {
+        //                 $insert = [
+        //                     'property_id' => $id,
+        //                     'value_id' => $m['valueId'],
+        //                     'sort_order' => $m['sortOrder'],
+        //                     'value_data' => $m['valueData'],
+        //                 ];
+        //                 $id = \DB::table('a_property_value')->insert($insert);
+        //             }
+        //         }
+        //     }
+        // }
+        return $this->post('sku.category.property.list', $data);
+    }
+
+    public function category_list($pid = 201221734, $depth = 3)
     {
         // 201223557 其他
         // 201232918 情趣助力
         $data = [
-            'keyword' => '',
-            'depth' => 3,
-            'parent_id' => 201221734
+            // 'keyword' => '',
+            'depth' => $depth,
+            'parent_id' => $pid
         ];
+        // \DB::table('a_cats')->insertGetId(['pid' => 0, 'cat_id' => '', 'cat_pid' => '', 'cat_name' => '', 'depth' => '']);
         return $this->post('sku.category.list', $data);
     }
 

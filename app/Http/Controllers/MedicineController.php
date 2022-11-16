@@ -52,7 +52,9 @@ class MedicineController extends Controller
             }
         }
 
-        $query = Medicine::where('shop_id', $shop_id);
+        $query = Medicine::with(['categories' => function ($query) {
+            $query->select('id', 'name');
+        }])->where('shop_id', $shop_id);
 
         if ($name = $request->get('name')) {
             $query->where('name', 'like', "%{$name}%");
@@ -110,9 +112,14 @@ class MedicineController extends Controller
             if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
                 return $this->error('门店不存在');
             }
-            // if ($shop->user_id !== $request->user()->id) {
-            //     return $this->error('门店不存在');
-            // }
+        }
+
+        if ($platform === 1 && !$shop->waimai_mt) {
+            return $this->error('该门店没有绑定美团，不能同步商品');
+        }
+
+        if ($platform === 2 && !$shop->waimai_ele) {
+            return $this->error('该门店没有绑定饿了么，不能同步商品');
         }
 
         if (MedicineSyncLog::where('shop_id', $shop_id)->where('status', 1)->where('created_at', '>', date("Y-m-d H:i:s", time() - 610))->first()) {
