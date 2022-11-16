@@ -70,6 +70,7 @@ class MedicineSyncJob implements ShouldQueue
             $this->log('已存在进行中任务停止任务');
             return;
         }
+        $this->log('开始时间点开始');
 
         // 添加日志
         $log = MedicineSyncLog::create([
@@ -122,7 +123,7 @@ class MedicineSyncJob implements ShouldQueue
         }
         // 单个上传
         $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
-            ->whereIn('mt_status', [0, 2])->limit(8000)->get();
+            ->whereIn('mt_status', [0, 2])->limit(4000)->get();
         if ($medicine_list->count() > 200) {
             // \Log::info("走的批量上传");
             $this->log('走的批量上传');
@@ -189,7 +190,9 @@ class MedicineSyncJob implements ShouldQueue
                                 Medicine::whereIn('id', $medicine_ids)->update(['mt_status' => 1]);
                                 foreach ($res_list as $v) {
                                     if ((strpos($v['error_msg'], '已存在') !== false) || (strpos($v['error_msg'], '已经存在') !== false)) {
-                                        $success--;
+                                        $upc = $v['app_medicine_code'];
+                                        Medicine::where('shop_id', $this->shop->id)->where('upc', $upc)->update(['mt_status' => 1]);
+                                    } else {
                                         $fail++;
                                         $upc = $v['app_medicine_code'];
                                         Medicine::where('shop_id', $this->shop->id)->where('upc', $upc)
@@ -391,6 +394,7 @@ class MedicineSyncJob implements ShouldQueue
             'fail' => $fail,
             'status' => 2,
         ]);
+        $this->log('开始时间点结束');
     }
 
     public function add_depot(Medicine $medicine)
