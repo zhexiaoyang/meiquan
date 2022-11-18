@@ -42,7 +42,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
      */
     public function handle()
     {
-        $status = null;
+        // $status = null;
         if ($this->api === 4) {
             $meituan = app('minkang');
         } elseif ($this->api === 31) {
@@ -55,24 +55,25 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             $res = $meituan->medicineSave($this->params);
             $this->log('创建药品返回', [$res]);
             if ($res['data'] === 'ok') {
-                Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1]);
-                $status = true;
+                if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
+                    MedicineSyncLog::where('id', $this->key)->increment('success');
+                }
             } elseif ($res['data'] === 'ng') {
                 $error_msg = $res['error']['msg'] ?? '';
+                $error_msg = substr($error_msg, 0, 200);
                 if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                    Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1]);
-                    $status = true;
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
+                        MedicineSyncLog::where('id', $this->key)->increment('success');
+                    }
                 } else {
-                    $status = false;
-                    Medicine::where('id', $this->medicine_id)->update([
-                        'mt_error' => $res['error']['msg'] ?? '',
-                        'mt_status' => 2
-                    ]);
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
+                        MedicineSyncLog::where('id', $this->key)->increment('fail');
+                    }
                 }
             }
         } catch (\Exception $exception) {
             $this->log('报错啦', [$exception->getMessage()]);
-            $status = false;
+            MedicineSyncLog::where('id', $this->key)->increment('fail');
             Medicine::where('id', $this->medicine_id)
                 ->update([
                     'mt_error' => '上传异常',
@@ -80,13 +81,13 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                 ]);
         }
 
-        if ($status !== null) {
-            if ($status) {
-                MedicineSyncLog::where('id', $this->key)->increment('success');
-            } else {
-                MedicineSyncLog::where('id', $this->key)->increment('fail');
-            }
-        }
+        // if ($status !== null) {
+        //     if ($status) {
+        //         MedicineSyncLog::where('id', $this->key)->increment('success');
+        //     } else {
+        //         MedicineSyncLog::where('id', $this->key)->increment('fail');
+        //     }
+        // }
         $log = MedicineSyncLog::find($this->key);
         if ($log->total <= ($log->success + $log->fail)) {
             $log->update([
