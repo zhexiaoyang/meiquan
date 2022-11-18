@@ -42,7 +42,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
      */
     public function handle()
     {
-        $status = false;
+        $status = null;
         if ($this->api === 4) {
             $meituan = app('minkang');
         } elseif ($this->api === 31) {
@@ -63,6 +63,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                     Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1]);
                     $status = true;
                 } else {
+                    $status = false;
                     Medicine::where('id', $this->medicine_id)->update([
                         'mt_error' => $res['error']['msg'] ?? '',
                         'mt_status' => 2
@@ -71,6 +72,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             }
         } catch (\Exception $exception) {
             $this->log('报错啦', [$exception->getMessage()]);
+            $status = false;
             Medicine::where('id', $this->medicine_id)
                 ->update([
                     'mt_error' => '上传异常',
@@ -78,7 +80,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                 ]);
         }
 
-        if ($status) {
+        if ($status !== null) {
             MedicineSyncLog::where('id', $this->key)->increment('success');
         } else {
             MedicineSyncLog::where('id', $this->key)->increment('fail');
