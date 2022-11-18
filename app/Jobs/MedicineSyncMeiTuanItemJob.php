@@ -81,9 +81,11 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         }
 
         if ($status !== null) {
-            MedicineSyncLog::where('id', $this->key)->increment('success');
-        } else {
-            MedicineSyncLog::where('id', $this->key)->increment('fail');
+            if ($status) {
+                MedicineSyncLog::where('id', $this->key)->increment('success');
+            } else {
+                MedicineSyncLog::where('id', $this->key)->increment('fail');
+            }
         }
         $log = MedicineSyncLog::find($this->key);
         if ($log->total <= ($log->success + $log->fail)) {
