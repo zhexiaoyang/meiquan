@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
 
 class MedicineSyncMeiTuanItemJob implements ShouldQueue
 {
@@ -93,9 +94,9 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         }
 
         $redis_key = 'medicine_job_key_' . $this->key;
-        $catch = \Redis::hget($redis_key, $this->key);
+        $catch = Redis::hget($redis_key, $this->key);
         if ($status !== null && !$catch) {
-            \Redis::hset($redis_key, $this->key, 1);
+            Redis::hset($redis_key, $this->key, 1);
             if ($status) {
                 if ($this->depot_id) {
                     $this->add_depot();
@@ -107,7 +108,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         }
         $log = MedicineSyncLog::find($this->key);
         if ($log->total <= ($log->success + $log->fail)) {
-            \Redis::expire($redis_key, 60);
+            Redis::expire($redis_key, 60);
             $log->update([
                 'status' => 2,
             ]);
