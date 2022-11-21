@@ -98,7 +98,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         if ($status !== null && !$catch) {
             Redis::hset($redis_key, $this->medicine_id, 1);
             if ($status) {
-                if ($this->depot_id) {
+                if (intval($this->depot_id) === 0) {
                     $this->add_depot();
                 }
                 MedicineSyncLog::where('id', $this->key)->increment('success');
@@ -123,13 +123,15 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
 
     public function add_depot()
     {
-        $depot = MedicineDepot::create([
-            'name' => $this->name,
-            'upc' => $this->upc,
-        ]);
-        \DB::table('wm_depot_medicine_category')->insert([
-            'medicine_id' => $depot->id,
-            'category_id' => 215,
-        ]);
+        if (!MedicineDepot::where('upc', $this->upc)->first()) {
+            $depot = MedicineDepot::create([
+                'name' => $this->name,
+                'upc' => $this->upc,
+            ]);
+            \DB::table('wm_depot_medicine_category')->insert([
+                'medicine_id' => $depot->id,
+                'category_id' => 215,
+            ]);
+        }
     }
 }
