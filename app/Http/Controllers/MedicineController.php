@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\WmMedicineExport;
 use App\Imports\MedicineImport;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
@@ -266,4 +267,16 @@ class MedicineController extends Controller
     //
     //     return $this->success();
     // }
+
+    public function export_medicine(Request $request, WmMedicineExport $export)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        $type = $request->get('type');
+        if ($type != 1 && $type != 2) {
+            $type = 1;
+        }
+        return $export->withRequest($shop_id, $type);
+    }
 }
