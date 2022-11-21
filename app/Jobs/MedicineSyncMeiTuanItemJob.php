@@ -94,9 +94,9 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         }
 
         $redis_key = 'medicine_job_key_' . $this->key;
-        $catch = Redis::hget($redis_key, $this->key);
+        $catch = Redis::hget($redis_key, $this->medicine_id);
         if ($status !== null && !$catch) {
-            Redis::hset($redis_key, $this->key, 1);
+            Redis::hset($redis_key, $this->medicine_id, 1);
             if ($status) {
                 if ($this->depot_id) {
                     $this->add_depot();
