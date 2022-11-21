@@ -219,7 +219,7 @@ class MedicineController extends Controller
                 if ($shop->meituan_bind_platform == 31) {
                     $medicine_data['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                 }
-                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id);
+                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc);
 
             }
         }
