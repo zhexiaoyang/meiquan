@@ -52,6 +52,9 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("medicine/takeout/sync/log", "MedicineController@sync_log");
         // 导出
         Route::get("medicine/export", "MedicineController@export_medicine");
+        // 导出
+        Route::put("medicine/{medicine}", "MedicineController@update");
+        Route::post("medicine/clear", "MedicineController@clear");
         /**
          * WebMI
          */

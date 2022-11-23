@@ -527,6 +527,10 @@ class Api extends Request
     {
         return $this->request_post('v1/medicine/batchupdate', $params);
     }
+    public function medicineUpdate(array $params)
+    {
+        return $this->request_post('v1/medicine/update', $params);
+    }
     public function medicineList(array $params)
     {
         return $this->request_get('v1/medicine/list', $params);

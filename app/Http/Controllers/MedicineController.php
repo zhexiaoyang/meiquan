@@ -268,6 +268,14 @@ class MedicineController extends Controller
     //     return $this->success();
     // }
 
+    /**
+     * 导出
+     * @param Request $request
+     * @param WmMedicineExport $export
+     * @return WmMedicineExport|mixed
+     * @author zhangzhen
+     * @data 2022/11/22 11:24 上午
+     */
     public function export_medicine(Request $request, WmMedicineExport $export)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -278,5 +286,128 @@ class MedicineController extends Controller
             $type = 1;
         }
         return $export->withRequest($shop_id, $type);
+    }
+
+    /**
+     * 更新
+     * @param Medicine $medicine
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2022/11/22 9:32 下午
+     */
+    public function update(Medicine $medicine, Request $request)
+    {
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($medicine->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('商品错误');
+            }
+        }
+        $data = [];
+        if (!$name = $request->get('name')) {
+            return $this->error('名称不能为空');
+        }
+        $stock = (int) $request->get('stock');
+        $price = (float) $request->get('price');
+        $guidance_price = (float) $request->get('guidance_price');
+
+        if ($price <= 0) {
+            return $this->error('销售价不能为0');
+        }
+        $data['name'] = $name;
+        $data['stock'] = $stock;
+        $data['price'] = $price;
+        $data['guidance_price'] = $guidance_price;
+
+        $medicine->update($data);
+
+        $shop = null;
+        if ($medicine->mt_status == 1) {
+            $shop = Shop::find($medicine->shop_id);
+            $meituan = null;
+            if ($shop->meituan_bind_platform === 4) {
+                $meituan = app('minkang');
+            } elseif ($shop->meituan_bind_platform === 31) {
+                $meituan = app('meiquan');
+            }
+            if ($meituan !== null) {
+                $params = [
+                    'app_poi_code' => $shop->waimai_mt,
+                    'app_medicine_code' => $medicine->upc,
+                    'price' => $price,
+                    'stock' => $stock,
+                ];
+                if ($shop->meituan_bind_platform == 31) {
+                    $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+                }
+                $res = $meituan->medicineUpdate($params);
+            }
+        }
+
+        if ($medicine->mt_status == 2) {
+            if (!$shop) {
+                $shop = Shop::find($medicine->shop_id);
+            }
+            // $ele = app('ele');
+            // if ($meituan !== null) {
+            //     $params = [
+            //         'app_poi_code' => $shop->waimai_mt,
+            //         'app_medicine_code' => $medicine->upc,
+            //         'price' => $price,
+            //         'stock' => $stock,
+            //     ];
+            //     if ($shop->meituan_bind_platform == 31) {
+            //         $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+            //     }
+            //     $res = $meituan->medicineUpdate($params);
+            // }
+        }
+        return $this->success();
+    }
+
+    public function clear(Request $request)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('门店错误');
+            }
+        }
+
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        if (!$shop->waimai_mt) {
+            return $this->error('该门店没有绑定美团，无法清空商品');
+        }
+        $meituan = null;
+        if ($shop->meituan_bind_platform === 4) {
+            $meituan = app('minkang');
+        } elseif ($shop->meituan_bind_platform === 31) {
+            $meituan = app('meiquan');
+        }
+        if (!$meituan) {
+            return $this->error('门店绑定异常');
+        }
+        $params = [
+            'app_poi_code' => $shop->waimai_mt,
+        ];
+        if ($shop->meituan_bind_platform == 31) {
+            $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+        }
+        $res = $meituan->shangouDeleteAll($params);
+        \Log::info("清空门店商品返回", [$params]);
+        $status = $res['data'] ?? '';
+        if ($status !== 'ok') {
+            return $this->error($res['error']['msg'] ?? '清空失败', 422);
+        }
+
+        Medicine::where('shop_id', $shop->id)->delete();
+        MedicineCategory::where('shop_id', $shop->id)->delete();
+
+        return $this->success();
     }
 }
