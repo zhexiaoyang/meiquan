@@ -415,4 +415,25 @@ class MedicineController extends Controller
 
         return $this->success();
     }
+
+    public function clear_middle(Request $request)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('门店错误');
+            }
+        }
+
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        Medicine::where('shop_id', $shop->id)->delete();
+        MedicineCategory::where('shop_id', $shop->id)->delete();
+
+        return $this->success();
+    }
 }

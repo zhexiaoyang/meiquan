@@ -55,6 +55,7 @@ Route::middleware(["force-json"])->group(function() {
         // 导出
         Route::put("medicine/{medicine}", "MedicineController@update");
         Route::post("medicine/clear", "MedicineController@clear");
+        Route::post("medicine/clear_middle", "MedicineController@clear_middle");
         /**
          * WebMI
          */
