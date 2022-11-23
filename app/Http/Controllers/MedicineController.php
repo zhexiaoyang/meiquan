@@ -399,10 +399,15 @@ class MedicineController extends Controller
             $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
         }
         $res = $meituan->shangouDeleteAll($params);
-        \Log::info("清空门店商品返回", [$params]);
+        \Log::info("清空门店商品返回", [$res]);
         $status = $res['data'] ?? '';
-        if ($status !== 'ok') {
-            return $this->error($res['error']['msg'] ?? '清空失败', 422);
+        $error_msg = $res['error']['msg'] ?? '清空失败';
+        if ($status !== 'ok' && $error_msg != '门店内不存在任何分类') {
+            // if ($error_msg == '门店内不存在任何分类') {
+            //     Medicine::where('shop_id', $shop->id)->delete();
+            //     MedicineCategory::where('shop_id', $shop->id)->delete();
+            // }
+            return $this->error($error_msg, 422);
         }
 
         Medicine::where('shop_id', $shop->id)->delete();

@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Exceptions\InvalidRequestException;
+use App\Jobs\MedicineImportJob;
 use App\Models\Medicine;
 use App\Models\MedicineDepot;
 use Illuminate\Database\Eloquent\Model;
@@ -18,57 +19,45 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
     public function collection(Collection $row)
     {
         $row = $row->toArray();
-        // $upcs = [];
-        // \Log::info("导入总数量：". count($row));
-        // \Log::info("shop_id：". $this->shop_id);
+        // 第一行是说明，去掉
+        array_shift($row);
+        // throw new InvalidRequestException($row[0]['商品条码'], 422);
         if (count($row) > 5000) {
             throw new InvalidRequestException('药品数量不能超过5000', 422);
         }
         if (count($row) < 1) {
             throw new InvalidRequestException('药品数量为空', 422);
         }
-        foreach ($row as $item) {
-            $upc = trim($item['商品条码']);
-            $price = floatval($item['销售价']);
-            $cost = floatval($item['成本价']);
-            $stock = intval($item['库存']);
 
-            if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
-                $medicine->update([
-                    'price' => $price,
-                    'stock' => $stock,
-                    'guidance_price' => $cost,
-                ]);
-            } else {
-                if ($depot = MedicineDepot::where('upc', $upc)->first()) {
-                    \Log::info('upc3:' . $upc);
-                    $medicine_arr = [
-                        'shop_id' => $this->shop_id,
-                        'name' => $depot->name,
-                        'upc' => $depot->upc,
-                        'brand' => $depot->brand,
-                        'spec' => $depot->spec,
-                        'price' => $price,
-                        'stock' => $stock,
-                        'guidance_price' => $cost,
-                        'depot_id' => $depot->id,
-                    ];
-                } else {
-                    $name = trim($item['商品名称']);
-                    $medicine_arr = [
-                        'shop_id' => $this->shop_id,
-                        'name' => $name,
-                        'upc' => $upc,
-                        'brand' => '',
-                        'spec' => '',
-                        'price' => $price,
-                        'stock' => $stock,
-                        'guidance_price' => $cost,
-                        'depot_id' => 0,
-                    ];
-                }
-                Medicine::create($medicine_arr);
+
+        foreach ($row as $k => $item) {
+            $line = $k + 3;
+            if (!isset($item['商品条码'])) {
+                throw new InvalidRequestException("第{$line}不存在商品条码", 422);
             }
+            if (empty($item['商品条码'])) {
+                throw new InvalidRequestException("第{$line}商品条码不能为空", 422);
+            }
+            if (!isset($item['销售价'])) {
+                throw new InvalidRequestException("第{$line}不存在销售价", 422);
+            }
+            if (!isset($item['成本价'])) {
+                throw new InvalidRequestException("第{$line}不存在成本价", 422);
+            }
+            if (!isset($item['库存'])) {
+                throw new InvalidRequestException("第{$line}不存在库存", 422);
+            }
+        }
+
+        foreach ($row as $item) {
+            $medicine_data = [
+                'name' => trim($item['商品名称']),
+                'upc' => trim($item['商品条码']),
+                'stock' => trim($item['库存']),
+                'price' => trim($item['销售价']),
+                'guidance_price' => trim($item['成本价']),
+            ];
+            MedicineImportJob::dispatch($this->shop_id, $medicine_data);
         }
     }
 
