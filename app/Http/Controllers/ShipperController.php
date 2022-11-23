@@ -151,6 +151,12 @@ class ShipperController extends Controller
             $shop->save();
             return $this->success();
         }
+        $error_msg = $result['result']['failedList'][0]['msg'] ?? '';
+        if ($error_msg === '门店编号已存在') {
+            $shop->shop_id_dd = $shop->id;
+            $shop->save();
+            return $this->success();
+        }
         \Log::info("创建门店失败-达达", [$result]);
         return $this->error('添加失败');
     }
