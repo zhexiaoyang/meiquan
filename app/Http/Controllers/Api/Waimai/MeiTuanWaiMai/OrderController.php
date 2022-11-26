@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
 use App\Jobs\VipOrderSettlement;
+use App\Models\Medicine;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\Shop;
@@ -83,7 +84,8 @@ class OrderController
                     $food_str = $request->get('food');
                     $foods = json_decode($food_str, true);
                     if (!empty($foods)) {
-                        DB::transaction(function () use ($order, $foods) {
+                        $shop = Shop::find($order->shop_id);
+                        DB::transaction(function () use ($order, $foods, $shop) {
                             $vip = $order->is_vip;
                             $dec_cost = 0;
                             $where['order_id'] = $order->id;
@@ -96,10 +98,17 @@ class OrderController
                                         'refund_quantity' => $count,
                                     ]);
                                 }
-                                if ($vip) {
+                                if ($vip && (strtotime($shop->vip_at) < strtotime('2022-11-25'))) {
                                     $cost = VipProduct::select('cost')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
                                     if (isset($cost->cost)) {
                                         $dec_cost += ($cost->cost ?? 0);
+                                    } else {
+                                        $this->log_info("成本价不存在，订单ID:{$order->order_id}");
+                                    }
+                                } else {
+                                    $cost = Medicine::select('guidance_price')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
+                                    if (isset($cost->guidance_price)) {
+                                        $dec_cost += ($cost->guidance_price ?? 0);
                                     } else {
                                         $this->log_info("成本价不存在，订单ID:{$order->order_id}");
                                     }
@@ -121,8 +130,7 @@ class OrderController
                                 $res = $minkang->getOrderRefundDetail($order_id, false, $order->app_poi_code);
                             }
 
-                            if (!empty($res['data'])) {
-                                $shop = Shop::find($order->shop_id);
+                            if (!empty($res['data']) && is_array($res['data'])) {
                                 // VIP门店各方利润百分比
                                 $commission = $shop->vip_commission;
                                 $commission_manager = $shop->vip_commission_manager;
