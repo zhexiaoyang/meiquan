@@ -20,7 +20,7 @@ class MedicineCategoryController extends Controller
             return $this->error('门店错误.');
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('门店错误');
             }
         }
