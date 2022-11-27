@@ -20,7 +20,7 @@ class MedicineController extends Controller
         $query = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
-            $query->whereIn('id', $request->user()->shops()->pluck('id'));
+            $query->whereIn('id', $request->user()->shops()->pluck('id')->toArray());
         }
         if ($name = $request->get('name')) {
             $shops = $query->where('shop_name', 'like', "%{$name}%")->orderBy('id')->limit(30)->get();
@@ -50,7 +50,7 @@ class MedicineController extends Controller
             return $this->error('门店错误.');
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('门店错误');
             }
         }
@@ -112,7 +112,7 @@ class MedicineController extends Controller
         }
 
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('门店不存在');
             }
         }
@@ -245,7 +245,7 @@ class MedicineController extends Controller
     //     }
     //
     //     if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-    //         if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+    //         if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
     //             return $this->error('门店不存在');
     //         }
     //     }
@@ -299,7 +299,7 @@ class MedicineController extends Controller
     public function update(Medicine $medicine, Request $request)
     {
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($medicine->shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($medicine->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('商品错误');
             }
         }
@@ -371,7 +371,7 @@ class MedicineController extends Controller
             return $this->error('请选择门店');
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('门店错误');
             }
         }
@@ -422,7 +422,7 @@ class MedicineController extends Controller
             return $this->error('请选择门店');
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('门店错误');
             }
         }
