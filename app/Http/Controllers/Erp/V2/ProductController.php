@@ -102,15 +102,20 @@ class ProductController extends Controller
         }
         $ele = app('ele');
 
+        \Log::info("V2ERP全部参数", $request->all());
+
         // 开始同步
         if ($shop_id_mt) {
             $mt_binds['medicine_data'] = json_encode($mt_binds['medicine_data']);
             $mt_stocks['medicine_data'] = json_encode($mt_stocks['medicine_data']);
-            $meituan->medicineCodeUpdate($mt_binds);
-            $meituan->medicineStock($mt_stocks);
+            $mt_binds_res = $meituan->medicineCodeUpdate($mt_binds);
+            $mt_stocks_res = $meituan->medicineStock($mt_stocks);
+            \Log::info("V2ERP美团绑定返回", [$mt_binds_res]);
+            \Log::info("V2ERP美团库存返回", [$mt_stocks_res]);
         }
         if ($shop_id_ele) {
-            $ele->skuStockUpdate($ele_stocks);
+            $ele_res = $ele->skuStockUpdate($ele_stocks);
+            \Log::info("V2ERP饿了么库存返回", [$ele_res]);
         }
 
         return $this->success();
