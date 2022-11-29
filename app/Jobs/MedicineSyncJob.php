@@ -350,7 +350,7 @@ class MedicineSyncJob implements ShouldQueue
                     'shop_id' => $this->shop->waimai_ele,
                     'parent_category_id' => 0,
                     'name' => $category->name,
-                    'rank' => $category->sort,
+                    'rank' => 100000 - $category->sort > 0 ? 100000 - $category->sort : 1,
                 ];
             } else {
                 $parent = MedicineCategory::find($category->pid);
@@ -358,7 +358,7 @@ class MedicineSyncJob implements ShouldQueue
                     'shop_id' => $this->shop->waimai_ele,
                     'parent_category_id' => $parent->ele_id,
                     'name' => $category->name,
-                    'rank' => $category->sort,
+                    'rank' => 100000 - $category->sort > 0 ? 100000 - $category->sort : 1,
                 ];
             }
             \Log::info("药品管理任务饿了么|门店ID:{$this->shop->id}-分类参数：{$k}", $cat_params);
