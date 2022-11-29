@@ -47,10 +47,11 @@ class RunningOrderStatusCheck extends Command
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 if ($order->status == 20) {
-                    $res = $this->cancel_order($order);
-                    \Log::info("res", [$res]);
+                    $this->cancel_order($order);
+                    // $res = $this->cancel_order($order);
+                    // \Log::info("res", [$res]);
                     $this->info($order->order_id);
-                    break;
+                    // break;
                 }
             }
         }
