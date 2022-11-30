@@ -31,11 +31,15 @@ class Api extends Request
      */
     public function createByShop(Shop $shop, Order $order)
     {
+        $delivery_service_code = 100005;
+        if (time() >= strtotime('2022-12-01 05:00:00')) {
+            $delivery_service_code = 100029;
+        }
         $params = [
             'delivery_id' => $order->delivery_id,
             'order_id' => $order->order_id,
             'shop_id' => $shop->shop_id,
-            'delivery_service_code' => 100005,
+            'delivery_service_code' => $delivery_service_code,
             'receiver_name' => $order->receiver_name,
             'receiver_address' => $order->receiver_address,
             'receiver_phone' => $order->receiver_phone,
@@ -98,11 +102,15 @@ class Api extends Request
      */
     public function preCreateByShop(Shop $shop, Order $order)
     {
+        $delivery_service_code = 100005;
+        if (time() >= strtotime('2022-12-01 05:00:00')) {
+            $delivery_service_code = 100029;
+        }
         $params = [
             'delivery_id' => $order->delivery_id,
             'order_id' => $order->order_id,
             'shop_id' => $shop->shop_id,
-            'delivery_service_code' => 100005,
+            'delivery_service_code' => $delivery_service_code,
             'receiver_name' => $order->receiver_name,
             'receiver_address' => $order->receiver_address,
             'receiver_phone' => $order->receiver_phone,
@@ -212,9 +220,13 @@ class Api extends Request
      */
     public function check(Shop $shop, Order $order)
     {
+        $delivery_service_code = 100005;
+        if (time() >= strtotime('2022-12-01 05:00:00')) {
+            $delivery_service_code = 100029;
+        }
         $params = [
             'shop_id' => (string) $shop->shop_id,
-            'delivery_service_code' => 100005,
+            'delivery_service_code' => $delivery_service_code,
             'receiver_address' => $order->receiver_address,
             'receiver_lng' => $order->receiver_lng * 1000000,
             'receiver_lat' => $order->receiver_lat * 1000000,
@@ -336,6 +348,11 @@ class Api extends Request
             $second_category = '200001';
         }
 
+        $delivery_service_code = 100005;
+        if (time() >= strtotime('2022-12-01 05:00:00')) {
+            $delivery_service_code = 100029;
+        }
+
         $params = [
             'shop_id' => $shop->id,
             'shop_name' => $shop->shop_name,
@@ -348,7 +365,7 @@ class Api extends Request
             'shop_lng' => ceil($shop->shop_lng * 1000000),
             'shop_lat' => ceil($shop->shop_lat * 1000000),
             'coordinate_type' => 0,
-            'delivery_service_codes' => 100005,
+            'delivery_service_codes' => $delivery_service_code,
             'business_hours' => json_encode($time),
         ];
 
