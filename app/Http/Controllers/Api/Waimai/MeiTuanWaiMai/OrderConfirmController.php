@@ -198,13 +198,13 @@ class OrderConfirmController
                     }
                 }
                 if (!empty($items)) {
-                    if ($shop->vip_status) {
-                        $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
-                        $order_wm->vip_cost = $cost_money;
-                        // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
-                        $order_wm->save();
-                        $this->log_info("-外卖订单,VIP商家成本价更新成功");
-                    }
+                    // if ($shop->vip_status) {
+                    $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
+                    $order_wm->vip_cost = $cost_money;
+                    // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
+                    $order_wm->save();
+                    $this->log_info("-外卖订单,VIP商家成本价更新成功");
+                    // }
                     WmOrderItem::insert($items);
                     $this->log_info("-外卖订单「商品」保存成功");
                 }
