@@ -76,7 +76,11 @@ class ProductController extends Controller
         ];
         $stock_data_ele = [];
         foreach ($data as $v) {
-            if (isset($v['stock']) && $v['stock'] >= 0 && isset($v['upc'])) {
+            if (isset($v['upc'])) {
+                $stock = $v['stock'] ?? 0;
+                if ($stock < 0) {
+                    $stock = 0;
+                }
                 $mt_binds['medicine_data'][] = [
                     'upc' => $v['upc'],
                     'app_medicine_code_new' => empty($v['id']) ? $v['upc'] : $v['id'],
@@ -84,9 +88,9 @@ class ProductController extends Controller
                 $mt_stocks['medicine_data'][] = [
                     'app_poi_code' => $shop_id_mt,
                     'app_medicine_code' => empty($v['id']) ? $v['upc'] : $v['id'],
-                    'stock' => $v['stock'],
+                    'stock' => (int) $stock,
                 ];
-                $stock_data_ele[] =  $v['upc'] . ':' . (int) $v['stock'];
+                $stock_data_ele[] =  $v['upc'] . ':' . (int) $stock;
             }
         }
         // 饿了么同步库存参数
