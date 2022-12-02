@@ -109,7 +109,8 @@ class ProductController extends Controller
         \Log::info("V2ERP全部参数", $request->all());
 
         // 开始同步
-        if ($shop_id_mt) {
+        if ($shop_id_mt) {;
+            \Log::info("V2ERP美团库存参数", [$mt_stocks]);
             $mt_binds['medicine_data'] = json_encode($mt_binds['medicine_data']);
             $mt_stocks['medicine_data'] = json_encode($mt_stocks['medicine_data']);
             $mt_binds_res = $meituan->medicineCodeUpdate($mt_binds);
