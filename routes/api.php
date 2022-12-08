@@ -372,6 +372,7 @@ Route::middleware(["force-json"])->group(function() {
              * 品库管理
              */
             Route::get("depot/medicine/categories", "DepotMedicineCategoryController@index")->name("depot.medicine.categories.index");
+            Route::post("depot/medicine/product/update", "DepotMedicineController@update")->name("depot.medicine.product.update");
             Route::get("depot/medicine/product", "DepotMedicineController@index")->name("depot.medicine.product.index");
             /**
              * 审核管理

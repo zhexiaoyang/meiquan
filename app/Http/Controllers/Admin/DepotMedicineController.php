@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\MedicineDepot;
+use App\Models\MedicineDepotCategory;
 use Illuminate\Http\Request;
 
 class DepotMedicineController extends Controller
@@ -30,5 +31,31 @@ class DepotMedicineController extends Controller
         $data =$query->paginate($request->get('page_size', 10));
 
         return $this->page($data, [],'data');
+    }
+
+    public function update(Request $request)
+    {
+        if (!$id = $request->get('id')) {
+            return $this->error('请选择药品');
+        }
+        if (!$category_id1 = $request->get('category1')) {
+            return $this->error('请选择一级分类');
+        }
+        $category_id2 = $request->get('category2');
+        if (!$medicine = MedicineDepot::find($id)) {
+            return $this->error('药品不存在');
+        }
+        if (!$category1 = MedicineDepotCategory::find($category_id1)) {
+            return $this->error('一级分类不存在');
+        }
+        if (!$category_id2) {
+            if (MedicineDepotCategory::where('pid', $category_id1)->first()) {
+                return $this->error('请选择二级分类');
+            }
+        }
+        \DB::table('wm_depot_medicine_category')->where('medicine_id', $id)->delete();
+        \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $id, 'category_id' => $category_id2 ?: $category_id1]);
+
+        return $this->success();
     }
 }
