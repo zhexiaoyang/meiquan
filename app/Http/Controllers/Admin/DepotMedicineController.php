@@ -9,6 +9,11 @@ use Illuminate\Http\Request;
 
 class DepotMedicineController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(["permission:admin_depot"]);
+    }
+
     public function index(Request $request)
     {
         $query = MedicineDepot::query();

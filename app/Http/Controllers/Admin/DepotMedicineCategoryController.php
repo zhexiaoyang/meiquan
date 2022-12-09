@@ -9,6 +9,11 @@ use Illuminate\Support\Facades\DB;
 
 class DepotMedicineCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(["permission:admin_depot"]);
+    }
+
     public function index(Request $request)
     {
         $data = [];
