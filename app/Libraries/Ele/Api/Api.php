@@ -179,6 +179,12 @@ class Api extends Request
         return $this->post('order.selfDeliveryStateSync', $data);
     }
 
+    public function skuUpdate($data)
+    {
+        return $this->post('sku.update', $data);
+    }
+
+
     public function skuStockUpdate($data)
     {
         return $this->post('sku.stock.update.batch', $data);

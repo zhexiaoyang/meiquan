@@ -340,14 +340,31 @@ class MedicineController extends Controller
                 if ($shop->meituan_bind_platform == 31) {
                     $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                 }
-                $res = $meituan->medicineUpdate($params);
+                $meituan->medicineUpdate($params);
+                // $res = $meituan->medicineUpdate($params);
+                // \Log::info('aaa美团', [$res]);
             }
         }
-
-        if ($medicine->mt_status == 2) {
+        if ($medicine->ele_status == 1) {
             if (!$shop) {
                 $shop = Shop::find($medicine->shop_id);
             }
+            $ele = app('ele');
+            $params = [
+                'shop_id' => $shop->waimai_ele,
+                'custom_sku_id' => $medicine->upc,
+                'sale_price' => (int) ($medicine->price * 100),
+                'left_num' => $medicine->stock,
+            ];
+            $ele->skuUpdate($params);
+            // $res = $ele->skuUpdate($params);
+            // \Log::info('aaa饿了么', [$res]);
+        }
+
+        // if ($medicine->mt_status == 2) {
+        //     if (!$shop) {
+        //         $shop = Shop::find($medicine->shop_id);
+        //     }
             // $ele = app('ele');
             // if ($meituan !== null) {
             //     $params = [
@@ -361,7 +378,7 @@ class MedicineController extends Controller
             //     }
             //     $res = $meituan->medicineUpdate($params);
             // }
-        }
+        // }
         return $this->success();
     }
 
