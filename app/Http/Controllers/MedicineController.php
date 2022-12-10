@@ -65,10 +65,12 @@ class MedicineController extends Controller
         if ($upc = $request->get('upc')) {
             $query->where('upc', $upc);
         }
-        if ($mt = $request->get('mt')) {
+        $mt = $request->get('mt');
+        if (!is_null($mt) || $mt !== '') {
             $query->where('mt_status', $mt);
         }
-        if ($ele = $request->get('ele')) {
+        $ele = $request->get('ele');
+        if (!is_null($ele) || $ele !== '') {
             $query->where('ele_status', $ele);
         }
         if ($id = $request->get('id')) {
