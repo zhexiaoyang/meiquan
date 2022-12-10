@@ -10,6 +10,7 @@ use App\Jobs\VipOrderSettlement;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\Ele\Api\Tool;
 use App\Libraries\ShanSongService\ShanSongService;
+use App\Models\Medicine;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderLog;
@@ -1076,21 +1077,46 @@ class EleOrderController extends Controller
                                 'total_weight' => $product['total_weight'],
                                 'is_free_gift' => $product['is_free_gift'] == 1 ? 1 : 0,
                             ];
-                            if ($shop->vip_status) {
-                                $upc = $product['upc'];
-                                $cost = VipProduct::select('cost')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
-                                if (isset($cost->cost)) {
-                                    $cost = $cost->cost;
-                                    if ($cost > 0) {
-                                        $cost_money += ($cost * $quantity);
-                                        $_tmp['vip_cost'] = $cost;
-                                        // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
-                                        $this->log_info("-VIP订单成本价,upc:{$upc},价格:{$cost}");
+
+                            if ($shop->vip_status && (strtotime($shop->vip_at) < strtotime('2022-11-25'))) {
+                                $upc = $product['upc'] ?? '';
+                                if ($upc) {
+                                    $cost = VipProduct::select('cost')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
+                                    if (isset($cost->cost)) {
+                                        $cost = $cost->cost;
+                                        if ($cost > 0) {
+                                            $cost_money += ($cost * $quantity);
+                                            $_tmp['vip_cost'] = $cost;
+                                            // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                                            $this->log_info("-VIP订单成本价,upc:{$upc},价格:{$cost}");
+                                        } else {
+                                            $this->log_info("-VIP订单成本价小于等于0,upc:{$upc},价格:{$cost}");
+                                        }
                                     } else {
-                                        $this->log_info("-VIP订单成本价小于等于0,upc:{$upc},价格:{$cost}");
+                                        $this->log_info("-成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
                                     }
                                 } else {
-                                    $this->log_info("-成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
+                                    $this->log_info("-UPC不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
+                                }
+                            } else {
+                                $upc = $product['upc'] ?? '';
+                                if ($upc) {
+                                    $cost = Medicine::select('guidance_price')->where(['upc' => $upc, 'shop_id' => $shop->id])->first();
+                                    if (isset($cost->guidance_price)) {
+                                        $cost = $cost->guidance_price;
+                                        if ($cost > 0) {
+                                            $cost_money += ($cost * $quantity);
+                                            $_tmp['vip_cost'] = $cost;
+                                            // $cost_data[] = ['upc' => $product['upc'], 'cost' => $cost->cost];
+                                            $this->log_info("-普通订单成本价,upc:{$upc},价格:{$cost}");
+                                        } else {
+                                            $this->log_info("-普通订单成本价小于等于0,upc:{$upc},价格:{$cost}");
+                                        }
+                                    } else {
+                                        $this->log_info("-普通成本价不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
+                                    }
+                                } else {
+                                    $this->log_info("-UPC不存在|门店ID：{$shop->id},门店名称：{$shop->shop_name},upc：{$upc}");
                                 }
                             }
                             $items[] = $_tmp;
@@ -1098,13 +1124,13 @@ class EleOrderController extends Controller
                     }
                 }
                 if (!empty($items)) {
-                    if ($shop->vip_status) {
-                        $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
-                        $order_wm->vip_cost = $cost_money;
-                        // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
-                        $order_wm->save();
-                        $this->log_info("-外卖订单,VIP商家成本价更新成功");
-                    }
+                    // if ($shop->vip_status) {
+                    $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
+                    $order_wm->vip_cost = $cost_money;
+                    // $order->vip_cost_info = json_encode($cost_data, JSON_UNESCAPED_UNICODE);
+                    $order_wm->save();
+                    $this->log_info("-外卖订单,VIP商家成本价更新成功");
+                    // }
                     WmOrderItem::insert($items);
                     $this->log_info("-外卖订单「商品」保存成功");
                 }
