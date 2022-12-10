@@ -66,11 +66,11 @@ class MedicineController extends Controller
             $query->where('upc', $upc);
         }
         $mt = $request->get('mt');
-        if (!is_null($mt) || $mt !== '') {
+        if (!is_null($mt) && $mt !== '') {
             $query->where('mt_status', $mt);
         }
         $ele = $request->get('ele');
-        if (!is_null($ele) || $ele !== '') {
+        if (!is_null($ele) && $ele !== '') {
             $query->where('ele_status', $ele);
         }
         if ($id = $request->get('id')) {
