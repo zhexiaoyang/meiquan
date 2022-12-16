@@ -2,21 +2,19 @@
 
 namespace App\Jobs;
 
-use App\Models\OrderDeduction;
-use App\Models\Order;
-use App\Models\Shop;
-use App\Models\WmOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class MtLogisticsSync implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public $tries = 5;
 
     protected $order;
 
@@ -25,7 +23,7 @@ class MtLogisticsSync implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Order $order)
+    public function __construct($order)
     {
         $this->order = $order;
     }
@@ -61,7 +59,7 @@ class MtLogisticsSync implements ShouldQueue
                 $latitude = $this->order->courier_lat;
                 $longitude = $this->order->courier_lng;
                 if (!$latitude || !$longitude) {
-                    $shop = Shop::select('shop_lng', 'shop_lat')->find($this->order->shop_id);
+                    $shop = DB::table('shops')->select('shop_lng', 'shop_lat')->find($this->order->shop_id);
                     $locations = rider_location($shop->shop_lng, $shop->shop_lat);
                     $longitude = $locations['lng'];
                     $latitude = $locations['lat'];
@@ -187,7 +185,8 @@ class MtLogisticsSync implements ShouldQueue
             $meituan = app("meiquan");
 
             $status = 5;
-            $shop = Shop::query()->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
+            $shop = DB::table('shops')->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
+            // $shop = Shop::query()->select("id","mt_shop_id","waimai_mt")->find($this->order->shop_id);
 
             if ($this->order->status == 40) {
                 $status = 10;
@@ -287,8 +286,8 @@ class MtLogisticsSync implements ShouldQueue
 
         // 同步外卖订单跑腿费用
         if ($this->order->status == 70) {
-            if ($wm = WmOrder::where('order_id', $this->order->order_id)->first()) {
-                $reduce = OrderDeduction::where('order_id', $this->order->id)->sum('money');
+            if ($wm = DB::table('wm_orders')->where('order_id', $this->order->order_id)->first()) {
+                $reduce = DB::table('order_deductions')->where('order_id', $this->order->id)->sum('money');
                 $running_money = $reduce + $this->order->money;
                 $wm->running_fee = $running_money;
                 $wm->save();
