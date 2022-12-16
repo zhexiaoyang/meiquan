@@ -99,6 +99,7 @@ class MedicineController extends Controller
 
     public function sync(Request $request)
     {
+        return $this->error('功能暂时关闭');
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
         }
