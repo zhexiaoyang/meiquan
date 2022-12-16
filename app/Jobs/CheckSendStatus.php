@@ -2,10 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
-use App\Models\OrderLog;
-use App\Models\OrderSetting;
-use App\Models\Shop;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -17,6 +13,8 @@ class CheckSendStatus implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    public $tries = 5;
+
     private $order;
 
     /**
@@ -24,7 +22,7 @@ class CheckSendStatus implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(Order $order, $delay)
+    public function __construct($order, $delay)
     {
         $this->order = $order;
         $this->delay($delay);
@@ -37,7 +35,7 @@ class CheckSendStatus implements ShouldQueue
      */
     public function handle()
     {
-        $ding_notice = app("ding");
+        // $ding_notice = app("ding");
 
         // $logs = [
         //     "datetime" => date("Y-m-d H:i:s"),
@@ -45,7 +43,7 @@ class CheckSendStatus implements ShouldQueue
         //     "status" => $this->order->status,
         //     "ps" => $this->order->ps
         // ];
-        $order = Order::find($this->order->id);
+        $order = DB::table('orders')->find($this->order->id);
 
         if ($order->status >= 40) {
             \Log::info("[检查发单]-[订单ID：{$order->id}-订单号：{$order->order_id}]-状态：{$order->status},跳过检查");
@@ -63,7 +61,7 @@ class CheckSendStatus implements ShouldQueue
             // \Log::info('钉钉日志发送状态-重新发送订单', [$res]);
             \Log::info("[检查发单]-订单ID：{$this->order->id}-订单号：{$this->order->order_id}");
 
-            $setting = OrderSetting::where("shop_id", $this->order->shop_id)->first();
+            $setting = DB::table('order_settings')->where("shop_id", $this->order->shop_id)->first();
             if ($setting) {
                 $order_ttl = $setting->delay_reset * 60;
                 $order_type = $setting->type;
@@ -94,10 +92,12 @@ class CheckSendStatus implements ShouldQueue
                     ]);
                     if ($result['code'] == 0) {
                         DB::table('orders')->where('id', $this->order->id)->update(['fail_mt' => '长时间未接单，换配送方式', 'mt_status' => 7, 'status' => 7]);
-                        OrderLog::create([
+                        DB::table('order_logs')->insert([
                             "ps" => 1,
                             "order_id" => $this->order->id,
-                            "des" => "长时间未接单，取消【美团】跑腿订单"
+                            "des" => "长时间未接单，取消【美团】跑腿订单",
+                            "created_at" => date("Y-m-d H:i:s"),
+                            "updated_at" => date("Y-m-d H:i:s"),
                         ]);
                         dispatch(new CreateMtOrder($this->order));
                     }
@@ -112,10 +112,12 @@ class CheckSendStatus implements ShouldQueue
                     ]);
                     if ($result['code'] == 200) {
                         DB::table('orders')->where('id', $this->order->id)->update(['fail_fn' => '长时间未接单，换配送方式', 'fn_status' => 7, 'status' => 7]);
-                        OrderLog::create([
+                        DB::table('order_logs')->insert([
                             "ps" => 2,
                             "order_id" => $this->order->id,
-                            "des" => "长时间未接单，取消【蜂鸟】跑腿订单"
+                            "des" => "长时间未接单，取消【蜂鸟】跑腿订单",
+                            "created_at" => date("Y-m-d H:i:s"),
+                            "updated_at" => date("Y-m-d H:i:s"),
                         ]);
                         dispatch(new CreateMtOrder($this->order));
                     }
@@ -125,10 +127,12 @@ class CheckSendStatus implements ShouldQueue
                     $result = $shansong->cancelOrder($this->order->ss_order_id);
                     if ($result['status'] == 200) {
                         DB::table('orders')->where('id', $this->order->id)->update(['fail_ss' => '长时间未接单，换配送方式', 'ss_status' => 7, 'status' => 7]);
-                        OrderLog::create([
+                        DB::table('order_logs')->insert([
                             "ps" => 3,
                             "order_id" => $this->order->id,
-                            "des" => "长时间未接单，取消【闪送】跑腿订单"
+                            "des" => "长时间未接单，取消【闪送】跑腿订单",
+                            "created_at" => date("Y-m-d H:i:s"),
+                            "updated_at" => date("Y-m-d H:i:s"),
                         ]);
                         dispatch(new CreateMtOrder($this->order));
                     }
