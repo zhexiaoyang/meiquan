@@ -289,8 +289,9 @@ class MtLogisticsSync implements ShouldQueue
             if ($wm = DB::table('wm_orders')->where('order_id', $this->order->order_id)->first()) {
                 $reduce = DB::table('order_deductions')->where('order_id', $this->order->id)->sum('money');
                 $running_money = $reduce + $this->order->money;
-                $wm->running_fee = $running_money;
-                $wm->save();
+                DB::table('wm_orders')->where('order_id', $this->order->order_id)->update(['running_fee' => $running_money]);
+                // $wm->running_fee = $running_money;
+                // $wm->save();
                 $this->log('同步跑腿价格到外卖订单', "外卖订单号:{$this->order->order_id}");
             }
         }
