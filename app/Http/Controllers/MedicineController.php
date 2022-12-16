@@ -89,6 +89,7 @@ class MedicineController extends Controller
 
     public function import(Request $request, MedicineImport $import)
     {
+        return $this->error('功能暂时关闭');
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
         }
