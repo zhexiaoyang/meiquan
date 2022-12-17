@@ -162,7 +162,7 @@ function bd2gd($lng,$lat)
         $z = sqrt($lng * $lng + $lat * $lat) + 0.00002 * sin($lat * 52.35987755982988);
         $theta = atan2($lat, $lng) + 0.000003 * cos($lng * 52.35987755982988);
         $data['lng'] = $z * cos($theta) + 0.0065;
-        $data['lat'] = $z * sin($theta) + 0.006;
+        $data['lat'] = $z * sin($theta) + 0.0065;
     }
     return $data;
 }
