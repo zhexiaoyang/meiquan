@@ -61,11 +61,12 @@ class OrderController extends Controller
         // 关键字搜索
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
-                $query->where('delivery_id', 'like', "%{$search_key}%")
-                    ->orWhere('order_id', 'like', "%{$search_key}%")
-                    ->orWhere('peisong_id', 'like', "%{$search_key}%")
-                    ->orWhere('receiver_name', 'like', "%{$search_key}%")
-                    ->orWhere('receiver_phone', 'like', "%{$search_key}%");
+                // $query->where('delivery_id', 'like', "%{$search_key}%")
+                //     ->orWhere('order_id', 'like', "%{$search_key}%")
+                //     ->orWhere('peisong_id', 'like', "%{$search_key}%")
+                //     ->orWhere('receiver_name', 'like', "%{$search_key}%")
+                //     ->orWhere('receiver_phone', 'like', "%{$search_key}%");
+                $query->where('order_id', 'like', "{$search_key}%");
             });
         }
 
