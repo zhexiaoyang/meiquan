@@ -593,7 +593,7 @@ class OrderController extends Controller
                 return $this->error('到店自取订单');
             }
 
-            if (Order::where('order_id', $data['wm_order_id_view'])->first()) {
+            if (Order::where('order_id', (string) $data['wm_order_id_view'])->first()) {
                 \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-订单已存在");
                 // \Log::info('订单已存在', compact("type", "order_id"));
                 return $this->error('订单已存在');
