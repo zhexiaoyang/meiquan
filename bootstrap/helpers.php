@@ -109,28 +109,36 @@ function rider_location ($lng,$lat) {
  */
 function gd2bd($lng,$lat)
 {
-    $url = "https://api.map.baidu.com/geoconv/v1/?coords={$lng},{$lat}&from=3&to=5&ak=fL3camAQGEm7or6773IUG0K2dmPdTEYb";
-    $arrContextOptions = [
-        'ssl' => [
-            'verify_peer' => false,
-            'verify_peer_name' => false,
-        ]
-    ];
-    $res = file_get_contents($url, false, stream_context_create($arrContextOptions));
-    $res = json_decode($res, true);
-    if (isset($res['result'][0]['x'])) {
-        $data['lng'] = $res['result'][0]['x'];
-        $data['lat'] = $res['result'][0]['y'];
-        // \Log::info("百度地图坐标转换");
-    } else {
-        $x_pi = 3.14159265358979324 * 3000.0 / 180.0;
-        $x = $lng;
-        $y = $lat;
-        $z = sqrt($x * $x +$y * $y) - 0.00002 * sin($y * $x_pi);
-        $theta = atan2($y, $x) - 0.000003 * cos($x * $x_pi);
-        $data['lng'] = $z * cos($theta) + 0.0065;
-        $data['lat'] = $z * sin($theta) + 0.006;
-    }
+    // $url = "https://api.map.baidu.com/geoconv/v1/?coords={$lng},{$lat}&from=3&to=5&ak=fL3camAQGEm7or6773IUG0K2dmPdTEYb";
+    // $arrContextOptions = [
+    //     'ssl' => [
+    //         'verify_peer' => false,
+    //         'verify_peer_name' => false,
+    //     ]
+    // ];
+    // $res = file_get_contents($url, false, stream_context_create($arrContextOptions));
+    // $res = json_decode($res, true);
+    // if (isset($res['result'][0]['x'])) {
+    //     $data['lng'] = $res['result'][0]['x'];
+    //     $data['lat'] = $res['result'][0]['y'];
+    //     // \Log::info("百度地图坐标转换");
+    // } else {
+    //     $x_pi = 3.14159265358979324 * 3000.0 / 180.0;
+    //     $x = $lng;
+    //     $y = $lat;
+    //     $z = sqrt($x * $x +$y * $y) - 0.00002 * sin($y * $x_pi);
+    //     $theta = atan2($y, $x) - 0.000003 * cos($x * $x_pi);
+    //     $data['lng'] = $z * cos($theta) + 0.0065;
+    //     $data['lat'] = $z * sin($theta) + 0.0065;
+    // }
+    $x_pi = 3.14159265358979324 * 3000.0 / 180.0;
+    $x = $lng;
+    $y = $lat;
+    $z = sqrt($x * $x +$y * $y) - 0.00002 * sin($y * $x_pi);
+    $theta = atan2($y, $x) - 0.000003 * cos($x * $x_pi);
+    $data['lng'] = $z * cos($theta) + 0.0065;
+    $data['lat'] = $z * sin($theta) + 0.0065;
+
     return $data;
 }
 
