@@ -97,8 +97,8 @@ class Api extends Request
     {
         $this->access_token = $this->get_token($shop->id);
 
-        $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
-        $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
+        // $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
+        // $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
         $data = [
             "cityName" => $shop->city,
             "sender" => [
@@ -106,15 +106,19 @@ class Api extends Request
                 "fromAddressDetail" => $shop->shop_name ?? "",
                 "fromSenderName" => $shop->contact_name,
                 "fromMobile" => $shop->contact_phone,
-                "fromLatitude" => $jwd1['lat'],
-                "fromLongitude" => $jwd1['lng']
+                // "fromLatitude" => $jwd1['lat'],
+                // "fromLongitude" => $jwd1['lng'],
+                "fromLatitude" => $shop->shop_lat,
+                "fromLongitude" => $shop->shop_lng,
             ],
             "receiverList" => [[
                 "orderNo" => $order->order_id,
                 "toAddress" => $order->receiver_address,
                 "toAddressDetail" => $order->receiver_address,
-                "toLatitude" => $jwd2['lat'],
-                "toLongitude" => $jwd2['lng'],
+                // "toLatitude" => $jwd2['lat'],
+                // "toLongitude" => $jwd2['lng'],
+                "toLatitude" => $order->receiver_lat,
+                "toLongitude" => $order->receiver_lng,
                 "toReceiverName" => $order->receiver_name ?: "无名",
                 "toMobile" => str_replace('_', '#', $order->receiver_phone),
                 "goodType" => 13,
