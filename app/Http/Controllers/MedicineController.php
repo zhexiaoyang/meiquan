@@ -89,7 +89,6 @@ class MedicineController extends Controller
 
     public function import(Request $request, MedicineImport $import)
     {
-        return $this->error('功能暂时关闭');
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
         }
@@ -100,7 +99,6 @@ class MedicineController extends Controller
 
     public function sync(Request $request)
     {
-        return $this->error('功能暂时关闭');
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
         }
@@ -136,7 +134,7 @@ class MedicineController extends Controller
 
         if ($platform === 2) {
             // 饿了么走这个JOB
-            MedicineSyncJob::dispatch($shop, $platform);
+            MedicineSyncJob::dispatch($shop, $platform)->onQueue('medicine');
             return $this->success();
         }
 
@@ -223,7 +221,8 @@ class MedicineController extends Controller
                 if ($shop->meituan_bind_platform == 31) {
                     $medicine_data['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                 }
-                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc);
+                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc)
+                ->onQueue('medicine');
 
             }
         }

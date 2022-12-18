@@ -57,7 +57,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
                 'price' => trim($item['销售价']),
                 'guidance_price' => trim($item['成本价']),
             ];
-            MedicineImportJob::dispatch($this->shop_id, $medicine_data);
+            MedicineImportJob::dispatch($this->shop_id, $medicine_data)->onQueue('medicine');
         }
     }
 
