@@ -809,8 +809,8 @@ class TakeoutProductController extends Controller
         if (!empty($categories['data'])) {
             DB::transaction(function () use ($categories, $shop, $access_token, $mt) {
                 foreach ($categories['data'] as $category) {
-                    if ($category['code'] && $cat_model = WmCategory::where('shop_id', $shop->id)->where('code', $category['code'])->first()) {
-                        $cat_model->update([
+                    if ($category['code'] && $cat = WmCategory::where('shop_id', $shop->id)->where('code', $category['code'])->first()) {
+                        $cat->update([
                             'name' => $category['name'] ?? '',
                             'sequence' => $category['sequence'] ?? 0,
                             'top_flag' => $category['top_flag'] ?? 0,
