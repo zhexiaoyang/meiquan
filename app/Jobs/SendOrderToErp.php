@@ -78,9 +78,13 @@ class SendOrderToErp implements ShouldQueue
             "service_key" => "HXFW_362",
             "hx_parama" => $data
         ];
-        \Log::info("海协ERP推送订单", $params);
-        $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $params]);
-        $result = json_decode($response->getBody(), true);
-        \Log::info("海协ERP推送订单-返回", [$result]);
+        try {
+            \Log::info("海协ERP推送订单", $params);
+            $response = $http->post("http://hxfwgw.drugwebcn.com/gateway/apiEntranceAction!apiEntrance.do", [RequestOptions::JSON => $params]);
+            $result = json_decode($response->getBody(), true);
+            \Log::info("海协ERP推送订单-返回", [$result]);
+        } catch (\Exception $exception) {
+            \Log::info("海协ERP推送订单-失败", [$exception->getMessage()]);
+        }
     }
 }
