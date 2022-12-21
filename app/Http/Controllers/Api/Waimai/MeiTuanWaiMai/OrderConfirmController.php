@@ -6,6 +6,7 @@ use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\SendOrderToErp;
+use App\Jobs\TakeoutMedicineStockSync;
 use App\Jobs\WarehouseStockSync;
 use App\Models\ErpAccessShop;
 use App\Models\Medicine;
@@ -195,6 +196,22 @@ class OrderConfirmController
                             }
                         }
                         $items[] = $_tmp;
+                        // 药品管理-同步药品库存到其它平台
+                        if ($medicine = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                            if ($medicine->mt_status === 1) {
+                                $this->log_info("药品管理同步逻辑-中台减库存,原库存:{$medicine->stock}");
+                                $medicine_stock = $medicine->stock - $quantity;
+                                if ($medicine_stock < 0) {
+                                    $medicine_stock = 0;
+                                }
+                                $medicine->update(['stock' => $medicine_stock]);
+                                $this->log_info("药品管理同步逻辑-中台减库存,现库存:{$medicine_stock}");
+                                if ($shop->waimai_ele) {
+                                    $this->log_info("药品管理同步逻辑-将库存同步到美团");
+                                    TakeoutMedicineStockSync::dispatch(2, $shop->waimai_ele, $upc, $medicine_stock)->onQueue('medicine');
+                                }
+                            }
+                        }
                     }
                 }
                 if (!empty($items)) {

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
+use App\Jobs\TakeoutMedicineStockSync;
 use App\Jobs\VipOrderSettlement;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\Ele\Api\Tool;
@@ -982,7 +983,7 @@ class EleOrderController extends Controller
             }
 
             // 寻找门店
-            if (!$shop = Shop::query()->where("waimai_ele", $ele_shop_id)->first()) {
+            if (!$shop = Shop::where("waimai_ele", $ele_shop_id)->first()) {
                 $this->log_info("门店不存在，不能创建订单");
                 // $this->ding_error("门店不存在，不能创建订单");
                 return $this->res("order.status.success");
@@ -1120,6 +1121,22 @@ class EleOrderController extends Controller
                                 }
                             }
                             $items[] = $_tmp;
+                            // 药品管理-同步药品库存到其它平台
+                            if ($medicine = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                                if ($medicine->ele_status === 1) {
+                                    $this->log_info("药品管理同步逻辑-中台减库存,原库存:{$medicine->stock}");
+                                    $medicine_stock = $medicine->stock - $quantity;
+                                    if ($medicine_stock < 0) {
+                                        $medicine_stock = 0;
+                                    }
+                                    $medicine->update(['stock' => $medicine_stock]);
+                                    $this->log_info("药品管理同步逻辑-中台减库存,现库存:{$medicine_stock}");
+                                    if ($shop->waimai_ele) {
+                                        $this->log_info("药品管理同步逻辑-将库存同步到美团");
+                                        TakeoutMedicineStockSync::dispatch(1, $shop->waimai_mt, $upc, $medicine_stock, $shop->meituan_bind_platform)->onQueue('medicine');
+                                    }
+                                }
+                            }
                         }
                     }
                 }
