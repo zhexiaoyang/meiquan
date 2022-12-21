@@ -206,7 +206,7 @@ class OrderConfirmController
                                 }
                                 $medicine->update(['stock' => $medicine_stock]);
                                 $this->log_info("药品管理同步逻辑-中台减库存,现库存:{$medicine_stock}");
-                                if ($shop->waimai_ele) {
+                                if ($shop->waimai_ele && ($medicine->ele_status === 1)) {
                                     $this->log_info("药品管理同步逻辑-将库存同步到美团");
                                     TakeoutMedicineStockSync::dispatch(2, $shop->waimai_ele, $upc, $medicine_stock)->onQueue('medicine');
                                 }

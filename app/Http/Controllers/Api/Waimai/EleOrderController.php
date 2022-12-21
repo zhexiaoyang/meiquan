@@ -1131,7 +1131,7 @@ class EleOrderController extends Controller
                                     }
                                     $medicine->update(['stock' => $medicine_stock]);
                                     $this->log_info("药品管理同步逻辑-中台减库存,现库存:{$medicine_stock}");
-                                    if ($shop->waimai_ele) {
+                                    if ($shop->waimai_mt && ($medicine->mt_status === 1)) {
                                         $this->log_info("药品管理同步逻辑-将库存同步到美团");
                                         TakeoutMedicineStockSync::dispatch(1, $shop->waimai_mt, $upc, $medicine_stock, $shop->meituan_bind_platform)->onQueue('medicine');
                                     }
