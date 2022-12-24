@@ -53,7 +53,7 @@ class UuController extends Controller
         $dingding = app("ding");
 
         // 查找订单
-        if ($order = Order::where('delivery_id', $order_id)->first()) {
+        if ($order = Order::where('order_id', $order_id)->first()) {
             // UU配送员坐标
             // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
             if (in_array($status, [3,5])) {
