@@ -283,7 +283,8 @@ class OrderConfirmController
                     // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
                     'type' => $platform,
                     'status' => 0,
-                    'order_type' => 0
+                    'order_type' => 0,
+                    "pick_type" => $pick_type,
                 ];
                 // 判断是否预约单
                 if ($delivery_time > 0) {
