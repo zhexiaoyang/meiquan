@@ -245,6 +245,11 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
 
+        if ($order->pick_type) {
+            \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]-[订单号: {$order->order_id}]-自取订单不能派单");
+            return $this->error("自取订单不能派单");
+        }
+
         \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]-[订单号: {$order->order_id}]");
 
         // if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
@@ -938,20 +943,35 @@ class OrderController extends Controller
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     try {
-                        DB::transaction(function () use ($order) {
+                        DB::transaction(function () use ($order, $result) {
                             if ($order->shipper_type_ss == 0) {
                                 // 计算扣款
                                 $jian_money = 0;
-                                if (!empty($order->receive_at)) {
-                                    $jian_money = 2;
-                                    $jian = time() - strtotime($order->receive_at);
-                                    if ($jian >= 480) {
-                                        $jian_money = 5;
-                                    }
-                                    if (!empty($order->take_at)) {
-                                        $jian_money = 5;
+                                if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
+                                    $jian_money = $result['data']['deductAmount'] / 100;
+                                    \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
+                                } else {
+                                    if (!empty($order->receive_at)) {
+                                        $jian_money = 2;
+                                        $jian = time() - strtotime($order->receive_at);
+                                        if ($jian >= 480) {
+                                            $jian_money = 5;
+                                        }
+                                        if (!empty($order->take_at)) {
+                                            $jian_money = 5;
+                                        }
                                     }
                                 }
+                                // if (!empty($order->receive_at)) {
+                                //     $jian_money = 2;
+                                //     $jian = time() - strtotime($order->receive_at);
+                                //     if ($jian >= 480) {
+                                //         $jian_money = 5;
+                                //     }
+                                //     if (!empty($order->take_at)) {
+                                //         $jian_money = 5;
+                                //     }
+                                // }
 
                                 $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
@@ -1697,20 +1717,35 @@ class OrderController extends Controller
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
                     try {
-                        DB::transaction(function () use ($order) {
+                        DB::transaction(function () use ($order, $result) {
                             if ($order->shipper_type_ss == 0) {
                                 // 计算扣款
                                 $jian_money = 0;
-                                if (!empty($order->receive_at)) {
-                                    $jian_money = 2;
-                                    $jian = time() - strtotime($order->receive_at);
-                                    if ($jian >= 480) {
-                                        $jian_money = 5;
-                                    }
-                                    if (!empty($order->take_at)) {
-                                        $jian_money = 5;
+                                if (isset($result['data']['deductAmount']) && is_numeric($result['data']['deductAmount'])) {
+                                    $jian_money = $result['data']['deductAmount'] / 100;
+                                    \Log::info("主动取消闪送订单，返款扣款金额：" . $jian_money);
+                                } else {
+                                    if (!empty($order->receive_at)) {
+                                        $jian_money = 2;
+                                        $jian = time() - strtotime($order->receive_at);
+                                        if ($jian >= 480) {
+                                            $jian_money = 5;
+                                        }
+                                        if (!empty($order->take_at)) {
+                                            $jian_money = 5;
+                                        }
                                     }
                                 }
+                                // if (!empty($order->receive_at)) {
+                                //     $jian_money = 2;
+                                //     $jian = time() - strtotime($order->receive_at);
+                                //     if ($jian >= 480) {
+                                //         $jian_money = 5;
+                                //     }
+                                //     if (!empty($order->take_at)) {
+                                //         $jian_money = 5;
+                                //     }
+                                // }
 
                                 $current_user = DB::table('users')->find($order->user_id);
                                 UserMoneyBalance::query()->create([
