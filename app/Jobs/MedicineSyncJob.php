@@ -386,7 +386,7 @@ class MedicineSyncJob implements ShouldQueue
                 }
                 $medicine_data = [
                     'shop_id' => $this->shop->waimai_ele,
-                    'app_medicine_code' => $medicine->upc,
+                    // 'app_medicine_code' => $medicine->upc,
                     'name' => $medicine->name,
                     'upc' => $medicine->upc,
                     'custom_sku_id' => $medicine->upc,
