@@ -2547,6 +2547,7 @@ class OrderController extends Controller
         if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
             return $this->error("门店不存在");
         }
+        $result = [];
         // 加价金额
         $add_money = $shop->running_add;
 
