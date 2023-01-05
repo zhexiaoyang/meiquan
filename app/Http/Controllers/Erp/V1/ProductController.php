@@ -221,16 +221,19 @@ class ProductController extends Controller
      */
     public function add(Request $request)
     {
-        // \Log::info("[ERP接口]-[添加商品]-全部参数", $request->all());
+        \Log::info("[ERP接口V1]-[添加商品]-全部参数", $request->all());
         if (!$access_key = $request->get("access_key")) {
+            \Log::info("[ERP接口V1]-参数错误：access_key必传");
             return $this->error("参数错误：access_key必传", 701);
         }
 
         if (!$signature = $request->get("signature")) {
+            \Log::info("[ERP接口V1]-参数错误：signature必传");
             return $this->error("参数错误：signature必传", 701);
         }
 
         if (!$timestamp = $request->get("timestamp")) {
+            \Log::info("[ERP接口V1]-参数错误：timestamp必传");
             return $this->error("参数错误：timestamp必传", 701);
         }
 
@@ -241,8 +244,10 @@ class ProductController extends Controller
         $receive_params = $request->get("data");
 
         if (empty($receive_params)) {
+            \Log::info("[ERP接口V1]-参数错误：data不能为空");
             return $this->error("参数错误：data不能为空", 701);
         }
+        \Log::info("[ERP接口V1]-接收参数");
 
         // 接收参数
         $shop_id = null;
