@@ -29,6 +29,9 @@ class PrescriptionImport implements ToArray
             $shops = [];
             $import_log = ['count' => 0, 'success' => 0, 'error' => 0, 'exists' => 0, 'text' => '', 'user_id' => Auth::id(), ];
             foreach ($array as $key => $item) {
+                if (!$item[3]) {
+                    continue;
+                }
                 $import_log['count']++;
                 $line = $key + 2;
                 if (WmPrescription::where('outOrderID', trim($item[3]))->exists()) {
