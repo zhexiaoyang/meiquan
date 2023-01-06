@@ -8,7 +8,7 @@ class Medicine extends Model
 {
     protected $table = 'wm_medicines';
 
-    protected $fillable = ['shop_id','depot_id','name','category','upc','brand','spec','stock','price','guidance_price','depot_id'];
+    protected $fillable = ['shop_id','depot_id','name','category','upc','brand','spec','stock','price','guidance_price','depot_id','cover'];
 
 
 
