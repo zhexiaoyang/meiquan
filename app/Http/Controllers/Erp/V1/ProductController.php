@@ -401,7 +401,8 @@ class ProductController extends Controller
                             'upc' => $item['upc'],
                             'price' => $item['price'],
                             'stock' => $item['stock'],
-                            'category_code' => isset($upc_pluck[$item['upc']]) ? $upc_pluck[$item['upc']] : 9000000,
+                            // 'category_code' => isset($upc_pluck[$item['upc']]) ? $upc_pluck[$item['upc']] : 9000000,
+                            'category_code' => 9000000,
                             'is_sold_out' => 0,
                             'sequence' => 100
                         ];
