@@ -75,6 +75,7 @@ class MedicineImportJob implements ShouldQueue
                     'shop_id' => $this->shop_id,
                     'name' => $depot->name,
                     'upc' => $depot->upc,
+                    'cover' => $depot->cover,
                     'brand' => $depot->brand,
                     'spec' => $depot->spec,
                     'price' => $price,
