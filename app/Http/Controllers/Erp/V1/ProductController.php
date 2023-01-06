@@ -304,7 +304,7 @@ class ProductController extends Controller
         // }
 
         if (!empty($data)) {
-            $upc_pluck = ErpDepot::whereIn("upc", $upcs)->pluck("second_code", "upc");
+            $upc_pluck = ErpDepot::whereIn("upc", $upcs)->pluck("c2", "upc");
             foreach ($data as $shop_id => $v) {
                 if (!$access_shop = ErpAccessShop::where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
                     // \Log::info("[ERP接口]-[添加商品]-shop_id错误: {$shop_id}");
@@ -402,7 +402,8 @@ class ProductController extends Controller
                             'price' => $item['price'],
                             'stock' => $item['stock'],
                             // 'category_code' => isset($upc_pluck[$item['upc']]) ? $upc_pluck[$item['upc']] : 9000000,
-                            'category_code' => 9000000,
+                            'category_name' => isset($upc_pluck[$item['upc']]) ? $upc_pluck[$item['upc']] : '未分类',
+                            // 'category_code' => 9000000,
                             'is_sold_out' => 0,
                             'sequence' => 100
                         ];
