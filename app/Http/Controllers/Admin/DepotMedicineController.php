@@ -16,7 +16,7 @@ class DepotMedicineController extends Controller
 
     public function index(Request $request)
     {
-        $query = MedicineDepot::query();
+        $query = MedicineDepot::select('id','name','cover','price','upc','sequence');
 
         if ($name = $request->get('name')) {
             $query->where('name', 'like', "%{$name}%");
