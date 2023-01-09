@@ -25,7 +25,7 @@ class OrderController extends Controller
             $this->prefix = str_replace('###', "创建订单|订单号:{$order_id}", $this->prefix_title);
             // $this->log('全部参数', $request->all());
             $app_poi_code = $request->get('app_poi_code', 0);
-            $data = ['9413566', '13921009'];
+            $data = ['9413566', '13921009', '10138067'];
             if (!in_array($app_poi_code, $data)) {
                 $meituan = app("minkang");
                 $res = $meituan->orderConfirm($order_id);
