@@ -36,7 +36,7 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
         $stime = $request->get('stime', '');
         $etime = $request->get('etime', '');
 
-        $query = WmPrescription::query();
+        $query = WmPrescription::select('outOrderID','storeName','outDoctorName','money','reviewStatus','orderStatus','rpCreateTime');
 
         if ($order_id) {
             $query->where('outOrderID', $order_id);
