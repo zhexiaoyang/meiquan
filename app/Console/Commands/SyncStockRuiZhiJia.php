@@ -82,7 +82,7 @@ class SyncStockRuiZhiJia extends Command
                     $params['access_token'] = $shangou->getShopToken($id);
                     $res = $shangou->medicineStock($params);
                     if ($name == '重庆市瑞之佳药房有限公司渝中区单巷子店') {
-                        Log::info("重庆市瑞之佳药房有限公司渝中区单巷子店", [$res]);
+                        Log::info("重庆市瑞之佳药房有限公司渝中区单巷子店11", [$params,$res]);
                     }
                 }
             }
