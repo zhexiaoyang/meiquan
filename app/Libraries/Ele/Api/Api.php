@@ -184,6 +184,11 @@ class Api extends Request
         return $this->post('sku.update', $data);
     }
 
+    public function skuDelete($data)
+    {
+        return $this->post('sku.delete', $data);
+    }
+
 
     public function skuStockUpdate($data)
     {

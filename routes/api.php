@@ -39,6 +39,8 @@ Route::middleware(["force-json"])->group(function() {
          */
         // 药品门店列表
         Route::get("medicine/shops", "MedicineController@shops");
+        // 删除药品
+        Route::post("medicine/destroy", "MedicineController@destroy");
         // 药品门店分类
         Route::get("medicine/categories", "MedicineCategoryController@index");
         // 同步品库分类到中台
@@ -54,8 +56,14 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/export", "MedicineController@export_medicine");
         // 导出
         Route::put("medicine/{medicine}", "MedicineController@update");
+        // 清空商品
         Route::post("medicine/clear", "MedicineController@clear");
         Route::post("medicine/clear_middle", "MedicineController@clear_middle");
+        // 药品状态统计
+        Route::get("medicine/statistics/status", "MedicineController@statistics_status");
+        // 品库添加商品
+        Route::get("medicine/depot/product", "MedicineController@depot_index");
+        Route::post("medicine/depot/add", "MedicineController@depot_add");
         /**
          * WebMI
          */

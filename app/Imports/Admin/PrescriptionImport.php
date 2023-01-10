@@ -150,7 +150,7 @@ class PrescriptionImport implements ToArray
                         $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
                         if ($lock->get()) {
                             Log::info("处方余额不足发送短信：{$phone}");
-                            dispatch(new SendSmsNew($phone, "SMS_227744641", ['money' => 50, 'phone' => '15843224429']));
+                            dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
                         } else {
                             Log::info("今天已经发过短信了：{$phone}");
                         }

@@ -16,7 +16,7 @@ class WmOrderController extends Controller
         $page_size = $request->get('page_size', 10);
 
         $query = WmOrder::with(['items' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc');
+            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc', 'vip_cost');
         }, 'receives', 'running' => function ($query) {
             $query->with(['logs' => function ($q) {
                 $q->orderByDesc('id');
@@ -40,7 +40,7 @@ class WmOrderController extends Controller
             $query->where('platform', $platform);
         }
         if ($order_id = $request->get('order_id', '')) {
-            $query->where('order_id', 'like', "%{$order_id}%");
+            $query->where('order_id', 'like', "{$order_id}%");
         }
         if ($name = $request->get('name', '')) {
             $query->where('recipient_name', $name);

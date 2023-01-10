@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Http\Requests\Request;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
@@ -29,16 +30,18 @@ class MedicineSyncJob implements ShouldQueue
     // 平台 1、美团，2、饿了么
     protected $platform;
     protected $key;
+    protected $ids;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(Shop $shop, $platform)
+    public function __construct(Shop $shop, $platform, $ids = [])
     {
         $this->shop = $shop;
         $this->platform = $platform;
+        $this->ids = $ids;
         $this->key = uniqid();
     }
 
@@ -132,8 +135,14 @@ class MedicineSyncJob implements ShouldQueue
                 // \Log::info("药品管理任务|门店ID:{$this->shop->id}-创建分类返回：{$k}", [$res]);
             }
         }
-        $medicine_list = Medicine::with('categories')->where('shop_id', $this->shop->id)
-            ->whereIn('mt_status', [0, 2])->limit(2000)->get();
+        $medicine_list_query = Medicine::with('categories')->where('shop_id', $this->shop->id)
+            ->whereIn('mt_status', [0, 2]);
+
+        if (!empty($this->ids)) {
+            $medicine_list_query->whereIn('id', $this->ids);
+        }
+
+        $medicine_list = $medicine_list_query->limit(2000)->get();
         // if ($medicine_list->count() > 200) {
         if (false) {
             // $this->log('走的批量上传');
