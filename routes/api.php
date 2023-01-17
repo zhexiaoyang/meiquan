@@ -380,7 +380,12 @@ Route::middleware(["force-json"])->group(function() {
              * 品库管理
              */
             Route::get("depot/medicine/categories", "DepotMedicineCategoryController@index")->name("depot.medicine.categories.index");
+            Route::get("depot/medicine/category/list_one", "DepotMedicineCategoryController@list_one")->name("depot.medicine.category.list_one");
+            Route::get("depot/medicine/category/cascader", "DepotMedicineCategoryController@cascader")->name("depot.medicine.category.cascader");
+            Route::post("depot/medicine/category/update", "DepotMedicineCategoryController@update")->name("depot.medicine.category.update");
+            Route::post("depot/medicine/category/delete", "DepotMedicineCategoryController@delete")->name("depot.medicine.category.delete");
             Route::post("depot/medicine/product/update", "DepotMedicineController@update")->name("depot.medicine.product.update");
+            Route::post("depot/medicine/product/update_category", "DepotMedicineController@update_category")->name("depot.medicine.product.update_category");
             Route::get("depot/medicine/product", "DepotMedicineController@index")->name("depot.medicine.product.index");
             /**
              * 审核管理

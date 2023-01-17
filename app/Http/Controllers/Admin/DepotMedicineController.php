@@ -63,4 +63,54 @@ class DepotMedicineController extends Controller
 
         return $this->success();
     }
+
+    public function update_category(Request $request)
+    {
+        $ids = $request->get('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择商品');
+        }
+        if (!$type = (int) $request->get('type', 0)) {
+            return $this->error('请选择修改方式');
+        }
+        if (!in_array(1, [1, 2, 3])) {
+            return $this->error('请选择修改方式');
+        }
+        if (!$category = (int) $request->get('category', 0)) {
+            return $this->error('请选目标分类');
+        }
+        if (!MedicineDepotCategory::find($category)) {
+            return $this->error('目标分类错误');
+        }
+        if (MedicineDepotCategory::where('pid', $category)->count() > 0) {
+            return $this->error('目标分类不能添加商品');
+        }
+        if ($type === 1) {
+            foreach ($ids as $id) {
+                if (MedicineDepot::find($id)) {
+                    if (!\DB::table('wm_depot_medicine_category')->where(['medicine_id' => $id, 'category_id' => $category])->first()) {
+                        \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $id, 'category_id' => $category]);
+                        \DB::table('wm_depot_medicine_category')->where(['medicine_id' => $id, 'category_id' => 215])->delete();
+                    }
+                }
+            }
+        } elseif ($type === 2) {
+            foreach ($ids as $id) {
+                if (MedicineDepot::find($id)) {
+                    \DB::table('wm_depot_medicine_category')->where('medicine_id', $id)->delete();
+                    \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $id, 'category_id' => $category]);
+                }
+            }
+        } elseif ($type === 3) {
+            foreach ($ids as $id) {
+                if (MedicineDepot::find($id)) {
+                    \DB::table('wm_depot_medicine_category')->where(['medicine_id' => $id, 'category_id' => $category])->delete();
+                    if (\DB::table('wm_depot_medicine_category')->where(['medicine_id' => $id])->count() === 0) {
+                        \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $id, 'category_id' => 215]);
+                    }
+                }
+            }
+        }
+        return $this->success();
+    }
 }
