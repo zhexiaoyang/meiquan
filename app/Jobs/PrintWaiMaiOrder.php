@@ -160,6 +160,9 @@ class PrintWaiMaiOrder implements ShouldQueue
                     }
                 }
                 $content .= $head.$tail;
+                if (isset($item['upc'])) {
+                    $content .= $item['upc'];
+                }
                 @$nums += $prices;
             }
         }
