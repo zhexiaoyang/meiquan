@@ -150,7 +150,7 @@ class SyncCodeWanXiang extends Command
                 foreach ($items as $item) {
                     $code_data[] = [
                         'upc' => $item->upc,
-                        'app_medicine_code_new' => $item->id,
+                        'app_medicine_code_new' => $item->upc,
                     ];
                 }
 
@@ -366,30 +366,30 @@ class SyncCodeWanXiang extends Command
         // Log::info('门店「13144836」编码绑定同步-结束......');
 
         // 14971401
-        // $this->info('门店「14971401」编码绑定同步-开始......');
-        // Log::info('门店「14971401」编码绑定同步-开始......');
-        // $data = DB::connection('wanxiang_haidian')
-        //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
-        // if (!empty($data)) {
-        //     $data = array_chunk($data, 200);
-        //     foreach ($data as $items) {
-        //         $code_data = [];
-        //         foreach ($items as $item) {
-        //             $code_data[] = [
-        //                 'upc' => $item->upc,
-        //                 'app_medicine_code_new' => $item->id,
-        //             ];
-        //         }
-        //
-        //         // 绑定商品编码
-        //         $params['app_poi_code'] = '14971401';
-        //         $params['medicine_data'] = json_encode($code_data);
-        //         $params['access_token'] = $meiquan->getShopToken('14971401');
-        //         $meituan->medicineCodeUpdate($params);
-        //     }
-        // }
-        // $this->info('门店「14971401」编码绑定同步-结束......');
-        // Log::info('门店「14971401」编码绑定同步-结束......');
+        $this->info('门店「14971401」编码绑定同步-开始......');
+        Log::info('门店「14971401」编码绑定同步-开始......');
+        $data = DB::connection('wanxiang_haidian')
+            ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
+        if (!empty($data)) {
+            $data = array_chunk($data, 200);
+            foreach ($data as $items) {
+                $code_data = [];
+                foreach ($items as $item) {
+                    $code_data[] = [
+                        'upc' => $item->upc,
+                        'app_medicine_code_new' => $item->upc,
+                    ];
+                }
+
+                // 绑定商品编码
+                $params['app_poi_code'] = '14971401';
+                $params['medicine_data'] = json_encode($code_data);
+                $params['access_token'] = $meiquan->getShopToken('14971401');
+                $meiquan->medicineCodeUpdate($params);
+            }
+        }
+        $this->info('门店「14971401」编码绑定同步-结束......');
+        Log::info('门店「14971401」编码绑定同步-结束......');
 
         // 10493939
         // $this->info('门店「10493939」编码绑定同步-开始......');
