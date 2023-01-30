@@ -272,8 +272,10 @@ class WmOrderController extends Controller
         if (!$order = WmOrder::find($request->get('order_id', 0))) {
             return $this->error("订单不存在");
         }
-        if ($order->user_id !== $user_id) {
-            return $this->error("订单不存在");
+        if (!$request->user()->hasRole('super_man')) {
+            if ($order->user_id !== $user_id) {
+                return $this->error("订单不存在");
+            }
         }
 
         $items = [];
@@ -316,7 +318,7 @@ class WmOrderController extends Controller
             'total_num' => $total_num,
             'ctime' => date("Y-m-d H:i:s", $order->ctime),
             'ptime' => date("Y-m-d H:i:s"),
-            'send' => $order->delivery_time > 0 ? "【预约单】送达时间：" . date("Y-m-d H:i:s", $order->delivery_time) : '【立即送达】',
+            'send' => $order->delivery_time > 0 ? "【预约单】" . date("m-d H:i", $order->delivery_time) . '送达' : '【立即送达】',
             'items' => $items,
             'receives' => $receives
         ];
