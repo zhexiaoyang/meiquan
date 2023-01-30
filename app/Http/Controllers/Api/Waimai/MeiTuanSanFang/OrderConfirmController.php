@@ -258,7 +258,7 @@ class OrderConfirmController
                             'order_id' => $order_wm->id,
                             'comment' => $receive['comment'],
                             'fee_desc' => $receive['feeTypeDesc'],
-                            'money' => $receive['moneyCent'],
+                            'money' => $receive['moneyCent'] / 100,
                         ];
                     }
                 }

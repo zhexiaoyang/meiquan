@@ -265,4 +265,61 @@ class WmOrderController extends Controller
 
         return $this->success();
     }
+
+    public function print_info(Request $request)
+    {
+        $user_id = $request->user()->id;
+        if (!$order = WmOrder::find($request->get('order_id', 0))) {
+            return $this->error("订单不存在");
+        }
+        if ($order->user_id !== $user_id) {
+            return $this->error("订单不存在");
+        }
+
+        $items = [];
+        $receives = [];
+        $total_num = 0;
+        if (!empty($order->items)) {
+            foreach ($order->items as $item) {
+                $items[] = [
+                    'id' => $item->id,
+                    'name' => $item->food_name,
+                    'upc' => $item->upc,
+                    'price' => $item->price,
+                    'quantity' => $item->quantity,
+                ];
+                $total_num += $item->quantity;
+            }
+        }
+        if (!empty($order->receives)) {
+            foreach ($order->receives as $receive) {
+                if ($receive->type === 2) {
+                    $receives[] = [
+                        'id' => $receive->id,
+                        'comment' => $receive->comment,
+                        'money' => $receive->money,
+                    ];
+                }
+            }
+        }
+
+        $platform = [ '', '美团外卖', '饿了么'];
+        $data = [
+            'order_id' => $order->order_id,
+            'day_seq' => $order->day_seq,
+            'platform' => $platform[$order->platform],
+            'wm_shop_name' => $order->wm_shop_name,
+            'recipient_name' => $order->recipient_name,
+            'recipient_phone' => $order->recipient_phone,
+            'recipient_address' => $order->recipient_address,
+            'caution' => $order->caution,
+            'total_num' => $total_num,
+            'ctime' => date("Y-m-d H:i:s", $order->ctime),
+            'ptime' => date("Y-m-d H:i:s"),
+            'send' => $order->delivery_time > 0 ? "【预约单】送达时间：" . date("Y-m-d H:i:s", $order->delivery_time) : '【立即送达】',
+            'items' => $items,
+            'receives' => $receives
+        ];
+        return $this->success($data);
+    }
 }
