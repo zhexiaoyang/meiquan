@@ -40,68 +40,206 @@ class SyncStockWanXiang extends Command
     public function handle()
     {
         $this->info('------------万祥同步库存开始------------');
-        $this->info('中心仓库存同步-开始......');
-        Log::info('中心仓库存同步-开始......');
-        $data = DB::connection('wanxiang_haidian')
-            ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' AND [upc] <> '' AND [upc] IS NOT NULL");
-            // ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' and [upc] = '6948060300279'");
-        // $shop_ids = ['12931358','12931400','13778180','12931402','13505397'];
-        $shop_ids = ['12931358','12931400','13778180','12931402','13505397',
-            '12606969', '12965411', '12606971', '12966872', '13084144', '13144836',
-            '14838692','10493939',
+        $shops = [
+            [
+                'name' => '万祥大药房（厚德店）',
+                'shopid' => '0009',
+                'mtid' => '12606969',
+                'eleid' => '2097599175',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（江山店）',
+                'shopid' => '0004',
+                'mtid' => '12965411',
+                'eleid' => '503080703',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（光华路店）',
+                'shopid' => '0001',
+                'mtid' => '12931400',
+                'eleid' => '2097569593',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（临江店）',
+                'shopid' => '0015',
+                'mtid' => '12606971',
+                'eleid' => '2097569592',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（长春路店）',
+                'shopid' => '0012',
+                'mtid' => '12966872',
+                'eleid' => '2097564703',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（越山路店）',
+                'shopid' => '0003',
+                'mtid' => '13084144',
+                'eleid' => '2097599173',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（帕萨迪纳店）',
+                'shopid' => '0002',
+                'mtid' => '12931402',
+                'eleid' => '2097599174',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（光华路二店）',
+                'shopid' => '0016',
+                'mtid' => '13778180',
+                'eleid' => '2130661395',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（翠江锦苑店）',
+                'shopid' => '0010',
+                'mtid' => '13505397',
+                'eleid' => '1103516972',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（鞍山街店）',
+                'shopid' => '0006',
+                'mtid' => '13144836',
+                'eleid' => '503056324',
+                'bind' => 4,
+            ],
+            [
+                'name' => '万祥大药房（桃源路店）',
+                'shopid' => '0011',
+                'mtid' => '10493939',
+                'eleid' => '503071024',
+                'bind' => 31,
+            ],
+            [
+                'name' => '万祥大药房（北京路店）',
+                'shopid' => '0005',
+                'mtid' => '14838692',
+                'eleid' => '503056325',
+                'bind' => 31,
+            ],
+            [
+                'name' => '万祥大药房（未来公馆店）',
+                'shopid' => '0018',
+                'mtid' => '16297828',
+                'eleid' => '1129069917',
+                'bind' => 31,
+            ],
         ];
-        $shop_ids2 = ['14838692','10493939'];
-        $ele_shop_ids = ['2097599175','503080703','2097569592','2097564703','2097599173','503056324','2097564702',
-            '503056325','2097569593','2097599174','503071024','1103516972','2130661395'];
-
-        if (!empty($data)) {
-            $data = array_chunk($data, 100);
-            $meituan = app("minkang");
+        foreach ($shops as $shop) {
+            $name = $shop['name'];
+            $shop_id = $shop['shopid'];
+            $mt_id = $shop['mtid'];
+            $ele_id = $shop['eleid'];
+            $bind = $shop['bind'];
+            $this->info("门店「{$name}}:{$mt_id}」同步库存-开始......");
+            Log::info("门店「{$name}}:{$mt_id}」同步库存-开始......");
+            $minkang = app("minkang");
             $meiquan = app("meiquan");
             $ele = app("ele");
+            $data = DB::connection('wanxiang_haidian')
+                ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' AND [upc] <> '' AND [upc] IS NOT NULL");
+            $data = array_chunk($data, 200);
             foreach ($data as $items) {
                 $stock_data = [];
                 $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
-                        'app_medicine_code' => $item->id,
+                        'app_medicine_code' => $item->upc,
                         'stock' => (int) $item->stock,
                     ];
                     $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
                 }
 
-                foreach ($shop_ids as $shop_id) {
-                    foreach ($stock_data as $key => $stock_item) {
-                        $stock_data[$key]['app_poi_code'] = $shop_id;
-                    }
-                    $params['app_poi_code'] = $shop_id;
-                    $params['medicine_data'] = json_encode($stock_data);
-
-                    $meituan->medicineStock($params);
-                    // $res = $meituan->medicineStock($params);
-                    // Log::info("万祥门店：{$shop_id}，同步库存返回结果", [$res]);
-                }
-
-                foreach ($shop_ids2 as $shop_id) {
-                    foreach ($stock_data as $key => $stock_item) {
-                        $stock_data[$key]['app_poi_code'] = $shop_id;
-                    }
-                    $params['app_poi_code'] = $shop_id;
-                    $params['medicine_data'] = json_encode($stock_data);
+                $params['app_poi_code'] = '14971401';
+                $params['medicine_data'] = json_encode($stock_data);
+                if ($bind === 4) {
+                    $minkang->medicineStock($params);
+                } else {
                     $params['access_token'] = $meiquan->getShopToken($shop_id);
-
                     $meiquan->medicineStock($params);
                 }
 
-                foreach ($ele_shop_ids as $ele_shop_id) {
-                    $ele_params['shop_id'] = $ele_shop_id;
-                    $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
-                    $ele->skuStockUpdate($ele_params);
-                }
+                $ele_params['shop_id'] = $ele_id;
+                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                $ele->skuStockUpdate($ele_params);
             }
+            $this->info("门店「{$name}}:{$mt_id}」同步库存-结束......");
+            Log::info("门店「{$name}}:{$mt_id}」同步库存-结束......");
         }
-        $this->info('中心仓库存同步-结束......');
-        Log::info('中心仓库存同步-结束......');
+        $this->info('------------万祥同步库存结束------------');
+
+
+        // $this->info('------------万祥同步库存开始------------');
+        // $this->info('中心仓库存同步-开始......');
+        // Log::info('中心仓库存同步-开始......');
+        // $data = DB::connection('wanxiang_haidian')
+        //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' AND [upc] <> '' AND [upc] IS NOT NULL");
+        //     // ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0007' and [upc] = '6948060300279'");
+        // // $shop_ids = ['12931358','12931400','13778180','12931402','13505397'];
+        // $shop_ids = ['12931358','12931400','13778180','12931402','13505397',
+        //     '12606969', '12965411', '12606971', '12966872', '13084144', '13144836',
+        //     '14838692','10493939',
+        // ];
+        // $shop_ids2 = ['14838692','10493939'];
+        // $ele_shop_ids = ['2097599175','503080703','2097569592','2097564703','2097599173','503056324','2097564702',
+        //     '503056325','2097569593','2097599174','503071024','1103516972','2130661395'];
+        //
+        // if (!empty($data)) {
+        //     $data = array_chunk($data, 100);
+        //     $meituan = app("minkang");
+        //     $meiquan = app("meiquan");
+        //     $ele = app("ele");
+        //     foreach ($data as $items) {
+        //         $stock_data = [];
+        //         $stock_data_ele = [];
+        //         foreach ($items as $item) {
+        //             $stock_data[] = [
+        //                 'app_medicine_code' => $item->id,
+        //                 'stock' => (int) $item->stock,
+        //             ];
+        //             $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
+        //         }
+        //
+        //         foreach ($shop_ids as $shop_id) {
+        //             foreach ($stock_data as $key => $stock_item) {
+        //                 $stock_data[$key]['app_poi_code'] = $shop_id;
+        //             }
+        //             $params['app_poi_code'] = $shop_id;
+        //             $params['medicine_data'] = json_encode($stock_data);
+        //
+        //             $meituan->medicineStock($params);
+        //             // $res = $meituan->medicineStock($params);
+        //             // Log::info("万祥门店：{$shop_id}，同步库存返回结果", [$res]);
+        //         }
+        //
+        //         foreach ($shop_ids2 as $shop_id) {
+        //             foreach ($stock_data as $key => $stock_item) {
+        //                 $stock_data[$key]['app_poi_code'] = $shop_id;
+        //             }
+        //             $params['app_poi_code'] = $shop_id;
+        //             $params['medicine_data'] = json_encode($stock_data);
+        //             $params['access_token'] = $meiquan->getShopToken($shop_id);
+        //
+        //             $meiquan->medicineStock($params);
+        //         }
+        //
+        //         foreach ($ele_shop_ids as $ele_shop_id) {
+        //             $ele_params['shop_id'] = $ele_shop_id;
+        //             $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+        //             $ele->skuStockUpdate($ele_params);
+        //         }
+        //     }
+        // }
+        // $this->info('中心仓库存同步-结束......');
+        // Log::info('中心仓库存同步-结束......');
 
         // $this->info('门店「12606969」库存同步-开始......');
         // Log::info('门店「12606969」库存同步-开始......');
@@ -305,38 +443,38 @@ class SyncStockWanXiang extends Command
         // $this->info('门店「10493939」库存同步-结束......');
 
         // 万祥大药房（未来公馆店）16297828
-        $this->info('门店「16297828」库存同步-开始......');
-        $data = DB::connection('wanxiang_haidian')
-            ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0018' AND [upc] <> '' AND [upc] IS NOT NULL");
-        if (!empty($data)) {
-            $data = array_chunk($data, 100);
-            $meituan = app("meiquan");
-            $ele = app("ele");
-            foreach ($data as $items) {
-                $stock_data = [];
-                $stock_data_ele = [];
-                foreach ($items as $item) {
-                    $stock_data[] = [
-                        'app_medicine_code' => $item->id,
-                        'stock' => (int) $item->stock,
-                    ];
-                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
-                }
-
-                $params['app_poi_code'] = '16297828';
-                $params['medicine_data'] = json_encode($stock_data);
-                $params['access_token'] = $meiquan->getShopToken('16297828');
-                // $meituan->medicineStock($params);
-                $res = $meituan->medicineStock($params);
-                Log::info("1629782816297828mt", [$res]);
-
-                $ele_params['shop_id'] = '1129069917';
-                $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
-                // $ele->skuStockUpdate($ele_params);
-                $res = $ele->skuStockUpdate($ele_params);
-                Log::info("1629782816297828ele", [$res]);
-            }
-        }
-        $this->info('门店「16297828」库存同步-结束......');
+        // $this->info('门店「16297828」库存同步-开始......');
+        // $data = DB::connection('wanxiang_haidian')
+        //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0018' AND [upc] <> '' AND [upc] IS NOT NULL");
+        // if (!empty($data)) {
+        //     $data = array_chunk($data, 100);
+        //     $meituan = app("meiquan");
+        //     $ele = app("ele");
+        //     foreach ($data as $items) {
+        //         $stock_data = [];
+        //         $stock_data_ele = [];
+        //         foreach ($items as $item) {
+        //             $stock_data[] = [
+        //                 'app_medicine_code' => $item->id,
+        //                 'stock' => (int) $item->stock,
+        //             ];
+        //             $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
+        //         }
+        //
+        //         $params['app_poi_code'] = '16297828';
+        //         $params['medicine_data'] = json_encode($stock_data);
+        //         $params['access_token'] = $meiquan->getShopToken('16297828');
+        //         // $meituan->medicineStock($params);
+        //         $res = $meituan->medicineStock($params);
+        //         Log::info("1629782816297828mt", [$res]);
+        //
+        //         $ele_params['shop_id'] = '1129069917';
+        //         $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+        //         // $ele->skuStockUpdate($ele_params);
+        //         $res = $ele->skuStockUpdate($ele_params);
+        //         Log::info("1629782816297828ele", [$res]);
+        //     }
+        // }
+        // $this->info('门店「16297828」库存同步-结束......');
     }
 }
