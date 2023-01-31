@@ -6,6 +6,7 @@ use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\Feie\Feie;
 use App\Models\Shop;
 use App\Models\WmOrder;
+use App\Models\WmOrderExtra;
 use App\Models\WmPrinter;
 use Illuminate\Http\Request;
 
@@ -293,15 +294,29 @@ class WmOrderController extends Controller
                 $total_num += $item->quantity;
             }
         }
-        if (!empty($order->receives)) {
-            foreach ($order->receives as $receive) {
-                if ($receive->type === 2) {
-                    $receives[] = [
-                        'id' => $receive->id,
-                        'comment' => $receive->comment,
-                        'money' => $receive->money,
-                    ];
-                }
+        // if (!empty($order->receives)) {
+        //     foreach ($order->receives as $receive) {
+        //         if ($receive->type === 2) {
+        //             $receives[] = [
+        //                 'id' => $receive->id,
+        //                 'comment' => $receive->comment,
+        //                 'money' => $receive->money,
+        //             ];
+        //         }
+        //     }
+        // }
+
+        $extras = [];
+        $extra_num = 0;
+        $extra_data = WmOrderExtra::where('order_id', $order->id)->whereIn('type', [4,5,23])->get();
+        if (!empty($extra_data)) {
+            foreach ($extra_data as $extra_datum) {
+                $extra_num += $extra_datum->gift_num;
+                $extras[] = [
+                    'id' => $extra_datum->id,
+                    'name' => $extra_datum->gift_name,
+                    'num' => $extra_datum->gift_num,
+                ];
             }
         }
 
@@ -320,7 +335,9 @@ class WmOrderController extends Controller
             'ptime' => date("Y-m-d H:i:s"),
             'send' => $order->delivery_time > 0 ? "【预约单】" . date("m-d H:i", $order->delivery_time) . '送达' : '【立即送达】',
             'items' => $items,
-            'receives' => $receives
+            'extras' => $extras,
+            'extra_num' => $extra_num,
+            'receives' => []
         ];
         return $this->success($data);
     }
