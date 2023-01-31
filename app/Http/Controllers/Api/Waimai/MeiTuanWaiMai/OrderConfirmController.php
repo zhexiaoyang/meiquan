@@ -271,7 +271,7 @@ class OrderConfirmController
                                 'reduce_fee' => $extra['reduce_fee'],
                                 'remark' => $extra['remark'],
                                 'type' => $extra['type'],
-                                'gift_name' => $extra['act_extend_msg']['gift_name'] ?? $extra['remark'],
+                                'gift_name' => $extra['act_extend_msg']['gifts_name'] ?? $extra['remark'],
                                 'gift_num' => $extra['act_extend_msg']['gift_num'] ?? 0,
                             ];
                         }
