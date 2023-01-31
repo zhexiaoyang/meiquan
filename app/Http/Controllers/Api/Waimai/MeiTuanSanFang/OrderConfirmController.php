@@ -18,6 +18,7 @@ use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
+use App\Models\WmOrderExtra;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
@@ -105,6 +106,8 @@ class OrderConfirmController
             $products = json_decode(urldecode($data['wmAppOrderFoods']), true);
             // 对账信息
             $poi_receive_detail = json_decode($data['poiReceiveDetail'] ?? '', true);
+            // 活动信息
+            $extras = json_decode($data['activity'] ?? '', true);
             // 配送模式
             $logistics_code = isset($data['logistics_code']) ? intval($data['logistics_code']) : 0;
             if ($logistics_code > 0) {
@@ -266,6 +269,28 @@ class OrderConfirmController
             if (!empty($receives)) {
                 $this->log_info("-外卖订单「对账」保存成功");
                 WmOrderReceive::insert($receives);
+            }
+            // 活动-赠品
+            $extras_insert = [];
+            if (!empty($extras)) {
+                foreach ($extras as $extra) {
+                    if (isset($extra['remark']) && isset($extra['type'])) {
+                        $extras_insert[] = [
+                            'order_id' => $order_wm->id,
+                            'mt_charge' => $extra['mtCharge'],
+                            'poi_charge' => $extra['poiCharge'],
+                            'reduce_fee' => $extra['reduceFee'],
+                            'remark' => $extra['remark'],
+                            'type' => $extra['type'],
+                            'gift_name' => $extra['remark'],
+                            'gift_num' => 0,
+                        ];
+                    }
+                }
+            }
+            if (!empty($extras_insert)) {
+                $this->log_info("-外卖订单「活动」保存成功");
+                WmOrderExtra::insert($extras_insert);
             }
             $this->log_info('$receives', $receives);
             /********************* 创建跑腿订单数组 *********************/

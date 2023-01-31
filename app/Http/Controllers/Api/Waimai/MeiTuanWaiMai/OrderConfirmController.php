@@ -16,6 +16,7 @@ use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
+use App\Models\WmOrderExtra;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
@@ -64,6 +65,7 @@ class OrderConfirmController
             DB::transaction(function () use ($shop, $mt_shop_id, $mt_order_id, $data, $platform) {
                 $products = json_decode(urldecode($data['detail']), true);
                 $poi_receive_detail_yuan = json_decode(urldecode($data['poi_receive_detail_yuan']), true);
+                $extras = json_decode(urldecode($data['extras']), true);
                 /******************** 操作逻辑 *************** 操作逻辑 **************** 操作逻辑 *****************/
                 /********************* 创建外卖订单数组 *********************/
                 // 是否处方
@@ -225,6 +227,7 @@ class OrderConfirmController
                     WmOrderItem::insert($items);
                     $this->log_info("-外卖订单「商品」保存成功");
                 }
+                // 商家对账
                 $receives = [];
                 if (!empty($poi_receive_detail_yuan['actOrderChargeByMt'])) {
                     foreach ($poi_receive_detail_yuan['actOrderChargeByMt'] as $receive) {
@@ -255,6 +258,28 @@ class OrderConfirmController
                 if (!empty($receives)) {
                     $this->log_info("-外卖订单「对账」保存成功");
                     WmOrderReceive::insert($receives);
+                }
+                // 活动-赠品
+                $extras_insert = [];
+                if (!empty($extras)) {
+                    foreach ($extras as $extra) {
+                        if (isset($extra['remark']) && isset($extra['type'])) {
+                            $extras_insert[] = [
+                                'order_id' => $order_wm->id,
+                                'mt_charge' => $extra['mt_charge'],
+                                'poi_charge' => $extra['poi_charge'],
+                                'reduce_fee' => $extra['reduce_fee'],
+                                'remark' => $extra['remark'],
+                                'type' => $extra['type'],
+                                'gift_name' => $extra['act_extend_msg']['gift_name'] ?? $extra['remark'],
+                                'gift_num' => $extra['act_extend_msg']['gift_num'] ?? 0,
+                            ];
+                        }
+                    }
+                }
+                if (!empty($extras_insert)) {
+                    $this->log_info("-外卖订单「活动」保存成功");
+                    WmOrderExtra::insert($extras_insert);
                 }
                 /********************* 创建跑腿订单数组 *********************/
                 $pick_type = $data['pick_type'] ?? 0;
