@@ -176,7 +176,7 @@ class ShopController extends Controller
                             $canyin = app('mtkf');
                         }
                         $shop_status_params = ['epoiIds' => $shop->waimai_mt];
-                        $mt_res = $canyin->poi_mget($shop_status_params);
+                        $mt_res = $canyin->poi_mget($shop_status_params, $shop->waimai_mt);
                         \Log::info('bbbbbbbbbbbb', $mt_res);
                         if (isset($mt_res['name'])) {
                             $tmp['mt_name'] = $mt_res['name'];
