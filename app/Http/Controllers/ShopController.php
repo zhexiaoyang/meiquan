@@ -158,7 +158,7 @@ class ShopController extends Controller
                         }
                     } else if ($shop->meituan_bind_platform === 31) {
                         if (!$meiquan) {
-                            $meiquan = app('meituan');
+                            $meiquan = app('meiquan');
                         }
                         $shop_status_params = ['app_poi_codes' => $shop->waimai_mt, 'access_token' => $meiquan->getShopToken($shop->waimai_mt)];
                         $mt_res = $meiquan->getShopInfoByIds($shop_status_params);
