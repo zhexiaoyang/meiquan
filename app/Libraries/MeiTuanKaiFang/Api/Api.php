@@ -172,6 +172,19 @@ class Api extends Request
         return $this->post('wmoper/ng/order/riderPosition', $data, 16);
     }
 
+    /**
+     * 门店列表获取
+     * @data 2022/5/8 11:11 上午
+     */
+    public function poi_mget($params, $shop_id)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/poi/mget', $data, 16);
+    }
+
     public function ng_shop_ma($shop_id)
     {
         $data = [
