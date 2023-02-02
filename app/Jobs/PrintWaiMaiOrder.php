@@ -161,7 +161,8 @@ class PrintWaiMaiOrder implements ShouldQueue
                 }
                 $content .= $head.$tail;
                 if (isset($item['upc']) && isset($printer->upc) && $printer->upc) {
-                    $content .= $item['upc'].'<BR>';
+                    // $content .= $item['upc'].'<BR>';
+                    $content .= $this->bar_code($item['upc']).'<BR>';
                 }
                 @$nums += $prices;
             }
@@ -256,5 +257,95 @@ class PrintWaiMaiOrder implements ShouldQueue
 
         $f = new Feie();
         $f->print_msg($printer->sn, $content, $printer->number);
+    }
+
+    public function bar_code($strnum)
+    {
+        $chr = '';
+        $codeB = array("\x30","\x31","\x32","\x33","\x34","\x35","\x36","\x37","\x38","\x39");//匹配字符集B
+        $codeC = array("\x00","\x01","\x02","\x03","\x04","\x05","\x06","\x07","\x08","\x09","\x0A","\x0B","\x0C","\x0D","\x0E","\x0F","\x10","\x11","\x12","\x13","\x14","\x15","\x16","\x17","\x18","\x19","\x1A","\x1B","\x1C","\x1D","\x1E","\x1F","\x20","\x21","\x22","\x23","\x24","\x25","\x26","\x27","\x28","\x29","\x2A","\x2B","\x2C","\x2D","\x2E","\x2F","\x30","\x31","\x32","\x33","\x34","\x35","\x36","\x37","\x38","\x39","\x3A","\x3B","\x3C","\x3D","\x3E","\x3F","\x40","\x41","\x42","\x43","\x44","\x45","\x46","\x47","\x48","\x49","\x4A","\x4B","\x4C","\x4D","\x4E","\x4F","\x50","\x51","\x52","\x53","\x54","\x55","\x56","\x57","\x58","\x59","\x5A","\x5B","\x5C","\x5D","\x5E","\x5F","\x60","\x61","\x62","\x63");//匹配字符集C
+        $length = strlen($strnum);
+        $b=array();
+        $b[0] = "\x1b";
+        $b[1] = "\x64";
+        $b[2] = "\x02";
+        $b[3] = "\x1d";
+        $b[4] = "\x48";
+        $b[5] = "\x32";//条形码显示控制，\x32上图下字，\x31上字下图，\x30只显示条形码
+        $b[6] = "\x1d";
+        $b[7] = "\x68";
+        $b[8] = "\x50";// \x30 设置条形码高度，7F是最大的高度
+        $b[9] = "\x1d";
+        $b[10] = "\x77";
+        $b[11] = "\x02";// \x01 设置条形码宽度,1-6
+        $b[12] = "\x1d";
+        $b[13] = "\x6b";
+        $b[14] = "\x49";//选择条形码类型code128,code39,codabar等等
+        $b[15]  = chr($length + 2);
+        $b[16] = "\x7b";
+        $b[17] = "\x42";//选择字符集
+        if($length > 14 && is_numeric($strnum)){//大于14个字符,且为纯数字的进来这个区间
+            $b[17] = "\x43";
+            $j = 0;
+            $key = 18;
+            $ss = $length/2;//初始化数组长度
+            if($length%2 == 1){//判断条形码为单数
+                $ss = $ss-0.5;
+            }
+            for ($i = 0; $i < $ss; $i++){
+                $temp = substr($strnum,$j,2);
+                $iindex = intval($temp);
+                $j = $j+2;
+                if($iindex == 0){
+                    $chr = '';
+                    if($b[$key + $i-1] == '0' && $b[$key + $i-2] == '0'){//判断前面的为字符集B,此时不需要转换字符集
+                        $b[$key + $i] = $codeB[0];
+                        $b[$key + $i + 1] = $codeB[0];
+                        $key += 1;
+                    }else{
+                        if($b[$key + $i-1] == 'C' && $b[$key + $i-2] == '{'){//判断前面的为字符集C时转换字符集B
+                            $b[$key + $i - 2] = "\x7b";
+                            $b[$key + $i - 1] = "\x42";
+                            $b[$key + $i] = $codeB[0];
+                            $b[$key + $i + 1] = $codeB[0];
+                            $key += 1;
+                        }else{
+                            $b[$key + $i] = "\x7b";
+                            $b[$key + $i + 1] = "\x42";
+                            $b[$key + $i + 2] = $codeB[0];
+                            $b[$key + $i + 3] = $codeB[0];
+                            $key += 3;
+                        }
+                    }
+                }else{
+                    if($b[$key + $i-1] == '0' && $b[$key + $i-2] == '0' && $chr != 'chr'){//判断前面的为字符集B,此时要转换字符集C
+                        $b[$key + $i] = "\x7b";
+                        $b[$key + $i + 1] = "\x43";
+                        $b[$key + $i + 2] = $codeC[$iindex];
+                        $key += 2;
+                    }else{
+                        $chr = '';
+                        $b[$key + $i] = $codeC[$iindex];
+                        if($iindex == 48) $chr = 'chr';//判断chr(48)等于0的情况
+                    }
+                }
+            }
+            @$lastkey = end(array_keys($b));//取得数组的最后一个元素的键
+            if($length % 2 > 0){
+                $lastnum = substr($strnum,-1);//取得字符串的最后一个数字
+                if($b[$lastkey] == '0' && $b[$lastkey-1] == '0'){//判断前面的为字符集B,此时不需要转换字符集
+                    $b[$lastkey + 1] = $codeB[$lastnum];
+                }else{
+                    $b[$lastkey + 1] = "\x7b";
+                    $b[$lastkey + 2] = "\x42";
+                    $b[$lastkey + 3] = $codeB[$lastnum];
+                }
+            }
+            @$b[15] = chr(end(array_keys($b)) - 15);//得出条形码长度
+            $str = implode("",$b);
+        }else{//1-14个字符的纯数字和非纯数字的条形码进来这个区间，支持数字，大小写字母，特殊字符例如:  !@#$%^&*()-=+_
+            $str = "\x1b\x64\x02\x1d\x48\x32\x1d\x68\x50\x1d\x77\x02\x1d\x6b\x49".chr($length + 2)."\x7b\x42".$strnum;
+        }
+        return $str;
     }
 }
