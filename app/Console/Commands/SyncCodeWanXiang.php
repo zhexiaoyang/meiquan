@@ -113,14 +113,16 @@ class SyncCodeWanXiang extends Command
             ],
             [
                 'name' => '万祥大药房（桃源路店）',
-                'shopid' => '0011',
+                // 'shopid' => '0011',
+                'shopid' => '0007',
                 'mtid' => '10493939',
                 'eleid' => '503071024',
                 'bind' => 31,
             ],
             [
                 'name' => '万祥大药房（北京路店）',
-                'shopid' => '0005',
+                // 'shopid' => '0005',
+                'shopid' => '0007',
                 'mtid' => '14838692',
                 'eleid' => '503056325',
                 'bind' => 31,
