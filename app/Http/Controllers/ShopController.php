@@ -196,12 +196,12 @@ class ShopController extends Controller
                     $ele_res = $ele->shopInfo($shop->waimai_ele);
                     $ele_res2 = $ele->shopBusstatus($shop->waimai_ele);
                     \Log::info('cccccc', [$ele_res]);
-                    if (!empty($ele_res['data']['business_time2']['normal_business_time_list'][0])) {
-                        $ele_time_list = $ele_res['data']['business_time2']['normal_business_time_list'][0];
+                    if (!empty($ele_res['body']['data']['business_time2']['normal_business_time_list'][0])) {
+                        $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0];
                         if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
-                            $tmp['ele_name'] = $ele_res['data']['supplier_name'];
+                            $tmp['ele_name'] = $ele_res['body']['data']['supplier_name'];
                             $tmp['ele_shipping_time'] = $ele_time_list['start_time'][0] . '-' . $ele_time_list['start_time'][0];
-                            $tmp['ele_open'] = $ele_res2['data']['shop_busstatus'] ?? 1;
+                            $tmp['ele_open'] = $ele_res2['body']['data']['shop_busstatus'] ?? 1;
                         }
                     }
                 }
