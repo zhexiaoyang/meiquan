@@ -105,6 +105,9 @@ class ShopController extends Controller
 
         $result = [];
         $data = [];
+        $meiquan = null;
+        $minkang = null;
+        $canyin = null;
 
         if (!empty($shops)) {
             $contracts = Contract::select('id', 'name')->get()->toArray();
@@ -135,6 +138,41 @@ class ShopController extends Controller
                 $tmp['ele_name'] = $shop->ele_name;
                 $tmp['ele_shipping_time'] = $shop->ele_shipping_time;
                 $tmp['ele_open'] = $shop->ele_open;
+
+                // 查询门店状态
+                if ($shop->waimai_mt) {
+                    if ($shop->meituan_bind_platform === 4) {
+                        if (!$minkang) {
+                            $minkang = app('minkang');
+                        }
+                        $shop_status_params = ['app_poi_codes' => $shop->waimai_mt];
+                        $mt_res = $minkang->getShopInfoByIds($shop_status_params);
+                        if (isset($mt_res['data'][0])) {
+                            \Log::info('aaa', $mt_res['data'][0]);
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
+                        } else {
+                            $tmp['mt_shipping_time'] = '未获取到门店信息';
+                        }
+                    } else if ($shop->meituan_bind_platform === 31) {
+                        if (!$meiquan) {
+                            $meiquan = app('meituan');
+                        }
+                        $shop_status_params = ['app_poi_codes' => $shop->waimai_mt, 'access_token' => $meiquan->getShopToken( $shop->waimai_mt)];
+                        $mt_res = $meiquan->getShopInfoByIds($shop_status_params);
+                        if (isset($mt_res['data'][0])) {
+                            // \Log::info('aaa', $mt_res['data'][0]);
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
+                        } else {
+                            $tmp['mt_shipping_time'] = '未获取到门店信息';
+                        }
+                    }
+                }
 
                 // 跑腿平台
                 $shippers = [];
