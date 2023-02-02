@@ -178,11 +178,11 @@ class ShopController extends Controller
                         $shop_status_params = ['epoiIds' => $shop->waimai_mt];
                         $mt_res = $canyin->poi_mget($shop_status_params, $shop->waimai_mt);
                         \Log::info('bbbbbbbbbbbb', $mt_res);
-                        if (isset($mt_res['name'])) {
-                            $tmp['mt_name'] = $mt_res['name'];
-                            $tmp['mt_shipping_time'] = $mt_res['shipping_time'];
-                            $tmp['mt_open'] = $mt_res['open_level'];
-                            $tmp['mt_online'] = $mt_res['is_online'];
+                        if (isset($mt_res['data'][0])) {
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
                         } else {
                             $tmp['mt_shipping_time'] = '未获取到门店信息';
                         }
