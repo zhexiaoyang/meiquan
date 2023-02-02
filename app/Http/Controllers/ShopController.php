@@ -162,8 +162,8 @@ class ShopController extends Controller
                         }
                         $shop_status_params = ['app_poi_codes' => $shop->waimai_mt, 'access_token' => $meiquan->getShopToken($shop->waimai_mt)];
                         $mt_res = $meiquan->getShopInfoByIds($shop_status_params);
+                        \Log::info('aaaaaaaaa', $mt_res['data'][0]);
                         if (isset($mt_res['data'][0])) {
-                            \Log::info('aaaaaaaaa', $mt_res['data'][0]);
                             $tmp['mt_name'] = $mt_res['data'][0]['name'];
                             $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
                             $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
