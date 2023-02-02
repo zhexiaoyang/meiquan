@@ -198,11 +198,14 @@ class ShopController extends Controller
                     // \Log::info('cccccc', [$ele_res]);
                     // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']]);
                     // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]]);
+                    \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges']]);
+                    \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges'][0]]);
+                    \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges'][0]['start_time']]);
                     if (!empty($ele_res['body']['data']['business_time2']['normal_business_time_list'][0])) {
                         $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0];
                         if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
                             $tmp['ele_name'] = $ele_res['body']['data']['supplier_name'];
-                            $tmp['ele_shipping_time'] = $ele_time_list['ranges'][0]['start_time'] . '-' . $ele_time_list['ranges'][0]['start_time'];
+                            $tmp['ele_shipping_time'] = $ele_time_list['ranges'][0]['start_time'] . '-' . $ele_time_list['ranges'][0]['end_time'];
                             $tmp['ele_open'] = $ele_res2['body']['data']['shop_busstatus'] ?? 1;
                         }
                     }
