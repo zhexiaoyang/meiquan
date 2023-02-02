@@ -196,11 +196,6 @@ class ShopController extends Controller
                     $ele_res = $ele->shopInfo($shop->waimai_ele);
                     $ele_res2 = $ele->shopBusstatus($shop->waimai_ele);
                     // \Log::info('cccccc', [$ele_res]);
-                    // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']]);
-                    // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]]);
-                    // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges']]);
-                    // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges'][0]]);
-                    // \Log::info('cccccc', [$ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['ranges'][0]['start_time']]);
                     if (!empty($ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'])) {
                         $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'];
                         if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
