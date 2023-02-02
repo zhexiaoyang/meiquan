@@ -171,7 +171,7 @@ class ShopController extends Controller
                         } else {
                             $tmp['mt_shipping_time'] = '未获取到门店信息';
                         }
-                    } else if ($shop->meituan_bind_platform === 31) {
+                    } else if ($shop->meituan_bind_platform === 25) {
                         if (!$canyin) {
                             $canyin = app('mtkf');
                         }
