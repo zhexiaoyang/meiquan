@@ -202,7 +202,7 @@ class ShopController extends Controller
                         $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0];
                         if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
                             $tmp['ele_name'] = $ele_res['body']['data']['supplier_name'];
-                            $tmp['ele_shipping_time'] = $ele_time_list['start_time']['ranges'][0] . '-' . $ele_time_list['start_time']['ranges'][0];
+                            $tmp['ele_shipping_time'] = $ele_time_list['ranges']['start_time'][0] . '-' . $ele_time_list['ranges']['start_time'][0];
                             $tmp['ele_open'] = $ele_res2['body']['data']['shop_busstatus'] ?? 1;
                         }
                     }
