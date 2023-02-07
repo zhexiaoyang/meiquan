@@ -171,7 +171,8 @@ class SyncStockWanXiang extends Command
 
                 $ele_params['shop_id'] = $ele_id;
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
-                $ele->skuStockUpdate($ele_params);
+                $eleres = $ele->skuStockUpdate($ele_params);
+                Log::info("万祥饿了么同步结果", [$eleres]);
             }
             $this->info("门店「{$name}}:{$mt_id}」同步库存-结束......");
             Log::info("门店「{$name}}:{$mt_id}」同步库存-结束......");
