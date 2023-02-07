@@ -343,6 +343,9 @@ class ProductController extends Controller
                             "category_name" => $c_name,
                             "sequence" => 100,
                         ];
+                        if ($type === 31) {
+                            $category_params['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
+                        }
                         $log = $meituan->medicineCatSave($category_params);
                         // \Log::info("[ERP接口]-[添加商品]-[创建门店分类返回]: " . json_encode($log, JSON_UNESCAPED_UNICODE));
                     }
@@ -352,12 +355,16 @@ class ProductController extends Controller
                     );
                     $c->save();
                 }
+                unset($category_params);
                 $category_params = [
                     "app_poi_code" => $access_shop->mt_shop_id,
                     "category_code" => "9000000",
                     "category_name" => "未分类",
                     "sequence" => 100,
                 ];
+                if ($type === 31) {
+                    $category_params['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
+                }
                 $meituan->medicineCatSave($category_params);
 
                 $params_bind_data = [];
@@ -437,6 +444,11 @@ class ProductController extends Controller
                         "app_poi_code" => $access_shop->mt_shop_id,
                         "medicine_data" => json_encode($params_update_data, JSON_UNESCAPED_UNICODE)
                     ];
+                    if ($type === 31) {
+                        $params['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
+                        $params_bind['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
+                        $params_update['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
+                    }
                     $bind_log = $meituan->medicineCodeUpdate($params_bind);
                     \Log::info("[ERP接口]-[添加商品]-[绑定药品返回]: " . json_encode($bind_log, JSON_UNESCAPED_UNICODE));
                     \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
