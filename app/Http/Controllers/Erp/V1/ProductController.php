@@ -324,6 +324,8 @@ class ProductController extends Controller
                     $meituan = app("minkang");
                 } elseif ($type === 5) {
                     $meituan = app("qinqu");
+                } elseif ($type === 31) {
+                    $meituan = app("meiquan");
                 } else {
                     // \Log::info("[ERP接口]-[添加商品]-门店 type 错误: {$type}");
                     continue;
