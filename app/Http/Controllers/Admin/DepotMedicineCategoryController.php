@@ -96,7 +96,7 @@ class DepotMedicineCategoryController extends Controller
             if (DB::table('wm_depot_medicine_category')->where('category_id', $pid)->count() > 0) {
                 return $this->error('一级分类「'. $parent_cat->name.'」下面有商品，不能添加二级分类');
             }
-            if (MedicineDepotCategory::where('pid', $id)->count() > 0) {
+            if ($id && MedicineDepotCategory::where('pid', $id)->count() > 0) {
                 return $this->error('该分类下存在二级分类，不能作为二级分类');
             }
         }
