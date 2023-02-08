@@ -10,6 +10,11 @@ class Medicine extends Model
 
     protected $fillable = ['shop_id','depot_id','name','category','upc','brand','spec','stock','price','guidance_price','depot_id','cover'];
 
+    protected $casts = [
+        'price' => 'float',
+        'guidance_price' => 'float',
+    ];
+
 
 
     protected static function boot()
