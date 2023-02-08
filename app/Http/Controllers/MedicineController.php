@@ -82,6 +82,12 @@ class MedicineController extends Controller
                 $query->where('category_id', $category_id);
             });
         }
+        if ($excep = $request->get('exception')) {
+            $excep = intval($excep);
+            if ($excep === 2) {
+                $query->whereColumn('guidance_price', '>', 'price');
+            }
+        }
 
         $data =$query->paginate($request->get('page_size', 10));
 
