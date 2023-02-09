@@ -139,6 +139,7 @@ class ShopController extends Controller
                 $tmp['ele_name'] = $shop->ele_name;
                 $tmp['ele_shipping_time'] = $shop->ele_shipping_time;
                 $tmp['ele_open'] = $shop->ele_open;
+                $tmp['mt_jie'] = $shop->mt_jie;
 
                 // 查询门店状态
                 if ($shop->waimai_mt) {
@@ -1191,5 +1192,31 @@ class ShopController extends Controller
 
 
         return $this->success(['url' => $url]);
+    }
+
+    /**
+     * 门店设置（美团自动接单）
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/2/9 3:27 下午
+     */
+    public function setting(Request $request)
+    {
+        $mt_auto = $request->get('mtAuto');
+        if (!in_array($mt_auto, [1, 2])) {
+            return $this->error('请选择美团自动接单状态');
+        }
+        if (!$shop = Shop::find(intval($request->get('id')))) {
+            return $this->error('门店不存在');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if ($shop->user_id !== $request->user()->id) {
+                return $this->error('门店不存在!');
+            }
+        }
+        $shop->mt_jie = $mt_auto;
+        $shop->save();
+        return $this->success();
     }
 }

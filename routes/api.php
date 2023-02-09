@@ -300,6 +300,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("/shop/auto/close", "ShopController@closeAuto")->name("shop.auto.close");
         // *开启自动发单
         Route::post("/shop/auto/open", "ShopController@openAuto")->name("shop.auto.open");
+        // *开启自动发单
+        Route::post("/shop/setting", "ShopController@setting")->name("shop.setting");
         // *资源路由-门店
         Route::resource("shop", "ShopController", ["only" => ["store", "show", "index","update"]]);
 
