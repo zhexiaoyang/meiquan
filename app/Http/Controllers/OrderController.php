@@ -2547,6 +2547,27 @@ class OrderController extends Controller
         if (!$shop = Shop::with('shippers')->find($order->shop_id)) {
             return $this->error("门店不存在");
         }
+
+        // 默认设置
+        $default_settimg = config("ps.shop_setting");
+        $mt_switch = $default_settimg['meituan'];
+        $fn_switch = $default_settimg['fengniao'];
+        $ss_switch = $default_settimg['shansong'];
+        $mqd_switch = $default_settimg['meiquanda'];
+        $dd_switch = $default_settimg['dada'];
+        $uu_switch = $default_settimg['uu'];
+        $sf_switch = $default_settimg['shunfeng'];
+        // 商家设置
+        $setting = OrderSetting::where("shop_id", $shop->id)->first();
+        if ($setting) {
+            $mt_switch = $setting->meituan;
+            $fn_switch = $setting->fengniao;
+            $ss_switch = $setting->shansong;
+            $mqd_switch = $setting->meiquanda;
+            $dd_switch = $setting->dada;
+            $uu_switch = $setting->uu;
+            $sf_switch = $setting->shunfeng;
+        }
         $result = [];
         // 加价金额
         $add_money = $shop->running_add;
@@ -2554,99 +2575,190 @@ class OrderController extends Controller
         if (!empty($shop->shippers)) {
             foreach ($shop->shippers as $shipper) {
                 if ($shipper->platform == 3) {
-                    $shansong = new ShanSongService(config('ps.shansongservice'));
-                    $check_ss = $shansong->orderCalculate($shop, $order);
-                    if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
-                        $result['ss'] = $shipper->three_id;
-                        $result['ss_type'] = 3;
-                        $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
+                    $result['ss_type'] = 2;
+                    $result['ss_error'] = 0;
+                    if ($ss_switch) {
+                        $shansong = new ShanSongService(config('ps.shansongservice'));
+                        $check_ss = $shansong->orderCalculate($shop, $order);
+                        if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                            $result['ss'] = $shipper->three_id;
+                            $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100);
+                            $result['ss_error'] = 0;
+                        } else {
+                            $result['ss_error'] = 1;
+                            $result['ss_msg'] = $check_ss['data']['msg'] ?? '无法发单';
+                        }
+                    } else {
+                        $result['ss_error'] = 1;
+                        $result['ss_msg'] = '已关闭';
                     }
                 }
                 if ($shipper->platform == 5) {
-                    $config = config('ps.dada');
-                    $config['source_id'] = $shipper->source_id;
-                    $dada = new DaDaService($config);
-                    $check_dd= $dada->orderCalculate($shop, $order);
-                    if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
-                        $result['dd'] = $shipper->three_id;
-                        $result['dd_type'] = 2;
-                        $result['dd_money'] = $check_dd['result']['fee'];
+                    $result['dd_type'] = 2;
+                    $result['dd_error'] = 0;
+                    if ($dd_switch) {
+                        $config = config('ps.dada');
+                        $config['source_id'] = $shipper->source_id;
+                        $dada = new DaDaService($config);
+                        $check_dd= $dada->orderCalculate($shop, $order);
+                        if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                            $result['dd'] = $shipper->three_id;
+                            $result['dd_money'] = $check_dd['result']['fee'];
+                        } else {
+                            $result['dd_error'] = 1;
+                            $result['dd_msg'] = $check_dd['msg'] ?? '无法发单';;
+                        }
+                    } else {
+                        $result['dd_error'] = 1;
+                        $result['dd_msg'] = '已关闭';
                     }
                 }
                 if ($shipper->platform == 7) {
-                    $sf = app("shunfengservice");
-                    $check_sf= $sf->precreateorder($order, $shop);
-                    if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
-                        $result['sf'] = $shipper->three_id;
-                        $result['sf_type'] = 2;
-                        $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                    $result['sf_type'] = 2;
+                    $result['sf_error'] = 0;
+                    if ($sf_switch) {
+                        $sf = app("shunfengservice");
+                        $check_sf= $sf->precreateorder($order, $shop);
+                        if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                            $result['sf'] = $shipper->three_id;
+                            $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                        } else {
+                            $result['sf_error'] = 1;
+                            $result['sf_msg'] = $check_sf['error_msg'] ?? '无法发单';;
+                        }
+                    } else {
+                        $result['sf_error'] = 1;
+                        $result['sf_msg'] = '已关闭';
                     }
                 }
             }
         }
 
         if ($shop->shop_id) {
-            $meituan = app("meituan");
-            $check_mt = $meituan->preCreateByShop($shop, $order);
-            if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
-                $result['mt'] = $shop->shop_id;
-                $result['mt_type'] = 1;
-                $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
+            $result['mt_type'] = 1;
+            $result['mt_error'] = 0;
+            if ($mt_switch) {
+                $meituan = app("meituan");
+                $check_mt = $meituan->preCreateByShop($shop, $order);
+                if (isset($check_mt['data']['delivery_fee']) && $check_mt['data']['delivery_fee'] > 0) {
+                    $result['mt'] = $shop->shop_id;
+                    $result['mt_money'] = $check_mt['data']['delivery_fee'] + $add_money;
+                } else {
+                    $result['mt_error'] = 1;
+                    $result['mt_msg'] = $check_mt['message'] ?? '无法发单';;
+                }
+            } else {
+                $result['mt_error'] = 1;
+                $result['mt_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_fn) {
-            $fengniao = app("fengniao");
-            $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
-            $check_fn = json_decode($check_fn_res['business_data'], true);
-            if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
-                $result['fn'] = $shop->shop_id_fn;
-                $result['fn_type'] = 1;
-                $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+            $result['fn_type'] = 1;
+            $result['fn_error'] = 0;
+            if ($fn_switch) {
+                $fengniao = app("fengniao");
+                $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
+                $check_fn = json_decode($check_fn_res['business_data'], true);
+                if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
+                    $result['fn'] = $shop->shop_id_fn;
+                    $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+                } else {
+                    $result['fn_error'] = 1;
+                    $result['fn_msg'] = $check_fn['msg'] ?? '无法发单';;
+                }
+            } else {
+                $result['fn_error'] = 1;
+                $result['fn_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_ss) {
-            $shansong = app("shansong");
-            $check_ss = $shansong->orderCalculate($shop, $order);
-            if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
-                $result['ss'] = $shop->shop_id_ss;
-                $result['ss_type'] = 1;
-                $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+            $result['ss_type'] = 1;
+            $result['ss_error'] = 0;
+            if ($ss_switch) {
+                $shansong = app("shansong");
+                $check_ss = $shansong->orderCalculate($shop, $order);
+                if (isset($check_ss['data']['totalFeeAfterSave']) && $check_ss['data']['totalFeeAfterSave'] > 0) {
+                    $result['ss'] = $shop->shop_id_ss;
+                    $result['ss_money'] = (($check_ss['data']['totalFeeAfterSave'] ?? 0) / 100) + $add_money;
+                } else {
+                    $result['ss_error'] = 1;
+                    $result['ss_msg'] = $check_ss['msg'] ?? '闪送无法发单';
+                }
+            } else {
+                $result['ss_error'] = 1;
+                $result['ss_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_dd) {
-            $dada = app("dada");
-            $check_dd= $dada->orderCalculate($shop, $order);
-            if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
-                $result['dd'] = $shop->shop_id_dd;
-                $result['dd_type'] = 1;
-                $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
+            $result['dd_type'] = 1;
+            $result['dd_error'] = 0;
+            if ($dd_switch) {
+                $dada = app("dada");
+                $check_dd= $dada->orderCalculate($shop, $order);
+                if (isset($check_dd['result']['fee']) && $check_dd['result']['fee'] > 0) {
+                    $result['dd'] = $shop->shop_id_dd;
+                    $result['dd_money'] = $check_dd['result']['fee'] + $add_money;
+                } else {
+                    $result['dd_error'] = 1;
+                    $result['dd_msg'] = $check_dd['msg'] ?? '无法发单';;
+                }
+            } else {
+                $result['dd_error'] = 1;
+                $result['dd_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_mqd) {
-            $meiquanda = app('meiquanda');
-            $check_mqd = $meiquanda->orderCalculate($shop, $order);
-            if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
-                $result['mqd'] = $shop->shop_id_mqd;
-                $result['mqd_type'] = 1;
-                $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+            $result['mqd_error'] = 0;
+            $result['mqd_type'] = 1;
+            if ($mqd_switch) {
+                $meiquanda = app('meiquanda');
+                $check_mqd = $meiquanda->orderCalculate($shop, $order);
+                if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
+                    $result['mqd'] = $shop->shop_id_mqd;
+                    $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+                } else {
+                    $result['mqd_error'] = 1;
+                    $result['mqd_msg'] = $check_mqd['message'] ?? '无法发单';;
+                }
+            } else {
+                $result['mqd_error'] = 1;
+                $result['mqd_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_uu) {
-            $uu = app("uu");
-            $check_uu= $uu->orderCalculate($order, $shop);
-            if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
-                $result['uu'] = $shop->shop_id_uu;
-                $result['uu_type'] = 1;
-                $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
+            $result['uu_error'] = 0;
+            $result['uu_type'] = 1;
+            if ($mqd_switch) {
+                $uu = app("uu");
+                $check_uu= $uu->orderCalculate($order, $shop);
+                if (isset($check_uu['need_paymoney']) && $check_uu['need_paymoney'] > 0) {
+                    $result['uu'] = $shop->shop_id_uu;
+                    $result['uu_money'] = $check_uu['need_paymoney'] + $add_money;
+                } else {
+                    $result['uu_error'] = 1;
+                    $result['uu_msg'] = $check_uu['return_msg'] ?? '无法发单';;
+                }
+            } else {
+                $result['uu_error'] = 1;
+                $result['uu_msg'] = '已关闭';
             }
         }
         if ($shop->shop_id_sf) {
-            $sf = app("shunfeng");
-            $check_sf= $sf->precreateorder($order, $shop);
-            if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
-                $result['sf'] = $shop->shop_id_sf;
-                $result['sf_type'] = 1;
-                $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+            $result['sf_error'] = 0;
+            $result['sf_type'] = 1;
+            if ($mqd_switch) {
+                $sf = app("shunfeng");
+                $check_sf= $sf->precreateorder($order, $shop);
+                if (isset($check_sf['result']['real_pay_money']) && $check_sf['result']['real_pay_money'] > 0) {
+                    $result['sf'] = $shop->shop_id_sf;
+                    $result['sf_money'] = (($check_sf['result']['real_pay_money'] ?? 0) / 100) + $add_money;
+                } else {
+                    $result['sf_error'] = 1;
+                    $result['sf_msg'] = $check_fn['error_msg'] ?? '无法发单';;
+                }
+            } else {
+                $result['sf_error'] = 1;
+                $result['sf_msg'] = '已关闭';
             }
         }
 
