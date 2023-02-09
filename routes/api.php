@@ -386,6 +386,7 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("depot/medicine/category/cascader", "DepotMedicineCategoryController@cascader")->name("depot.medicine.category.cascader");
             Route::post("depot/medicine/category/update", "DepotMedicineCategoryController@update")->name("depot.medicine.category.update");
             Route::post("depot/medicine/category/delete", "DepotMedicineCategoryController@delete")->name("depot.medicine.category.delete");
+            Route::post("depot/medicine/product/delete", "DepotMedicineController@delete")->name("depot.medicine.product.delete");
             Route::post("depot/medicine/product/update", "DepotMedicineController@update")->name("depot.medicine.product.update");
             Route::post("depot/medicine/product/update_category", "DepotMedicineController@update_category")->name("depot.medicine.product.update_category");
             Route::get("depot/medicine/product", "DepotMedicineController@index")->name("depot.medicine.product.index");

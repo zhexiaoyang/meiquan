@@ -16,7 +16,9 @@ class DepotMedicineController extends Controller
 
     public function index(Request $request)
     {
-        $query = MedicineDepot::select('id','name','cover','price','upc','sequence');
+        $query = MedicineDepot::with(['category' => function ($query) {
+            $query->select('id', 'name');
+        }])->select('id','name','cover','price','upc','sequence');
 
         if ($name = $request->get('name')) {
             $query->where('name', 'like', "%{$name}%");
@@ -111,6 +113,17 @@ class DepotMedicineController extends Controller
                 }
             }
         }
+        return $this->success();
+    }
+
+    public function delete(Request $request)
+    {
+        $ids = $request->get('ids', []);
+        if (empty($ids)) {
+            return $this->error('请选择商品');
+        }
+        \DB::table('wm_depot_medicine_category')->whereIn('medicine_id', $ids)->delete();
+        \DB::table('wm_depot_medicines')->whereIn('id', $ids)->delete();
         return $this->success();
     }
 }
