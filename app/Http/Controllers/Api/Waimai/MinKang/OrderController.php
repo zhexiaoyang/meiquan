@@ -8,6 +8,7 @@ use App\Jobs\VipOrderSettlement;
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Shop;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
@@ -21,18 +22,23 @@ class OrderController extends Controller
 
     public function create(Request $request)
     {
-        // if ($order_id = $request->get("order_id", "")) {
-        //     $this->prefix = str_replace('###', "创建订单|订单号:{$order_id}", $this->prefix_title);
-        //     // $this->log('全部参数', $request->all());
-        //     $app_poi_code = $request->get('app_poi_code', 0);
-        //     $data = ['9413566', '13921009', '10138067'];
-        //     if (!in_array($app_poi_code, $data)) {
-        //         $meituan = app("minkang");
-        //         $res = $meituan->orderConfirm($order_id);
-        //         $this->log("订单号：{$order_id}|操作接单返回信息", $res);
-        //         // dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
-        //     }
-        // }
+        if ($order_id = $request->get("order_id", "")) {
+            $this->prefix = str_replace('###', "创建订单|订单号:{$order_id}", $this->prefix_title);
+            // $this->log('全部参数', $request->all());
+            $app_poi_code = $request->get('app_poi_code', 0);
+            $data = ['9413566', '13921009', '10138067'];
+            if (in_array($app_poi_code, $data)) {
+                return json_encode(['data' => 'ok']);
+            }
+            if ($shop = Shop::select('id', 'mt_jie')->where('waimai_mt', $app_poi_code)->first()) {
+                if ($shop->mt_jie === 1) {
+                    $meituan = app("minkang");
+                    $res = $meituan->orderConfirm($order_id);
+                    $this->log("订单号：{$order_id}|美团ID：{$app_poi_code}|操作接单返回信息", $res);
+                    // dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
+                }
+            }
+        }
 
         return json_encode(['data' => 'ok']);
     }
