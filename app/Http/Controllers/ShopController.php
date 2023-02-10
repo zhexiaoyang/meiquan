@@ -140,8 +140,9 @@ class ShopController extends Controller
                 $tmp['ele_shipping_time'] = $shop->ele_shipping_time;
                 $tmp['ele_open'] = $shop->ele_open;
                 $tmp['mt_jie'] = $shop->mt_jie;
+                $tmp['print_auto'] = $shop->print_auto;
 
-                // 查询门店状态
+                // ------------------------------- 查询门店状态 -------------------------------
                 if ($shop->waimai_mt) {
                     if ($shop->meituan_bind_platform === 4) {
                         if (!$minkang) {
@@ -206,6 +207,7 @@ class ShopController extends Controller
                         }
                     }
                 }
+                // ------------------------------- 查询门店状态 -------------------------------
 
                 // 跑腿平台
                 $shippers = [];
@@ -1204,8 +1206,12 @@ class ShopController extends Controller
     public function setting(Request $request)
     {
         $mt_auto = $request->get('mtAuto');
+        $print_auto = $request->get('print_auto');
         if (!in_array($mt_auto, [1, 2])) {
             return $this->error('请选择美团自动接单状态');
+        }
+        if (!in_array($print_auto, [1, 2])) {
+            return $this->error('请选择本地自动打印状态');
         }
         if (!$shop = Shop::find(intval($request->get('id')))) {
             return $this->error('门店不存在');
@@ -1216,6 +1222,7 @@ class ShopController extends Controller
             }
         }
         $shop->mt_jie = $mt_auto;
+        $shop->print_auto = $print_auto;
         $shop->save();
         return $this->success();
     }
