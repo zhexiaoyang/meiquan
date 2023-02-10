@@ -361,6 +361,10 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("takeout/info", "WmOrderController@show");
         // *外卖订单-打印
         Route::get("takeout/print", "WmOrderController@print_order");
+        // *外卖订单-自动打印开关
+        Route::get("takeout/print_auto_switch", "WmOrderController@print_auto_switch");
+        // *外卖订单-自动打印获取订单
+        Route::get("takeout/printer_one", "WmOrderController@printer_one");
         // *外卖订单-打印信息获取
         Route::get("takeout/print_info", "WmOrderController@print_info");
         // *外卖订单-打印机-列表

@@ -339,6 +339,113 @@ class WmOrderController extends Controller
             'extra_num' => $extra_num,
             'receives' => []
         ];
+        $order->increment('print_number');
+        return $this->success($data);
+    }
+
+    public function print_auto_switch(Request $request)
+    {
+        $user_id = $request->user()->id;
+        $off = 0;
+        $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->get();
+        $shop_ids = [];
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if ($shop->waimai_mt || $shop->waimai_ele) {
+                    $shop_ids[] = $shop->id;
+                }
+            }
+        }
+        if (!empty($shop_ids)) {
+            $off = 1;
+        }
+        return $this->success(['off' => $off]);
+    }
+
+    public function printer_one(Request $request)
+    {
+        $user_id = $request->user()->id;
+        $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->get();
+        // $shops = Shop::where('user_id', 779)->where('print_auto', 2)->get();
+        $shop_ids = [];
+        // $order_data = [];
+        // $order_id = '';
+        $data = [];
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if ($shop->waimai_mt || $shop->waimai_ele) {
+                    $shop_ids[] = $shop->id;
+                }
+            }
+        }
+
+        $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)
+            ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("+10 minutes")))->orderBy('id')->first();
+
+        if ($order) {
+            $items = [];
+            $receives = [];
+            $total_num = 0;
+            if (!empty($order->items)) {
+                foreach ($order->items as $item) {
+                    $items[] = [
+                        'id' => $item->id,
+                        'name' => $item->food_name,
+                        'upc' => $item->upc,
+                        'price' => $item->price,
+                        'quantity' => $item->quantity,
+                    ];
+                    $total_num += $item->quantity;
+                }
+            }
+            // if (!empty($order->receives)) {
+            //     foreach ($order->receives as $receive) {
+            //         if ($receive->type === 2) {
+            //             $receives[] = [
+            //                 'id' => $receive->id,
+            //                 'comment' => $receive->comment,
+            //                 'money' => $receive->money,
+            //             ];
+            //         }
+            //     }
+            // }
+
+            $extras = [];
+            $extra_num = 0;
+            $extra_data = WmOrderExtra::where('order_id', $order->id)->whereIn('type', [4,5,23])->get();
+            if (!empty($extra_data)) {
+                foreach ($extra_data as $extra_datum) {
+                    $extra_num += $extra_datum->gift_num;
+                    $extras[] = [
+                        'id' => $extra_datum->id,
+                        'name' => $extra_datum->gift_name,
+                        'num' => $extra_datum->gift_num,
+                    ];
+                }
+            }
+
+            $platform = [ '', '美团外卖', '饿了么'];
+            $data = [
+                'order_id' => $order->order_id,
+                'day_seq' => $order->day_seq,
+                'platform' => $platform[$order->platform],
+                'wm_shop_name' => $order->wm_shop_name,
+                'recipient_name' => $order->recipient_name,
+                'recipient_phone' => $order->recipient_phone,
+                'recipient_address' => $order->recipient_address,
+                'caution' => $order->caution,
+                'total_num' => $total_num,
+                'ctime' => date("Y-m-d H:i:s", $order->ctime),
+                'ptime' => date("Y-m-d H:i:s"),
+                'send' => $order->delivery_time > 0 ? "【预约单】" . date("m-d H:i", $order->delivery_time) . '送达' : '【立即送达】',
+                'items' => $items,
+                'extras' => $extras,
+                'extra_num' => $extra_num,
+                'receives' => []
+            ];
+            $order->increment('print_number');
+        }
+
         return $this->success($data);
     }
 }
