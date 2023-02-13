@@ -379,12 +379,14 @@ class WmOrderController extends Controller
             }
         }
 
-        if ($user_id !== 1 && $user_id !== 32) {
-            $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)
-                ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("+10 minutes")))->orderBy('id')->first();
-        } else {
-            $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)->orderBy('id')->first();
-        }
+        // if ($user_id !== 1 && $user_id !== 32) {
+        //     $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)
+        //         ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("+10 minutes")))->orderBy('id')->first();
+        // } else {
+        //     $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)->orderBy('id')->first();
+        // }
+        $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)
+            ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("-10 minutes")))->orderBy('id')->first();
 
         if ($order) {
             $items = [];
