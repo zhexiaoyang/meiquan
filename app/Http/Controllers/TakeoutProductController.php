@@ -692,6 +692,10 @@ class TakeoutProductController extends Controller
                         foreach ($error_list as $item) {
                             $blockFlag = $item['blockFlag'] ?? 1;
                             $_code = $item['app_spu_code'];
+                            if (!isset($insert_data[$_code])) {
+                                \Log::info("迁移商品开始-失败中不存在:{$_code}");
+                                continue;
+                            }
                             if ($blockFlag == 2) {
                                 $logs->fail += 1;
                                 $logs->success -= 1;
