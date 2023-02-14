@@ -548,7 +548,7 @@ class TakeoutProductController extends Controller
                     $insert_data = [];
                     $insert_sku_data = [];
                     foreach ($products as $product) {
-                        if (isset($insert_data[$add_product['app_food_code']])) {
+                        if (isset($insert_data[$product->app_food_code])) {
                             continue;
                         }
                         $_skus = [];
