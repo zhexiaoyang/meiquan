@@ -412,7 +412,7 @@ class TakeoutProductController extends Controller
             }
         }
         // 判断门店是否有商品
-        $products = WmProduct::with(['skus'])->where('shop_id', $master_shop->id)->get();
+        $products = WmProduct::with(['skus'])->where('shop_id', $master_shop->id)->groupBy('app_food_code', 'name')->get();
         if ($products->isEmpty()) {
             \Log::info("迁移商品开始-提供商品信息的门店没有商品");
             return $this->error('提供商品信息的门店没有商品');
