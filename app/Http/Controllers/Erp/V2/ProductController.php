@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
 use App\Models\Medicine;
+use App\Models\MedicineDepot;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 
@@ -124,15 +125,50 @@ class ProductController extends Controller
             \Log::info("V2ERP饿了么库存返回", [$ele_res]);
         }
 
-
-        if (Medicine::where('shop_id', $shop->id)->count() > 0) {
-            foreach ($data as $v) {
-                if (isset($v['upc'])) {
-                    Medicine::where('upc', $v['upc'])->update([
+        foreach ($data as $v) {
+            if (isset($v['upc'])) {
+                $upc = $v['upc'];
+                $price = $v['price'] ?? 0;
+                $cost = $v['cost'] ?? 0;
+                if (Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
+                    Medicine::where('upc', $upc)->where('shop_id', $shop->id)->update([
                         'stock' => $v['stock'],
-                        'price' => $v['price'] ?? 0,
-                        'guidance_price' => $v['cost'] ?? 0,
+                        'price' => $price,
+                        'guidance_price' => $cost,
                     ]);
+                } else {
+                    if ($depot = MedicineDepot::where('upc', $upc)->first()) {
+                        $medicine_arr = [
+                            'shop_id' => $shop->id,
+                            'name' => $depot->name,
+                            'upc' => $depot->upc,
+                            'cover' => $depot->cover,
+                            'brand' => $depot->brand,
+                            'spec' => $depot->spec,
+                            'price' => $price,
+                            'stock' => $stock,
+                            'guidance_price' => $cost,
+                            'depot_id' => $depot->id,
+                        ];
+                    } else {
+                        $_depot = MedicineDepot::create([
+                            'name' => $v['name'] ?? '',
+                            'upc' => $upc
+                        ]);
+                        \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
+                        $medicine_arr = [
+                            'shop_id' => $shop->id,
+                            'name' => $v['name'] ?? '',
+                            'upc' => $upc,
+                            'brand' => '',
+                            'spec' => '',
+                            'price' => $price,
+                            'stock' => $stock,
+                            'guidance_price' => $cost,
+                            'depot_id' => $_depot->id,
+                        ];
+                    }
+                    Medicine::create($medicine_arr);
                 }
             }
         }
