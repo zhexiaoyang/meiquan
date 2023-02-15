@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Erp\V2;
 use App\Http\Controllers\Controller;
 use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
+use App\Models\Medicine;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 
@@ -109,7 +110,7 @@ class ProductController extends Controller
         \Log::info("V2ERP全部参数", $request->all());
 
         // 开始同步
-        if ($shop_id_mt) {;
+        if ($shop_id_mt) {
             \Log::info("V2ERP美团库存参数", [$mt_stocks]);
             $mt_binds['medicine_data'] = json_encode($mt_binds['medicine_data']);
             $mt_stocks['medicine_data'] = json_encode($mt_stocks['medicine_data']);
@@ -121,6 +122,19 @@ class ProductController extends Controller
         if ($shop_id_ele) {
             $ele_res = $ele->skuStockUpdate($ele_stocks);
             \Log::info("V2ERP饿了么库存返回", [$ele_res]);
+        }
+
+
+        if (Medicine::where('shop_id', $shop->id)->count() > 0) {
+            foreach ($data as $v) {
+                if (isset($v['upc'])) {
+                    Medicine::where('upc', $v['upc'])->update([
+                        'stock' => $v['stock'],
+                        'price' => $v['price'] ?? 0,
+                        'guidance_price' => $v['cost'] ?? 0,
+                    ]);
+                }
+            }
         }
 
         return $this->success();
