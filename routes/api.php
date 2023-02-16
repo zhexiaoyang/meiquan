@@ -385,6 +385,12 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
+             * 商城品库管理
+             */
+            Route::get("supplier/depot/index", "SupplierDepotController@index")->name("admin.supplier.depot.index");
+            Route::get("supplier/depot/info", "SupplierDepotController@info")->name("admin.supplier.depot.info");
+            Route::post("supplier/depot/update", "SupplierDepotController@update")->name("admin.supplier.depot.update");
+            /**
              * 品库管理
              */
             Route::get("depot/medicine/categories", "DepotMedicineCategoryController@index")->name("depot.medicine.categories.index");
