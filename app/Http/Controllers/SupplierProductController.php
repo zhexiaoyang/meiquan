@@ -236,7 +236,7 @@ class SupplierProductController extends Controller
 
         $city_price = null;
 
-        if ($shop = Shop::query()->find($shop_id)) {
+        if ($shop = Shop::find($shop_id)) {
             if ($city_code = AddressCity::query()->where("code", $shop->citycode)->first()) {
                 $city_price = SupplierProductCityPriceItem::query()->where([
                     "product_id" => $supplierProduct->id,
@@ -250,7 +250,7 @@ class SupplierProductController extends Controller
         SupplierProduct::where("id", $supplierProduct->id)->increment("review_count");
 
         $images = explode(",", $supplierProduct->depot->images);
-        if ($supplierProduct->content_images) {
+        if ($supplierProduct->depot->content_images) {
             $images = explode(",", $supplierProduct->depot->content_images);
         }
 
