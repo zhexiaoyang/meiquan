@@ -32,11 +32,18 @@ class OrderController
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&支付订单|订单号:{$order_id}", $this->prefix_title);
             $this->log_info('美团外卖统一接口');
             $app_poi_code = $request->get('app_poi_code', '');
-            $data = ['15243198'];
-            if (in_array($app_poi_code, $data)) {
-                $meituan = app("meiquan");
-                $res = $meituan->orderConfirm($order_id, $app_poi_code);
-                $this->log_info("订单号：{$order_id}|操作接单返回信息", $res);
+            // $data = ['15243198'];
+            // if (in_array($app_poi_code, $data)) {
+            //     $meituan = app("meiquan");
+            //     $res = $meituan->orderConfirm($order_id, $app_poi_code);
+            //     $this->log_info("订单号：{$order_id}|操作接单返回信息", $res);
+            // }
+            if ($shop = Shop::select('id', 'mt_jie')->where('waimai_mt', $app_poi_code)->first()) {
+                if ($shop->mt_jie === 1) {
+                    $meituan = app("meiquan");
+                    $res = $meituan->orderConfirm($order_id, $app_poi_code);
+                    $this->log_info("闪购门店{$app_poi_code}订单号{$order_id}|操作接单返回信息", $res);
+                }
             }
         }
 

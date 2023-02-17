@@ -34,7 +34,7 @@ class OrderController extends Controller
                 if ($shop->mt_jie === 1) {
                     $meituan = app("minkang");
                     $res = $meituan->orderConfirm($order_id);
-                    $this->log("订单号：{$order_id}|美团ID：{$app_poi_code}|操作接单返回信息", $res);
+                    $this->log("民康门店{$app_poi_code}订单号{$order_id}|美团ID：{$app_poi_code}|操作接单返回信息", $res);
                     // dispatch(new MeiTuanWaiMaiPicking($order_id, 180));
                 }
             }
