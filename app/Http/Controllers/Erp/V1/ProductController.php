@@ -450,13 +450,13 @@ class ProductController extends Controller
                         $params_update['access_token'] = $meituan->getShopToken($access_shop->mt_shop_id);
                     }
                     $bind_log = $meituan->medicineCodeUpdate($params_bind);
-                    \Log::info("[ERP接口]-[添加商品]-[绑定药品返回]: " . json_encode($bind_log, JSON_UNESCAPED_UNICODE));
-                    \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
+                    // \Log::info("[ERP接口]-[添加商品]-[绑定药品返回]: " . json_encode($bind_log, JSON_UNESCAPED_UNICODE));
+                    // \Log::info("[ERP接口]-[添加商品]-创建药品参数", $params);
                     $create_log = $meituan->medicineBatchSave($params);
-                    \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
-                    \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
+                    // \Log::info("[ERP接口]-[添加商品]-[创建药品返回]: " . json_encode($create_log, JSON_UNESCAPED_UNICODE));
+                    // \Log::info("[ERP接口]-[添加商品]-更新药品参数", $params_update);
                     $update_log = $meituan->medicineBatchUpdate($params_update);
-                    \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
+                    // \Log::info("[ERP接口]-[添加商品]-[更新药品返回]: " . json_encode($update_log, JSON_UNESCAPED_UNICODE));
 
                     $msg = '';
                     if ($create_log['data'] === 'ok') {

@@ -108,21 +108,21 @@ class ProductController extends Controller
         }
         $ele = app('ele');
 
-        \Log::info("V2ERP全部参数", $request->all());
+        // \Log::info("V2ERP全部参数", $request->all());
 
         // 开始同步
         if ($shop_id_mt) {
-            \Log::info("V2ERP美团库存参数", [$mt_stocks]);
+            // \Log::info("V2ERP美团库存参数", [$mt_stocks]);
             $mt_binds['medicine_data'] = json_encode($mt_binds['medicine_data']);
             $mt_stocks['medicine_data'] = json_encode($mt_stocks['medicine_data']);
             $mt_binds_res = $meituan->medicineCodeUpdate($mt_binds);
             $mt_stocks_res = $meituan->medicineStock($mt_stocks);
-            \Log::info("V2ERP美团绑定返回", [$mt_binds_res]);
-            \Log::info("V2ERP美团库存返回", [$mt_stocks_res]);
+            // \Log::info("V2ERP美团绑定返回", [$mt_binds_res]);
+            // \Log::info("V2ERP美团库存返回", [$mt_stocks_res]);
         }
         if ($shop_id_ele) {
             $ele_res = $ele->skuStockUpdate($ele_stocks);
-            \Log::info("V2ERP饿了么库存返回", [$ele_res]);
+            // \Log::info("V2ERP饿了么库存返回", [$ele_res]);
         }
 
         foreach ($data as $v) {
@@ -194,8 +194,8 @@ class ProductController extends Controller
         }
 
         $waitSign = substr($waitSign, 1).$secret;
-        \Log::info("[ERP接口V2]-[校验方法]-签名字符串：{$waitSign}");
-        \Log::info("[ERP接口V2]-[校验方法]-md5字符串：".md5($waitSign));
+        // \Log::info("[ERP接口V2]-[校验方法]-签名字符串：{$waitSign}");
+        // \Log::info("[ERP接口V2]-[校验方法]-md5字符串：".md5($waitSign));
 
         return $signature === md5($waitSign);
     }
