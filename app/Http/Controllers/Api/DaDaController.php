@@ -405,7 +405,7 @@ class DaDaController extends Controller
                 if ($order->status >= 20 && $order->status < 70 ) {
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix, $cancel_from) {
-                            if ($cancel_from !== 2) {
+                            if ($cancel_from === 1 || $cancel_from === 3) {
                                 if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
                                     // 查询当前用户，做余额日志
                                     $current_user = DB::table('users')->find($order->user_id);
