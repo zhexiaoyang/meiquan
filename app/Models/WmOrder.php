@@ -15,7 +15,7 @@ class WmOrder extends Model
         'taxpayer_id','ware_status','ware_error','ware_take_code','ctime','utime','delivery_time',
         'estimate_arrival_time','pick_type','day_seq','logistics_code','is_favorites','is_poi_first_order',
         'is_pre_sale_order','is_prescription','send_at','finish_at','shipper_phone','is_vip','running_fee','prescription_fee',
-        'cancel_reason','cancel_at','refund_fee','refund_status','vip_cost','user_id','print_number'
+        'cancel_reason','cancel_at','refund_fee','refund_status','vip_cost','user_id','print_number','rp_picture'
     ];
 
     public function items()
