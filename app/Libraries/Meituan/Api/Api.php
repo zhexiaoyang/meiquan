@@ -6,6 +6,7 @@ namespace App\Libraries\Meituan\Api;
 use App\Models\MeituanShangouToken;
 use App\Models\Order;
 use App\Models\Shop;
+use App\Models\WmOrder;
 use App\Traits\NoticeTool;
 use Illuminate\Support\Facades\Cache;
 
@@ -496,6 +497,42 @@ class Api extends Request
             'order_id' => $order_id,
         ];
         return $this->request_get('v1/order/preparationMealComplete', $params);
+    }
+
+    /**
+     * 获取处方订单图片
+     * @param $app_poi_code
+     * @param $order_ids
+     * @param int $type
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/2/21 9:28 上午
+     */
+    public function rp_picture_list($app_poi_code, $order_ids, $type = 4)
+    {
+        $params = [
+            'app_poi_code' => $app_poi_code,
+            'order_ids' => $order_ids,
+        ];
+        if ($type === 31) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('v1/gw/rp/picture/list', $params);
+    }
+
+    public function rp_picture_list_by_order(WmOrder $order)
+    {
+        // if ($order->from_type !== 4 || $order->from_type !== 31) {
+        //     return [];
+        // }
+        $params = [
+            'app_poi_code' => $order->app_poi_code,
+            'order_ids' => $order->order_id,
+        ];
+        if ($order->from_type === 31) {
+            $params['access_token'] = $this->getShopToken($order->app_poi_code);
+        }
+        return $this->request_get('v1/gw/rp/picture/list', $params);
     }
 
     /**
