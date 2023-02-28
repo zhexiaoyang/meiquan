@@ -36,15 +36,21 @@ class Medicine extends Model
                                             'pid' => 0,
                                             'name' => $category_parent->name,
                                             'sort' => $category_parent->sort,
+                                        ], [
+                                            'shop_id' => $model->shop_id,
+                                            'name' => $category_parent->name,
                                         ]);
                                         $pid = $w_c_p->id;
                                     }
                                 }
-                                $c = MedicineCategory::create([
+                                $c = MedicineCategory::firstOrCreate([
                                     'shop_id' => $model->shop_id,
                                     'pid' => $pid,
                                     'name' => $category->name,
                                     'sort' => $category->sort,
+                                ], [
+                                    'shop_id' => $model->shop_id,
+                                    'name' => $category->name,
                                 ]);
                             }
                             \DB::table('wm_medicine_category')->insert(['medicine_id' => $model->id, 'category_id' => $c->id]);
