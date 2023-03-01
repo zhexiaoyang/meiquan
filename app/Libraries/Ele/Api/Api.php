@@ -92,6 +92,15 @@ class Api extends Request
         return $this->post('order.get', $data);
     }
 
+    public function rpPictureList($order_id)
+    {
+        $data = [
+            'orderId' => $order_id
+        ];
+
+        return $this->post('drug.prescription.files', $data);
+    }
+
     /**
      * 确认订单
      * @param $order_id
