@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Waimai;
 
+use App\Events\OrderCreate;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
@@ -990,7 +991,7 @@ class EleOrderController extends Controller
             }
 
             // 创建订单
-            DB::transaction(function () use ($shop, $order_id, $order) {
+            $order_wm = DB::transaction(function () use ($shop, $order_id, $order) {
                 // 重量，商品列表里面有字段累加就行，但是数据中没个重量都是 1，好像有问题，先写成1
                 $weight = 2;
                 // 取货类型，枚举值：0-外卖到家，1-用户到店自提
@@ -1287,7 +1288,12 @@ class EleOrderController extends Controller
                     }
                 }
                 // 推送ERP
+                return $order_wm;
             });
+            if ($order_wm->is_prescription) {
+                event(new OrderCreate($order_wm));
+                \Log::info("饿了么处方单获取处方信息{$order_wm->order_id}");
+            }
             if ($shop) {
                 // 订单类型（1 即时单，2 预约单）
                 $order_type = $order['order']['send_immediately'];
