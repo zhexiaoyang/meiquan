@@ -359,6 +359,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("takeout", "WmOrderController@index");
         // *外卖订单-详情
         Route::get("takeout/info", "WmOrderController@show");
+        // *外卖订单-详情
+        Route::get("takeout/getRpPicture", "WmOrderController@getRpPicture");
         // *外卖订单-打印
         Route::get("takeout/print", "WmOrderController@print_order");
         // *外卖订单-自动打印开关
@@ -785,7 +787,7 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("category_all", "SupplierCategoryController@all");
             // 移动端根据二级分类获取一级分类
             Route::get("category_all", "SupplierCategoryController@all");
-            // 采购商品列表
+            // 采购商品列表RedisQueue.php
             Route::get("product", "SupplierProductController@index");
             // 采购活动商品列表
             Route::get("active/product", "SupplierProductController@activeList");

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OrderCreate;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\Feie\Feie;
 use App\Models\Shop;
@@ -453,5 +454,35 @@ class WmOrderController extends Controller
         }
 
         return $this->success($data);
+    }
+
+    /**
+     * 查看处方图片
+     * @author zhangzhen
+     * @data 2023/3/1 1:10 上午
+     */
+    public function getRpPicture(Request $request)
+    {
+        if (!$order_id = $request->get('order_id')) {
+            return $this->error('订单不存在');
+        }
+        if (!$order = WmOrder::find($order_id)) {
+            return $this->error('订单不存在!');
+        }
+        if (!$order->is_prescription) {
+            return $this->error('非处方单');
+        }
+        if ($order->platform === 1) {
+            if ($order->from_type !== 4 && $order->from_type !== 31) {
+                return $this->error('该门店绑定餐饮，暂时无法获取处方信息');
+            }
+        }
+        $rp_picture = $order->rp_picture;
+        if (!$rp_picture) {
+            event(new OrderCreate($order));
+            // sleep(2);
+            return $this->error('正在获取处方信息，请稍后查看');
+        }
+        return $this->success(['rp_picture' => $rp_picture]);
     }
 }

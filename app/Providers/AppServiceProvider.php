@@ -16,6 +16,7 @@ use App\Libraries\TaoZi\TaoZi;
 use App\Libraries\Uu\Uu;
 use App\Libraries\Yaogui\Yaogui;
 use Illuminate\Support\ServiceProvider;
+use OSS\OssClient;
 use Yansongda\Pay\Pay;
 
 class AppServiceProvider extends ServiceProvider
@@ -136,6 +137,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton('mtkf', function () {
             return new MeiTuanKaiFang(['app_id' => 106791, 'app_key' => 'lq1gtktmr3ofrjny', 'url' => 'https://api-open-cater.meituan.com/']);
             // return new MeiTuanKaiFang(['app_id' => 106792, 'app_key' => '36cvt5p8joq0jiiw', 'url' => 'https://api-open-cater.meituan.com/']);
+        });
+
+        // 阿里云OSS
+        $this->app->singleton('oss', function () {
+            return new OssClient(config('aliyun.access_key_id'), config('aliyun.access_key_secret'), config('aliyun.endpoint'));;
         });
     }
 
