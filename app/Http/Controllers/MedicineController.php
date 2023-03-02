@@ -824,4 +824,37 @@ class MedicineController extends Controller
 
         return $this->success();
     }
+
+    /**
+     * 根据条码获取药品信息
+     * @author zhangzhen
+     * @data 2023/3/2 2:05 上午
+     */
+    public function infoByUpc(Request $request)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('门店不存在');
+        }
+        if (!$upc = $request->get('upc')) {
+            return $this->error('条码不存在');
+        }
+        // 判断角色
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!$shop = Shop::where('user_id', $request->user()->id)->where('id', $shop_id)->first()) {
+                return $this->error('门店不存在!');
+            }
+        }
+        if (!$product = Medicine::query()->where('shop_id', $shop_id)->where('upc', $upc)->first()) {
+            return $this->error('药品管理中不存在此药品');
+        }
+        $data = [
+            'id' => $product->id,
+            'upc' => $product->upc,
+            'name' => $product->name,
+            'guidance_price' => $product->guidance_price,
+            'price' => $product->price,
+            'stock' => $product->stock,
+        ];
+        return $this->success($data);
+    }
 }

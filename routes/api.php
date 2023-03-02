@@ -47,6 +47,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/category/sync", "MedicineCategoryController@sync");
         // 药品门店商品列表
         Route::get("medicine/product", "MedicineController@product");
+        // 根据门店ID和条形码获取药品信息
+        Route::get("medicine/product/by/upc", "MedicineController@infoByUpc");
         // 药品门店导入
         Route::post("medicine/import", "MedicineController@import");
         // 药品管理-同步
