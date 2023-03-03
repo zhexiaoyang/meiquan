@@ -147,14 +147,14 @@ class SyncStockWanXiang extends Command
             $meiquan = app("meiquan");
             $ele = app("ele");
             $data = DB::connection('wanxiang_haidian')
-                ->select("SELECT upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[库存]");
+                ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[库存]");
             $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $stock_data = [];
                 $stock_data_ele = [];
                 foreach ($items as $item) {
                     $stock_data[] = [
-                        'app_medicine_code' => $item->upc,
+                        'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
                     ];
                     $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
