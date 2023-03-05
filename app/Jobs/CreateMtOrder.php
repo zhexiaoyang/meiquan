@@ -394,6 +394,9 @@ class CreateMtOrder implements ShouldQueue
         // $dd_add_money = $add_money;
         if (false) {
             // $this->log("关闭美全达派单");
+        } elseif ($shop->citycode === '0432') {
+            $order->fail_mqd = "吉林市不发美全达订单";
+            $this->log("吉林市不发美全达订单，停止「美全达」派单");
         } elseif ($order->fail_mqd) {
             $this->log("已经有「美全达」失败信息：{$order->fail_mqd}，停止「美全达」派单");
         } elseif ($order->mqd_status != 0) {
