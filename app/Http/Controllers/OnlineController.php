@@ -127,10 +127,11 @@ class OnlineController extends Controller
         // }
         // $data["phone"] = $phone;
 
-        if (!$contact_name = $request->get("contact_name")) {
-            return $this->error("门店联系人不能为空");
-        }
-        $data["contact_name"] = $contact_name;
+        // if (!$contact_name = $request->get("contact_name")) {
+        //     return $this->error("门店联系人不能为空");
+        // }
+        // $data["contact_name"] = $contact_name;
+        $data["contact_name"] = $request->get("contact_name", '');
 
         // if (!$contact_phone = $request->get("contact_phone")) {
         //     return $this->error("门店联系人电话不能为空");
@@ -217,30 +218,35 @@ class OnlineController extends Controller
         }
         $data["sfzbm"] = $sfzbm;
 
-        if (!$sfzsc = $request->get("sfzsc")) {
-            return $this->error("负责人手持身份证不能为空");
-        }
-        $data["sfzsc"] = $sfzsc;
+        // if (!$sfzsc = $request->get("sfzsc")) {
+        //     return $this->error("负责人手持身份证不能为空");
+        // }
+        // $data["sfzsc"] = $sfzsc;
+        $data["sfzsc"] = $request->get("sfzsc", '');
 
-        if (!$sfzscbm = $request->get("sfzscbm")) {
-            return $this->error("负责人手持背面身份证不能为空");
-        }
-        $data["sfzscbm"] = $sfzscbm;
+        // if (!$sfzscbm = $request->get("sfzscbm")) {
+        //     return $this->error("负责人手持背面身份证不能为空");
+        // }
+        // $data["sfzscbm"] = $sfzscbm;
+        $data["sfzscbm"] = $request->get("sfzscbm", '');
 
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");
         }
         $data["wts"] = $wts;
 
-        if (!$front = $request->get("front")) {
-            return $this->error("门脸照片不能为空");
-        }
-        $data["front"] = $front;
+        // if (!$front = $request->get("front")) {
+        //     return $this->error("门脸照片不能为空");
+        // }
+        // $data["front"] = $front;
+        $data["front"] = $request->get("front", '');
 
-        if (!$environmental = $request->get("environmental")) {
-            return $this->error("环境照片不能为空");
-        }
-        $data["environmental"] = $environmental;
+        // if (!$environmental = $request->get("environmental")) {
+        //     return $this->error("环境照片不能为空");
+        // }
+        // $data["environmental"] = $environmental;
+        $data["environmental"] = $request->get("environmental", '');
+        $data["environmental"] = $request->get("environmental", '');
 
         if (!$yyzz_start_time = $request->get("yyzz_start_time")) {
             return $this->error("营业执照开始时间不能为空");
@@ -383,10 +389,11 @@ class OnlineController extends Controller
         // }
         // $data["phone"] = $phone;
 
-        if (!$contact_name = $request->get("contact_name")) {
-            return $this->error("门店联系人不能为空");
-        }
-        $data["contact_name"] = $contact_name;
+        // if (!$contact_name = $request->get("contact_name")) {
+        //     return $this->error("门店联系人不能为空");
+        // }
+        // $data["contact_name"] = $contact_name;
+        $data["contact_name"] = $request->get("contact_name", '');
 
         // if (!$contact_phone = $request->get("contact_phone")) {
         //     return $this->error("门店联系人电话不能为空");
@@ -483,30 +490,34 @@ class OnlineController extends Controller
         }
         $data["sfzbm"] = $sfzbm;
 
-        if (!$sfzsc = $request->get("sfzsc")) {
-            return $this->error("负责人手持身份证不能为空");
-        }
-        $data["sfzsc"] = $sfzsc;
+        // if (!$sfzsc = $request->get("sfzsc")) {
+        //     return $this->error("负责人手持身份证不能为空");
+        // }
+        // $data["sfzsc"] = $sfzsc;
+        $data["sfzsc"] = $request->get("sfzsc", '');
 
-        if (!$sfzscbm = $request->get("sfzscbm")) {
-            return $this->error("负责人手持背面身份证不能为空");
-        }
-        $data["sfzscbm"] = $sfzscbm;
+        // if (!$sfzscbm = $request->get("sfzscbm")) {
+        //     return $this->error("负责人手持背面身份证不能为空");
+        // }
+        // $data["sfzscbm"] = $sfzscbm;
+        $data["sfzscbm"] = $request->get("sfzscbm", '');
 
         if (!$wts = $request->get("wts")) {
             return $this->error("采购委托书不能为空");
         }
         $data["wts"] = $wts;
 
-        if (!$front = $request->get("front")) {
-            return $this->error("门脸照片不能为空");
-        }
-        $data["front"] = $front;
+        // if (!$front = $request->get("front")) {
+        //     return $this->error("门脸照片不能为空");
+        // }
+        // $data["front"] = $front;
+        $data["front"] = $request->get("front", '');
 
-        if (!$environmental = $request->get("environmental")) {
-            return $this->error("环境照片不能为空");
-        }
-        $data["environmental"] = $environmental;
+        // if (!$environmental = $request->get("environmental")) {
+        //     return $this->error("环境照片不能为空");
+        // }
+        // $data["environmental"] = $environmental;
+        $data["environmental"] = $request->get("environmental", '');
 
         if (!$yyzz_start_time = $request->get("yyzz_start_time")) {
             return $this->error("营业执照开始时间不能为空");
