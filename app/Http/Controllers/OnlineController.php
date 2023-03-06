@@ -148,20 +148,23 @@ class OnlineController extends Controller
         // }
         // $data["business_hours"] = $business_hours;
 
-        if (!$account_no = $request->get("account_no")) {
-            return $this->error("打款账号不能为空");
-        }
-        $data["account_no"] = $account_no;
+        // if (!$account_no = $request->get("account_no")) {
+        //     return $this->error("打款账号不能为空");
+        // }
+        // $data["account_no"] = $account_no;
+        $data["account_no"] = $request->get("account_no", '');
 
-        if (!$bank_user = $request->get("bank_user")) {
-            return $this->error("开户名不能为空");
-        }
-        $data["bank_user"] = $bank_user;
+        // if (!$bank_user = $request->get("bank_user")) {
+        //     return $this->error("开户名不能为空");
+        // }
+        // $data["bank_user"] = $bank_user;
+        $data["bank_user"] = $request->get("bank_user", '');
 
-        if (!$bank = $request->get("bank_name")) {
-            return $this->error("开户行不能为空");
-        }
-        $data["bank_name"] = $bank;
+        // if (!$bank = $request->get("bank_name")) {
+        //     return $this->error("开户行不能为空");
+        // }
+        // $data["bank_name"] = $bank;
+        $data["bank_name"] = $request->get("bank_name", '');
 
         if (!$mobile = $request->get("bank_phone")) {
             return $this->error("银行开户预留电话不能为空");
@@ -415,20 +418,23 @@ class OnlineController extends Controller
         // }
         // $data["business_hours"] = $business_hours;
 
-        if (!$account_no = $request->get("account_no")) {
-            return $this->error("打款账号不能为空");
-        }
-        $data["account_no"] = $account_no;
+        // if (!$account_no = $request->get("account_no")) {
+        //     return $this->error("打款账号不能为空");
+        // }
+        // $data["account_no"] = $account_no;
+        $data["account_no"] = $request->get("account_no", '');
 
-        if (!$bank_user = $request->get("bank_user")) {
-            return $this->error("开户名不能为空");
-        }
-        $data["bank_user"] = $bank_user;
+        // if (!$bank_user = $request->get("bank_user")) {
+        //     return $this->error("开户名不能为空");
+        // }
+        // $data["bank_user"] = $bank_user;
+        $data["bank_user"] = $request->get("bank_user", '');
 
-        if (!$bank = $request->get("bank_name")) {
-            return $this->error("开户行不能为空");
-        }
-        $data["bank_name"] = $bank;
+        // if (!$bank = $request->get("bank_name")) {
+        //     return $this->error("开户行不能为空");
+        // }
+        // $data["bank_name"] = $bank;
+        $data["bank_name"] = $request->get("bank_name", '');
 
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
