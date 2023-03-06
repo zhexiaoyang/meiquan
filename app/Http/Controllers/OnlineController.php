@@ -166,10 +166,11 @@ class OnlineController extends Controller
         // $data["bank_name"] = $bank;
         $data["bank_name"] = $request->get("bank_name", '');
 
-        if (!$mobile = $request->get("bank_phone")) {
-            return $this->error("银行开户预留电话不能为空");
-        }
-        $data["bank_phone"] = $mobile;
+        // if (!$mobile = $request->get("bank_phone")) {
+        //     return $this->error("银行开户预留电话不能为空");
+        // }
+        // $data["bank_phone"] = $mobile;
+        $data["bank_phone"] = $request->get("bank_phone", '');
 
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
@@ -408,10 +409,11 @@ class OnlineController extends Controller
         // }
         // $data["mobile"] = $mobile;
 
-        if (!$mobile = $request->get("bank_phone")) {
-            return $this->error("银行开户预留电话不能为空");
-        }
-        $data["bank_phone"] = $mobile;
+        // if (!$mobile = $request->get("bank_phone")) {
+        //     return $this->error("银行开户预留电话不能为空");
+        // }
+        // $data["bank_phone"] = $mobile;
+        $data["bank_phone"] = $request->get("bank_phone", '');
 
         // if (!$business_hours = $request->get("business_hours")) {
         //     return $this->error("营业时间不能为空");
