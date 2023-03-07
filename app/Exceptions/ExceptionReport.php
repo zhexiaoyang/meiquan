@@ -66,8 +66,11 @@ class ExceptionReport
      */
     public function shouldReturn(){
 
-        if (! ($this->request->wantsJson() || $this->request->ajax())){
-            return false;
+        if (!$this->exception instanceof MethodNotAllowedHttpException){
+            // 请求方法错误不做下面判断
+            if (! ($this->request->wantsJson() || $this->request->ajax())){
+                return false;
+            }
         }
 
         // 钉钉异常通知
