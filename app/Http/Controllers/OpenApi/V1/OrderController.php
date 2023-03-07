@@ -22,6 +22,7 @@ class OrderController extends Controller
      */
     public function create(Request $request)
     {
+        \Log::info('开发接口订单创建', $request->all());
         if (!$app_id = $request->get('app_id')) {
             return $this->error('app_id不能为空', 422);
         }
@@ -159,6 +160,7 @@ class OrderController extends Controller
      */
     public function info(Request $request)
     {
+        \Log::info('开发接口订单详情', $request->all());
         if (!$app_id = $request->get('app_id')) {
             return $this->error('app_id不能为空', 422);
         }
