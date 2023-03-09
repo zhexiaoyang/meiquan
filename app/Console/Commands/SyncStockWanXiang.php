@@ -152,7 +152,11 @@ class SyncStockWanXiang extends Command
             foreach ($data as $items) {
                 $stock_data = [];
                 $stock_data_ele = [];
+                $log_off = false;
                 foreach ($items as $item) {
+                    if ($item->id == '00723' && $mt_id = '16297828') {
+                        $log_off = true;
+                    }
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
                         'stock' => (int) $item->stock,
@@ -166,7 +170,10 @@ class SyncStockWanXiang extends Command
                     $minkang->medicineStock($params);
                 } else {
                     $params['access_token'] = $meiquan->getShopToken($shop_id);
-                    $meiquan->medicineStock($params);
+                    $res = $meiquan->medicineStock($params);
+                    if ($log_off) {
+                        Log::info("loglogloglog", [$res]);
+                    }
                 }
 
                 $ele_params['shop_id'] = $ele_id;
