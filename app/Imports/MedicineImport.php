@@ -9,10 +9,11 @@ use App\Models\MedicineDepot;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
+class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, WithCalculatedFormulas
 {
     public $shop_id;
 
@@ -29,11 +30,15 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
             throw new InvalidRequestException('药品数量为空', 422);
         }
 
+        $chongfu = [];
 
         foreach ($row as $k => $item) {
             $line = $k + 3;
             if (!isset($item['商品条码'])) {
                 throw new InvalidRequestException("第{$line}不存在商品条码", 422);
+            }
+            if (isset($chongfu[$item['商品条码']])) {
+                throw new InvalidRequestException("第{$line}行商品条码与第{$chongfu[$item['商品条码']]}行商品条码重复", 422);
             }
             if (empty($item['商品条码'])) {
                 throw new InvalidRequestException("第{$line}商品条码不能为空", 422);
@@ -47,6 +52,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation
             if (!isset($item['库存'])) {
                 throw new InvalidRequestException("第{$line}不存在库存", 422);
             }
+            $chongfu[$item['商品条码']] = $line;
         }
 
         foreach ($row as $item) {
