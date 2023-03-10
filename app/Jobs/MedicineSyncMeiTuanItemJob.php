@@ -33,13 +33,21 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
      */
     public function __construct(string $key, array $params, $api, Shop $shop, $medicine_id, $depot_id = 0, $name = '', $upc = '')
     {
+        // 日志ID
         $this->key = $key;
+        // 药品数据
         $this->params = $params;
+        // 美团绑定应用
         $this->api = $api;
+        // 门店信息
         $this->shop = $shop;
+        // 药品ID
         $this->medicine_id = $medicine_id;
+        // 品库ID
         $this->depot_id = $depot_id;
+        // 药品名称
         $this->name = $name;
+        // 药品条码
         $this->upc = $upc;
     }
 
