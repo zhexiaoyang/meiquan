@@ -157,11 +157,13 @@ class SyncStockWanXiang extends Command
                     // if ($item->id == '00723' && $mt_id = '16297828') {
                     //     $log_off = true;
                     // }
+                    $stock = (int) $item->stock;
+                    $stock = $stock >= 0 ? $stock : 0;
                     $stock_data[] = [
                         'app_medicine_code' => $item->id,
-                        'stock' => (int) $item->stock,
+                        'stock' => $stock,
                     ];
-                    $stock_data_ele[] = $item->upc . ':' . (int) $item->stock;
+                    $stock_data_ele[] = $item->upc . ':' . $stock;
                 }
 
                 $params['app_poi_code'] = $mt_id;
