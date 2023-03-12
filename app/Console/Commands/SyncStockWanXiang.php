@@ -170,7 +170,9 @@ class SyncStockWanXiang extends Command
                     $minkang->medicineStock($params);
                 } else {
                     $params['access_token'] = $meiquan->getShopToken($mt_id);
-                    $meiquan->medicineStock($params);
+                    $mtres = $meiquan->medicineStock($params);
+                    Log::info("万祥美团门店「{$name}}:{$mt_id}」同步库存-请求参数", $stock_data);
+                    Log::info("万祥美团门店「{$name}}:{$mt_id}」同步库存-结果", [$mtres]);
                     // $res = $meiquan->medicineStock($params);
                     // if ($log_off) {
                     //     Log::info("loglogloglog", [$res]);
@@ -179,9 +181,10 @@ class SyncStockWanXiang extends Command
 
                 $ele_params['shop_id'] = $ele_id;
                 $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
-                $ele->skuStockUpdate($ele_params);
-                // $eleres = $ele->skuStockUpdate($ele_params);
-                // Log::info("万祥饿了么同步结果", [$eleres]);
+                // $ele->skuStockUpdate($ele_params);
+                $eleres = $ele->skuStockUpdate($ele_params);
+                Log::info("万祥饿了么门店「{$name}}:{$mt_id}」同步库存-请求参数", $stock_data_ele);
+                Log::info("万祥饿了么门店「{$name}}:{$mt_id}」同步库存-结果", [$eleres]);
             }
             $this->info("门店「{$name}}:{$mt_id}」同步库存-结束......");
             Log::info("门店「{$name}}:{$mt_id}」同步库存-结束......");
