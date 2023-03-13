@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\WmMedicineExport;
 use App\Imports\MedicineImport;
+use App\Imports\MedicineUpdateImport;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
 use App\Models\Medicine;
@@ -85,7 +86,7 @@ class MedicineController extends Controller
         if ($excep = $request->get('exception')) {
             $excep = intval($excep);
             if ($excep === 2) {
-                $query->whereColumn('guidance_price', '>', 'price');
+                $query->whereColumn('guidance_price', '>=', 'price');
             }
         }
 
@@ -95,6 +96,16 @@ class MedicineController extends Controller
     }
 
     public function import(Request $request, MedicineImport $import)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        $import->shop_id = $shop_id;
+        Excel::import($import, $request->file('file'));
+        return $this->success();
+    }
+
+    public function updateImport(Request $request, MedicineUpdateImport $import)
     {
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
@@ -337,7 +348,7 @@ class MedicineController extends Controller
         $medicine->update($data);
 
         $shop = null;
-        if ($medicine->mt_status == 1) {
+        if ($medicine->mt_status == 1 && $price > 0) {
             $shop = Shop::find($medicine->shop_id);
             $meituan = null;
             if ($shop->meituan_bind_platform === 4) {
@@ -360,7 +371,7 @@ class MedicineController extends Controller
                 // \Log::info('aaa美团', [$res]);
             }
         }
-        if ($medicine->ele_status == 1) {
+        if ($medicine->ele_status == 1 && $price > 0) {
             if (!$shop) {
                 $shop = Shop::find($medicine->shop_id);
             }

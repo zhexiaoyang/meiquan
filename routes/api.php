@@ -37,6 +37,13 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 药品管理
          */
+        // 同步任务列表
+        Route::post("medicine/sync/log", "MedicineSyncLogController@index");
+        // 同步任务列表-导出
+        Route::get("medicine/sync/log/export", "MedicineSyncLogController@export");
+        /**
+         * 药品管理
+         */
         // 药品门店列表
         Route::get("medicine/shops", "MedicineController@shops");
         // 删除药品
@@ -49,8 +56,10 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/product", "MedicineController@product");
         // 根据门店ID和条形码获取药品信息
         Route::get("medicine/product/by/upc", "MedicineController@infoByUpc");
-        // 药品门店导入
+        // 新增商品-批量导入
         Route::post("medicine/import", "MedicineController@import");
+        // 修改商品-批量导入
+        Route::post("medicine/update/import", "MedicineController@updateImport");
         // 药品管理-同步
         Route::post("medicine/takeout/sync", "MedicineController@sync");
         Route::post("medicine/takeout/sync/log", "MedicineController@sync_log");
