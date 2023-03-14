@@ -99,12 +99,17 @@ class ProductController extends Controller
             $meituan = app("minkang");
         } elseif ($type === 5) {
             $meituan = app("qinqu");
+        } elseif ($type === 31) {
+            $meituan = app("meiquan");
         } else {
             return $this->error("系统错误", 701);
         }
 
         $params['app_poi_code'] = $mt_shop_id;
         $params['medicine_data'] = json_encode($medicine_data);
+        if ($type === 31) {
+            $params['access_token'] = $meituan->getShopToken($mt_shop_id);
+        }
 
         $res = $meituan->medicineStock($params);
 
