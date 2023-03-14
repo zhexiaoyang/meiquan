@@ -71,7 +71,7 @@ class MedicineUpdateImportJob implements ShouldQueue
             // 同步美团
             if ($medicine->mt_status === 2) {
                 $msg .= MedicineSyncLogItem::MEDICINE_NO_SYNC_FAIL_MEITUAN;
-            } elseif ($medicine->mt_status === 1) {
+            } elseif ($medicine->mt_status === 0) {
                 $msg .= MedicineSyncLogItem::MEDICINE_NO_SYNC_MEITUAN;
             } else {
                 if (!$shop->waimai_mt) {
@@ -107,6 +107,8 @@ class MedicineUpdateImportJob implements ShouldQueue
                             $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                         }
                         $res = $meituan->medicineUpdate($params);
+                        \Log::info('meituan-params', $params);
+                        \Log::info('meituan-res', [$res]);
                         if ($res['data'] === 'ok') {
                             $mt = true;
                         } elseif ($res['data'] === 'ng') {
@@ -122,7 +124,7 @@ class MedicineUpdateImportJob implements ShouldQueue
             // 同步饿了么
             if ($medicine->ele_status === 2) {
                 $msg .= MedicineSyncLogItem::MEDICINE_NO_SYNC_FAIL_ELE;
-            } elseif ($medicine->mt_status === 1) {
+            } elseif ($medicine->ele_status === 0) {
                 $msg .= MedicineSyncLogItem::MEDICINE_NO_SYNC_ELE;
             } else {
                 if (!$shop->waimai_ele) {
@@ -163,13 +165,13 @@ class MedicineUpdateImportJob implements ShouldQueue
 
     public function checkEnd($medicine, $msg, $status = false, $mt = false, $ele = false)
     {
-        \Log::info('bbb', [
-            $this->log,
-            $msg,
-            $status,
-            $mt,
-            $ele,
-        ]);
+        // \Log::info('bbb', [
+        //     $this->log,
+        //     $msg,
+        //     $status,
+        //     $mt,
+        //     $ele,
+        // ]);
         $log = $this->log;
         $redis_key = 'medicine_job_key_' . $log->log_id;
         $catch = Redis::hget($redis_key, $medicine->id);
