@@ -70,11 +70,31 @@ class MedicineController extends Controller
         }
         $mt = $request->get('mt');
         if (!is_null($mt) && $mt !== '') {
-            $query->where('mt_status', $mt);
+            \Log::info('sdfjksdfhkjs');
+            \Log::info($mt);
+            if ($mt == 1 || $mt == 2) {
+                $query->where('mt_status', $mt);
+            } elseif ($mt == 3) {
+                $query->where('online_mt', 1)->where('stock', '>', 0);
+            } elseif ($mt == 4) {
+                \Log::info('sdfjksdfhkjs');
+                $query->where('online_mt', 0);
+            } elseif ($mt == 5) {
+                $query->where('stock', 0);
+            }
         }
         $ele = $request->get('ele');
         if (!is_null($ele) && $ele !== '') {
-            $query->where('ele_status', $ele);
+            // $query->where('ele_status', $ele);
+            if ($ele == 1 || $ele == 2) {
+                $query->where('ele_status', $ele);
+            } elseif ($ele == 3) {
+                $query->where('online_ele', 1)->where('stock', '>', 0);
+            } elseif ($ele == 4) {
+                $query->where('online_ele', 0);
+            } elseif ($ele == 5) {
+                $query->where('stock', 0);
+            }
         }
         if ($id = $request->get('id')) {
             $query->where('id', $id);
