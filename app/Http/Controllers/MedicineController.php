@@ -91,7 +91,7 @@ class MedicineController extends Controller
             }
         }
 
-        $data =$query->paginate($request->get('page_size', 10));
+        $data =$query->orderBy('sequence')->paginate($request->get('page_size', 10));
 
         return $this->page($data, [],'data');
     }
