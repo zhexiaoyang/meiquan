@@ -7,6 +7,7 @@ use App\Imports\MedicineImport;
 use App\Imports\MedicineUpdateImport;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
+use App\Jobs\MedicineUpdateImportJob;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
@@ -867,5 +868,61 @@ class MedicineController extends Controller
             'stock' => $product->stock,
         ];
         return $this->success($data);
+    }
+
+    public function medicineUpperAndLower(Request $request)
+    {
+        $product_ids = $request->get('product_id', []);
+        if (empty($product_ids)) {
+            return $this->error('请选择操要操作的药品');
+        }
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        if (!$status= $request->get('status')) {
+            // 1 上架。2 下架
+            return $this->error('请选择上下架操作');
+        }
+        if (!in_array($status, [1,2])) {
+            return $this->error('上下架选择错误');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            // \Log::info("没有全部门店权限");
+            if ($shop->user_id != $request->user()->id) {
+                // 非管理员判断
+                return $this->error('门店不存在!');
+            }
+        }
+
+        $data = Medicine::where('shop_id', $shop_id)->whereIn('id', $product_ids)->limit(5000)->get();
+        if (empty($data)) {
+            return $this->error('药品不存在');
+        }
+        // 添加日志
+        $log = MedicineSyncLog::create([
+            'shop_id' => $shop_id,
+            'title' => '批量' . $status == 1 ? '上架' : '下架' . '药品',
+            'log_id' => uniqid(),
+            'total' => count($data),
+        ]);
+        foreach ($data as $v) {
+            $medicine_data = [
+                'upc' => $v->upc,
+            ];
+            if ($status == 1) {
+                $medicine_data['online_mt'] = 1;
+                $medicine_data['online_ele'] = 1;
+            } else {
+                $medicine_data['online_mt'] = 0;
+                $medicine_data['online_ele'] = 0;
+            }
+            // status 传过去没啥用
+            MedicineUpdateImportJob::dispatch($shop_id, 0, $log->id, $status == 1 ? 0 : 1, $medicine_data)->onQueue('medicine');
+        }
+
+        return $this->success('提交成功');
     }
 }

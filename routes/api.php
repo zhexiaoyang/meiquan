@@ -63,6 +63,8 @@ Route::middleware(["force-json"])->group(function() {
         // 药品管理-同步
         Route::post("medicine/takeout/sync", "MedicineController@sync");
         Route::post("medicine/takeout/sync/log", "MedicineController@sync_log");
+        // 药品管理-批量上下架
+        Route::post("medicine/takeout/medicineUpperAndLower", "MedicineController@medicineUpperAndLower");
         // 导出
         Route::get("medicine/export", "MedicineController@export_medicine");
         // 导出

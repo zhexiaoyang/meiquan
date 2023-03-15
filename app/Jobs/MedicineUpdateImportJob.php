@@ -22,7 +22,7 @@ class MedicineUpdateImportJob implements ShouldQueue
     public $medicine;
     public $platform;
     public $shop_id;
-    public $log;
+    public $log_id;
     public $online_status;
 
     /**
@@ -30,12 +30,13 @@ class MedicineUpdateImportJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(int $shop_id, int $platform, MedicineSyncLog $log, $online_status, array $medicine)
+    public function __construct(int $shop_id, int $platform, $log_id, $online_status, array $medicine)
     {
-        $this->log = $log;
+        $this->log_id = $log_id;
         $this->shop_id = $shop_id;
         $this->platform = $platform;
         $this->medicine = $medicine;
+        // 0 上架，1 下架
         $this->online_status = $online_status;
     }
 
@@ -46,13 +47,13 @@ class MedicineUpdateImportJob implements ShouldQueue
      */
     public function handle()
     {
-        \Log::info('aaa', [
-            $this->log,
-            $this->shop_id,
-            $this->platform,
-            $this->medicine,
-            $this->online_status,
-        ]);
+        // \Log::info('aaa', [
+        //     $this->log_id,
+        //     $this->shop_id,
+        //     $this->platform,
+        //     $this->medicine,
+        //     $this->online_status,
+        // ]);
         $shop_id = $this->shop_id;
         // $log = $this->log;
         $platform = $this->platform;
@@ -101,14 +102,14 @@ class MedicineUpdateImportJob implements ShouldQueue
                             $params['sequence'] = $medicine_data['sequence'];
                         }
                         if (isset($medicine_data['online_mt'])) {
-                            $params['is_sold_out'] = $medicine_data['online_mt'];
+                            $params['is_sold_out'] = $medicine_data['online_mt'] === 1 ? 0 : 1;
                         }
                         if ($shop->meituan_bind_platform == 31) {
                             $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                         }
                         $res = $meituan->medicineUpdate($params);
-                        \Log::info('meituan-params', $params);
-                        \Log::info('meituan-res', [$res]);
+                        // \Log::info('meituan-params', $params);
+                        // \Log::info('meituan-res', [$res]);
                         if ($res['data'] === 'ok') {
                             $mt = true;
                         } elseif ($res['data'] === 'ng') {
@@ -142,13 +143,13 @@ class MedicineUpdateImportJob implements ShouldQueue
                         $params['left_num'] = $medicine_data['stock'];
                     }
                     if (isset($medicine_data['online_ele'])) {
-                        $params['status'] = $medicine_data['online_ele'] === 1 ? 0 : 1;
+                        $params['status'] = $medicine_data['online_ele'];
                     }
                     // if (isset($medicine_data['sequence'])) {
                     //     $params['sequence'] = $medicine_data['sequence'];
                     // }
                     $res = $eleme->skuUpdate($params);
-                    \Log::info('ele-res', [$res]);
+                    // \Log::info('ele-res', [$res]);
                     if ($res['body']['errno'] === 0) {
                         $ele = true;
                     } else {
@@ -172,31 +173,31 @@ class MedicineUpdateImportJob implements ShouldQueue
         //     $mt,
         //     $ele,
         // ]);
-        $log = $this->log;
-        $redis_key = 'medicine_job_key_' . $log->log_id;
+        // $log = $this->log;
+        $redis_key = 'medicine_job_key_' . $this->log_id;
         $catch = Redis::hget($redis_key, $medicine->id);
         if (!$catch) {
             Redis::hset($redis_key, $medicine->id, 1);
             if ($status) {
                 // $log->increment('success');
-                MedicineSyncLog::where('id', $log->id)->increment('success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('success');
             } else {
                 // $log->increment('fail');
-                MedicineSyncLog::where('id', $log->id)->increment('fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('fail');
             }
             if ($mt) {
                 // $log->increment('mt_success');
-                MedicineSyncLog::where('id', $log->id)->increment('mt_success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('mt_success');
             } else {
                 // $log->increment('mt_fail');
-                MedicineSyncLog::where('id', $log->id)->increment('mt_fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('mt_fail');
             }
             if ($ele) {
                 // $log->increment('ele_success');
-                MedicineSyncLog::where('id', $log->id)->increment('ele_success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('ele_success');
             } else {
                 // $log->increment('ele_fail');
-                MedicineSyncLog::where('id', $log->id)->increment('ele_fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('ele_fail');
             }
         }
 
@@ -205,13 +206,13 @@ class MedicineUpdateImportJob implements ShouldQueue
         }
 
         MedicineSyncLogItem::create([
-            'log_id' => $log->id,
+            'log_id' => $this->log_id,
             'name' => $medicine->name,
             'upc' => $medicine->upc,
             'msg' => $msg
         ]);
 
-        $log = MedicineSyncLog::find($log->id);
+        $log = MedicineSyncLog::find($this->log_id);
         if ($log->total <= ($log->success + $log->fail)) {
             Redis::expire($redis_key, 60);
             $log->update([
@@ -222,25 +223,24 @@ class MedicineUpdateImportJob implements ShouldQueue
 
     public function checkEnd2($medicine, $msg, $status = false, $mt = false, $ele = false)
     {
-        $log = $this->log;
-        $redis_key = 'medicine_job_key_' . $log->log_id;
+        $redis_key = 'medicine_job_key_' . $this->log_id;
         $catch = Redis::hget($redis_key, $medicine['upc']);
         if (!$catch) {
             Redis::hset($redis_key, $medicine['upc'], 1);
             if ($status) {
-                MedicineSyncLog::where('id', $log->id)->increment('success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('success');
             } else {
-                MedicineSyncLog::where('id', $log->id)->increment('fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('fail');
             }
             if ($mt) {
-                MedicineSyncLog::where('id', $log->id)->increment('mt_success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('mt_success');
             } else {
-                MedicineSyncLog::where('id', $log->id)->increment('mt_fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('mt_fail');
             }
             if ($ele) {
-                MedicineSyncLog::where('id', $log->id)->increment('ele_success');
+                MedicineSyncLog::where('id', $this->log_id)->increment('ele_success');
             } else {
-                MedicineSyncLog::where('id', $log->id)->increment('ele_fail');
+                MedicineSyncLog::where('id', $this->log_id)->increment('ele_fail');
             }
         }
 
@@ -249,12 +249,12 @@ class MedicineUpdateImportJob implements ShouldQueue
         }
 
         MedicineSyncLogItem::query()->create([
-            'log_id' => $log->id,
+            'log_id' => $this->log_id,
             'upc' => $medicine['upc'],
             'msg' => $msg
         ]);
 
-        $log = MedicineSyncLog::find($log->id);
+        $log = MedicineSyncLog::find($this->log_id);
         if ($log->total <= ($log->success + $log->fail)) {
             Redis::expire($redis_key, 60);
             $log->update([

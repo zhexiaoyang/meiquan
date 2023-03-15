@@ -108,7 +108,7 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (!empty(trim($item['排序']))) {
                 $medicine_data['sequence'] = trim($item['排序']);
             }
-            MedicineUpdateImportJob::dispatch($this->shop_id, 0, $log, $online_status, $medicine_data)->onQueue('medicine');
+            MedicineUpdateImportJob::dispatch($this->shop_id, 0, $log->id, $online_status, $medicine_data)->onQueue('medicine');
         }
     }
 
