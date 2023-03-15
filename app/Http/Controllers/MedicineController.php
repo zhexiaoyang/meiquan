@@ -904,7 +904,7 @@ class MedicineController extends Controller
         // 添加日志
         $log = MedicineSyncLog::create([
             'shop_id' => $shop_id,
-            'title' => '批量' . $status == 1 ? '上架' : '下架' . '药品',
+            'title' => '批量' . ($status == 1 ? '上架' : '下架') . '药品',
             'log_id' => uniqid(),
             'total' => count($data),
         ]);
