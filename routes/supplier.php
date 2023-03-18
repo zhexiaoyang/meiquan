@@ -19,6 +19,8 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
         Route::prefix("product")->group(function () {
             // 品库列表
             Route::get("depot", "ProductController@depot");
+            // 品库列表
+            Route::get("depot_yun", "ProductController@depot_yun");
             // 商品列表
             Route::get("index", "ProductController@index");
             // 商品详情
@@ -31,6 +33,7 @@ Route::middleware(['force-json'])->prefix("supplier")->namespace("Supplier")->gr
             Route::post("update", "ProductController@update");
             // 品库添加商品
             Route::post("add", "ProductController@add");
+            Route::post("add_yun", "ProductController@add_yun");
             // 删除商品
             Route::post("destroy", "ProductController@destroy");
             // 商品上下架

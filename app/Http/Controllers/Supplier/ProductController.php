@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Supplier;
 use App\Http\Requests\Supplier\ProductRequest;
 use App\Http\Requests\Supplier\ProductUpdateRequest;
 use App\Models\Category;
+use App\Models\MedicineDepot;
 use App\Models\SupplierCategory;
 use App\Models\SupplierDepot;
 use App\Models\SupplierProduct;
@@ -111,23 +112,56 @@ class ProductController extends Controller
     {
         $page_size = $request->get("page_size", 20);
         $upc = $request->get("upc", "");
-        $search_key = $request->get("search_key", "");
+        $name = $request->get("name", "");
 
-        $query = SupplierDepot::query()->select("id","cover","name","spec","unit","upc","status","manufacturer","approval","term_of_validity");
+        $query = SupplierDepot::select("id","cover","name","spec","unit","upc","status","manufacturer","approval","term_of_validity");
 
-        if ($search_key) {
-            $query->where("name", "like", "%{$search_key}%")
-                ->orWhere("generi_name", "like", "%{$search_key}%")
-                ->orWhere("upc", "like", "%{$search_key}%")
-                ->orWhere("manufacturer", "like", "%{$search_key}%")
-                ->orWhere("approval", "like", "%{$search_key}%");
+        if ($name) {
+            $query->where("name", "like", "%{$name}%");
+        }
+        if ($upc) {
+            $query->where("upc", $upc);
         }
 
-//        if ($upc) {
-//            $query->where("upc", "like", "%{$upc}%");
-//        }
+        $depots = $query->orderBy("id", "desc")->paginate($page_size);
+
+        if (!empty($depots)) {
+            foreach ($depots as $depot) {
+                $depot->yun = 0;
+            }
+        }
+
+
+        return $this->page($depots);
+    }
+
+    public function depot_yun(Request $request)
+    {
+        $page_size = $request->get("page_size", 20);
+        $upc = $request->get("upc", "");
+        $name = $request->get("name", "");
+
+        if (!$upc && !$name) {
+            return $this->error('搜索云品库需添加搜索条件');
+        }
+
+        $query = MedicineDepot::select("id","cover","name","spec","upc")->where('cover', '<>', '');
+
+        if ($name) {
+            $query->where("name", "like", "%{$name}%");
+        }
+        if ($upc) {
+            $query->where("upc", $upc);
+        }
 
         $depots = $query->orderBy("id", "desc")->paginate($page_size);
+
+        if (!empty($depots)) {
+            foreach ($depots as $depot) {
+                $depot->status = 1;
+                $depot->yun = 1;
+            }
+        }
 
 
         return $this->page($depots);
@@ -318,6 +352,96 @@ class ProductController extends Controller
     {
         if (!$depot = SupplierDepot::query()->find($request->get("depot_id", 0))) {
             return $this->error("品库中无此商品");
+        }
+
+        if ($depot->status !== 20) {
+            return $this->error("商品正在审核中，请稍后");
+        }
+
+        $user = Auth::user();
+
+        if ($product = SupplierProduct::query()->where(['depot_id' => $depot->id, "user_id" => $user->id])->first()) {
+            return $this->error("商品已存在，不能重复添加");
+        }
+
+        $request->validate([
+            // 'price' => 'bail|required|numeric|min:0',
+            'stock' => 'bail|required|numeric',
+            'number' => 'bail|required',
+            'product_date' => 'bail|required|date',
+            // 'product_end_date' => 'bail|required|date',
+        ],[
+            'price.required' => '药品价格不能为空',
+            'price.numeric' => '药品价格格式不正确',
+            // 'price.min' => '药品价格不能小于等于0',
+            'stock.required' => '药品库存不能为空',
+            'stock.numeric' => '药品库存格式不正确',
+            'spec.required' => '药品规格不能为空',
+            'number.required' => '批号不能为空',
+            // 'product_date.required' => '生产日期不能为空',
+            // 'product_end_date.required' => '有效日期不能为空',
+        ]);
+
+        $product_data['user_id'] = $user->id;
+        $product_data['depot_id'] = $depot->id;
+        $product_data['status'] = 20;
+        $product_data['third_id'] = $request->get("third_id", "");
+        $product_data['price'] = $request->get("price");
+        $product_data['stock'] = $request->get("stock");
+        $product_data['number'] = $request->get("number");
+        $product_data['weight'] = $request->get("weight", 0);
+        $product_data['detail'] = $request->get("detail", "");
+        $product_data['product_date'] = $request->get("product_date");
+        // $product_data['product_end_date'] = $request->get("product_date");
+        $product_data['is_control'] = $request->get("is_control", 0);
+        $product_data['is_meituan'] = $request->get("is_meituan", 0);
+        $product_data['is_ele'] = $request->get("is_ele", 0);
+        $product_data['control_price'] = $request->get("control_price", 0);
+
+        if (!empty($depot->term_of_validity) && intval($depot->term_of_validity) > 0) {
+            $month = intval($depot->term_of_validity);
+            $end_date = date("Y-m-d", strtotime("+{$month} month",strtotime($request->get("product_date"))) - 86400);
+            \Log::info($end_date);
+            $product_data['product_end_date'] = $end_date;
+        }
+        SupplierProduct::query()->create($product_data);
+
+        return $this->success();
+    }
+
+    /**
+     * 品库中添加商品
+     * @param Request $request
+     * @return mixed
+     */
+    public function add_yun(Request $request)
+    {
+        if (!$yun = MedicineDepot::find($request->get("depot_id", 0))) {
+            return $this->error("云品库中无此商品");
+        }
+
+        if (!$depot = SupplierDepot::where(['upc' => $yun->upc])->first()) {
+            // $depot_data = $request->only("name","spec","unit","is_otc","upc","approval","cover","first_category","second_category","price","term_of_validity","manufacturer","generi_name");
+            // $depot_data['images'] = implode(",", $request->get("images"));
+            $depot = SupplierDepot::create([
+                'name' => $yun->name,
+                'spec' => $yun->spec,
+                'upc' => $yun->upc,
+                'cover' => $yun->cover,
+                'first_category' => 1700,
+                'second_category' => 1800167,
+                'status' => 20,
+                'images' => $yun->picture,
+            ]);
+        }
+
+        if ($depot->status !== 20) {
+            return $this->error("商品正在审核中，请稍后");
+        }
+
+        $user = $request->user();
+        if ($product = SupplierProduct::where(['depot_id' => $depot->id, "user_id" => $user->id])->first()) {
+            return $this->error("商品已存在，不能重复添加");
         }
 
         if ($depot->status !== 20) {
