@@ -11,6 +11,7 @@ use App\Jobs\MedicineUpdateImportJob;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
+use App\Models\MedicineSelectShop;
 use App\Models\MedicineSyncLog;
 use App\Models\Shop;
 use Illuminate\Http\Request;
@@ -28,7 +29,11 @@ class MedicineController extends Controller
         if ($name = $request->get('name')) {
             $shops = $query->where('shop_name', 'like', "%{$name}%")->orderBy('id')->limit(30)->get();
         } else {
-            $shops = $query->orderBy('id')->limit(15)->get();
+            if ($select_shops = MedicineSelectShop::where('user_id', $request->user()->id)->first()) {
+                $shops = $query->where('id', $select_shops->shop_id)->get();
+            } else {
+                $shops = $query->orderBy('id')->limit(15)->get();
+            }
         }
 
         return $this->success($shops);
@@ -58,6 +63,12 @@ class MedicineController extends Controller
             }
         }
 
+        $user_id = $request->user()->id;
+        MedicineSelectShop::updateOrCreate(
+            [ 'user_id' => $user_id ],
+            [ 'user_id' => $user_id, 'shop_id' => $shop_id ]
+        );
+
         $query = Medicine::with(['categories' => function ($query) {
             $query->select('id', 'name');
         }])->where('shop_id', $shop_id);
@@ -70,14 +81,11 @@ class MedicineController extends Controller
         }
         $mt = $request->get('mt');
         if (!is_null($mt) && $mt !== '') {
-            \Log::info('sdfjksdfhkjs');
-            \Log::info($mt);
             if ($mt == 1 || $mt == 2) {
                 $query->where('mt_status', $mt);
             } elseif ($mt == 3) {
                 $query->where('online_mt', 1)->where('stock', '>', 0);
             } elseif ($mt == 4) {
-                \Log::info('sdfjksdfhkjs');
                 $query->where('online_mt', 0);
             } elseif ($mt == 5) {
                 $query->where('stock', 0);
