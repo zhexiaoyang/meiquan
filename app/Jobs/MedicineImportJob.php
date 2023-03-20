@@ -84,23 +84,26 @@ class MedicineImportJob implements ShouldQueue
                     'depot_id' => $depot->id,
                 ];
             } else {
-                $name = $this->medicine['name'];
-                $_depot = MedicineDepot::create([
-                    'name' => $name,
-                    'upc' => $upc
-                ]);
-                \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
-                $medicine_arr = [
-                    'shop_id' => $this->shop_id,
-                    'name' => $name,
-                    'upc' => $upc,
-                    'brand' => '',
-                    'spec' => '',
-                    'price' => $price,
-                    'stock' => $stock,
-                    'guidance_price' => $cost,
-                    'depot_id' => 0,
-                ];
+                $l = strlen($upc);
+                if ($l >= 7 && $l <= 19) {
+                    $name = $this->medicine['name'];
+                    $_depot = MedicineDepot::create([
+                        'name' => $name,
+                        'upc' => $upc
+                    ]);
+                    \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
+                    $medicine_arr = [
+                        'shop_id' => $this->shop_id,
+                        'name' => $name,
+                        'upc' => $upc,
+                        'brand' => '',
+                        'spec' => '',
+                        'price' => $price,
+                        'stock' => $stock,
+                        'guidance_price' => $cost,
+                        'depot_id' => 0,
+                    ];
+                }
             }
             Medicine::create($medicine_arr);
         }

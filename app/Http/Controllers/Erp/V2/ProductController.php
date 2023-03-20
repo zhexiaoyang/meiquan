@@ -151,22 +151,25 @@ class ProductController extends Controller
                             'depot_id' => $depot->id,
                         ];
                     } else {
-                        $_depot = MedicineDepot::create([
-                            'name' => $v['name'] ?? '',
-                            'upc' => $upc
-                        ]);
-                        \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
-                        $medicine_arr = [
-                            'shop_id' => $shop->id,
-                            'name' => $v['name'] ?? '',
-                            'upc' => $upc,
-                            'brand' => '',
-                            'spec' => '',
-                            'price' => $price,
-                            'stock' => $stock,
-                            'guidance_price' => $cost,
-                            'depot_id' => $_depot->id,
-                        ];
+                        $l = strlen($upc);
+                        if ($l >= 7 && $l <= 19) {
+                            $_depot = MedicineDepot::create([
+                                'name' => $v['name'] ?? '',
+                                'upc' => $upc
+                            ]);
+                            \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
+                            $medicine_arr = [
+                                'shop_id' => $shop->id,
+                                'name' => $v['name'] ?? '',
+                                'upc' => $upc,
+                                'brand' => '',
+                                'spec' => '',
+                                'price' => $price,
+                                'stock' => $stock,
+                                'guidance_price' => $cost,
+                                'depot_id' => $_depot->id,
+                            ];
+                        }
                     }
                     Medicine::create($medicine_arr);
                 }
