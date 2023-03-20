@@ -702,7 +702,7 @@ class MedicineController extends Controller
                     $res = $meituan->medicineSave($medicine_data);
                     \Log::info("品库添加商品-美团添加药品", [$medicine_data, $res]);
                     if ($res['data'] === 'ok') {
-                        Medicine::where('id', $medicine->id)->update(['mt_status' => 1]);
+                        Medicine::where('id', $medicine->id)->update(['mt_status' => 1, 'online_mt' => 1]);
                         $message .= '美团添加商品成功。';
                     } elseif ($res['data'] === 'ng') {
                         $error_msg = $res['error']['msg'] ?? '';
@@ -780,7 +780,7 @@ class MedicineController extends Controller
                 $res = $ele->add_product($medicine_data);
                 \Log::info("品库添加商品-饿了么添加商品", [$medicine_data, $res]);
                 if ($res['body']['error'] === 'success') {
-                    Medicine::where('id', $medicine->id)->update(['ele_status' => 1]);
+                    Medicine::where('id', $medicine->id)->update(['ele_status' => 1, 'online_ele' => 1]);
                     $message .= '饿了么添加商品成功。';
                 } else {
                     $error_msg = $res['body']['error'] ?? '';
