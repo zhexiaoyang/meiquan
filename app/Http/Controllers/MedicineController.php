@@ -21,7 +21,7 @@ class MedicineController extends Controller
 {
     public function shops(Request $request)
     {
-        $query = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
+        $query = Shop::query()->select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
             $query->whereIn('id', $request->user()->shops()->pluck('id')->toArray());
@@ -30,7 +30,9 @@ class MedicineController extends Controller
             $shops = $query->where('shop_name', 'like', "%{$name}%")->orderBy('id')->limit(30)->get();
         } else {
             if ($select_shops = MedicineSelectShop::where('user_id', $request->user()->id)->first()) {
-                $shops = $query->where('id', $select_shops->shop_id)->get();
+                $shops = $query->orderBy('id')->limit(14)->get();
+                $shop_select = Shop::select('id', 'shop_name')->find($select_shops->shop_id);
+                $shops->prepend($shop_select);
             } else {
                 $shops = $query->orderBy('id')->limit(15)->get();
             }
