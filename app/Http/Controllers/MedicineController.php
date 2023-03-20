@@ -620,6 +620,7 @@ class MedicineController extends Controller
             'stock' => $stock,
             'guidance_price' => $cost,
             'depot_id' => $depot->id,
+            'sequence' => 1000,
         ];
 
         $medicine = Medicine::create($medicine_arr);
