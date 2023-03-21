@@ -291,7 +291,7 @@ class ContractController extends Controller
      */
     public function contract2(Request $request)
     {
-        return $this->error("合同制作中，请稍后", 422);
+        // return $this->error("合同制作中，请稍后", 422);
         if (!$shop = OnlineShop::find(intval($request->get("shop_id")))) {
             return $this->error("门店ID不能为空");
         }
@@ -461,7 +461,7 @@ class ContractController extends Controller
      */
     public function contract4(Request $request)
     {
-        return $this->error("合同制作中，请稍后", 422);
+        // return $this->error("合同制作中，请稍后", 422);
         if (!$shop = OnlineShop::find(intval($request->get("shop_id")))) {
             return $this->error("门店ID不能为空");
         }

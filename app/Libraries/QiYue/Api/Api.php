@@ -182,8 +182,8 @@ class Api extends Request
                     'tenantType' => 'COMPANY',
                     'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
                     'receiver' => [
-                        'name' => '邓彬',
-                        'contact' => '15208474771',
+                        'name' => '赖婧',
+                        'contact' => '18581866171',
                         'contactType' => 'MOBILE'
                     ]
                 ],
@@ -207,11 +207,11 @@ class Api extends Request
                     "value" => $shop->address
                 ],
                 [
-                    "name" => "联系人",
+                    "name" => "甲方联系人",
                     "value" => $shop->applicant
                 ],
                 [
-                    "name" => "联系电话",
+                    "name" => "甲方联系电话",
                     "value" => $shop->applicant_phone
                 ]
             ]
@@ -351,7 +351,7 @@ class Api extends Request
             'contractId' => $contract_id,
             'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
             // 'tenantName' => '成都双流桃子互联网医院有限公司',
-            'sealId' => '2906846343840530888'
+            'sealId' => $type == 2 ? '3075717844034585154' : '3075708460902514957',
         ];
         return $this->post('/v2/contract/companysign', $data);
     }
