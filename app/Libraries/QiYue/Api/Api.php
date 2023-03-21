@@ -118,6 +118,7 @@ class Api extends Request
     {
         $data = [
             'send' => true,
+            'tenantName' => '杭州美全健康科技有限公司',
             'category' => [
                 'id' => '3075402575948882166'
             ],
@@ -168,6 +169,7 @@ class Api extends Request
         $ids = ['', '3075397622647825396', '3075396328235205253', '3075393744749531689'];
         $data = [
             'send' => true,
+            'tenantName' => '杭州美全健康科技有限公司',
             'category' => [
                 'id' => $ids[$type]
             ],
@@ -228,6 +230,7 @@ class Api extends Request
     {
         $data = [
             'send' => true,
+            'tenantName' => '杭州美全健康科技有限公司',
             'category' => [
                 // 'id' => '2936257351293943938',
                 'id' => '3075391582699004799',
@@ -280,6 +283,7 @@ class Api extends Request
     {
         $data = [
             'send' => true,
+            'tenantName' => '杭州美全健康科技有限公司',
             'category' => [
                 // 'id' => '2980478614300041265',
                 'id' => '3075388870649447009',
