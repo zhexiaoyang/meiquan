@@ -140,18 +140,18 @@ class Api extends Request
                     "name" => "甲方公司名称",
                     "value" => $shop->company_name
                 ],
-                [
-                    "name" => "甲方开户名称",
-                    "value" => $shop->bank_user
-                ],
-                [
-                    "name" => "甲方回款账号",
-                    "value" => $shop->account_no
-                ],
-                [
-                    "name" => "甲方开户银行",
-                    "value" => $shop->bank_name
-                ]
+                // [
+                //     "name" => "甲方开户名称",
+                //     "value" => $shop->bank_user
+                // ],
+                // [
+                //     "name" => "甲方回款账号",
+                //     "value" => $shop->account_no
+                // ],
+                // [
+                //     "name" => "甲方开户银行",
+                //     "value" => $shop->bank_name
+                // ]
             ]
         ];
         return $this->post('/v2/contract/draft', $data);
@@ -251,18 +251,18 @@ class Api extends Request
                     "name" => "甲方公司名称",
                     "value" => $shop->company_name
                 ],
-                [
-                    "name" => "甲方开户名称",
-                    "value" => $shop->bank_user
-                ],
-                [
-                    "name" => "甲方回款账号",
-                    "value" => $shop->account_no
-                ],
-                [
-                    "name" => "甲方开户银行",
-                    "value" => $shop->bank_name
-                ]
+                // [
+                //     "name" => "甲方开户名称",
+                //     "value" => $shop->bank_user
+                // ],
+                // [
+                //     "name" => "甲方回款账号",
+                //     "value" => $shop->account_no
+                // ],
+                // [
+                //     "name" => "甲方开户银行",
+                //     "value" => $shop->bank_name
+                // ]
             ]
         ];
         return $this->post('/v2/contract/draft', $data);
