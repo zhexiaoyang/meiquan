@@ -119,8 +119,7 @@ class Api extends Request
         $data = [
             'send' => true,
             'category' => [
-                // 'id' => '2822634020993504105'
-                'id' => '2822639597698159022'
+                'id' => '3075402575948882166'
             ],
             'signatories' => [
                 [
@@ -165,7 +164,8 @@ class Api extends Request
      */
     public function shopDraftTaozi(OnlineShop $shop, $type = 1)
     {
-        $ids = ['', '2907910074598953069', '2907917307005113105', '2907925343920722421'];
+        // $ids = ['', '2907910074598953069', '2907917307005113105', '2907925343920722421'];
+        $ids = ['', '3075397622647825396', '3075396328235205253', '3075393744749531689'];
         $data = [
             'send' => true,
             'category' => [
@@ -229,7 +229,8 @@ class Api extends Request
         $data = [
             'send' => true,
             'category' => [
-                'id' => '2936257351293943938'
+                // 'id' => '2936257351293943938',
+                'id' => '3075391582699004799',
             ],
             'signatories' => [
                 [
@@ -280,7 +281,8 @@ class Api extends Request
         $data = [
             'send' => true,
             'category' => [
-                'id' => '2980478614300041265'
+                // 'id' => '2980478614300041265',
+                'id' => '3075388870649447009',
             ],
             'signatories' => [
                 [
