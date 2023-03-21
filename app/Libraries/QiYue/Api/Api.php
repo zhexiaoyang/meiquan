@@ -342,6 +342,7 @@ class Api extends Request
      */
     public function companysignTaozi($contract_id, $type = 1)
     {
+        // sealId 公章ID 桃子的
         $data = [
             'contractId' => $contract_id,
             'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
