@@ -67,7 +67,7 @@ class Api extends Request
             'signatories' => [
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '吉林省美全科技有限责任公司'
+                    'tenantName' => '杭州美全健康科技有限公司'
                 ],
                 [
                     'tenantType' => 'COMPANY',
@@ -124,7 +124,7 @@ class Api extends Request
             'signatories' => [
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '吉林省美全科技有限责任公司'
+                    'tenantName' => '杭州美全健康科技有限公司'
                 ],
                 [
                     'tenantType' => 'COMPANY',
@@ -174,11 +174,11 @@ class Api extends Request
             'signatories' => [
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '吉林省美全科技有限责任公司'
+                    'tenantName' => '杭州美全健康科技有限公司'
                 ],
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => ' 四川桃子健康互联网医院管理有限公司',
+                    'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
                     'receiver' => [
                         'name' => '邓彬',
                         'contact' => '15208474771',
@@ -235,7 +235,7 @@ class Api extends Request
             'signatories' => [
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '吉林省美全科技有限责任公司'
+                    'tenantName' => '杭州美全健康科技有限公司'
                 ],
                 [
                     'tenantType' => 'COMPANY',
@@ -287,7 +287,7 @@ class Api extends Request
             'signatories' => [
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => '吉林省美全科技有限责任公司'
+                    'tenantName' => '杭州美全健康科技有限公司'
                 ],
                 [
                     'tenantType' => 'COMPANY',
@@ -340,11 +340,12 @@ class Api extends Request
      * @author zhangzhen
      * @data 2021/12/10 3:23 下午
      */
-    public function companysignTaozi($contract_id)
+    public function companysignTaozi($contract_id, $type = 1)
     {
         $data = [
             'contractId' => $contract_id,
-            'tenantName' => '四川桃子健康互联网医院管理有限公司',
+            'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
+            // 'tenantName' => '成都双流桃子互联网医院有限公司',
             'sealId' => '2906846343840530888'
         ];
         return $this->post('/v2/contract/companysign', $data);

@@ -425,7 +425,7 @@ class ContractController extends Controller
             } else {
                 return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
-            $res2 = $q->companysignTaozi($order->three_contract_id);
+            $res2 = $q->companysignTaozi($order->three_contract_id, 2);
             if (isset($res2['code']) && $res2['code'] === 0) {
                 $order->three_sign = 1;
                 $order->save();
@@ -437,7 +437,7 @@ class ContractController extends Controller
         }
 
         if ($order->three_sign === 0) {
-            $res2 = $q->companysignTaozi($order->three_contract_id);
+            $res2 = $q->companysignTaozi($order->three_contract_id, 2);
             if (isset($res2['code']) && $res2['code'] === 0) {
                 $order->three_sign = 1;
                 $order->save();
@@ -509,7 +509,7 @@ class ContractController extends Controller
             } else {
                 return $this->error($res['message'] ?? "系统错误，请稍后再试");
             }
-            $res2 = $q->companysignTaozi($order->three_contract_id);
+            $res2 = $q->companysignTaozi($order->three_contract_id, 3);
             if (isset($res2['code']) && $res2['code'] === 0) {
                 $order->three_sign = 1;
                 $order->save();
@@ -521,7 +521,7 @@ class ContractController extends Controller
         }
 
         if ($order->three_sign === 0) {
-            $res2 = $q->companysignTaozi($order->three_contract_id);
+            $res2 = $q->companysignTaozi($order->three_contract_id, 3);
             if (isset($res2['code']) && $res2['code'] === 0) {
                 $order->three_sign = 1;
                 $order->save();
