@@ -392,8 +392,10 @@ class CreateMtOrder implements ShouldQueue
         // **********************************************************************************
         // 判断是否开启美全达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
         // $dd_add_money = $add_money;
-        if (false) {
+        if (true) {
             // $this->log("关闭美全达派单");
+            $order->fail_mqd = "停止美全达派单";
+            $this->log("停止美全达派单，停止「美全达」派单");
         } elseif ($shop->citycode === '0432') {
             $order->fail_mqd = "吉林市不发美全达订单";
             $this->log("吉林市不发美全达订单，停止「美全达」派单");
