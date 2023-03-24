@@ -291,6 +291,8 @@ class PrescriptionController extends Controller
                         } else {
                             WmPrescription::where('id', $v->id)->update(['reason' => '门店已删除']);
                         }
+                    } else {
+                        WmPrescription::where('id', $v->id)->update(['reason' => '通过美团门店ID找不到门店']);
                     }
                 } else {
                     $shop = Shop::select('id','user_id')->where('chufang_ele', $v->storeID)->first();
@@ -331,6 +333,8 @@ class PrescriptionController extends Controller
                         } else {
                             WmPrescription::where('id', $v->id)->update(['reason' => '门店已删除']);
                         }
+                    } else {
+                        WmPrescription::where('id', $v->id)->update(['reason' => '通过饿了么门店ID找不到门店']);
                     }
                 }
             }
