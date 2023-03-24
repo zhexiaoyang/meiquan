@@ -236,7 +236,7 @@ class PrescriptionController extends Controller
             //     ->where('shops.shop_name', 'like', "%{$name}%")
             //     ->orderByDesc('shops.id')->limit(30)->get();
 
-            $data = WmPrescription::query()->select("storeName")
+            $data = WmPrescription::select("storeName")
                 ->where('storeName', 'like', "%{$name}%")
                 ->groupBy("storeName")->get();
         }
@@ -249,80 +249,88 @@ class PrescriptionController extends Controller
      */
     public function again()
     {
-        $data = WmPrescription::query()->where('status', 2)->get();
+        $data = WmPrescription::where('status', 2)->get();
         if (!empty($data)) {
             foreach ($data as $v) {
                 if ($v->platform == 1) {
-                    $shop = Shop::query()->select('id','user_id')->where('chufang_mt', $v->storeID)->first();
+                    $shop = Shop::select('id','user_id')->where('chufang_mt', $v->storeID)->first();
                     if ($shop) {
-                        DB::transaction(function () use ($v, $shop) {
-                            $money = $v->money;
-                            $order_id = $v->outOrderID;
-                            $current_user = DB::table('users')->find($shop->user_id);
-                            if ($v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
-                                UserOperateBalance::create([
-                                    "user_id" => $current_user->id,
-                                    "money" => $money,
-                                    "type" => 2,
-                                    "before_money" => $current_user->operate_money,
-                                    "after_money" => ($current_user->operate_money - $money),
-                                    "description" => "处方单审方：" . $order_id,
-                                    "shop_id" => $shop->id,
-                                    "tid" => $v->id,
-                                    'order_at' => $v['rpCreateTime']
-                                ]);
-                                // 减去用户运营余额
-                                DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
-                                DB::table('wm_prescriptions')->where('id', $v->id)->update(['status' => 1, 'reason' => '']);
-                                $_user = DB::table('users')->find($current_user->id);
-                                if ($_user->operate_money < 50) {
-                                    $phone = $_user->phone;
-                                    $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
-                                    if ($lock->get()) {
-                                        Log::info("处方余额不足发送短信：{$phone}");
-                                        dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
-                                    } else {
-                                        Log::info("今天已经发过短信了：{$phone}");
+                        if ($shop->user_id) {
+                            DB::transaction(function () use ($v, $shop) {
+                                $money = $v->money;
+                                $order_id = $v->outOrderID;
+                                $current_user = DB::table('users')->find($shop->user_id);
+                                if ($v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
+                                    UserOperateBalance::create([
+                                        "user_id" => $current_user->id,
+                                        "money" => $money,
+                                        "type" => 2,
+                                        "before_money" => $current_user->operate_money,
+                                        "after_money" => ($current_user->operate_money - $money),
+                                        "description" => "处方单审方：" . $order_id,
+                                        "shop_id" => $shop->id,
+                                        "tid" => $v->id,
+                                        'order_at' => $v['rpCreateTime']
+                                    ]);
+                                    // 减去用户运营余额
+                                    DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
+                                    DB::table('wm_prescriptions')->where('id', $v->id)->update(['status' => 1, 'reason' => '']);
+                                    $_user = DB::table('users')->find($current_user->id);
+                                    if ($_user->operate_money < 50) {
+                                        $phone = $_user->phone;
+                                        $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
+                                        if ($lock->get()) {
+                                            Log::info("处方余额不足发送短信：{$phone}");
+                                            dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
+                                        } else {
+                                            Log::info("今天已经发过短信了：{$phone}");
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            WmPrescription::where('id', $v->id)->update(['reason' => '门店已删除']);
+                        }
                     }
                 } else {
-                    $shop = Shop::query()->select('id','user_id')->where('chufang_ele', $v->storeID)->first();
+                    $shop = Shop::select('id','user_id')->where('chufang_ele', $v->storeID)->first();
                     if ($shop) {
-                        DB::transaction(function () use ($v, $shop) {
-                            $money = $v->money;
-                            $order_id = $v->outOrderID;
-                            $current_user = DB::table('users')->find($shop->user_id);
-                            if ($v['orderStatus'] == '已处理') {
-                                UserOperateBalance::create([
-                                    "user_id" => $current_user->id,
-                                    "money" => $money,
-                                    "type" => 2,
-                                    "before_money" => $current_user->operate_money,
-                                    "after_money" => ($current_user->operate_money - $money),
-                                    "description" => "处方单审方：" . $order_id,
-                                    "shop_id" => $shop->id,
-                                    "tid" => $v->id,
-                                    'order_at' => $v['doctorTime']
-                                ]);
-                                // 减去用户运营余额
-                                DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
-                                DB::table('wm_prescriptions')->where('id', $v->id)->update(['status' => 1, 'reason' => '']);
-                                $_user = DB::table('users')->find($current_user->id);
-                                if ($_user->operate_money < 50) {
-                                    $phone = $_user->phone;
-                                    $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
-                                    if ($lock->get()) {
-                                        Log::info("处方余额不足发送短信：{$phone}");
-                                        dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
-                                    } else {
-                                        Log::info("今天已经发过短信了：{$phone}");
+                        if ($shop->user_id) {
+                            DB::transaction(function () use ($v, $shop) {
+                                $money = $v->money;
+                                $order_id = $v->outOrderID;
+                                $current_user = DB::table('users')->find($shop->user_id);
+                                if ($v['orderStatus'] == '已处理') {
+                                    UserOperateBalance::create([
+                                        "user_id" => $current_user->id,
+                                        "money" => $money,
+                                        "type" => 2,
+                                        "before_money" => $current_user->operate_money,
+                                        "after_money" => ($current_user->operate_money - $money),
+                                        "description" => "处方单审方：" . $order_id,
+                                        "shop_id" => $shop->id,
+                                        "tid" => $v->id,
+                                        'order_at' => $v['doctorTime']
+                                    ]);
+                                    // 减去用户运营余额
+                                    DB::table('users')->where('id', $current_user->id)->decrement('operate_money', $money);
+                                    DB::table('wm_prescriptions')->where('id', $v->id)->update(['status' => 1, 'reason' => '']);
+                                    $_user = DB::table('users')->find($current_user->id);
+                                    if ($_user->operate_money < 50) {
+                                        $phone = $_user->phone;
+                                        $lock = Cache::lock("send_sms_chufang:{$phone}", 86400);
+                                        if ($lock->get()) {
+                                            Log::info("处方余额不足发送短信：{$phone}");
+                                            dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
+                                        } else {
+                                            Log::info("今天已经发过短信了：{$phone}");
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        } else {
+                            WmPrescription::where('id', $v->id)->update(['reason' => '门店已删除']);
+                        }
                     }
                 }
             }
@@ -363,13 +371,13 @@ class PrescriptionController extends Controller
         }
 
         if ($status === 1) {
-            Shop::query()->whereIn('id', $ids)->update(['chufang_status' => 1]);
+            Shop::whereIn('id', $ids)->update(['chufang_status' => 1]);
         }
         if ($status === 2) {
-            Shop::query()->whereIn('id', $ids)->update(['chufang_status' => 2]);
+            Shop::whereIn('id', $ids)->update(['chufang_status' => 2]);
         }
         if ($status === 3) {
-            Shop::query()->whereIn('id', $ids)->update(['chufang_status' => 1]);
+            Shop::whereIn('id', $ids)->update(['chufang_status' => 1]);
         }
         // $shop->save();
 
