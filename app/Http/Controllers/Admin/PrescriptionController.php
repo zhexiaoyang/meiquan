@@ -302,7 +302,7 @@ class PrescriptionController extends Controller
                                 $money = $v->money;
                                 $order_id = $v->outOrderID;
                                 $current_user = DB::table('users')->find($shop->user_id);
-                                if ($v['orderStatus'] == '已处理') {
+                                if ($v['orderStatus'] == '已处理' || $v['orderStatus'] == '已完成' || $v['orderStatus'] == '进行中') {
                                     UserOperateBalance::create([
                                         "user_id" => $current_user->id,
                                         "money" => $money,
