@@ -362,10 +362,14 @@ Route::middleware(["force-json"])->group(function() {
         Route::resource('pharmacist', 'PharmacistController')->only('store', 'destroy');
         // *处方单列表-导出
         Route::get("prescription/export", "PrescriptionController@export");
+        // *处方单列表-图片下载
+        Route::get("prescription/picture/down", "PrescriptionController@pictureDown");
         // *处方单列表
         Route::get("prescription", "PrescriptionController@index");
         // *处方-线下下单
         Route::get("prescription/down", "PrescriptionController@down");
+        // *处方-处方图片压缩包下载列表
+        Route::get("prescription/zip", "PrescriptionController@zip");
         // *处方单列表统计
         Route::get("prescription/statistics", "PrescriptionController@statistics");
         // *外卖订单列表
