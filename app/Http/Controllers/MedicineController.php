@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\WmMedicineExport;
 use App\Imports\MedicineImport;
 use App\Imports\MedicineUpdateImport;
+use App\Jobs\MedicineSyncEleItemJob;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
 use App\Jobs\MedicineUpdateImportJob;
@@ -13,6 +14,7 @@ use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
 use App\Models\MedicineSelectShop;
 use App\Models\MedicineSyncLog;
+use App\Models\MedicineSyncLogItem;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -181,10 +183,137 @@ class MedicineController extends Controller
             \Log::info('药品管理任务控制器|已存在进行中任务停止任务');
             return $this->error('已有进行中的任务，请等待');
         }
+        $log_id = uniqid();
 
         if ($platform === 2) {
-            // 饿了么走这个JOB
-            MedicineSyncJob::dispatch($shop, $platform)->onQueue('medicine');
+            // ***************************** 饿了么逻辑·开始 *****************************
+            // MedicineSyncJob::dispatch($shop, $platform)->onQueue('medicine');
+            $ele = app('ele');
+            // 创建药品分类
+            $categories = MedicineCategory::where('shop_id', $shop->id)->orderBy('pid')->orderBy('sort')->get();
+            $category_key = [];
+            foreach ($categories as $k => $category) {
+                $category_key[$category->id] = $category->name;
+                $category_key[$category->id] = $category->name;
+                if (!$category->ele_id) {
+                    if ($category->pid == 0) {
+                        $cat_params = [
+                            'shop_id' => $shop->waimai_ele,
+                            'parent_category_id' => 0,
+                            'name' => $category->name,
+                            'rank' => 100000 - $category->sort > 0 ? 100000 - $category->sort : 1,
+                        ];
+                    } else {
+                        $parent = MedicineCategory::find($category->pid);
+                        $cat_params = [
+                            'shop_id' => $shop->waimai_ele,
+                            'parent_category_id' => $parent->ele_id,
+                            'name' => $category->name,
+                            'rank' => 100000 - $category->sort > 0 ? 100000 - $category->sort : 1,
+                        ];
+                    }
+                    \Log::info("药品管理任务饿了么|门店ID:{$shop->id}-分类参数：{$k}", $cat_params);
+                    $res = $ele->add_category($cat_params);
+                    if (isset($res['body']['data']['category_id'])) {
+                        $category->ele_id = $res['body']['data']['category_id'];
+                        $category->save();
+                    }
+                    \Log::info("药品管理任务饿了么|门店ID:{$shop->id}-创建分类返回：{$k}", [$res]);
+                }
+            }
+            // 单个上传
+            // $medicine_list = Medicine::with('categories')->where('shop_id', $shop->id)
+            //     ->whereIn('ele_status', [0, 2])->limit(8000)->get();
+            $medicine_list_query = Medicine::with('categories')->where('shop_id', $shop->id);
+                // ->where('price', '>', 0)->whereIn('ele_status', [0, 2]);
+            if (!empty($product_ids)) {
+                $medicine_list_query->whereIn('id', $product_ids);
+            }
+            $medicine_list = $medicine_list_query->limit(5000)->get();
+            if (!empty($medicine_list)) {
+                $fail = 0;
+                // 添加日志
+                $log = MedicineSyncLog::create([
+                    'shop_id' => $shop->id,
+                    'title' => '批量同步饿了么',
+                    'platform' => $platform,
+                    'log_id' => $log_id,
+                    'total' => count($medicine_list),
+                    'success' => 0,
+                    'fail' => 0,
+                    'error' => 0,
+                ]);
+                foreach ($medicine_list as $medicine) {
+                    if ($medicine->ele_status === 1) {
+                        $fail++;
+                        MedicineSyncLogItem::create([
+                            'log_id' => $log->id,
+                            'name' => $medicine->name,
+                            'upc' => $medicine->upc,
+                            'msg' => '失败：已经通过过了，不能在同步',
+                        ]);
+                    }
+                    if ($medicine->price <= 0) {
+                        $fail++;
+                        MedicineSyncLogItem::create([
+                            'log_id' => $log->id,
+                            'name' => $medicine->name,
+                            'upc' => $medicine->upc,
+                            'msg' => '失败：销售价不能为 0',
+                        ]);
+                    }
+                }
+                if ($fail > 0) {
+                    if ($fail == $medicine_list->count()) {
+                        MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail, 'status' => 2]);
+                    } else {
+                        MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail]);
+                    }
+                }
+                foreach ($medicine_list as $medicine) {
+                    if ($medicine->ele_status === 1) {
+                        continue;
+                    }
+                    if ($medicine->price <= 0) {
+                        continue;
+                    }
+                    $medicine_category = [];
+                    if (!empty($medicine->categories)) {
+                        foreach ($medicine->categories as $item) {
+                            $medicine_category[] = [
+                                'category_name' => $item->name
+                            ];
+                        }
+                    }
+                    $medicine_data = [
+                        'shop_id' => $shop->waimai_ele,
+                        // 'app_medicine_code' => $medicine->upc,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'custom_sku_id' => $medicine->upc,
+                        'sale_price' => (int) ($medicine->price * 100),
+                        'left_num' => $medicine->stock,
+                        'category_list' => $medicine_category,
+                        // 'sequence' => $medicine->sequence,
+                        'status' => 1,
+                        'base_rec_enable' => true,
+                        'photo_rec_enable' => true,
+                        'summary_rec_enable' => true,
+                        'cat_prop_rec_enable' => true,
+                    ];
+                    MedicineSyncEleItemJob::dispatch(
+                        $log->id,
+                        $medicine_data,
+                        $shop->id,
+                        $shop->name,
+                        $medicine->id,
+                        $medicine->depot_id,
+                        $medicine->name,
+                        $medicine->upc
+                    )->onQueue('medicine');
+                }
+            }
+            // ***************************** 饿了么逻辑·结束 *****************************
             return $this->success();
         }
 
@@ -199,7 +328,6 @@ class MedicineController extends Controller
         }
 
         // MedicineSyncJob::dispatch($shop, $platform);
-        $log_id = uniqid();
 
         // 创建药品分类
         $categories = MedicineCategory::where('shop_id', $shop->id)->orderBy('pid')->orderBy('sort')->get();
@@ -238,24 +366,59 @@ class MedicineController extends Controller
                 }
             }
         }
-        $medicine_list_query = Medicine::with('categories')->where('shop_id', $shop->id)
-            ->whereIn('mt_status', [0, 2]);
+        $medicine_list_query = Medicine::with('categories')->where('shop_id', $shop->id);
+            // ->where('price', '>', 0)->whereIn('mt_status', [0, 2]);
         if (!empty($product_ids)) {
             $medicine_list_query->whereIn('id', $product_ids);
         }
         $medicine_list = $medicine_list_query->limit(5000)->get();
-        // 添加日志
-        $log = MedicineSyncLog::create([
-            'shop_id' => $shop->id,
-            'platform' => $platform,
-            'log_id' => $log_id,
-            'total' => $medicine_list->count(),
-            'success' => 0,
-            'fail' => 0,
-            'error' => 0,
-        ]);
         if (!empty($medicine_list)) {
+            // 添加日志
+            $log = MedicineSyncLog::create([
+                'shop_id' => $shop->id,
+                'title' => '批量同步美团',
+                'platform' => $platform,
+                'log_id' => $log_id,
+                'total' => $medicine_list->count(),
+                'success' => 0,
+                'fail' => 0,
+                'error' => 0,
+            ]);
+            $fail = 0;
             foreach ($medicine_list as $medicine) {
+                if ($medicine->mt_status === 1) {
+                    $fail++;
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：已经通过过了，不能在同步',
+                    ]);
+                }
+                if ($medicine->price <= 0) {
+                    $fail++;
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：销售价不能为 0',
+                    ]);
+                }
+            }
+            if ($fail > 0) {
+                if ($fail == $medicine_list->count()) {
+                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail, 'status' => 2]);
+                } else {
+                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail]);
+                }
+            }
+            foreach ($medicine_list as $medicine) {
+                if ($medicine->mt_status === 1) {
+                    continue;
+                }
+                if ($medicine->price <= 0) {
+                    continue;
+                }
                 $medicine_category = [];
                 if (!empty($medicine->categories)) {
                     foreach ($medicine->categories as $item) {

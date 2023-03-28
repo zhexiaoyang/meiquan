@@ -248,7 +248,7 @@ class MedicineUpdateImportJob implements ShouldQueue
             $msg = '成功 ' . $msg;
         }
 
-        MedicineSyncLogItem::query()->create([
+        MedicineSyncLogItem::create([
             'log_id' => $this->log_id,
             'upc' => $medicine['upc'],
             'msg' => $msg

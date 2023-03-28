@@ -14,14 +14,14 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Redis;
 
-class MedicineSyncMeiTuanItemJob implements ShouldQueue
+class MedicineSyncEleItemJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $key;
     public $params;
-    public $api;
-    public $shop;
+    public $shop_id;
+    public $shop_name;
     public $medicine_id;
     public $depot_id;
     public $name;
@@ -32,16 +32,15 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(string $key, array $params, $api, Shop $shop, $medicine_id, $depot_id = 0, $name = '', $upc = '')
+    public function __construct(string $key, array $params, $shop_id, $shop_name, $medicine_id, $depot_id = 0, $name = '', $upc = '')
     {
         // 日志ID
         $this->key = $key;
         // 药品数据
         $this->params = $params;
-        // 美团绑定应用
-        $this->api = $api;
         // 门店信息
-        $this->shop = $shop;
+        $this->shop_id = $shop_id;
+        $this->shop_name = $shop_name;
         // 药品ID
         $this->medicine_id = $medicine_id;
         // 品库ID
@@ -59,34 +58,31 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
      */
     public function handle()
     {
-        $status = null;
-        if ($this->api === 4) {
-            $meituan = app('minkang');
-        } elseif ($this->api === 31) {
-            $meituan = app('meiquan');
-        } else {
-            return;
-        }
+        $ele = app('ele');
         try {
             $this->log('创建药品参数', $this->params);
-            $res = $meituan->medicineSave($this->params);
+            $res = $ele->add_product($this->params);
             $this->log('创建药品返回', [$res]);
-            if ($res['data'] === 'ok') {
-                if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
-                    // MedicineSyncLog::where('id', $this->key)->increment('success');
+            $res = $ele->add_product($this->params);
+            if ($res['body']['error'] === 'success') {
+                if (Medicine::where('id', $this->medicine_id)->update(['ele_status' => 1])) {
                     $status = true;
                 }
-            } elseif ($res['data'] === 'ng') {
-                $error_msg = $res['error']['msg'] ?? '';
-                $error_msg = substr($error_msg, 0, 200);
+            } else {
+                $error_msg = $res['body']['error'] ?? '';
                 if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
-                        // MedicineSyncLog::where('id', $this->key)->increment('success');
+                    if (Medicine::where('id', $this->medicine_id)->update(['ele_status' => 1])) {
                         $status = true;
                     }
+                    // if ($medicine->depot_id === 0) {
+                    //     $this->add_depot($medicine);
+                    // }
                 } else {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
-                        // MedicineSyncLog::where('id', $this->key)->increment('fail');
+                    if (Medicine::where('id', $this->medicine_id)->update([
+                        'ele_error' => $res['body']['error'] ?? '饿了么失败',
+                        'ele_status' => 2
+                    ])) {
+                        // MedicineSyncLog::where('id', $this->key)->increment('fail');$res['body']['error']
                         $status = false;
                     }
                 }
@@ -97,19 +93,19 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             // MedicineSyncLog::where('id', $this->key)->increment('fail');
             Medicine::where('id', $this->medicine_id)
                 ->update([
-                    'mt_error' => '上传异常',
-                    'mt_status' => 2
+                    'ele_error' => '上传异常',
+                    'ele_status' => 2
                 ]);
         }
 
-        $redis_key = 'medicine_job_key_' . $this->key;
+        $redis_key = 'medicine_ele_job_key_' . $this->key;
         $catch = Redis::hget($redis_key, $this->medicine_id);
         if ($status !== null && !$catch) {
             Redis::hset($redis_key, $this->medicine_id, 1);
             if ($status) {
-                if (intval($this->depot_id) === 0) {
-                    $this->add_depot();
-                }
+                // if (intval($this->depot_id) === 0) {
+                //     $this->add_depot();
+                // }
                 MedicineSyncLog::where('id', $this->key)->increment('success');
             } else {
                 MedicineSyncLog::where('id', $this->key)->increment('fail');
@@ -132,7 +128,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
 
     public function log(string $name, array $data = [])
     {
-        $name = "同步药品JOB|日志ID{$this->key}|美团|{$this->shop->id}|{$this->shop->shop_name}|{$name}";
+        $name = "同步药品JOB|日志ID{$this->key}|饿了么|{$this->shop_id}|{$this->shop_name}|{$name}";
         \Log::info($name, $data);
     }
 
