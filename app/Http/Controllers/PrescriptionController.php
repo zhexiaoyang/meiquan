@@ -138,6 +138,7 @@ class PrescriptionController extends Controller
                 'title' => $shop->shop_name . '处方图片',
                 'shop_id' => $shop->id,
                 'user_id' => $request->user()->id,
+                'count' => count($orders),
                 'sdate' => $sdate,
                 'edate' => $edate,
             ]);
