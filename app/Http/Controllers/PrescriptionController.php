@@ -41,6 +41,11 @@ class PrescriptionController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在');
         }
+        $user_id = $request->user()->id;
+        MedicineSelectShop::updateOrCreate(
+            [ 'user_id' => $user_id ],
+            [ 'user_id' => $user_id, 'shop_id' => $shop_id ]
+        );
         $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
             ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
@@ -120,11 +125,6 @@ class PrescriptionController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在');
         }
-        $user_id = $request->user()->id;
-        MedicineSelectShop::updateOrCreate(
-            [ 'user_id' => $user_id ],
-            [ 'user_id' => $user_id, 'shop_id' => $shop_id ]
-        );
         $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
             ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
