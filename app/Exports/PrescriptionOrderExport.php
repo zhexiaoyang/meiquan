@@ -2,18 +2,23 @@
 
 namespace App\Exports;
 
+use App\Models\WmOrder;
 use App\Models\WmPrescription;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\Support\Responsable;
 use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Cell\DefaultValueBinder;
 
-class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, FromQuery, WithMapping, WithHeadings, WithTitle, ShouldAutoSize
+class PrescriptionOrderExport extends DefaultValueBinder implements WithStrictNullComparison, Responsable, FromQuery, WithMapping, WithHeadings, ShouldAutoSize, WithCustomValueBinder
 {
     use Exportable;
 
@@ -33,26 +38,19 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
         $platform = $request->get('platform', '');
-        $stime = $request->get('stime', '');
-        $etime = $request->get('etime', '');
+        $sdate = $request->get('sdate', '');
+        $edate = $request->get('edate', '');
 
-        $query = WmPrescription::select('outOrderID','storeName','outDoctorName','money','reviewStatus','orderStatus','rpCreateTime');
-        $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
-
+        $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
+            ->where('shop_id', $shop_id)
+            ->where('is_prescription', 1)
+            ->where('ctime', '>=', strtotime($sdate))
+            ->where('ctime', '<', strtotime($edate) + 86400);
         if ($order_id) {
-            $query->where('outOrderID', $order_id);
-        }
-        if ($shop_id) {
-            $query->where('shop_id', $shop_id);
+            $query->where('order_id', $order_id);
         }
         if ($platform) {
             $query->where('platform', $platform);
-        }
-        if ($stime) {
-            $query->where('rpCreateTime', '>=', $stime);
-        }
-        if ($etime) {
-            $query->where('rpCreateTime', '<', date("Y-m-d", strtotime($etime) + 86400));
         }
 
         return $query;
@@ -61,13 +59,11 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
     public function map($order): array
     {
         return [
-            "'" . $order->outOrderID,
-            $order->storeName,
-            $order->outDoctorName,
-            $order->money,
-            $order->reviewStatus,
-            $order->orderStatus,
-            $order->rpCreateTime,
+            $order->order_id,
+            $order->wm_shop_name,
+            $order->status === 18 ? '已完成' : ($order->status > 18 ? '已取消' : '进行中'),
+            $order->platform === 1 ? '美团外卖' : '饿了么',
+            date("Y-m-d H:i:s", $order->ctime),
         ];
     }
 
@@ -76,16 +72,28 @@ class PrescriptionOrderExport implements WithStrictNullComparison, Responsable, 
         return [
             '订单号',
             '门店名称',
-            '医生名称',
-            '金额(元)',
-            '审方状态',
             '订单状态',
-            '处方开具时间',
+            '订单平台',
+            '下单时间',
         ];
     }
 
     public function title(): string
     {
         return '处方订单';
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        $column = $cell->getColumn();
+        if (in_array( $column, ['A'])) {
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
+        // if (in_array( $column, ['C', 'D'])) {
+        //     $cell->setValueExplicit($value, DataType::TYPE_FORMULA);
+        //     return true;
+        // }
+        return parent::bindValue($cell, $value);
     }
 }
