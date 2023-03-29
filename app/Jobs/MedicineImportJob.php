@@ -4,12 +4,15 @@ namespace App\Jobs;
 
 use App\Models\Medicine;
 use App\Models\MedicineDepot;
+use App\Models\MedicineSyncLog;
+use App\Models\MedicineSyncLogItem;
 use App\Models\Shop;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
 
 class MedicineImportJob implements ShouldQueue
 {
@@ -17,16 +20,18 @@ class MedicineImportJob implements ShouldQueue
 
     public $medicine;
     public $shop_id;
+    public $log_id;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(int $shop_id, array $medicine)
+    public function __construct(int $shop_id, array $medicine, $log_id)
     {
         $this->shop_id = $shop_id;
         $this->medicine = $medicine;
+        $this->log_id = $log_id;
     }
 
     /**
@@ -40,35 +45,9 @@ class MedicineImportJob implements ShouldQueue
         $price = $this->medicine['price'];
         $stock = $this->medicine['stock'];
         $cost = $this->medicine['guidance_price'];
+        $status = false;
 
-        if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
-            $medicine->update([
-                'price' => $price,
-                'stock' => $stock,
-                'guidance_price' => $cost,
-            ]);
-            if ($shop = Shop::find($this->shop_id)) {
-                $meituan = null;
-                if ($shop->meituan_bind_platform === 4) {
-                    $meituan = app('minkang');
-                } elseif ($shop->meituan_bind_platform === 31) {
-                    $meituan = app('meiquan');
-                }
-                if ($meituan !== null && $shop->waimai_mt) {
-                    $params = [
-                        'app_poi_code' => $shop->waimai_mt,
-                        'app_medicine_code' => $medicine->upc,
-                        'price' => $price,
-                        'stock' => $stock,
-                    ];
-                    if ($shop->meituan_bind_platform == 31) {
-                        $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
-                    }
-                    $res = $meituan->medicineUpdate($params);
-                    \Log::info("res", [$res]);
-                }
-            }
-        } else {
+        if (!$medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
             if ($depot = MedicineDepot::where('upc', $upc)->first()) {
                 \Log::info('upc3:' . $upc);
                 $medicine_arr = [
@@ -85,27 +64,51 @@ class MedicineImportJob implements ShouldQueue
                 ];
             } else {
                 $l = strlen($upc);
+                $name = $this->medicine['name'];
                 if ($l >= 7 && $l <= 19) {
-                    $name = $this->medicine['name'];
                     $_depot = MedicineDepot::create([
                         'name' => $name,
                         'upc' => $upc
                     ]);
                     \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
-                    $medicine_arr = [
-                        'shop_id' => $this->shop_id,
-                        'name' => $name,
-                        'upc' => $upc,
-                        'brand' => '',
-                        'spec' => '',
-                        'price' => $price,
-                        'stock' => $stock,
-                        'guidance_price' => $cost,
-                        'depot_id' => 0,
-                    ];
                 }
+                $medicine_arr = [
+                    'shop_id' => $this->shop_id,
+                    'name' => $name,
+                    'upc' => $upc,
+                    'brand' => '',
+                    'spec' => '',
+                    'price' => $price,
+                    'stock' => $stock,
+                    'guidance_price' => $cost,
+                    'depot_id' => 0,
+                ];
             }
+            $status = true;
             Medicine::create($medicine_arr);
+        }
+        $redis_key = 'medicine_zhongtai_add_job_key_' . $this->log_id;
+        $catch = Redis::hget($redis_key, $upc);
+        if (!$catch) {
+            Redis::hset($redis_key, $upc, 1);
+            if ($status) {
+                MedicineSyncLog::where('id', $this->log_id)->increment('success');
+            } else {
+                MedicineSyncLog::where('id', $this->log_id)->increment('fail');
+            }
+            MedicineSyncLogItem::create([
+                'log_id' => $this->log_id,
+                'name' => $this->medicine['name'],
+                'upc' => $this->medicine['upc'],
+                'msg' => $status ? '药品添加成功' : '药品已存在，不能重复添加',
+            ]);
+        }
+        $log = MedicineSyncLog::find($this->log_id);
+        if ($log->total <= ($log->success + $log->fail)) {
+            Redis::expire($redis_key, 60);
+            $log->update([
+                'status' => 2,
+            ]);
         }
     }
 }

@@ -6,6 +6,7 @@ use App\Exceptions\InvalidRequestException;
 use App\Jobs\MedicineImportJob;
 use App\Models\Medicine;
 use App\Models\MedicineDepot;
+use App\Models\MedicineSyncLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
@@ -55,6 +56,17 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
             $chongfu[$item['商品条码']] = $line;
         }
 
+        // 添加日志
+        $log = MedicineSyncLog::create([
+            'shop_id' => $this->shop_id,
+            'title' => '批量导入中台商品',
+            'platform' => 0,
+            'log_id' => uniqid(),
+            'total' => count($row),
+            'success' => 0,
+            'fail' => 0,
+            'error' => 0,
+        ]);
         foreach ($row as $item) {
             $medicine_data = [
                 'name' => trim($item['商品名称']),
@@ -63,7 +75,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                 'price' => trim($item['销售价']),
                 'guidance_price' => trim($item['成本价']),
             ];
-            MedicineImportJob::dispatch($this->shop_id, $medicine_data)->onQueue('medicine');
+            MedicineImportJob::dispatch($this->shop_id, $medicine_data, $log->id)->onQueue('medicine');
         }
     }
 
