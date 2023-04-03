@@ -368,7 +368,7 @@ class WmOrderController extends Controller
         // \Log::info('account_shop_id:' . $request->user()->account_shop_id);
         if ($request->user()->account_shop_id) {
             // 子账号
-            $user_id = $request->user()->account_shop_id;
+            $user_id = $request->user()->id;
             $shops = Shop::where('account_id', $user_id)->where('print_auto', 1)->get();
         } else {
             $user_id = $request->user()->id;
