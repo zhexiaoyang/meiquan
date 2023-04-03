@@ -275,7 +275,7 @@ class WmOrderController extends Controller
             return $this->error("订单不存在");
         }
         if (!$request->user()->hasRole('super_man')) {
-            if ($order->user_id !== $user_id) {
+            if ($order->user_id !== $user_id && $order->shop_id !== $request->user()->account_shop_id) {
                 return $this->error("订单不存在");
             }
         }
