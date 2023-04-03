@@ -365,8 +365,15 @@ class WmOrderController extends Controller
 
     public function printer_one(Request $request)
     {
-        $user_id = $request->user()->id;
-        $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->get();
+        // \Log::info('account_shop_id:' . $request->user()->account_shop_id);
+        if ($request->user()->account_shop_id) {
+            // 子账号
+            $user_id = $request->user()->account_shop_id;
+            $shops = Shop::where('account_id', $user_id)->where('print_auto', 1)->get();
+        } else {
+            $user_id = $request->user()->id;
+            $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->get();
+        }
         // $shops = Shop::where('user_id', 779)->where('print_auto', 2)->get();
         $shop_ids = [];
         // $order_data = [];

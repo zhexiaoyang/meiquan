@@ -62,7 +62,10 @@ class OrderController
                         'refund_fee' => $order->total,
                         'refund_at' => date("Y-m-d H:i:s")
                     ]);
-                    Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                    if ($shop = Shop::find($order->shop_id)) {
+                        Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                    }
+                    // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
                 }
                 $this->log_info('全部参数', $request->all());
             }
@@ -74,6 +77,7 @@ class OrderController
     public function partrefund(Request $request, $platform)
     {
         if ($order_id = $request->get("order_id", "")) {
+            $shop = null;
             $money = $request->get('money');
             $notify_type = $request->get('notify_type');
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
@@ -190,7 +194,9 @@ class OrderController
                             }
                         }
                     }
-                    Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                    if ($shop) {
+                        Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                    }
                 }
             }
         }
@@ -336,7 +342,9 @@ class OrderController
         if ($order_id = $request->get("order_id", "")) {
             $this->log_info('全部参数', $request->all());
             if ($order = WmOrder::select('user_id')->where('order_id', $order_id)->first()) {
-                Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $order->user_id), true);
+                if ($shop = Shop::find($order->shop_id)) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $shop->account_id ?: $shop->user_id), true);
+                }
             }
             // Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, 1), true);
         }

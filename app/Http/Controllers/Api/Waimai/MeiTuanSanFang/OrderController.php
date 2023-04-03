@@ -439,7 +439,10 @@ class OrderController extends Controller
                     'cancel_reason' => $data['reason'] ?? '',
                     'cancel_at' => date("Y-m-d H:i:s")
                 ]);
-                Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $order->user_id), true);
+                if ($shop = Shop::find($order->shop_id)) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $shop->account_id ?: $shop->user_id), true);
+                }
+                // Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $order->user_id), true);
             } else {
                 $this->log("订单状态不正确，不能取消。订单状态：{$order->status}");
             }
@@ -470,7 +473,10 @@ class OrderController extends Controller
                     'refund_fee' => $order->total,
                     'refund_at' => date("Y-m-d H:i:s")
                 ]);
-                Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                if ($shop = Shop::find($order->shop_id)) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                }
+                // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
             }
         }
 
@@ -578,7 +584,10 @@ class OrderController extends Controller
                     'refund_fee' => $data['money'],
                     'refund_at' => date("Y-m-d H:i:s")
                 ]);
-                Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                if ($shop = Shop::find($order->shop_id)) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                }
+                // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
             }
         }
 
@@ -599,7 +608,10 @@ class OrderController extends Controller
 
         if ($order_id) {
             if ($order = WmOrder::select('user_id')->where('order_id', $order_id)->first()) {
-                Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $order->user_id), true);
+                if ($shop = Shop::find($order->shop_id)) {
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $shop->account_id ?: $shop->user_id), true);
+                }
+                // Task::deliver(new TakeoutOrderVoiceNoticeTask($voice, $order->user_id), true);
             }
         }
 

@@ -91,7 +91,8 @@ class OrderCancelController
                 ];
                 VipBillItem::create($item);
                 \Log::info("VIP订单结算处理，取消订单结算成功");
-                Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $wmOrder->user_id), true);
+                // Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $wmOrder->user_id), true);
+                Task::deliver(new TakeoutOrderVoiceNoticeTask(9, $shop->account_id ?: $shop->user_id), true);
             }
             // -------------------VIP订单结算-结束----------------------
             // 仓库库存

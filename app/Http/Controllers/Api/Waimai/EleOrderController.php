@@ -1323,9 +1323,9 @@ class EleOrderController extends Controller
                     $delivery_time = $order['order']['latest_send_time'];
                 }
                 if ($delivery_time > 0) {
-                    Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->user_id), true);
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(2, $shop->account_id ?: $shop->user_id), true);
                 } else {
-                    Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->user_id), true);
+                    Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->account_id ?: $shop->user_id), true);
                 }
             }
         }
