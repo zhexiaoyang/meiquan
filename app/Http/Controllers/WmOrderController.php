@@ -372,7 +372,7 @@ class WmOrderController extends Controller
             $shops = Shop::where('account_id', $user_id)->where('print_auto', 1)->get();
         } else {
             $user_id = $request->user()->id;
-            $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->get();
+            $shops = Shop::where('user_id', $user_id)->where('print_auto', 1)->where('account_id', 0)->get();
         }
         // $shops = Shop::where('user_id', 779)->where('print_auto', 2)->get();
         $shop_ids = [];
