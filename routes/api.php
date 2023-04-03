@@ -35,6 +35,15 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 子账号管理
+         */
+        // 子账号-门店列表
+        Route::get("sub_account/list", "SubAccountController@index");
+        // 子账号添加
+        Route::post("sub_account/add", "SubAccountController@store");
+        // 子账号删除
+        Route::post("sub_account/delete", "SubAccountController@destroy");
+        /**
          * 药品管理
          */
         // 同步任务列表
