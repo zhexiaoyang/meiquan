@@ -125,9 +125,17 @@ class OrderSettingController extends Controller
             }
         } else {
             if ($name) {
-                $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("own_id", Auth::id())->get();
+                if ($request->user()->account_shop_id) {
+                    $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("account_id", Auth::id())->get();
+                } else {
+                    $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("own_id", Auth::id())->get();
+                }
             } else {
-                $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+                if ($request->user()->account_shop_id) {
+                    $shops = Shop::select("id", "shop_name as name")->where('shop_name', 'like', "%{$name}%")->where("account_id", Auth::id())->get();
+                } else {
+                    $shops = Shop::select("id", "shop_name as name")->where("own_id", Auth::id())->get();
+                }
             }
         }
 
