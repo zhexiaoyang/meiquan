@@ -151,7 +151,7 @@ class ShopController extends Controller
                         $shop_status_params = ['app_poi_codes' => $shop->waimai_mt];
                         $mt_res = $minkang->getShopInfoByIds($shop_status_params);
                         if (isset($mt_res['data'][0])) {
-                            \Log::info('aaa', $mt_res['data'][0]);
+                            // \Log::info('aaa', $mt_res['data'][0]);
                             $tmp['mt_name'] = $mt_res['data'][0]['name'];
                             $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
                             $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
@@ -1217,7 +1217,7 @@ class ShopController extends Controller
             return $this->error('门店不存在');
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if ($shop->user_id !== $request->user()->id) {
+            if ($shop->user_id !== $request->user()->id && $shop->account_id !== $request->user()->id ) {
                 return $this->error('门店不存在!');
             }
         }
