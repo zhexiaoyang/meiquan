@@ -47,6 +47,9 @@ class SubAccountController extends Controller
                 ]);
                 // 赋予子账号角色
                 $user->assignRole('store');
+                if ($shop->auth === 10) {
+                    $user->givePermissionTo('supplier');
+                }
                 // 更改门店子账号字段
                 DB::table('shops')->where('id', $shop->id)->update(['account_id' => $user->id, 'account_name' => $name, 'account_pwd' => $password]);
                 // 将门店分配到子账号下面
@@ -85,6 +88,7 @@ class SubAccountController extends Controller
                 DB::table('users')->where('id', $shop->account_id)->delete();
                 // 删除子账号角色
                 DB::table('model_has_roles')->where('model_id', $shop->account_id)->delete();
+                DB::table('model_has_permissions')->where('model_id', $shop->account_id)->delete();
                 // 更改门店子账号字段
                 DB::table('shops')->where('id', $shop->id)->update(['account_id' => 0, 'account_pwd' => '', 'account_name' => '']);
                 // 删除子账号门店所属

@@ -90,14 +90,18 @@ class User extends Authenticatable
     public function getReceiveShopIdAttribute()
     {
         $shop_id = $this->shop_id ?? 0;
-        \Log::info("getReceiveShopIdAttribute", [$shop_id]);
+        // \Log::info("getReceiveShopIdAttribute", [$shop_id]);
 
-        if (!$shop = Shop::query()->where(['own_id' => $this->id, 'id' => $shop_id, 'auth' => 10])->first()) {
+        if (!$shop = Shop::where(['own_id' => $this->id, 'id' => $shop_id, 'auth' => 10])->first()) {
             $shop_id = 0;
         }
 
         if (!$shop_id) {
-            if ($shop = Shop::query()->where(['own_id' => $this->id, 'auth' => 10])->orderBy('id')->first()) {
+            if ($shop = Shop::where(['own_id' => $this->id, 'auth' => 10])->orderBy('id')->first()) {
+                $shop_id = $shop->id;
+                $this->shop_id = $shop->id;
+                $this->save();
+            } else if ($shop = Shop::where(['account_id' => $this->id, 'auth' => 10])->orderBy('id')->first()) {
                 $shop_id = $shop->id;
                 $this->shop_id = $shop->id;
                 $this->save();

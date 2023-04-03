@@ -310,8 +310,13 @@ class ShoppingController extends Controller
 
         $user = Auth::user();
 
-        $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
-            ->where("auth", 10)->get();
+        if ($user->account_shop_id) {
+            $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("id", $user->account_shop_id)
+                ->where("auth", 10)->get();
+        } else {
+            $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
+                ->where("auth", 10)->get();
+        }
 
         if (!empty($shops)) {
             foreach ($shops as $shop) {
