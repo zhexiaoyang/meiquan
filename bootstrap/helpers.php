@@ -1,5 +1,19 @@
 <?php
 
+function randomPassword($length = 6)
+{
+    //字符组合
+    // $str = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    $str = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    $randstr = '';
+
+    for ($i = 0; $i < $length; $i++) {
+        $num=mt_rand(0,35);
+        $randstr .= $str[$num];
+    }
+    return $randstr;
+}
+
 //腾讯转百度坐标转换
 function coordinate_switchf($a,$b){
     $x = (double)$b ;
