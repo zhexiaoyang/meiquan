@@ -116,8 +116,8 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             }
             MedicineSyncLogItem::create([
                 'log_id' => $this->key,
-                'name' => $this->params['name'],
-                'upc' => $this->params['upc'],
+                'name' => $this->params['name'] ?? '',
+                'upc' => $this->params['upc'] ?? '',
                 'msg' => $status ? '成功' : ($error_msg ?: '失败'),
             ]);
         }
