@@ -89,12 +89,12 @@ class SubAccountController extends Controller
                 // 删除子账号角色
                 DB::table('model_has_roles')->where('model_id', $shop->account_id)->delete();
                 DB::table('model_has_permissions')->where('model_id', $shop->account_id)->delete();
+                DB::table('oauth_access_tokens')->where('user_id', $shop->account_id)->delete();
                 // 更改门店子账号字段
                 DB::table('shops')->where('id', $shop->id)->update(['account_id' => 0, 'account_pwd' => '', 'account_name' => '']);
                 // 删除子账号门店所属
                 DB::table('user_has_shops')->where('user_id', $shop->account_id)->delete();
             });
-
         } catch (\Exception $exception) {
             \Log::error("删除子账号失败", [$exception->getMessage(), $exception->getLine(), $exception->getFile(), $shop->id]);
             return $this->error('删除失败，请稍后再试');

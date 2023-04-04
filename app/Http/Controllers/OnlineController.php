@@ -740,6 +740,11 @@ class OnlineController extends Controller
                         if ($user && !$user->can("supplier")) {
                             $user->givePermissionTo("supplier");
                         }
+                        if ($shop->account_id && $shop_account = User::find($shop->account_id)) {
+                            if (!$shop_account->can("supplier")) {
+                                $shop_account->givePermissionTo("supplier");
+                            }
+                        }
                     }
                 });
             } catch (\Exception $exception) {

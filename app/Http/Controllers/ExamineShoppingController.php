@@ -85,10 +85,8 @@ class ExamineShoppingController extends Controller
         if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
             return $this->error("门店未提交资质");
         }
-
-        \DB::beginTransaction();
         try {
-
+            \DB::beginTransaction();
             $shop->auth = $status;
             $shop->auth_error = $reason;
             $shop->adopt_material_time = date("Y-m-d H:i:s");
@@ -100,6 +98,11 @@ class ExamineShoppingController extends Controller
 
             if ($user && !$user->can("supplier")) {
                 $user->givePermissionTo("supplier");
+            }
+            if ($shop->account_id && $shop_account = User::find($shop->account_id)) {
+                if (!$shop_account->can("supplier")) {
+                    $shop_account->givePermissionTo("supplier");
+                }
             }
 
             $user->assignRole('shop');
