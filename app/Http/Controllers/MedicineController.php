@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\WmMedicineExport;
 use App\Imports\MedicineImport;
 use App\Imports\MedicineUpdateImport;
+use App\Jobs\MedicineBatchUpdateGpmJob;
 use App\Jobs\MedicineSyncEleItemJob;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
@@ -48,7 +49,7 @@ class MedicineController extends Controller
         if (!$shop_id = $request->get('shop_id')) {
             return $this->success();
         }
-        $logs = MedicineSyncLog::where('shop_id', $shop_id)->orderByDesc('id')->limit(1)->get();
+        $logs = MedicineSyncLog::where('shop_id', $shop_id)->orderByDesc('id')->limit(10)->get();
 
         return $this->success($logs);
     }
@@ -106,6 +107,32 @@ class MedicineController extends Controller
                 $query->where('online_ele', 0);
             } elseif ($ele == 5) {
                 $query->where('stock', 0);
+            }
+        }
+        $gpm = $request->get('gpm');
+        if (!is_null($gpm) && $gpm !== '') {
+            if ($gpm == 1) {
+                $query->where('gpm', '<=', 0);
+            } elseif ($gpm == 2) {
+                $query->where('gpm', '>', 0)->where('gpm', '<=', 10);
+            } elseif ($gpm == 3) {
+                $query->where('gpm', '>', 10)->where('gpm', '<=', 20);
+            } elseif ($gpm == 4) {
+                $query->where('gpm', '>', 20)->where('gpm', '<=', 30);
+            } elseif ($gpm == 5) {
+                $query->where('gpm', '>', 30)->where('gpm', '<=', 40);
+            } elseif ($gpm == 6) {
+                $query->where('gpm', '>', 40)->where('gpm', '<=', 50);
+            } elseif ($gpm == 7) {
+                $query->where('gpm', '>', 50)->where('gpm', '<=', 60);
+            } elseif ($gpm == 8) {
+                $query->where('gpm', '>', 60)->where('gpm', '<=', 70);
+            } elseif ($gpm == 9) {
+                $query->where('gpm', '>', 70)->where('gpm', '<=', 80);
+            } elseif ($gpm == 10) {
+                $query->where('gpm', '>', 80)->where('gpm', '<=', 90);
+            } elseif ($gpm == 11) {
+                $query->where('gpm', '>', 90)->where('gpm', '<=', 100);
             }
         }
         if ($id = $request->get('id')) {
@@ -438,7 +465,7 @@ class MedicineController extends Controller
                 if ($shop->meituan_bind_platform == 31) {
                     $medicine_data['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                 }
-                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc)
+                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop->toArray, $medicine->id, $medicine->name, $medicine->upc)
                 ->onQueue('medicine');
 
             }
@@ -1118,5 +1145,81 @@ class MedicineController extends Controller
         }
 
         return $this->success('提交成功');
+    }
+
+    public function batchUpdateGpm(Request $request)
+    {
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('请选择门店');
+        }
+        if (!$gpm= $request->get('gpm')) {
+            return $this->error('请输入毛利率');
+        }
+        if ($gpm <= 0 && $gpm > 100) {
+            return $this->error('毛利率输入错误');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在，请核对');
+        }
+        $product_ids = $request->get('product_id', []);
+
+        $query = Medicine::where('shop_id', $shop_id);
+        if (!empty($product_ids)) {
+            $query->whereIn('id', $product_ids);
+        }
+        $medicines = $query->limit(5000)->get();
+        if (!empty($medicines)) {
+            // 添加日志
+            $log = MedicineSyncLog::create([
+                'shop_id' => $shop_id,
+                'title' => empty($product_ids) ? '批量商品更新毛利率' : '部分商品更新毛利率',
+                'log_id' => uniqid(),
+                'total' => $medicines->count(),
+                'success' => 0,
+                'fail' => 0,
+                'error' => 0,
+            ]);
+            $fail = 0;
+            foreach ($medicines as $medicine) {
+                if ($medicine->mt_status != 1 && $medicine->ele_status != 1) {
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：商品未同步不能更改毛利率',
+                    ]);
+                    $fail++;
+                    continue;
+                } else if ($medicine->price <= 0) {
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：线上价格不能为0',
+                    ]);
+                    $fail++;
+                    continue;
+                } else if ($shop->waimai_mt && $shop->waimai_ele) {
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：门店未绑定外卖平台',
+                    ]);
+                    $fail++;
+                    continue;
+                }
+                MedicineBatchUpdateGpmJob::dispatch($log->id, $medicine->toArray(), $gpm, $shop->waimai_mt, $shop->meituan_bind_platform, $shop->waimai_ele)
+                    ->onQueue('medicine');
+            }
+            if ($fail > 0) {
+                if ($fail == $medicines->count()) {
+                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail, 'status' => 2]);
+                } else {
+                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail]);
+                }
+            }
+        }
+        return $this->success();
     }
 }

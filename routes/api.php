@@ -86,6 +86,7 @@ Route::middleware(["force-json"])->group(function() {
         // 品库添加商品
         Route::get("medicine/depot/product", "MedicineController@depot_index");
         Route::post("medicine/depot/add", "MedicineController@depot_add");
+        Route::post("medicine/gpm/update", "MedicineController@batchUpdateGpm");
         /**
          * WebMI
          */

@@ -8,7 +8,7 @@ class Medicine extends Model
 {
     protected $table = 'wm_medicines';
 
-    protected $fillable = ['shop_id','depot_id','name','sequence','category','upc','brand','spec','stock','price','guidance_price','depot_id','cover'];
+    protected $fillable = ['shop_id','depot_id','name','sequence','category','upc','brand','spec','stock','price','guidance_price','depot_id','cover','gpm'];
 
     protected $casts = [
         'price' => 'float',
@@ -68,6 +68,13 @@ class Medicine extends Model
                 }
                 \DB::table('wm_medicine_category')->insert(['medicine_id' => $model->id, 'category_id' => $c->id]);
             }
+        });
+        static::saving(function ($model) {
+            if ($model->price > 0) {
+                $model->gpm = ($model->price - $model->guidance_price) / $model->price * 100;
+            }
+            \Log::info('$model', [$model]);
+            // \Log::info('$model2', [$model2]);
         });
     }
 
