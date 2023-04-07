@@ -73,7 +73,7 @@ class Medicine extends Model
             if ($model->price > 0) {
                 $model->gpm = ($model->price - $model->guidance_price) / $model->price * 100;
             }
-            \Log::info('$model', [$model]);
+            // \Log::info('$model', [$model]);
             // \Log::info('$model2', [$model2]);
         });
     }
