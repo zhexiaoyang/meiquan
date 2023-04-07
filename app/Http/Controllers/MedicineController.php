@@ -1199,6 +1199,15 @@ class MedicineController extends Controller
                     ]);
                     $fail++;
                     continue;
+                } else if ($medicine->guidance_price <= 0) {
+                    MedicineSyncLogItem::create([
+                        'log_id' => $log->id,
+                        'name' => $medicine->name,
+                        'upc' => $medicine->upc,
+                        'msg' => '失败：成本价为0',
+                    ]);
+                    $fail++;
+                    continue;
                 } else if (!$shop->waimai_mt && !$shop->waimai_ele) {
                     MedicineSyncLogItem::create([
                         'log_id' => $log->id,
