@@ -86,7 +86,7 @@ class MedicineController extends Controller
         }
         $mt = $request->get('mt');
         if (!is_null($mt) && $mt !== '') {
-            if ($mt == 1 || $mt == 2) {
+            if ($mt == 1 || $mt == 2 || $mt == 0) {
                 $query->where('mt_status', $mt);
             } elseif ($mt == 3) {
                 $query->where('online_mt', 1)->where('stock', '>', 0);
@@ -98,8 +98,7 @@ class MedicineController extends Controller
         }
         $ele = $request->get('ele');
         if (!is_null($ele) && $ele !== '') {
-            // $query->where('ele_status', $ele);
-            if ($ele == 1 || $ele == 2) {
+            if ($ele == 1 || $ele == 2 || $ele == 0) {
                 $query->where('ele_status', $ele);
             } elseif ($ele == 3) {
                 $query->where('online_ele', 1)->where('stock', '>', 0);
@@ -1200,7 +1199,7 @@ class MedicineController extends Controller
                     ]);
                     $fail++;
                     continue;
-                } else if ($shop->waimai_mt && $shop->waimai_ele) {
+                } else if (!$shop->waimai_mt && !$shop->waimai_ele) {
                     MedicineSyncLogItem::create([
                         'log_id' => $log->id,
                         'name' => $medicine->name,
