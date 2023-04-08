@@ -32,7 +32,7 @@ class Medicine extends Model
                                 if ($category->pid != 0) {
                                     if ($category_parent = MedicineDepotCategory::find($category->pid)) {
                                         if (!MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category_parent->name])->first()) {
-                                            $w_c_p = MedicineCategory::firstOrCreate([
+                                            $w_c_p = MedicineCategory::create([
                                                 'shop_id' => $model->shop_id,
                                                 'pid' => 0,
                                                 'name' => $category_parent->name,
