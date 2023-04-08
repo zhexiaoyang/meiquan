@@ -31,27 +31,25 @@ class Medicine extends Model
                                 $pid = 0;
                                 if ($category->pid != 0) {
                                     if ($category_parent = MedicineDepotCategory::find($category->pid)) {
-                                        $w_c_p = MedicineCategory::firstOrCreate([
-                                            'shop_id' => $model->shop_id,
-                                            'pid' => 0,
-                                            'name' => $category_parent->name,
-                                            'sort' => $category_parent->sort,
-                                        ], [
-                                            'shop_id' => $model->shop_id,
-                                            'name' => $category_parent->name,
-                                        ]);
-                                        $pid = $w_c_p->id;
+                                        if (!MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category_parent->name])->first()) {
+                                            $w_c_p = MedicineCategory::firstOrCreate([
+                                                'shop_id' => $model->shop_id,
+                                                'pid' => 0,
+                                                'name' => $category_parent->name,
+                                                'sort' => $category_parent->sort,
+                                            ]);
+                                            $pid = $w_c_p->id;
+                                        }
                                     }
                                 }
-                                $c = MedicineCategory::firstOrCreate([
-                                    'shop_id' => $model->shop_id,
-                                    'pid' => $pid,
-                                    'name' => $category->name,
-                                    'sort' => $category->sort,
-                                ], [
-                                    'shop_id' => $model->shop_id,
-                                    'name' => $category->name,
-                                ]);
+                                if (!MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category->name])->first()) {
+                                    $c = MedicineCategory::create([
+                                        'shop_id' => $model->shop_id,
+                                        'pid' => $pid,
+                                        'name' => $category->name,
+                                        'sort' => $category->sort,
+                                    ]);
+                                }
                             }
                             \DB::table('wm_medicine_category')->insert(['medicine_id' => $model->id, 'category_id' => $c->id]);
                         }
