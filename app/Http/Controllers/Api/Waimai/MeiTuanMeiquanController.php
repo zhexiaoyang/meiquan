@@ -26,7 +26,7 @@ class MeiTuanMeiquanController extends Controller
     use LogTool;
     public $prefix_title = '[美团外卖闪购回调&###]';
 
-    // 门店绑定授权
+    // 闪购应用-门店绑定授权-正在使用
     public function bind(Request $request)
     {
         $op_type = $request->get("op_type", 0);
@@ -83,6 +83,7 @@ class MeiTuanMeiquanController extends Controller
                     } else {
                         $shop->waimai_mt = $shop_id;
                         $shop->meituan_bind_platform = 31;
+                        $shop->bind_date = date("Y-m-d H:i:s");
                         $shop->save();
                         $this->log_info("绑定成功");
                     }
@@ -90,6 +91,7 @@ class MeiTuanMeiquanController extends Controller
                     // 解绑
                     if ($shop->waimai_mt) {
                         $shop->waimai_mt = '';
+                        $shop->unbind_date = date("Y-m-d H:i:s");
                         $shop->save();
                         $this->log_info("解绑成功");
                     }

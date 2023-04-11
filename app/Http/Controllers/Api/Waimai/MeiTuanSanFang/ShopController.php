@@ -24,6 +24,7 @@ class ShopController extends Controller
             if ($shop = Shop::find($shop_id)) {
                 $shop->meituan_bind_platform = 25;
                 $shop->waimai_mt = $shop_id;
+                $shop->bind_date = date("Y-m-d H:i:s");
                 $shop->save();
                 if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
                     $token_data->update(['token' => $token]);

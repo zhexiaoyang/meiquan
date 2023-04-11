@@ -13,6 +13,7 @@ class ShopBindController
 
     public $prefix_title = '[美团外卖门店绑定回调&###]';
 
+    // 民康应用-门店绑定授权-正在使用
     public function status(Request $request, $platform)
     {
         $info = json_decode(urldecode($request->get('poi_info')), true);
@@ -38,6 +39,7 @@ class ShopBindController
                     } else {
                         $shop->waimai_mt = $mt_shop_id;
                         $shop->meituan_bind_platform = 4;
+                        $shop->bind_date = date("Y-m-d H:i:s");
                         $shop->save();
                         $this->log_info("绑定成功");
                     }
@@ -45,6 +47,7 @@ class ShopBindController
                     // 解绑
                     if ($shop->waimai_mt) {
                         $shop->waimai_mt = '';
+                        $shop->unbind_date = date("Y-m-d H:i:s");
                         $shop->save();
                         $this->log_info("解绑成功");
                     }
