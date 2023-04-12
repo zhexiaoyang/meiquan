@@ -147,9 +147,46 @@ class PrescriptionController extends Controller
             $query->where('operate_money', '>=', 50);
         })->where('chufang_status', 2)->where('status', '>', 0)->count();
 
+        // 未绑定
+        $unbind = 0;
+        $unbind_ele = 0;
+        // 已解绑
+        $unbound = 0;
+        $unbound_ele = 0;
+
+        $shops = Shop::where('user_id', '>', 0)->where('chufang_status', 1)->get();
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if (!$shop->waimai_mt) {
+                    if ($shop->unbind_date) {
+                        $unbind++;
+                    } else {
+                        $unbound++;
+                    }
+                }
+                if (!$shop->waimai_ele) {
+                    if ($shop->unbind_ele_date) {
+                        $unbind_ele++;
+                    } else {
+                        $unbound_ele++;
+                    }
+                }
+            }
+        }
+
         $total = $up + $down;
 
-        return $this->status(compact('total', 'down', 'up'));
+        $res = [
+            'total' => $total,
+            'up' => $up,
+            'down' => $down,
+            'unbind' => $unbind,
+            'unbound' => $unbound,
+            'unbind_ele' => $unbind_ele,
+            'unbound_ele' => $unbound_ele,
+        ];
+
+        return $this->status($res);
     }
 
     /**
@@ -160,8 +197,9 @@ class PrescriptionController extends Controller
     {
         $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
-                'prescription_cost', 'prescription_channel',
-                'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
+                'prescription_cost', 'prescription_channel','prescription_cost_ele', 'prescription_channel_ele',
+                'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status',
+                'waimai_ele', 'waimai_mt')
             ->where('shops.user_id', '>', 0)
             ->where('shops.chufang_status', '>', 0)
             ->where('shops.second_category', '200001');
@@ -184,6 +222,10 @@ class PrescriptionController extends Controller
         if ($channel) {
             $query->where('prescription_channel', $channel);
         }
+        $channel_ele = $request->get('channel_ele', '');
+        if ($channel_ele) {
+            $query->where('prescription_channel_ele', $channel_ele);
+        }
         if ($phone = $request->get('phone')) {
             $query->where('users.phone', 'like', "%{$phone}%");
         }
@@ -192,6 +234,38 @@ class PrescriptionController extends Controller
         }
         if ($end = $request->get('end')) {
             $query->where('users.operate_money', '<', $end);
+        }
+        $bind_status = $request->get('bind_status', '');
+        if ($bind_status) {
+            if ($bind_status == 1) {
+                $query->where('waimai_mt', '<>', '');
+            } else if ($bind_status == 2) {
+                $query->where('waimai_mt', '');
+            } else if ($bind_status == 3) {
+                $query->where('waimai_ele', '<>', '');
+            } else if ($bind_status == 4) {
+                $query->where('waimai_ele', '');
+            } else if ($bind_status == 5) {
+                // 美团已解绑但上线
+                $query->where('waimai_mt', '')
+                    ->whereNotNull('unbind_date')
+                    ->where('chufang_status', 1);
+            } else if ($bind_status == 6) {
+                // 美团未绑定但上线
+                $query->where('waimai_mt', '')
+                    ->whereNull('unbind_date')
+                    ->where('chufang_status', 1);
+            } else if ($bind_status == 7) {
+                // 饿了么已解绑但上线
+                $query->where('waimai_ele', '')
+                    ->whereNotNull('unbind_ele_date')
+                    ->where('chufang_status', 1);
+            } else if ($bind_status == 8) {
+                // 饿了么未绑定但上线
+                $query->where('waimai_ele', '')
+                    ->whereNull('unbind_ele_date')
+                    ->where('chufang_status', 1);
+            }
         }
 
         $order_key = $request->get('order_key');
@@ -413,6 +487,8 @@ class PrescriptionController extends Controller
         }
         $shop->prescription_cost = floatval($request->get('cost', 0));
         $shop->prescription_channel = intval($request->get('channel', 0));
+        $shop->prescription_cost_ele = floatval($request->get('cost_ele', 0));
+        $shop->prescription_channel_ele = intval($request->get('channel_ele', 0));
         $shop->save();
 
         return $this->success();
