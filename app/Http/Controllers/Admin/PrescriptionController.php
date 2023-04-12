@@ -154,17 +154,17 @@ class PrescriptionController extends Controller
         $unbound = 0;
         $unbound_ele = 0;
 
-        $shops = Shop::where('user_id', '>', 0)->where('chufang_status', 1)->get();
+        $shops = Shop::where('user_id', '>', 0)->where('second_category', '200001')->where('chufang_status', '>', 0)->where('chufang_status', 1)->get();
         if (!empty($shops)) {
             foreach ($shops as $shop) {
-                if (!$shop->waimai_mt) {
+                if ($shop->waimai_mt === '') {
                     if ($shop->unbind_date) {
                         $unbind++;
                     } else {
                         $unbound++;
                     }
                 }
-                if (!$shop->waimai_ele) {
+                if ($shop->waimai_ele === '') {
                     if ($shop->unbind_ele_date) {
                         $unbind_ele++;
                     } else {
