@@ -154,6 +154,7 @@ class EleOrderController extends Controller
                     return $this->res("order.status.success");
                 } else {
                     $shop->waimai_ele = $ele_id;
+                    $shop->bind_ele_date = date("Y-m-d H:i:s");
                     $shop->save();
                     $this->log_info("饿了么绑定门店|门店ID:{$shop->id}|饿了么门店ID:{$ele_id}，绑定成功");
                 }
@@ -183,6 +184,7 @@ class EleOrderController extends Controller
                 // 解绑
                 if ($shop->waimai_ele) {
                     $shop->waimai_ele = '';
+                    $shop->unbind_ele_date = date("Y-m-d H:i:s");
                     $shop->save();
                     $this->log_info("饿了么解绑门店|门店ID:{$shop->id}|饿了么门店ID:{$ele_id}，解绑成功");
                 }
