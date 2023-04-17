@@ -370,6 +370,9 @@ class PrescriptionController extends Controller
                     }
                 } else {
                     $shop = Shop::select('id','user_id')->where('chufang_ele', $v->storeID)->first();
+                    if (!$shop) {
+                        $shop = Shop::select('id','user_id')->where('waimai_ele_kl', $v->storeID)->first();
+                    }
                     if ($shop) {
                         if ($shop->user_id) {
                             DB::transaction(function () use ($v, $shop) {
