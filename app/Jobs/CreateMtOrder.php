@@ -198,7 +198,8 @@ class CreateMtOrder implements ShouldQueue
             if ($order->status < 20) {
                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
             }
-            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 5]));
+            // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, 5]));
+            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
             // Log::info($this->log."用户金额不足5.2元,不能发单");
             $this->log("用户金额不足5.2元，停止派单");
             return;
@@ -260,7 +261,8 @@ class CreateMtOrder implements ShouldQueue
                             if ($order->status < 20) {
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                             }
-                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
+                            // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
+                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                             $this->log("用户金额不足发0.2元，停止不能发自主运力派单");
                             return;
                         }
@@ -269,7 +271,8 @@ class CreateMtOrder implements ShouldQueue
                             if ($order->status < 20) {
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                             }
-                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
+                            // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
+                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                             $this->log("用户金额不足发「顺丰」单，停止派单");
                             return;
                         }
@@ -317,7 +320,8 @@ class CreateMtOrder implements ShouldQueue
                     if ($order->status < 20) {
                         DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                     }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_uu + $use_money]));
+                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_uu + $use_money]));
+                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                     $this->log("用户金额不足发「UU」订单，停止派单");
                     return;
                 }
@@ -372,7 +376,8 @@ class CreateMtOrder implements ShouldQueue
                         if ($order->status < 20) {
                             DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
                         }
-                        dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
+                        // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
+                        dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                         $this->log("用户金额不足发「达达」订单，停止派单");
                         return;
                     }
@@ -421,7 +426,8 @@ class CreateMtOrder implements ShouldQueue
                     if ($order->status < 20) {
                         DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                     }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mqd + $use_money]));
+                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mqd + $use_money]));
+                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                     $this->log("用户金额不足发「美全达」订单，停止派单");
                     return;
                 }
@@ -461,7 +467,8 @@ class CreateMtOrder implements ShouldQueue
                     if ($order->status < 20) {
                         DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                     }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                     $this->log("用户金额不足发「美团」单，停止派单");
                     return;
                 }
@@ -506,7 +513,8 @@ class CreateMtOrder implements ShouldQueue
                     if ($this->order->status < 20) {
                         DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                     }
-                    dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
+                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
+                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                     $this->log("用户金额不足发「蜂鸟」订单，停止派单");
                     return;
                 }
@@ -557,7 +565,8 @@ class CreateMtOrder implements ShouldQueue
                             if ($order->status < 20) {
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
                             }
-                            dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
+                            // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
+                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                             $this->log("用户金额不足发「闪送」单，停止派单");
                             return;
                         }
