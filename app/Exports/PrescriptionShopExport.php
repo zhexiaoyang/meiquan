@@ -20,6 +20,8 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
     use Exportable;
 
     private $fileName = '处方门店列表.xlsx';
+    private $channel = ['', '美全+代审方', '美团+代审方', '美全+不审方', '美团+不审方'];
+    private $channel_ele = ['', '', '', '饿了么+不审方', '饿了么+不审方'];
 
     protected $request;
 
@@ -36,6 +38,8 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
 
         $query = DB::table('shops')->leftJoin('users', 'shops.own_id', '=', 'users.id')
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
+                'shops.waimai_mt','shops.waimai_ele','shops.chufang_mt','shops.chufang_ele','shops.waimai_ele_kl',
+                'shops.prescription_cost','shops.prescription_cost_ele','shops.prescription_channel','shops.prescription_channel_ele',
                 'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status')
             ->where('shops.user_id', '>', 0)
             ->where('shops.chufang_status', '>', 0)
@@ -94,12 +98,18 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
     {
         return [
             $shop->id,
-            $shop->mtwm,
-            $shop->ele ? "'" . $shop->ele : '',
-            $shop->jddj ? "'" . $shop->jddj : '',
-            $shop->shop_name,
             $shop->uid ?? '',
             $shop->phone ?? '',
+            $shop->waimai_mt ?: '未绑定',
+            $shop->waimai_ele ?: '未绑定',
+            $shop->chufang_mt,
+            $shop->chufang_ele,
+            $shop->waimai_ele_kl,
+            $shop->prescription_cost,
+            $this->channel[$shop->prescription_channel],
+            $shop->prescription_cost_ele,
+            $this->channel[$shop->prescription_channel_ele],
+            $shop->shop_name,
             $shop->operate_money ?? '',
             $shop->status == 1 ? '上线' : '下线',
         ];
@@ -109,12 +119,18 @@ class PrescriptionShopExport implements WithStrictNullComparison, Responsable, F
     {
         return [
             '门店ID',
-            '美团ID',
-            '饿了么ID',
-            '京东到家ID',
-            '门店名称',
             '用户ID',
             '用户手机',
+            '美团绑定状态',
+            '饿了么绑定状态',
+            '美团处方ID',
+            '饿了么处方ID',
+            '饿了么昆仑ID',
+            '美团处方费用',
+            '美团处方渠道',
+            '饿了么处方费用',
+            '饿了么处方渠道',
+            '门店名称',
             '处方余额',
             '门店处方状态',
         ];
