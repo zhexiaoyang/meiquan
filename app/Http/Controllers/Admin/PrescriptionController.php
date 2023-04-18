@@ -199,7 +199,7 @@ class PrescriptionController extends Controller
             ->select('users.id as uid','users.phone','users.operate_money','users.id','shops.id',
                 'prescription_cost', 'prescription_channel','prescription_cost_ele', 'prescription_channel_ele',
                 'shops.own_id','shops.shop_name','shops.mtwm','shops.ele','shops.jddj','shops.chufang_status as status',
-                'waimai_ele', 'waimai_mt')
+                'waimai_ele', 'waimai_mt', 'chufang_mt', 'chufang_ele')
             ->where('shops.user_id', '>', 0)
             ->where('shops.chufang_status', '>', 0)
             ->where('shops.second_category', '200001');
