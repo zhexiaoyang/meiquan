@@ -45,7 +45,7 @@ class MedicineImportJob implements ShouldQueue
         $price = $this->medicine['price'];
         $stock = $this->medicine['stock'];
         $cost = $this->medicine['guidance_price'];
-        $status = false;
+        $status = true;
 
         if (!$medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
             if ($depot = MedicineDepot::where('upc', $upc)->first()) {
@@ -84,8 +84,9 @@ class MedicineImportJob implements ShouldQueue
                     'depot_id' => 0,
                 ];
             }
-            $status = true;
             Medicine::create($medicine_arr);
+        } else {
+            $status = false;
         }
         $redis_key = 'medicine_zhongtai_add_job_key_' . $this->log_id;
         $catch = Redis::hget($redis_key, $upc);
