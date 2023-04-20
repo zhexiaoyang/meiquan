@@ -696,6 +696,12 @@ class MedicineController extends Controller
         }
 
         Medicine::where('shop_id', $shop->id)->delete();
+        $categories = MedicineCategory::where('shop_id', $shop->id)->get();
+        if (!empty($categories)) {
+            foreach ($categories as $category) {
+                \DB::table('wm_medicine_category')->where(['category_id' => $category->id])->delete();
+            }
+        }
         MedicineCategory::where('shop_id', $shop->id)->delete();
 
         return $this->success();
