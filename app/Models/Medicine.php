@@ -45,14 +45,24 @@ class Medicine extends Model
                                         if (!$_c = MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category_parent->name])->first()) {
                                             // \Log::info('上级分类没有创建');
                                             // 查找父级分类，并创建分类
-                                            $w_c_p = MedicineCategory::create([
-                                                'shop_id' => $model->shop_id,
-                                                'pid' => 0,
-                                                'name' => $category_parent->name,
-                                                'sort' => $category_parent->sort,
-                                            ]);
+                                            try {
+
+                                                $w_c_p = MedicineCategory::create([
+                                                    'shop_id' => $model->shop_id,
+                                                    'pid' => 0,
+                                                    'name' => $category_parent->name,
+                                                    'sort' => $category_parent->sort,
+                                                ]);
+                                                $pid = $w_c_p->id;
+                                            } catch (\Exception $exception) {
+                                                \Log::info("导入商品创建分类一级报错");
+                                                if ($w_c_p = MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category_parent->name])->first()) {
+                                                    $pid = $w_c_p->id;
+                                                } else {
+                                                    \Log::info("导入商品创建分类一级报错-重新查找分类-不存在|商品ID：" . $model->id);
+                                                }
+                                            }
                                             // \Log::info('创建上级分类返回', [$w_c_p]);
-                                            $pid = $w_c_p->id;
                                         } else {
                                             $pid = $_c->id;
                                         }
@@ -60,12 +70,16 @@ class Medicine extends Model
                                 }
                                 // \Log::info("上级分类ID：{$pid},");
                                 if (!$c = MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category->name])->first()) {
-                                    $c = MedicineCategory::create([
-                                        'shop_id' => $model->shop_id,
-                                        'pid' => $pid,
-                                        'name' => $category->name,
-                                        'sort' => $category->sort,
-                                    ]);
+                                    try {
+                                        $c = MedicineCategory::create([
+                                            'shop_id' => $model->shop_id,
+                                            'pid' => $pid,
+                                            'name' => $category->name,
+                                            'sort' => $category->sort,
+                                        ]);
+                                    } catch (\Exception $exception) {
+                                        \Log::info("导入商品创建分类报错|商品ID：{$model->id}|分类名称：{$category->name}");
+                                    }
                                 }
                             }
                             // \Log::info('--------------------e | ' . $category->name);
