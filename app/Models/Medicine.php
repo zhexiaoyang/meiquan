@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 
 class Medicine extends Model
 {
@@ -54,7 +55,7 @@ class Medicine extends Model
                                                     'sort' => $category_parent->sort,
                                                 ]);
                                                 $pid = $w_c_p->id;
-                                            } catch (\Exception $exception) {
+                                            } catch (QueryException $exception) {
                                                 \Log::info("导入商品创建分类一级报错");
                                                 if ($w_c_p = MedicineCategory::where(['shop_id' => $model->shop_id, 'name' => $category_parent->name])->first()) {
                                                     $pid = $w_c_p->id;
@@ -77,7 +78,7 @@ class Medicine extends Model
                                             'name' => $category->name,
                                             'sort' => $category->sort,
                                         ]);
-                                    } catch (\Exception $exception) {
+                                    } catch (QueryException $exception) {
                                         \Log::info("导入商品创建分类报错|商品ID：{$model->id}|分类名称：{$category->name}");
                                     }
                                 }
