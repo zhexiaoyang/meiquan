@@ -3,7 +3,9 @@
 namespace App\Jobs;
 
 use App\Models\Medicine;
+use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
+use App\Models\MedicineDepotCategory;
 use App\Models\MedicineSyncLog;
 use App\Models\MedicineSyncLogItem;
 use App\Models\Shop;
@@ -49,7 +51,50 @@ class MedicineImportJob implements ShouldQueue
 
         if (!$medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
             if ($depot = MedicineDepot::where('upc', $upc)->first()) {
-                // \Log::info('upc3:' . $upc);
+                // 品库中有此商品
+
+                // 创建分类
+                // 查找该商品在品库中的所有分类ID
+                $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
+                if (!empty($depot_category_ids)) {
+                    // 根据查找的分类ID，查找该商品所有分类
+                    $depot_categories = MedicineDepotCategory::whereIn('id', $depot_category_ids)->get();
+                    if (!empty($depot_categories)) {
+                        foreach ($depot_categories as $depot_category) {
+                            $pid = 0;
+                            if ($depot_category->pid != 0) {
+                                if ($depot_category_parent = MedicineDepotCategory::find($depot_category->pid)) {
+                                    $category_parent = MedicineCategory::firstOrCreate(
+                                        [
+                                            'shop_id' => $this->shop_id,
+                                            'name' => $depot_category_parent->name,
+                                        ],
+                                        [
+                                            'shop_id' => $this->shop_id,
+                                            'pid' => 0,
+                                            'name' => $depot_category_parent->name,
+                                            'sort' => $depot_category_parent->sort,
+                                        ]
+                                    );
+                                    $pid = $category_parent->id;
+                                }
+                            }
+                            $c = MedicineCategory::firstOrCreate(
+                                [
+                                    'shop_id' => $this->shop_id,
+                                    'name' => $depot_category->name,
+                                ],
+                                [
+                                    'shop_id' => $this->shop_id,
+                                    'pid' => $pid,
+                                    'name' => $depot_category->name,
+                                    'sort' => $depot_category->sort,
+                                ]
+                            );
+                        }
+                    }
+                }
+                // 创建商品数组
                 $medicine_arr = [
                     'shop_id' => $this->shop_id,
                     'name' => $depot->name,
@@ -63,6 +108,7 @@ class MedicineImportJob implements ShouldQueue
                     'depot_id' => $depot->id,
                 ];
             } else {
+                // 品库中没有此商品
                 $l = strlen($upc);
                 $name = $this->medicine['name'];
                 if ($l >= 7 && $l <= 19) {
@@ -83,8 +129,22 @@ class MedicineImportJob implements ShouldQueue
                     'guidance_price' => $cost,
                     'depot_id' => 0,
                 ];
+                // 创建-暂未分类
+                $c = MedicineCategory::firstOrCreate(
+                    [
+                        'shop_id' => $this->shop_id,
+                        'name' => '暂未分类',
+                    ],
+                    [
+                        'shop_id' => $this->shop_id,
+                        'pid' => 0,
+                        'name' => '暂未分类',
+                        'sort' => 1000,
+                    ]
+                );
             }
-            Medicine::create($medicine_arr);
+            $medicine = Medicine::create($medicine_arr);
+            \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
         } else {
             $status = false;
         }
