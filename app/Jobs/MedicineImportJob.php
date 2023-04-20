@@ -82,7 +82,7 @@ class MedicineImportJob implements ShouldQueue
                                             'shop_id' => $this->shop_id,
                                             'name' => $depot_category_parent->name,
                                         ])->first();
-                                        \Log::info("创建分类(父级)失败|shop_id:{$this->shop_id}|name:{$depot_category_parent->name}|重新查询结果：", [$category_parent]);
+                                        \Log::info("创建分类失败(父级)|shop_id:{$this->shop_id}|name:{$depot_category_parent->name}|重新查询结果：", [$category_parent]);
                                     }
                                     $pid = $category_parent->id;
                                 }
@@ -165,14 +165,22 @@ class MedicineImportJob implements ShouldQueue
             $status = false;
         }
         $redis_key = 'medicine_zhongtai_add_job_key_' . $this->log_id;
+        $redis_key_s = 'medicine_zhongtai_add_job_key_s' . $this->log_id;
+        $redis_key_f = 'medicine_zhongtai_add_job_key_f' . $this->log_id;
         $catch = Redis::hget($redis_key, $upc);
+        $redis_number_s = 0;
+        $redis_number_f = 0;
         if (!$catch) {
             Redis::hset($redis_key, $upc, 1);
             if ($status) {
-                MedicineSyncLog::where('id', $this->log_id)->increment('success');
+                $redis_number_s = Redis::incr($redis_key_s);
+                // MedicineSyncLog::where('id', $this->log_id)->increment('success');
             } else {
-                MedicineSyncLog::where('id', $this->log_id)->increment('fail');
+                $redis_number_f = Redis::incr($redis_key_f);
+                // MedicineSyncLog::where('id', $this->log_id)->increment('fail');
             }
+            // $redis_number_s = Redis::get($redis_key_s);
+            // $redis_number_f = Redis::get($redis_key_f);
             MedicineSyncLogItem::create([
                 'log_id' => $this->log_id,
                 'name' => $this->medicine['name'],
@@ -181,9 +189,14 @@ class MedicineImportJob implements ShouldQueue
             ]);
         }
         $log = MedicineSyncLog::find($this->log_id);
-        if ($log->total <= ($log->success + $log->fail)) {
+        if ($log->total <= ($log->success + $log->fail + $redis_number_s + $redis_number_f)) {
+            \Log::info('执行一次');
             Redis::expire($redis_key, 60);
+            Redis::expire($redis_key_s, 60);
+            Redis::expire($redis_key_f, 60);
             $log->update([
+                'success' => $log->success + $redis_number_s,
+                'fail' => $log->fail + $redis_number_f,
                 'status' => 2,
             ]);
         }
