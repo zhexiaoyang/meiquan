@@ -49,7 +49,7 @@ class MedicineImportJob implements ShouldQueue
 
         if (!$medicine = Medicine::where('upc', $upc)->where('shop_id', $this->shop_id)->first()) {
             if ($depot = MedicineDepot::where('upc', $upc)->first()) {
-                \Log::info('upc3:' . $upc);
+                // \Log::info('upc3:' . $upc);
                 $medicine_arr = [
                     'shop_id' => $this->shop_id,
                     'name' => $depot->name,
