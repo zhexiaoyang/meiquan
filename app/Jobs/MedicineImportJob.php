@@ -64,33 +64,49 @@ class MedicineImportJob implements ShouldQueue
                             $pid = 0;
                             if ($depot_category->pid != 0) {
                                 if ($depot_category_parent = MedicineDepotCategory::find($depot_category->pid)) {
-                                    $category_parent = MedicineCategory::firstOrCreate(
-                                        [
+                                    try {
+                                        $category_parent = MedicineCategory::firstOrCreate(
+                                            [
+                                                'shop_id' => $this->shop_id,
+                                                'name' => $depot_category_parent->name,
+                                            ],
+                                            [
+                                                'shop_id' => $this->shop_id,
+                                                'pid' => 0,
+                                                'name' => $depot_category_parent->name,
+                                                'sort' => $depot_category_parent->sort,
+                                            ]
+                                        );
+                                    } catch (\Exception $exception) {
+                                        $category_parent = MedicineCategory::where([
                                             'shop_id' => $this->shop_id,
                                             'name' => $depot_category_parent->name,
-                                        ],
-                                        [
-                                            'shop_id' => $this->shop_id,
-                                            'pid' => 0,
-                                            'name' => $depot_category_parent->name,
-                                            'sort' => $depot_category_parent->sort,
-                                        ]
-                                    );
+                                        ])->first();
+                                        \Log::info("创建分类(父级)失败|shop_id:{$this->shop_id}|name:{$depot_category_parent->name}|重新查询结果：", [$category_parent]);
+                                    }
                                     $pid = $category_parent->id;
                                 }
                             }
-                            $c = MedicineCategory::firstOrCreate(
-                                [
+                            try {
+                                $c = MedicineCategory::firstOrCreate(
+                                    [
+                                        'shop_id' => $this->shop_id,
+                                        'name' => $depot_category->name,
+                                    ],
+                                    [
+                                        'shop_id' => $this->shop_id,
+                                        'pid' => $pid,
+                                        'name' => $depot_category->name,
+                                        'sort' => $depot_category->sort,
+                                    ]
+                                );
+                            } catch (\Exception $exception) {
+                                $c = MedicineCategory::where([
                                     'shop_id' => $this->shop_id,
                                     'name' => $depot_category->name,
-                                ],
-                                [
-                                    'shop_id' => $this->shop_id,
-                                    'pid' => $pid,
-                                    'name' => $depot_category->name,
-                                    'sort' => $depot_category->sort,
-                                ]
-                            );
+                                ])->first();
+                                \Log::info("创建分类失败|shop_id:{$this->shop_id}|name:{$depot_category->name}|重新查询结果：", [$c]);
+                            }
                         }
                     }
                 }
