@@ -890,7 +890,8 @@ class MedicineController extends Controller
         $message .= '商品添加成功。';
         // return $this->success($medicine->categories);
 
-        if ($request->get('mt')) {
+        if ($request->get('mt') !== 'false') {
+            \Log::info("品库添加商品-mt");
             if (!$shop->waimai_mt) {
                 $message .= '美团未绑定，无法同步。';
             } else {
@@ -983,7 +984,8 @@ class MedicineController extends Controller
                 }
             }
         }
-        if ($request->get('ele')) {
+        if ($request->get('ele') !== 'false') {
+            \Log::info("品库添加商品-饿了么");
             if (!$shop->waimai_ele) {
                 $message .= '饿了么未绑定，无法同步。';
             } else {
