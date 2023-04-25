@@ -45,25 +45,46 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (isset($chongfu[$item['条形码']])) {
                 throw new InvalidRequestException("第{$line}行条形码与第{$chongfu[$item['条形码']]}行条形码重复", 422);
             }
-            if (!empty($item['线上销售价格'])) {
+            if (trim($item['线上销售价格']) !== '') {
+                if (!is_numeric($item['线上销售价格'])) {
+                    throw new InvalidRequestException("第{$line}行线上销售价格格式不正确", 422);
+                }
                 if ($item['线上销售价格'] == 0) {
                     throw new InvalidRequestException("第{$line}行线上销售价格不能为0", 422);
                 }
                 $update_status = true;
             }
-            if (!empty($item['售卖状态'])) {
-                if (!in_array($item['售卖状态'], [0, 1])) {
+            if (trim($item['线下销售价格']) !== '') {
+                if (!is_numeric($item['线下销售价格'])) {
+                    throw new InvalidRequestException("第{$line}行线下销售价格格式不正确", 422);
+                }
+                $update_status = true;
+            }
+            if (trim($item['售卖状态']) !== '') {
+                if (!is_numeric($item['售卖状态'])) {
+                    throw new InvalidRequestException("第{$line}行售卖状态格式不正确", 422);
+                }
+                if (!in_array(intval($item['售卖状态']), [0, 1])) {
                     throw new InvalidRequestException("第{$line}行售卖状态错误", 422);
                 }
                 $update_status = true;
             }
-            if (!empty(trim($item['成本价格']))) {
+            if (trim($item['成本价格']) !== '') {
+                if (!is_numeric($item['成本价格'])) {
+                    throw new InvalidRequestException("第{$line}行成本价格格式不正确", 422);
+                }
                 $update_status = true;
             }
-            if (!empty(trim($item['库存']))) {
+            if (trim($item['库存']) !== '') {
+                if (!is_numeric($item['库存'])) {
+                    throw new InvalidRequestException("第{$line}行库存格式不正确", 422);
+                }
                 $update_status = true;
             }
-            if (!empty(trim($item['排序']))) {
+            if (trim($item['排序']) !== '') {
+                if (!is_numeric($item['排序'])) {
+                    throw new InvalidRequestException("第{$line}行排序格式不正确", 422);
+                }
                 $update_status = true;
             }
             if ($update_status === false) {
