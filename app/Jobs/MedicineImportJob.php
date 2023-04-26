@@ -23,6 +23,7 @@ class MedicineImportJob implements ShouldQueue
     public $medicine;
     public $shop_id;
     public $log_id;
+    // public $unique_key;
 
     /**
      * Create a new job instance.
@@ -34,6 +35,8 @@ class MedicineImportJob implements ShouldQueue
         $this->shop_id = $shop_id;
         $this->medicine = $medicine;
         $this->log_id = $log_id;
+        // $this->unique_key = uniqid();
+        // \Log::info('进入JOB：' . $this->unique_key, [$log_id]);
     }
 
     /**
@@ -188,7 +191,15 @@ class MedicineImportJob implements ShouldQueue
                 'msg' => $status ? '药品添加成功' : '药品已存在，不能重复添加',
             ]);
         }
-        $log = MedicineSyncLog::find($this->log_id);
+        // \Log::info('查询log之前JOB：' . $this->unique_key, [$this->log_id]);
+        $log = \DB::table('wm_medicine_sync_logs')->where('id', $this->log_id)->first();
+        // \Log::info('查询log之后JOB：' . $this->unique_key, [$log]);
+        if (!$log) {
+            sleep(3);
+            $log = \DB::table('wm_medicine_sync_logs')->where('id', $this->log_id)->first();
+            // \Log::info('重新查询log之后JOB：' . $this->unique_key, [$log]);
+        }
+
         if ($log->total <= ($log->success + $log->fail + $redis_number_s + $redis_number_f)) {
             \Log::info('执行一次');
             Redis::expire($redis_key, 60);
