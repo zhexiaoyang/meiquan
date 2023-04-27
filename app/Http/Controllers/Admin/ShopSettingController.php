@@ -113,6 +113,7 @@ class ShopSettingController extends Controller
             'delay_reset' => $setting['delay_reset'],
             'delay_send' => $setting['delay_send'],
             'platform' => $platform,
+            'zhongbao' => (bool) $shop->shop_id_zb,
             'shop_platform' => $shop_platform,
             'tool' => $setting['tool'],
             'type' => $setting['type'],
@@ -151,6 +152,14 @@ class ShopSettingController extends Controller
             }
         }
 
+        // 美团众包
+        $zhongbao = (bool) $request->get('zhongbao');
+        // \Log::info('zb', [$zhongbao]);
+        // if ($zhongbao) {
+        //     $shop->shop_id_zb = $shop->id;
+        // } else {
+        //     $shop->shop_id_zb = 0;
+        // }
         // 呼叫模式
         $call = intval($request->get('call', 1));
         if (!in_array($call, [1, 2])) {
@@ -232,8 +241,17 @@ class ShopSettingController extends Controller
         $setting->save();
         // 交通工具
         $tool = intval($request->get("tool"));
-        if ($tool != $shop->tool) {
-            $shop->tool = $tool;
+        if ($tool != $shop->tool || $zhongbao != $shop->shop_id_zb) {
+            if ($tool != $shop->tool) {
+                $shop->tool = $tool;
+            }
+            if ($zhongbao != $shop->shop_id_zb) {
+                if ($zhongbao) {
+                    $shop->shop_id_zb = $shop->id;
+                } else {
+                    $shop->shop_id_zb = 0;
+                }
+            }
             $shop->save();
         }
 
