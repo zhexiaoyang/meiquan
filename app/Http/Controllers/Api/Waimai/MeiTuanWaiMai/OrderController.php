@@ -242,6 +242,12 @@ class OrderController
         return json_encode(['data' => 'ok']);
     }
 
+    public function rider_exception(Request $request)
+    {
+        \Log::info('美配异常订单', $request->all());
+        return json_encode(['data' => 'ok']);
+    }
+
     public function status_self(Request $request, $platform)
     {
         $order_id = $request->get('order_view_id', '');
