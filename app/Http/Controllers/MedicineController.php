@@ -1265,12 +1265,12 @@ class MedicineController extends Controller
                     ]);
                     $fail++;
                     continue;
-                } else if ($medicine->price <= 0) {
+                } else if ($medicine->price < 0) {
                     MedicineSyncLogItem::create([
                         'log_id' => $log->id,
                         'name' => $medicine->name,
                         'upc' => $medicine->upc,
-                        'msg' => '失败：线上价格不能为0',
+                        'msg' => '失败：线上价格不能小于0',
                     ]);
                     $fail++;
                     continue;
