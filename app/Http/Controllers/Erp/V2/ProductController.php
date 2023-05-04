@@ -133,7 +133,7 @@ class ProductController extends Controller
                 if (Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
                     Medicine::where('upc', $upc)->where('shop_id', $shop->id)->update([
                         'stock' => $v['stock'],
-                        'price' => 0,
+                        // 'price' => 0,
                         'down_price' => $price,
                         'guidance_price' => $cost,
                     ]);
