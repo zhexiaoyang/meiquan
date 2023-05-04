@@ -109,32 +109,40 @@ class MedicineController extends Controller
                 $query->where('stock', 0);
             }
         }
-        $gpm = $request->get('gpm');
-        if (!is_null($gpm) && $gpm !== '') {
-            if ($gpm == 1) {
-                $query->where('gpm', '<=', 0);
-            } elseif ($gpm == 2) {
-                $query->where('gpm', '>', 0)->where('gpm', '<=', 10);
-            } elseif ($gpm == 3) {
-                $query->where('gpm', '>', 10)->where('gpm', '<=', 20);
-            } elseif ($gpm == 4) {
-                $query->where('gpm', '>', 20)->where('gpm', '<=', 30);
-            } elseif ($gpm == 5) {
-                $query->where('gpm', '>', 30)->where('gpm', '<=', 40);
-            } elseif ($gpm == 6) {
-                $query->where('gpm', '>', 40)->where('gpm', '<=', 50);
-            } elseif ($gpm == 7) {
-                $query->where('gpm', '>', 50)->where('gpm', '<=', 60);
-            } elseif ($gpm == 8) {
-                $query->where('gpm', '>', 60)->where('gpm', '<=', 70);
-            } elseif ($gpm == 9) {
-                $query->where('gpm', '>', 70)->where('gpm', '<=', 80);
-            } elseif ($gpm == 10) {
-                $query->where('gpm', '>', 80)->where('gpm', '<=', 90);
-            } elseif ($gpm == 11) {
-                $query->where('gpm', '>', 90)->where('gpm', '<=', 100);
-            }
+        $gpm_max = $request->get('gpm_max');
+        if (is_numeric($gpm_max)) {
+            $query->where('gpm', '<=', $gpm_max);
         }
+        $gpm_min = $request->get('gpm_min');
+        if (is_numeric($gpm_min)) {
+            $query->where('gpm', '>=', $gpm_min);
+        }
+        // $gpm = $request->get('gpm');
+        // if (!is_null($gpm) && $gpm !== '') {
+        //     if ($gpm == 1) {
+        //         $query->where('gpm', '<=', 0);
+        //     } elseif ($gpm == 2) {
+        //         $query->where('gpm', '>', 0)->where('gpm', '<=', 10);
+        //     } elseif ($gpm == 3) {
+        //         $query->where('gpm', '>', 10)->where('gpm', '<=', 20);
+        //     } elseif ($gpm == 4) {
+        //         $query->where('gpm', '>', 20)->where('gpm', '<=', 30);
+        //     } elseif ($gpm == 5) {
+        //         $query->where('gpm', '>', 30)->where('gpm', '<=', 40);
+        //     } elseif ($gpm == 6) {
+        //         $query->where('gpm', '>', 40)->where('gpm', '<=', 50);
+        //     } elseif ($gpm == 7) {
+        //         $query->where('gpm', '>', 50)->where('gpm', '<=', 60);
+        //     } elseif ($gpm == 8) {
+        //         $query->where('gpm', '>', 60)->where('gpm', '<=', 70);
+        //     } elseif ($gpm == 9) {
+        //         $query->where('gpm', '>', 70)->where('gpm', '<=', 80);
+        //     } elseif ($gpm == 10) {
+        //         $query->where('gpm', '>', 80)->where('gpm', '<=', 90);
+        //     } elseif ($gpm == 11) {
+        //         $query->where('gpm', '>', 90)->where('gpm', '<=', 100);
+        //     }
+        // }
         if ($id = $request->get('id')) {
             $query->where('id', $id);
         }
