@@ -165,6 +165,7 @@ class Api extends Request
      */
     public function shopDraftTaozi(OnlineShop $shop, $type = 1)
     {
+        $type = 1;
         // $ids = ['', '2907910074598953069', '2907917307005113105', '2907925343920722421'];
         $ids = ['', '3075397622647825396', '3075396328235205253', '3075393744749531689'];
         $data = [
@@ -346,6 +347,7 @@ class Api extends Request
      */
     public function companysignTaozi($contract_id, $type = 1)
     {
+        $type = 1;
         // sealId 公章ID 桃子的
         $data = [
             'contractId' => $contract_id,
