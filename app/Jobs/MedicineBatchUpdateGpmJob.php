@@ -21,13 +21,15 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
     public $meituan_bind_platform;
     public $ele_id;
     public $gpm;
+    public $total;
+    public $fail;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($log_id, $medicine, $gpm, $meituan_id, $meituan_bind_platform, $ele_id)
+    public function __construct($log_id, $medicine, $gpm, $meituan_id, $meituan_bind_platform, $ele_id, $total = 0)
     {
         $this->log_id = $log_id;
         $this->medicine = $medicine;
@@ -35,6 +37,7 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
         $this->meituan_id = $meituan_id;
         $this->meituan_bind_platform = $meituan_bind_platform;
         $this->ele_id = $ele_id;
+        $this->total = $total;
     }
 
     /**
@@ -52,8 +55,9 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
         $gpm = $this->gpm;
         $guidance_price = $this->medicine['guidance_price'];
         $new_price = $guidance_price / ( 1 - ($gpm / 100));
-        $mt = false;
-        $ele = false;
+        \DB::table('wm_medicines')->where('id', $this->medicine['id'])->update(['price' => $new_price, 'gpm' => $gpm]);
+        $mt = true;
+        $ele = true;
         $msg = '';
         if ($this->medicine['mt_status'] == 1) {
             $meituan = null;
@@ -73,9 +77,8 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
                         $params['access_token'] = $meituan->getShopToken($this->meituan_id);
                     }
                     $res = $meituan->medicineUpdate($params);
-                    if ($res['data'] === 'ok') {
-                        $mt = true;
-                    } elseif ($res['data'] === 'ng') {
+                    if ($res['data'] === 'ng') {
+                        $mt = false;
                         if (!empty($res['error']['msg'])) {
                             $msg .= '美团错误：' . $res['error']['msg'] . '。';
                         }
@@ -83,16 +86,16 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
                 } catch (\Exception $exception) {
                     \Log::info('毛利率同步美团价格失败', [$exception->getMessage(), $exception->getFile(), $exception->getLine()]);
                 }
-            } else {
-                $msg .= '门店未绑定美团。';
+            // } else {
+            //     $msg .= '门店未绑定美团。';
             }
-        } else {
-            $msg .= '药品未同步美团。';
+        // } else {
+        //     $msg .= '药品未同步美团。';
         }
         if ($this->medicine['ele_status'] == 1) {
-            if (!$this->ele_id) {
-                $msg .= '门店未绑定饿了么。';
-            } else {
+            if ($this->ele_id) {
+                // $msg .= '门店未绑定饿了么。';
+            // } else {
                 $eleme = app('ele');
                 $params = [
                     'shop_id' => $this->ele_id,
@@ -100,50 +103,58 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
                     'sale_price' => (int) ($new_price * 100)
                 ];
                 $res = $eleme->skuUpdate($params);
-                if ($res['body']['errno'] === 0) {
-                    $ele = true;
-                } else {
+                if ($res['body']['errno'] !== 0) {
+                    $mt = false;
                     if (!empty($res['body']['error'])) {
                         $msg .= '饿了么错误：' . $res['body']['error'] . '。';
                     }
                 }
             }
-        } else {
-            $msg .= '药品未同步饿了么。';
+        // } else {
+        //     $msg .= '药品未同步饿了么。';
         }
         // 修改日志
         $redis_key = 'medicine_job_key_' . $this->log_id;
+        $redis_key_success = 'medicine_job_key_success_' . $this->log_id;
+        $redis_key_fail = 'medicine_job_key_fail_' . $this->log_id;
+        $redis_number_success =  Redis::get($redis_key_success);
+        $redis_number_fail = Redis::get($redis_key_fail);
         $catch = Redis::hget($redis_key, $this->medicine['id']);
         if (!$catch) {
             Redis::hset($redis_key, $this->medicine['id'], 1);
-            if ($mt || $ele) {
-                $msg = '成功 ' . $msg;
+            if (!$mt || !$ele) {
+                $msg = '失败 ' . $msg;
                 // \Log::info("毛利率:{$gpm},原线上价格:{$price},成本价:{$guidance_price},新价格:{$new_price}");
-                \DB::table('wm_medicines')->where('id', $this->medicine['id'])->update(['price' => $new_price, 'gpm' => $gpm]);
-                MedicineSyncLog::where('id', $this->log_id)->increment('success');
+                // $res_num = MedicineSyncLog::where('id', $this->log_id)->increment('fail');
+                $redis_number_fail = Redis::incr($redis_key_fail);
             } else {
-                MedicineSyncLog::where('id', $this->log_id)->increment('fail');
+                $redis_number_success = Redis::incr($redis_key_success);
+                // $res_num = MedicineSyncLog::where('id', $this->log_id)->increment('success');
             }
-            if ($mt) {
-                MedicineSyncLog::where('id', $this->log_id)->increment('mt_success');
-            } else {
-                MedicineSyncLog::where('id', $this->log_id)->increment('mt_fail');
-            }
-            if ($ele) {
-                MedicineSyncLog::where('id', $this->log_id)->increment('ele_success');
-            } else {
-                MedicineSyncLog::where('id', $this->log_id)->increment('ele_fail');
-            }
+            // if ($mt) {
+            //     MedicineSyncLog::where('id', $this->log_id)->increment('mt_success');
+            // } else {
+            //     MedicineSyncLog::where('id', $this->log_id)->increment('mt_fail');
+            // }
+            // if ($ele) {
+            //     MedicineSyncLog::where('id', $this->log_id)->increment('ele_success');
+            // } else {
+            //     MedicineSyncLog::where('id', $this->log_id)->increment('ele_fail');
+            // }
             MedicineSyncLogItem::create([
                 'log_id' => $this->log_id,
                 'name' => $this->medicine['name'],
                 'upc' => $this->medicine['upc'],
                 'msg' => $msg
             ]);
-            $log = MedicineSyncLog::find($this->log_id);
-            if ($log->total <= ($log->success + $log->fail)) {
+            \Log::info($this->total . '|' . $redis_number_success . '|' . $redis_number_fail);
+            if ($this->total <= ($redis_number_success + $redis_number_fail)) {
                 Redis::expire($redis_key, 60);
-                $log->update([
+                Redis::expire($redis_key_success, 60);
+                Redis::expire($redis_key_fail, 60);
+                MedicineSyncLog::where('id', $this->log_id)->update([
+                    'success' => $redis_number_success,
+                    'fail' => $redis_number_fail,
                     'status' => 2,
                 ]);
             }

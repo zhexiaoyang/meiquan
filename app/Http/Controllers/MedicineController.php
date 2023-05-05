@@ -19,6 +19,7 @@ use App\Models\MedicineSyncLog;
 use App\Models\MedicineSyncLogItem;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 use Maatwebsite\Excel\Facades\Excel;
 
 class MedicineController extends Controller
@@ -1264,26 +1265,7 @@ class MedicineController extends Controller
             ]);
             $fail = 0;
             foreach ($medicines as $medicine) {
-                // if ($medicine->mt_status != 1 && $medicine->ele_status != 1) {
-                //     MedicineSyncLogItem::create([
-                //         'log_id' => $log->id,
-                //         'name' => $medicine->name,
-                //         'upc' => $medicine->upc,
-                //         'msg' => '失败：商品未同步不能更改毛利率',
-                //     ]);
-                //     $fail++;
-                //     continue;
-                // } else
-                if ($medicine->price < 0) {
-                    MedicineSyncLogItem::create([
-                        'log_id' => $log->id,
-                        'name' => $medicine->name,
-                        'upc' => $medicine->upc,
-                        'msg' => '失败：线上价格不能小于0',
-                    ]);
-                    $fail++;
-                    continue;
-                } else if ($medicine->guidance_price <= 0) {
+                if ($medicine->guidance_price <= 0) {
                     MedicineSyncLogItem::create([
                         'log_id' => $log->id,
                         'name' => $medicine->name,
@@ -1291,27 +1273,78 @@ class MedicineController extends Controller
                         'msg' => '失败：成本价为0',
                     ]);
                     $fail++;
-                    continue;
-                // } else if (!$shop->waimai_mt && !$shop->waimai_ele) {
-                //     MedicineSyncLogItem::create([
-                //         'log_id' => $log->id,
-                //         'name' => $medicine->name,
-                //         'upc' => $medicine->upc,
-                //         'msg' => '失败：门店未绑定外卖平台',
-                //     ]);
-                //     $fail++;
-                //     continue;
-                }
-                MedicineBatchUpdateGpmJob::dispatch($log->id, $medicine->toArray(), $gpm, $shop->waimai_mt, $shop->meituan_bind_platform, $shop->waimai_ele)
-                    ->onQueue('medicine');
-            }
-            if ($fail > 0) {
-                if ($fail == $medicines->count()) {
-                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail, 'status' => 2]);
-                } else {
-                    MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail]);
                 }
             }
+            $redis_key_success = 'medicine_job_key_success_' . $log->id;
+            $redis_key_fail = 'medicine_job_key_fail_' . $log->id;
+            Redis::set($redis_key_success, 0);
+            Redis::set($redis_key_fail, $fail);
+            if ($fail == $medicines->count()) {
+                MedicineSyncLog::where('id', $log->id)->update(['status' => 2]);
+            } else {
+                foreach ($medicines as $medicine) {
+                    if ($medicine->guidance_price > 0) {
+                        MedicineBatchUpdateGpmJob::dispatch(
+                            $log->id,
+                            $medicine->toArray(),
+                            $gpm,
+                            $shop->waimai_mt,
+                            $shop->meituan_bind_platform,
+                            $shop->waimai_ele,
+                            $log->total
+                        )->onQueue('medicine');
+                    }
+                }
+            }
+            // foreach ($medicines as $medicine) {
+            //     // if ($medicine->mt_status != 1 && $medicine->ele_status != 1) {
+            //     //     MedicineSyncLogItem::create([
+            //     //         'log_id' => $log->id,
+            //     //         'name' => $medicine->name,
+            //     //         'upc' => $medicine->upc,
+            //     //         'msg' => '失败：商品未同步不能更改毛利率',
+            //     //     ]);
+            //     //     $fail++;
+            //     //     continue;
+            //     // } else
+            //     if ($medicine->price < 0) {
+            //         MedicineSyncLogItem::create([
+            //             'log_id' => $log->id,
+            //             'name' => $medicine->name,
+            //             'upc' => $medicine->upc,
+            //             'msg' => '失败：线上价格不能小于0',
+            //         ]);
+            //         $fail++;
+            //         continue;
+            //     } else if ($medicine->guidance_price <= 0) {
+            //         MedicineSyncLogItem::create([
+            //             'log_id' => $log->id,
+            //             'name' => $medicine->name,
+            //             'upc' => $medicine->upc,
+            //             'msg' => '失败：成本价为0',
+            //         ]);
+            //         $fail++;
+            //         continue;
+            //     // } else if (!$shop->waimai_mt && !$shop->waimai_ele) {
+            //     //     MedicineSyncLogItem::create([
+            //     //         'log_id' => $log->id,
+            //     //         'name' => $medicine->name,
+            //     //         'upc' => $medicine->upc,
+            //     //         'msg' => '失败：门店未绑定外卖平台',
+            //     //     ]);
+            //     //     $fail++;
+            //     //     continue;
+            //     }
+            //     MedicineBatchUpdateGpmJob::dispatch($log->id, $medicine->toArray(), $gpm, $shop->waimai_mt, $shop->meituan_bind_platform, $shop->waimai_ele)
+            //         ->onQueue('medicine');
+            // }
+            // if ($fail > 0) {
+            //     if ($fail == $medicines->count()) {
+            //         MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail, 'status' => 2]);
+            //     } else {
+            //         MedicineSyncLog::where('id', $log->id)->update(['fail' => $fail]);
+            //     }
+            // }
         }
         return $this->success();
     }
