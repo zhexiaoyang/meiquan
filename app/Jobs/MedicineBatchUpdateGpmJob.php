@@ -147,7 +147,7 @@ class MedicineBatchUpdateGpmJob implements ShouldQueue
                 'upc' => $this->medicine['upc'],
                 'msg' => $msg
             ]);
-            \Log::info($this->total . '|' . $redis_number_success . '|' . $redis_number_fail);
+            // \Log::info($this->total . '|' . $redis_number_success . '|' . $redis_number_fail);
             if ($this->total <= ($redis_number_success + $redis_number_fail)) {
                 Redis::expire($redis_key, 60);
                 Redis::expire($redis_key_success, 60);
