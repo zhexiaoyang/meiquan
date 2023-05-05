@@ -10,7 +10,7 @@ class Medicine extends Model
     protected $table = 'wm_medicines';
 
     protected $fillable = ['shop_id','depot_id','name','sequence','category','upc','brand','spec','stock','price',
-        'store_id','guidance_price','depot_id','cover','gpm'];
+        'down_price','store_id','guidance_price','depot_id','cover','gpm','down_gpm'];
 
     protected $casts = [
         'price' => 'float',
@@ -103,6 +103,9 @@ class Medicine extends Model
         static::saving(function ($model) {
             if ($model->price > 0) {
                 $model->gpm = ($model->price - $model->guidance_price) / $model->price * 100;
+            }
+            if ($model->down_price > 0) {
+                $model->down_gpm = ($model->down_price - $model->guidance_price) / $model->down_price * 100;
             }
             // \Log::info('$model', [$model]);
             // \Log::info('$model2', [$model2]);
