@@ -68,6 +68,13 @@ class MedicineUpdateImportJob implements ShouldQueue
         if (!empty($medicine_data['store_id']) && $medicine->store_id != $medicine_data['store_id']) {
             $update_store_id_status = true;
         }
+        // \DB::table('wm_medicines')->where('id', $medicine->id)->update($medicine_data);
+        if (isset($medicine_data['price']) && $medicine_data['price'] > 0 && $medicine->guidance_price > 0) {
+            $medicine_data['gpm'] = ($medicine_data['price'] - $medicine->guidance_price) / $medicine_data['price'] * 100;
+        }
+        if (isset($medicine_data['down_price']) && $medicine_data['down_price'] > 0 && $medicine->guidance_price > 0) {
+            $medicine_data['down_gpm'] = ($medicine_data['down_price'] - $medicine->guidance_price) / $medicine_data['down_price'] * 100;
+        }
         Medicine::where('id', $medicine->id)->update($medicine_data);
         if (!$shop = Shop::find($shop_id)) {
             return $this->checkEnd($medicine, '门店不存在');
@@ -179,15 +186,16 @@ class MedicineUpdateImportJob implements ShouldQueue
 
     public function checkEnd($medicine, $msg, $status = false, $mt = false, $ele = false)
     {
+        // \Log::info('aaa', [$medicine, $msg, $status, $mt, $ele]);
         $redis_key = 'medicine_job_key_' . $this->log_id;
         $redis_key_number = 'medicine_job_key_number_' . $this->log_id;
-        $redis_success = Redis::hget($redis_key, 'success');
-        $redis_fail = Redis::hget($redis_key, 'fail');
-        $redis_success_mt = Redis::hget($redis_key, 'mt_success');
-        $redis_fail_mt = Redis::hget($redis_key, 'mt_fail');
-        $redis_success_ele = Redis::hget($redis_key, 'ele_success');
-        $redis_fail_ele = Redis::hget($redis_key, 'ele_fail');
-        $catch = Redis::hget($redis_key, $medicine->id);
+        $redis_success = Redis::hget($redis_key_number, 'success');
+        $redis_fail = Redis::hget($redis_key_number, 'fail');
+        $redis_success_mt = Redis::hget($redis_key_number, 'mt_success');
+        $redis_fail_mt = Redis::hget($redis_key_number, 'mt_fail');
+        $redis_success_ele = Redis::hget($redis_key_number, 'ele_success');
+        $redis_fail_ele = Redis::hget($redis_key_number, 'ele_fail');
+        $catch = Redis::hget($redis_key_number, $medicine->id);
         if (!$catch) {
             Redis::hset($redis_key, $medicine->id, 1);
             if ($status) {
@@ -229,6 +237,7 @@ class MedicineUpdateImportJob implements ShouldQueue
             'upc' => $medicine->upc,
             'msg' => $msg
         ]);
+        // \Log::info("success:{$redis_success}, fail:{$redis_fail}");
 
         // $log = MedicineSyncLog::find($this->log_id);
         if ($this->log_total <= ($redis_success + $redis_fail)) {
