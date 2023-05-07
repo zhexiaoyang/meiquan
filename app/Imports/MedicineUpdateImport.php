@@ -10,6 +10,7 @@ use App\Models\MedicineDepot;
 use App\Models\MedicineSyncLog;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Redis;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithCalculatedFormulas;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
@@ -32,13 +33,17 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             throw new InvalidRequestException('药品数量为空', 422);
         }
         $t_l = count($row);
-        \Log::info("总行数：{$t_l}");
+        // \Log::info("总行数：{$t_l}");
 
         $chongfu = [];
+        $chongfu_store_id = [];
 
         foreach ($row as $k => $item) {
             $line = $k + 3;
             $update_status = false;
+            if (isset($chongfu_store_id[$item['商家商品编码']])) {
+                throw new InvalidRequestException("第{$line}行商家商品编码与第{$chongfu[$item['商家商品编码']]}行商家商品编码重复", 422);
+            }
             if (!isset($item['条形码'])) {
                 throw new InvalidRequestException("第{$line}行不存在商品条码", 422);
             }
@@ -91,6 +96,9 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
                 throw new InvalidRequestException("第{$line}请填写更新内容", 422);
             }
             $chongfu[$item['条形码']] = $line;
+            if (!empty(trim($item['商家商品编码']))) {
+                $chongfu[$item['商家商品编码']] = $line;
+            }
         }
 
         // 添加日志
@@ -100,6 +108,13 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             'log_id' => uniqid(),
             'total' => $t_l,
         ]);
+        $redis_key_number = 'medicine_job_key_number_' . $log->id;
+        Redis::hset($redis_key_number, 'success', 0);
+        Redis::hset($redis_key_number, 'fail', 0);
+        Redis::hset($redis_key_number, 'mt_success', 0);
+        Redis::hset($redis_key_number, 'mt_fail', 0);
+        Redis::hset($redis_key_number, 'ele_success', 0);
+        Redis::hset($redis_key_number, 'ele_fail', 0);
 
         foreach ($row as $item) {
             $online_status = null;
@@ -116,6 +131,9 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (!empty(trim($item['库存']))) {
                 $medicine_data['stock'] = trim($item['库存']);
             }
+            if (!empty(trim($item['商家商品编码']))) {
+                $medicine_data['store_id'] = trim($item['商家商品编码']);
+            }
             if (in_array(trim($item['售卖状态']), [0, 1])) {
                 $online_status = trim($item['售卖状态']);
                 if ($online_status == 0) {
@@ -129,7 +147,7 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (!empty(trim($item['排序']))) {
                 $medicine_data['sequence'] = trim($item['排序']);
             }
-            MedicineUpdateImportJob::dispatch($this->shop_id, 0, $log->id, $online_status, $medicine_data)->onQueue('medicine');
+            MedicineUpdateImportJob::dispatch($this->shop_id, 0, $log->id, $online_status, $medicine_data, $t_l)->onQueue('medicine');
         }
     }
 
