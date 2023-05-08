@@ -165,7 +165,7 @@ class Api extends Request
      */
     public function shopDraftTaozi(OnlineShop $shop, $type = 1)
     {
-        $type = 1;
+        // $type = 1;
         // $ids = ['', '2907910074598953069', '2907917307005113105', '2907925343920722421'];
         $ids = ['', '3075397622647825396', '3075396328235205253', '3075393744749531689'];
         $data = [
@@ -181,7 +181,7 @@ class Api extends Request
                 ],
                 [
                     'tenantType' => 'COMPANY',
-                    'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
+                    'tenantName' => '四川桃子健康科技股份有限公司',
                     'receiver' => [
                         'name' => '赖婧',
                         'contact' => '18581866171',
@@ -347,11 +347,11 @@ class Api extends Request
      */
     public function companysignTaozi($contract_id, $type = 1)
     {
-        $type = 1;
+        // $type = 1;
         // sealId 公章ID 桃子的
         $data = [
             'contractId' => $contract_id,
-            'tenantName' => $type == 2 ? '成都双流桃子互联网医院有限公司' : '四川桃子健康科技股份有限公司',
+            'tenantName' => '四川桃子健康科技股份有限公司',
             // 'tenantName' => '成都双流桃子互联网医院有限公司',
             'sealId' => $type == 2 ? '3075717844034585154' : '3075708460902514957',
         ];
