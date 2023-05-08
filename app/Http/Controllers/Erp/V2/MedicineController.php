@@ -46,9 +46,9 @@ class MedicineController extends Controller
     {
         $res = [
             "meituanCode" => 0, //美团新增状态码（0 成功，其它失败）
-            "meituanMessage" => "美团新增商品成功", //美团返回信息描述
+            "meituanMessage" => "美团修改商品成功", //美团返回信息描述
             "eleCode" => 701, //饿了么新增状态码（0 成功，其它失败）
-            "eleMessage" => "饿了么新增失败：分类不存在" //饿了么返回信息描述
+            "eleMessage" => "饿了么修改失败：分类不存在" //饿了么返回信息描述
         ];
 
         return $this->success($res);
@@ -58,9 +58,9 @@ class MedicineController extends Controller
     {
         $res = [
             "meituanCode" => 0, //美团新增状态码（0 成功，其它失败）
-            "meituanMessage" => "美团新增商品成功", //美团返回信息描述
+            "meituanMessage" => "美团删除商品成功", //美团返回信息描述
             "eleCode" => 701, //饿了么新增状态码（0 成功，其它失败）
-            "eleMessage" => "饿了么新增失败：分类不存在" //饿了么返回信息描述
+            "eleMessage" => "饿了么删除失败：药品不存在" //饿了么返回信息描述
         ];
 
         return $this->success($res);
