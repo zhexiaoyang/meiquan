@@ -353,7 +353,7 @@ class Api extends Request
             'contractId' => $contract_id,
             'tenantName' => '四川桃子健康科技股份有限公司',
             // 'tenantName' => '成都双流桃子互联网医院有限公司',
-            'sealId' => $type == 2 ? '3075717844034585154' : '3075708460902514957',
+            'sealId' => '3075708460902514957',
         ];
         return $this->post('/v2/contract/companysign', $data);
     }
