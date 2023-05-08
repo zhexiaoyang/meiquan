@@ -13,4 +13,9 @@ class MedicineDepot extends Model
     {
         return $this->belongsToMany(MedicineDepotCategory::class, "wm_depot_medicine_category", "medicine_id", "category_id");
     }
+
+    public function categories()
+    {
+        return $this->belongsToMany(MedicineDepotCategory::class, "wm_depot_medicine_category", "medicine_id", "category_id");
+    }
 }
