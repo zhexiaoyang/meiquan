@@ -37,8 +37,13 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
         foreach ($row as $k => $item) {
             // 行数+3
             $line = $k + 3;
-            if (isset($chongfu_store_id[$item['商家商品编码']])) {
-                throw new InvalidRequestException("第{$line}行商家商品编码与第{$chongfu[$item['商家商品编码']]}行商家商品编码重复", 422);
+            if (!empty(trim($item['商家商品编码']))) {
+                if (isset($chongfu_store_id[$item['商家商品编码']])) {
+                    throw new InvalidRequestException("第{$line}行商家商品编码与第{$chongfu[$item['商家商品编码']]}行商家商品编码重复", 422);
+                }
+                if (!empty(trim($item['商家商品编码']))) {
+                    $chongfu[$item['商家商品编码']] = $line;
+                }
             }
             if (!isset($item['条形码'])) {
                 throw new InvalidRequestException("第{$line}行不存在条形码", 422);
@@ -91,9 +96,6 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
             }
             $chongfu[$item['条形码']] = $line;
             // $chongfu[$item['商家商品编码']] = $line;
-            if (!empty(trim($item['商家商品编码']))) {
-                $chongfu[$item['商家商品编码']] = $line;
-            }
         }
         // throw new InvalidRequestException("拦截拦截拦截", 422);
 
