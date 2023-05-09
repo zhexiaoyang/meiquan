@@ -35,6 +35,7 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
         $chongfu_store_id = [];
 
         foreach ($row as $k => $item) {
+            // \Log::info('aaa', [$item]);
             // 行数+3
             $line = $k + 3;
             if (!empty(trim($item['商家商品编码']))) {
@@ -70,13 +71,10 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
             if ($item['线上销售价格'] < 0) {
                 throw new InvalidRequestException("第{$line}行线上销售价格，不能小于0", 422);
             }
-            if (trim($item['线下销售价格']) !== '') {
+            if (!empty($item['线下销售价格'])) {
                 if (!is_numeric($item['线下销售价格'])) {
                     throw new InvalidRequestException("第{$line}行线下销售价格格式不正确", 422);
                 }
-            }
-            if (!is_numeric(trim($item['线下销售价格']))) {
-                throw new InvalidRequestException("第{$line}行线下销售价格，格式不正确", 422);
             }
             if ($item['线下销售价格'] < 0) {
                 throw new InvalidRequestException("第{$line}行线下销售价格，不能小于0", 422);
