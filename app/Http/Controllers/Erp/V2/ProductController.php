@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
 use App\Models\Medicine;
+use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
+use App\Models\MedicineDepotCategory;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 
@@ -140,6 +142,61 @@ class ProductController extends Controller
                     ]);
                 } else {
                     if ($depot = MedicineDepot::where('upc', $upc)->first()) {
+                        $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
+                        if (!empty($depot_category_ids)) {
+                            // 根据查找的分类ID，查找该商品所有分类
+                            $depot_categories = MedicineDepotCategory::whereIn('id', $depot_category_ids)->get();
+                            if (!empty($depot_categories)) {
+                                foreach ($depot_categories as $depot_category) {
+                                    $pid = 0;
+                                    if ($depot_category->pid != 0) {
+                                        if ($depot_category_parent = MedicineDepotCategory::find($depot_category->pid)) {
+                                            try {
+                                                $category_parent = MedicineCategory::firstOrCreate(
+                                                    [
+                                                        'shop_id' => $shop->id,
+                                                        'name' => $depot_category_parent->name,
+                                                    ],
+                                                    [
+                                                        'shop_id' => $shop->id,
+                                                        'pid' => 0,
+                                                        'name' => $depot_category_parent->name,
+                                                        'sort' => $depot_category_parent->sort,
+                                                    ]
+                                                );
+                                            } catch (\Exception $exception) {
+                                                $category_parent = MedicineCategory::where([
+                                                    'shop_id' => $shop->id,
+                                                    'name' => $depot_category_parent->name,
+                                                ])->first();
+                                                \Log::info("创建分类失败(父级)|shop_id:{$shop->id}|name:{$depot_category_parent->name}|重新查询结果：", [$category_parent]);
+                                            }
+                                            $pid = $category_parent->id;
+                                        }
+                                    }
+                                    try {
+                                        $c = MedicineCategory::firstOrCreate(
+                                            [
+                                                'shop_id' => $shop->id,
+                                                'name' => $depot_category->name,
+                                            ],
+                                            [
+                                                'shop_id' => $shop->id,
+                                                'pid' => $pid,
+                                                'name' => $depot_category->name,
+                                                'sort' => $depot_category->sort,
+                                            ]
+                                        );
+                                    } catch (\Exception $exception) {
+                                        $c = MedicineCategory::where([
+                                            'shop_id' => $shop->id,
+                                            'name' => $depot_category->name,
+                                        ])->first();
+                                        \Log::info("创建分类失败|shop_id:{$shop->id}|name:{$depot_category->name}|重新查询结果：", [$c]);
+                                    }
+                                }
+                            }
+                        }
                         $medicine_arr = [
                             'shop_id' => $shop->id,
                             'name' => $depot->name,
@@ -161,6 +218,19 @@ class ProductController extends Controller
                                 'upc' => $upc
                             ]);
                             \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
+                            // 创建-暂未分类
+                            $c = MedicineCategory::firstOrCreate(
+                                [
+                                    'shop_id' => $shop->id,
+                                    'name' => '暂未分类',
+                                ],
+                                [
+                                    'shop_id' => $shop->id,
+                                    'pid' => 0,
+                                    'name' => '暂未分类',
+                                    'sort' => 1000,
+                                ]
+                            );
                             $medicine_arr = [
                                 'shop_id' => $shop->id,
                                 'name' => $v['name'] ?? '',
@@ -175,7 +245,8 @@ class ProductController extends Controller
                             ];
                         }
                     }
-                    Medicine::create($medicine_arr);
+                    $medicine = Medicine::create($medicine_arr);
+                    \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
                 }
             }
         }
