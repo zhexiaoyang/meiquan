@@ -75,9 +75,9 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
                 if (!is_numeric($item['线下销售价格'])) {
                     throw new InvalidRequestException("第{$line}行线下销售价格格式不正确", 422);
                 }
-            }
-            if ($item['线下销售价格'] < 0) {
-                throw new InvalidRequestException("第{$line}行线下销售价格，不能小于0", 422);
+                if (trim($item['线下销售价格']) < 0) {
+                    throw new InvalidRequestException("第{$line}行线下销售价格，不能小于0", 422);
+                }
             }
             if (!isset($item['成本价格'])) {
                 throw new InvalidRequestException("第{$line}行不存在成本价格", 422);
