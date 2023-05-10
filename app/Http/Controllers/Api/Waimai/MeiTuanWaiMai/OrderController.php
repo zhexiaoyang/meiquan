@@ -291,7 +291,7 @@ class OrderController
             \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
             $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
             \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
-            $platformChargeFee2 = $reconciliationExtras['platformChargeFee2'] ?? null;
+            $platformChargeFee2 = (float) $reconciliationExtras['platformChargeFee2'] ?? null;
             \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
             // PrescriptionFeeDeductionJob::dispatch();
         }
