@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
+use App\Jobs\PrescriptionFeeDeductionJob;
 use App\Jobs\VipOrderSettlement;
 use App\Models\Medicine;
 use App\Models\Order;
@@ -290,8 +291,9 @@ class OrderController
             \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
             $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
             \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
-            $platformChargeFee2 = $reconciliationExtras['reconciliationExtras'] ?? null;
+            $platformChargeFee2 = $reconciliationExtras['platformChargeFee2'] ?? null;
             \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
+            // PrescriptionFeeDeductionJob::dispatch();
         }
 
         if ($order_id && $status) {
