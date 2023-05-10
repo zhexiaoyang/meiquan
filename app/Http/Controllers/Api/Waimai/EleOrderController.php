@@ -1039,7 +1039,7 @@ class EleOrderController extends Controller
                     "caution" => $order['order']['remark'] ?: '',
                     "shipper_phone" => $order['order']['delivery_phone'] ?? "",
                     "status" => 4,
-                    "estimate_arrival_time" => $order['estimate_arrival_time'] ?? 0,
+                    "estimate_arrival_time" => $order['latest_send_time'] ?? 0,
                     "ctime" => $order['order']['create_time'],
                     "utime" => $order['order']['create_time'],
                     "delivery_time" => $delivery_time,
