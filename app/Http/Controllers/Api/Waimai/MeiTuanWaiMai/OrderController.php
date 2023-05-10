@@ -290,7 +290,7 @@ class OrderController
             \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
             $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
             \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
-            $platformChargeFee2 = $reconciliationExtras['$reconciliationExtras'] ?? null;
+            $platformChargeFee2 = $reconciliationExtras['reconciliationExtras'] ?? null;
             \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
         }
 
