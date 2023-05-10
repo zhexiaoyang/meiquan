@@ -287,7 +287,9 @@ class OrderController
         if (in_array(8, $order_tag_list)) {
             // 对账明细
             $poi_receive_detail_yuan = json_decode(urldecode($request->get('poi_receive_detail_yuan')), true);
+            \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
             $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
+            \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
             $platformChargeFee2 = $reconciliationExtras['$reconciliationExtras'] ?? null;
             \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
         }
