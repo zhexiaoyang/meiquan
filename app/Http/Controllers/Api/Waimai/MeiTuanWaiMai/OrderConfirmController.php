@@ -75,7 +75,14 @@ class OrderConfirmController
                 $prescription_fee = 0;
                 if (in_array(8, $order_tag_list)) {
                     $is_prescription = 1;
-                    $prescription_fee = 1.5;
+                    $prescription_fee = 0.8;
+                    $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
+                    $platformChargeFee2 = (float) $reconciliationExtras['platformChargeFee2'] ?? null;
+                    if (!is_null($platformChargeFee2)) {
+                        if ($platformChargeFee2 == 0.6) {
+                            $prescription_fee = 0.2;
+                        }
+                    }
                 }
                 // 配送模式
                 $logistics_code = isset($data['logistics_code']) ? intval($data['logistics_code']) : 0;
