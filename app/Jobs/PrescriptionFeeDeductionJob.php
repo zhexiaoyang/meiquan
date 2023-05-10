@@ -78,6 +78,8 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                     // 添加修改记录 ？？？
                     DB::table('shop_prescription_type_change_logs')->insert([
                         'shop_id' => $shop->id,
+                        'mtid' => $shop->waimai_mt,
+                        'order_id' => $order->order_id,
                         'prescription_cost_old' => $shop->prescription_cost,
                         'prescription_channel_old' => $shop->prescription_channel,
                         'prescription_cost' => 0.8,
@@ -98,6 +100,8 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                     // 添加修改记录 ？？？
                     DB::table('shop_prescription_type_change_logs')->insert([
                         'shop_id' => $shop->id,
+                        'mtid' => $shop->waimai_mt,
+                        'order_id' => $order->order_id,
                         'prescription_cost_old' => $shop->prescription_cost,
                         'prescription_channel_old' => $shop->prescription_channel,
                         'prescription_cost' => 0.2,
