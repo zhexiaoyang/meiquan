@@ -25,14 +25,14 @@ class TakeoutShopController extends Controller
 
         if ($shop->waimai_mt) {
             $mt_mes = '美团未更新';
-            if ($shop->mt_shipping_time && $mt_start && $mt_end) {
+            if ($mt_start && $mt_end) {
                 if ($shop->mt_shipping_time != $mt_start . '-' . $mt_end) {
                     if ($shop->meituan_bind_platform == 4) {
                         $meituan = app('minkang');
                     } else {
                         $meituan = app('meiquan');
                     }
-                    $mt_res = $meituan->shippingtimeUpdate($shop->waimai_mt, $mt_start . '-' . $mt_end, $shop->meituan_bind_platform == 31);
+                    $mt_res = $meituan->shippingTimeUpdate($shop->waimai_mt, $mt_start . '-' . $mt_end, $shop->meituan_bind_platform == 31);
                     if ($mt_res['data'] == 'ok') {
                         $update = true;
                         $shop->mt_shipping_time = $mt_start . '-' . $mt_end;
