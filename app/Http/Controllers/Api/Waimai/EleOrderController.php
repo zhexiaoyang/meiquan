@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waimai;
 use App\Events\OrderCreate;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
+use App\Jobs\PrescriptionFeeDeductionJob;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\TakeoutMedicineStockSync;
@@ -223,6 +224,7 @@ class EleOrderController extends Controller
             } else {
                 $this->log_info("订单号：{$order_id}|操作失败|系统订单状态：{$order->status}");
             }
+            PrescriptionFeeDeductionJob::dispatch($order->id);
         } else {
             $this->log_info("订单号：{$order_id}|外卖订单不存在");
         }

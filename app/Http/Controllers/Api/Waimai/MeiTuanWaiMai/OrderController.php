@@ -283,18 +283,6 @@ class OrderController
         $order_id = $request->get('wm_order_id_view', '');
         // 订单状态
         $status = $request->get('status', '');
-        // 处方标识
-        $order_tag_list = json_decode(urldecode($request->get('order_tag_list')), true);
-        if (in_array(8, $order_tag_list)) {
-            // 对账明细
-            $poi_receive_detail_yuan = json_decode(urldecode($request->get('poi_receive_detail_yuan')), true);
-            \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
-            $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
-            \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
-            $platformChargeFee2 = (float) $reconciliationExtras['platformChargeFee2'] ?? null;
-            \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
-            // PrescriptionFeeDeductionJob::dispatch();
-        }
 
         if ($order_id && $status) {
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&完成订单|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
@@ -315,6 +303,18 @@ class OrderController
                     }
                 } else {
                     $this->log_info("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
+                }
+                // 处方标识
+                $order_tag_list = json_decode(urldecode($request->get('order_tag_list')), true);
+                if (in_array(8, $order_tag_list)) {
+                    // 对账明细
+                    $poi_receive_detail_yuan = json_decode(urldecode($request->get('poi_receive_detail_yuan')), true);
+                    // \Log::info("完成订单扣款处方|{$order_id}}", $poi_receive_detail_yuan);
+                    $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
+                    // \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
+                    $platformChargeFee2 = (float) $reconciliationExtras['platformChargeFee2'] ?? null;
+                    // \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
+                    PrescriptionFeeDeductionJob::dispatch($order->id, $platformChargeFee2);
                 }
             } else {
                 $this->log_info("订单号：{$order_id}|订单不存在");
