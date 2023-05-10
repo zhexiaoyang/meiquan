@@ -82,6 +82,8 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                         'prescription_channel_old' => $shop->prescription_channel,
                         'prescription_cost' => 0.8,
                         'prescription_channel' => 1,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 }
             } elseif ($performanceServiceFee2 == 0.6) {
@@ -100,6 +102,8 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                         'prescription_channel_old' => $shop->prescription_channel,
                         'prescription_cost' => 0.2,
                         'prescription_channel' => 2,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 }
             }
@@ -152,6 +156,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
             if ($current_user->operate_money < (50 + $money)) {
                 $this->prescriptionSms($current_user->phone);
             }
+            $this->log('扣款成功');
         });
     }
 
