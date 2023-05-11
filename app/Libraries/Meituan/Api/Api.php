@@ -14,6 +14,15 @@ class Api extends Request
 {
     use NoticeTool;
 
+    public function cancelLogisticsMeiTuan($order_id, $token = false)
+    {
+        $params = [
+            'order_id' => $order_id,
+        ];
+
+        return $this->request_get('order/logistics/cancel', $params);
+    }
+
     public function riderLocation($order_id, $mt_peisong_id)
     {
         $params = [
@@ -251,6 +260,84 @@ class Api extends Request
         return $this->request('order/rider/location', $params);
     }
 
+    // ----------------------------------------------------------
+    // --------------------美 团 外 卖 接 口-----------------------
+    // ----------------------------------------------------------
+    /**
+     * 获取众包配送取消原因
+     */
+    public function getCancelDeliveryReason($order_id, $app_poi_code, $token = false)
+    {
+        $params = [
+            'order_id' => $order_id,
+            'app_poi_code' => $app_poi_code,
+        ];
+        if ($token) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_post('v1/order/getCancelDeliveryReason', $params);
+    }
+    /**
+     * 取消众包配送订单
+     */
+    public function cancelLogisticsByWmOrderId($order_id, $reason_code, $detail_content, $app_poi_code, $token = false)
+    {
+        $params = [
+            'reason_code' => $reason_code,
+            'detail_content' => $detail_content,
+            'order_id' => $order_id,
+            'app_poi_code' => $app_poi_code,
+        ];
+        if ($token) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_post('v1/order/cancelLogisticsByWmOrderId', $params);
+    }
+    /**
+     * 批量查询众包配送费
+     */
+    public function zhongBaoShippingFee($order_id, $app_poi_code = '')
+    {
+        $params = [
+            'order_ids' => $order_id,
+        ];
+        if ($app_poi_code) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('v1/order/zhongbao/shippingFee', $params);
+    }
+    /**
+     * 众包发配送
+     */
+    public function zhongBaoDispatch($order_id, $shipping_fee, $app_poi_code = '')
+    {
+        $params = [
+            'order_id' => $order_id,
+            'shipping_fee' => $shipping_fee,
+            'tip_amount' => 0,
+        ];
+        if ($app_poi_code) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_post('v1/order/zhongbao/dispatch', $params);
+    }
+    /**
+     * 众包、快送配送单追加小费
+     * ------------$tip_amount------------
+     * 众包配送小费，单位是元。此字段传入商家追加小费后的合计小费金额，即所传信息会覆盖原信息。
+     * 例如，商家发众包配送时已给定小费2元，现在想追加3元，则此字段信息传入5元，即实际此订单发众包配送的小费为5元。
+     */
+    public function zhongBaoUpdateTip($order_id, $tip_amount, $app_poi_code = '')
+    {
+        $params = [
+            'order_id' => $order_id,
+            'tip_amount' => $tip_amount,
+        ];
+        if ($app_poi_code) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_post('v1/order/zhongbao/update/tip', $params);
+    }
     /**
      * 获取美团外卖绑定开发者平台的所有美团ID
      * @return mixed
@@ -501,10 +588,22 @@ class Api extends Request
 
     /**
      * 获取处方订单图片
-     * @param $app_poi_code
-     * @param $order_ids
-     * @param int $type
-     * @return mixed
+     * @author zhangzhen
+     * @data 2023/2/21 9:28 上午
+     */
+    public function rp_picture($order_id, $app_poi_code, $type = 4)
+    {
+        $params = [
+            'order_id' => $order_id,
+        ];
+        if ($type === 31) {
+            $params['access_token'] = $this->getShopToken($app_poi_code);
+        }
+        return $this->request_get('gw/order/hospital/rp/used/list', $params);
+    }
+
+    /**
+     * 获取处方订单图片
      * @author zhangzhen
      * @data 2023/2/21 9:28 上午
      */
@@ -520,6 +619,11 @@ class Api extends Request
         return $this->request_get('v1/gw/rp/picture/list', $params);
     }
 
+    /**
+     * 根据外卖订单获取处方订单图片列表
+     * @author zhangzhen
+     * @data 2023/2/21 9:28 上午
+     */
     public function rp_picture_list_by_order(WmOrder $order)
     {
         // if ($order->from_type !== 4 || $order->from_type !== 31) {
@@ -591,6 +695,9 @@ class Api extends Request
     }
     public function medicineDelete(array $params)
     {
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
         return $this->request_post('v1/medicine/delete', $params);
     }
 
@@ -794,6 +901,22 @@ class Api extends Request
     public function zhongbaoFee($params)
     {
         return $this->request_get('v1/order/zhongbao/shippingFee', $params);
+    }
+    public function zhongbaoFeePreview($order_id)
+    {
+        $data = [
+            'order_id' => (string) $order_id,
+        ];
+        return $this->request_get('order/logistics/pt/preview', $data);
+    }
+    public function zhongbaoFeeDispatch($order_id, $money, $tip = 0)
+    {
+        $data = [
+            'order_id' => (string) $order_id,
+            'shipping_fee' => (double) $money,
+            'tip_amount' => (double) $tip,
+        ];
+        return $this->request_get('order/zhongbao/dispatch', $data);
     }
     // ------------------------------------------------------------------------------------------------
     // ---------------------------------------- 美团众包配送 结束 ----------------------------------------
