@@ -17,7 +17,8 @@ trait ApiResponse
     public function respond($data, $code, $header = [])
     {
 
-        return Response::json($data, $code, $header);
+        // return Response::json($data, $code, $header);
+        return Response::json($data, $code, $header)->setEncodingOptions(JSON_UNESCAPED_UNICODE);
     }
 
     /**
