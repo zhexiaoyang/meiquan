@@ -91,6 +91,9 @@ class MedicineImport implements ToCollection, WithHeadingRow, WithValidation, Wi
             if (!isset($item['库存'])) {
                 throw new InvalidRequestException("第{$line}行不存在库存", 422);
             }
+            if ((int) trim($item['库存']) < 0) {
+                throw new InvalidRequestException("第{$line}行库存，不能小于0", 422);
+            }
             if (!is_numeric(trim($item['库存']))) {
                 throw new InvalidRequestException("第{$line}行库存格式不正确", 422);
             }
