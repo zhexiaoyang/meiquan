@@ -133,6 +133,9 @@ class ProductController extends Controller
                 $upc = $v['upc'];
                 $price = $v['price'] ?? 0;
                 $cost = $v['cost'] ?? 0;
+                if (!is_numeric($cost)) {
+                    $cost = 0;
+                }
                 if (Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
                     Medicine::where('upc', $upc)->where('shop_id', $shop->id)->update([
                         'stock' => $v['stock'],
