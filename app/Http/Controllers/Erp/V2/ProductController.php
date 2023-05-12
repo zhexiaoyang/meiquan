@@ -133,6 +133,9 @@ class ProductController extends Controller
                 $upc = $v['upc'];
                 $price = $v['price'] ?? 0;
                 $cost = $v['cost'] ?? 0;
+                if (!is_numeric($price)) {
+                    $price = 0;
+                }
                 if (!is_numeric($cost)) {
                     $cost = 0;
                 }
