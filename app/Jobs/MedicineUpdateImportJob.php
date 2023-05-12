@@ -75,7 +75,12 @@ class MedicineUpdateImportJob implements ShouldQueue
         if (isset($medicine_data['down_price']) && $medicine_data['down_price'] > 0 && $medicine->guidance_price > 0) {
             $medicine_data['down_gpm'] = ($medicine_data['down_price'] - $medicine->guidance_price) / $medicine_data['down_price'] * 100;
         }
-        Medicine::where('id', $medicine->id)->update($medicine_data);
+        try {
+            Medicine::where('id', $medicine->id)->update($medicine_data);
+        } catch (\Exception $exception) {
+            \Log::info("商品管理批量更新导入创建药品失败", [$medicine->id,$medicine_data,$exception->getMessage(),$exception->getFile(),$exception->getLine()]);
+            return $this->checkEnd2($medicine_data, MedicineSyncLogItem::UPDATE_ERROR);
+        }
         if (!$shop = Shop::find($shop_id)) {
             return $this->checkEnd($medicine, '门店不存在');
         }

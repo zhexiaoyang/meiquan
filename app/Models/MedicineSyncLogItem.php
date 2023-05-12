@@ -13,6 +13,7 @@ class MedicineSyncLogItem extends Model
     const MEDICINE_NO_SYNC_FAIL_ELE = '药品同步饿了么失败。';
     const NOT_BIND_MEITUAN = '门店未绑定美团外卖。';
     const NOT_BIND_ELE = '门店未绑定饿了。';
+    const UPDATE_ERROR = '数据更新失败，请检查数据格式是否正确。';
 
     protected $table = 'wm_medicine_sync_log_items';
 

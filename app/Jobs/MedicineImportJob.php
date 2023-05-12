@@ -14,6 +14,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
 class MedicineImportJob implements ShouldQueue
@@ -185,8 +186,16 @@ class MedicineImportJob implements ShouldQueue
                         ]
                     );
                 }
-                $medicine = Medicine::create($medicine_arr);
-                \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                try {
+                    DB::transaction(function () use ($medicine_arr, $c) {
+                        $medicine = Medicine::create($medicine_arr);
+                        \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                    });
+                } catch (\Exception $exception) {
+                    \Log::info("商品管理批量导入创建药品失败", [$medicine_arr, $exception->getMessage(),$exception->getFile(),$exception->getLine()]);
+                    $status = false;
+                    $msg = '添加药品失败，请检查数据填写是否正确';
+                }
             } else {
                 $status = false;
                 $msg = '药品已存在，不能重复添加';
