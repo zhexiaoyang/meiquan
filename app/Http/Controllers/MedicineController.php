@@ -733,6 +733,9 @@ class MedicineController extends Controller
         return $this->success();
     }
 
+    /**
+     *
+     */
     public function statistics_status(Request $request)
     {
         $data = [
@@ -775,6 +778,9 @@ class MedicineController extends Controller
         return $this->success($data);
     }
 
+    /**
+     * 品库商品列表
+     */
     public function depot_index(Request $request)
     {
         $query = MedicineDepot::select('id','name','cover','price','upc','sequence');
@@ -791,6 +797,9 @@ class MedicineController extends Controller
         return $this->page($data, [],'data');
     }
 
+    /**
+     * 从品库添加商品
+     */
     public function depot_add(Request $request)
     {
         $message = '';
@@ -806,7 +815,7 @@ class MedicineController extends Controller
         if (!$stock = $request->get('stock')) {
             return $this->error('库存不能为空');
         }
-        $cost = (int) $request->get('cost', 0);
+        $cost = (float) $request->get('cost', 0);
         if (!$depot = MedicineDepot::find($depot_id)) {
             return $this->error('品库中无此商品!');
         }
