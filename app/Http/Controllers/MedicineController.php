@@ -265,7 +265,7 @@ class MedicineController extends Controller
             if (!empty($product_ids)) {
                 $medicine_list_query->whereIn('id', $product_ids);
             }
-            $medicine_list = $medicine_list_query->limit(5000)->get();
+            $medicine_list = $medicine_list_query->get();
             if (!empty($medicine_list)) {
                 $fail = 0;
                 // 添加日志
