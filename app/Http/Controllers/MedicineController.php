@@ -407,7 +407,7 @@ class MedicineController extends Controller
         if (!empty($product_ids)) {
             $medicine_list_query->whereIn('id', $product_ids);
         }
-        $medicine_list = $medicine_list_query->limit(5000)->get();
+        $medicine_list = $medicine_list_query->get();
         if (!empty($medicine_list)) {
             // 添加日志
             $log = MedicineSyncLog::create([
@@ -1211,7 +1211,7 @@ class MedicineController extends Controller
             }
         }
 
-        $data = Medicine::where('shop_id', $shop_id)->whereIn('id', $product_ids)->limit(5000)->get();
+        $data = Medicine::where('shop_id', $shop_id)->whereIn('id', $product_ids)->get();
         if (empty($data)) {
             return $this->error('药品不存在');
         }
@@ -1260,7 +1260,7 @@ class MedicineController extends Controller
         if (!empty($product_ids)) {
             $query->whereIn('id', $product_ids);
         }
-        $medicines = $query->limit(5000)->get();
+        $medicines = $query->get();
         if (!empty($medicines)) {
             // 添加日志
             $log = MedicineSyncLog::create([
