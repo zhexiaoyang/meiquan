@@ -91,9 +91,9 @@ class MedicineController extends Controller
             if ($mt == 1 || $mt == 2 || $mt == 0) {
                 $query->where('mt_status', $mt);
             } elseif ($mt == 3) {
-                $query->where('online_mt', 1)->where('stock', '>', 0);
+                $query->where('online_mt', 1)->where('mt_status', 1);
             } elseif ($mt == 4) {
-                $query->where('online_mt', 0);
+                $query->where('online_mt', 0)->where('mt_status', 1);
             } elseif ($mt == 5) {
                 $query->where('mt_status', 1)->where('stock', 0);
             }
@@ -103,9 +103,9 @@ class MedicineController extends Controller
             if ($ele == 1 || $ele == 2 || $ele == 0) {
                 $query->where('ele_status', $ele);
             } elseif ($ele == 3) {
-                $query->where('online_ele', 1)->where('stock', '>', 0);
+                $query->where('online_ele', 1)->where('ele_status', 1);
             } elseif ($ele == 4) {
-                $query->where('online_ele', 0);
+                $query->where('online_ele', 0)->where('ele_status', 1);
             } elseif ($ele == 5) {
                 $query->where('ele_status', 1)->where('stock', 0);
             }
