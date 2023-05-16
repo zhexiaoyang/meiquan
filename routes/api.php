@@ -57,6 +57,9 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/shops", "MedicineController@shops");
         // 删除药品
         Route::post("medicine/destroy", "MedicineController@destroy");
+        Route::post("medicine/destroy2", "MedicineController@destroy2");
+        // 删除同步
+        Route::post("medicine/delete-medicine-log", "MedicineController@clearSyncMedicineLog");
         // 药品门店分类
         Route::get("medicine/categories", "MedicineCategoryController@index");
         // 同步品库分类到中台

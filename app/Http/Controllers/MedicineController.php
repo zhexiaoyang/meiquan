@@ -26,7 +26,7 @@ class MedicineController extends Controller
 {
     public function shops(Request $request)
     {
-        $query = Shop::query()->select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
+        $query = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
             $query->whereIn('id', $request->user()->shops()->pluck('id')->toArray());
@@ -95,7 +95,7 @@ class MedicineController extends Controller
             } elseif ($mt == 4) {
                 $query->where('online_mt', 0);
             } elseif ($mt == 5) {
-                $query->where('stock', 0);
+                $query->where('mt_status', 1)->where('stock', 0);
             }
         }
         $ele = $request->get('ele');
@@ -107,9 +107,15 @@ class MedicineController extends Controller
             } elseif ($ele == 4) {
                 $query->where('online_ele', 0);
             } elseif ($ele == 5) {
-                $query->where('stock', 0);
+                $query->where('ele_status', 1)->where('stock', 0);
             }
         }
+        // 库存筛选
+        // $stock_status =
+        if ($request->get('stock')) {
+            $query->where('stock', 0);
+        }
+        // 毛利率筛选
         $gpm_max = $request->get('gpm_max');
         if (is_numeric($gpm_max)) {
             $query->where('gpm', '<=', $gpm_max);
@@ -326,7 +332,7 @@ class MedicineController extends Controller
                         // 'app_medicine_code' => $medicine->upc,
                         'name' => $medicine->name,
                         'upc' => $medicine->upc,
-                        'custom_sku_id' => $medicine->upc,
+                        'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
                         'sale_price' => (int) ($medicine->price * 100),
                         'left_num' => $medicine->stock,
                         'category_list' => $medicine_category,
@@ -463,7 +469,7 @@ class MedicineController extends Controller
                 }
                 $medicine_data = [
                     'app_poi_code' => $shop->waimai_mt,
-                    'app_medicine_code' => $medicine->upc,
+                    'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
                     'upc' => $medicine->upc,
                     'price' => (float) $medicine->price,
                     'stock' => $medicine->stock,
@@ -590,7 +596,7 @@ class MedicineController extends Controller
             if ($meituan !== null) {
                 $params = [
                     'app_poi_code' => $shop->waimai_mt,
-                    'app_medicine_code' => $medicine->upc,
+                    'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
                     'price' => $price,
                     'stock' => $stock,
                 ];
@@ -609,7 +615,7 @@ class MedicineController extends Controller
             $ele = app('ele');
             $params = [
                 'shop_id' => $shop->waimai_ele,
-                'custom_sku_id' => $medicine->upc,
+                'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
                 'sale_price' => (int) ($medicine->price * 100),
                 'left_num' => $medicine->stock,
             ];
@@ -741,12 +747,19 @@ class MedicineController extends Controller
         $data = [
             'total' => 0,
             'price_exception' => 0,
+            'sell_out' => 0,
             'mt1' => 0,
             'mt2' => 0,
             'mt3' => 0,
+            'mt4' => 0,
+            'mt5' => 0,
+            'mt6' => 0,
             'ele1' => 0,
             'ele2' => 0,
             'ele3' => 0,
+            'ele4' => 0,
+            'ele5' => 0,
+            'ele6' => 0,
         ];
 
         if ($shop_id = $request->get('shop_id')) {
@@ -757,15 +770,40 @@ class MedicineController extends Controller
                     if ($medicine->price <= $medicine->guidance_price) {
                         $data['price_exception']++;
                     }
+                    if ($medicine->stock == 0) {
+                        $data['sell_out']++;
+                    }
+                    // 美团
                     if ($medicine->mt_status === 1) {
                         $data['mt1']++;
+                        // 售罄
+                        if ($medicine->stock == 0) {
+                            $data['mt4']++;
+                        }
+                        // 上下架
+                        if ($medicine->online_ele) {
+                            $data['mt5']++;
+                        } else {
+                            $data['mt6']++;
+                        }
                     } else if ($medicine->mt_status === 0) {
                         $data['mt2']++;
                     } else if ($medicine->mt_status === 2) {
                         $data['mt3']++;
                     }
+                    // 饿了么
                     if ($medicine->ele_status === 1) {
                         $data['ele1']++;
+                        // 售罄
+                        if ($medicine->stock == 0) {
+                            $data['ele4']++;
+                        }
+                        // 上下架
+                        if ($medicine->online_ele) {
+                            $data['ele5']++;
+                        } else {
+                            $data['ele6']++;
+                        }
                     } else if ($medicine->ele_status === 0) {
                         $data['ele2']++;
                     } else if ($medicine->ele_status === 2) {
@@ -825,9 +863,11 @@ class MedicineController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在!');
         }
+        $store_id = $request->get('store_id', '');
 
         $medicine_arr = [
             'shop_id' => $shop->id,
+            'store_id' => $store_id,
             'name' => $depot->name,
             'upc' => $depot->upc,
             'cover' => $depot->cover,
@@ -970,7 +1010,7 @@ class MedicineController extends Controller
                     }
                     $medicine_data = [
                         'app_poi_code' => $shop->waimai_mt,
-                        'app_medicine_code' => $medicine->upc,
+                        'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
                         'upc' => $medicine->upc,
                         'price' => (float) $medicine->price,
                         'stock' => $medicine->stock,
@@ -1050,7 +1090,7 @@ class MedicineController extends Controller
                     'shop_id' => $shop->waimai_ele,
                     'name' => $medicine->name,
                     'upc' => $medicine->upc,
-                    'custom_sku_id' => $medicine->upc,
+                    'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
                     'sale_price' => (int) ($medicine->price * 100),
                     'left_num' => $medicine->stock,
                     'category_list' => $cat_arr,
@@ -1084,6 +1124,13 @@ class MedicineController extends Controller
         return $this->success([], $message);
     }
 
+    /**
+     * 删除商品-旧
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/16 2:49 下午
+     */
     public function destroy(Request $request)
     {
         if (!$product_ids = $request->get('product_id')) {
@@ -1095,7 +1142,7 @@ class MedicineController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在!');
         }
-        $products = Medicine::query()->whereIn('id', $product_ids)->where('shop_id', $shop_id)->get();
+        $products = Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->get();
         if ($products->isEmpty()) {
             return $this->error('商品不存在!');
         }
@@ -1124,7 +1171,7 @@ class MedicineController extends Controller
                     foreach ($products as $product) {
                         $de = [
                             'app_poi_code' => $shop->waimai_mt,
-                            'app_medicine_code' => $product->upc,
+                            'app_medicine_code' => $product->store_id ?: $product->upc,
                         ];
                         $res = $meituan->medicineDelete($de);
                         \Log::info("药品管理删除商品-美团", [$de, $res]);
@@ -1137,7 +1184,7 @@ class MedicineController extends Controller
                 $ele = app('ele');
                 $product_upcs = [];
                 foreach ($products as $product) {
-                    $product_upcs[] = $product->upc;
+                    $product_upcs[] = $product->store_id ?: $product->upc;
                 }
                 $de = [
                     'custom_sku_id' => implode(',', $product_upcs),
@@ -1148,6 +1195,166 @@ class MedicineController extends Controller
             }
         }
 
+        return $this->success();
+    }
+
+    /**
+     * 删除商品-新
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/16 2:49 下午
+     */
+    public function destroy2(Request $request)
+    {
+        if (!$product_ids = $request->get('product_id')) {
+            return $this->error('商品不存在');
+        }
+        if (!$platform = $request->get('platform')) {
+            return $this->error('请选择删除方式');
+        }
+        if (!in_array($platform, [1,2,3])) {
+            return $this->error('请选择删除方式');
+        }
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('门店不存在');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在!');
+        }
+        $products = Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->get();
+        if ($products->isEmpty()) {
+            return $this->error('商品不存在!');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
+                return $this->error('无权限操作此药品');
+            }
+        }
+        if ($platform == 1) {
+            Medicine::where('shop_id', $shop_id)->whereIn('id', $product_ids)->delete();
+        }
+        if ($platform == 1 || $platform == 2) {
+            if ($shop->waimai_mt) {
+                if ($shop->meituan_bind_platform === 4) {
+                    $meituan = app('minkang');
+                } elseif ($shop->meituan_bind_platform === 31) {
+                    $meituan = app('meiquan');
+                } else {
+                    $meituan = null;
+                }
+                if ($meituan) {
+                    foreach ($products as $product) {
+                        $de = [
+                            'app_poi_code' => $shop->waimai_mt,
+                            'app_medicine_code' => $product->store_id ?: $product->upc,
+                        ];
+                        $res = $meituan->medicineDelete($de);
+                        if ((isset($res['data']) && $res['data'] === 'ok') || (isset($res['error']['msg']) && $res['error']['msg'] == '药品删除结果：不存在此药品')) {
+                            Medicine::where('id', $product->id)->update([
+                                'mt_status' => 0,
+                                'mt_error' => '',
+                                'online_mt' => 0,
+                            ]);
+                        }
+                        \Log::info("药品管理删除商品-美团", [$de, $res]);
+                    }
+                }
+            }
+        }
+        if ($platform == 1 || $platform == 3) {
+            if ($shop->waimai_ele) {
+                $ele = app('ele');
+                $product_upcs = [];
+                foreach ($products as $product) {
+                    $product_upcs[] = $product->store_id ?: $product->upc;
+                }
+                $de = [
+                    'custom_sku_id' => implode(',', $product_upcs),
+                    'shop_id' => $shop->waimai_ele,
+                ];
+                $res = $ele->skuDelete($de);
+                if (isset($res['body']['errno']) && $res['body']['errno'] == 0) {
+                    Medicine::where('id', $product->id)->update([
+                        'ele_status' => 0,
+                        'ele_error' => '',
+                        'online_ele' => 0,
+                    ]);
+                }
+                \Log::info("药品管理删除商品-饿了么", [$de, $res]);
+            }
+        }
+
+        return $this->success();
+    }
+
+    /**
+     * 删除同步记录
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/16 5:50 下午
+     */
+    public function clearSyncMedicineLog(Request $request)
+    {
+        $product_ids = $request->get('product_id', []);
+        if (!$platform = $request->get('platform')) {
+            return $this->error('请选择清空方式');
+        }
+        if (!in_array($platform, [1,2,3,4])) {
+            return $this->error('请选择清空方式');
+        }
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('门店不存在');
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在!');
+        }
+        // $products = Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->get();
+        // if ($products->isEmpty()) {
+        //     return $this->error('商品不存在!');
+        // }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
+                return $this->error('无权限操作此药品');
+            }
+        }
+        if ($platform == 1 || $platform == 3) {
+            MedicineCategory::where('shop_id', $shop_id)->update(['mt_id' => '']);
+            if ($platform == 3) {
+                if (empty($product_ids)) {
+                    Medicine::where('shop_id', $shop_id)->update([
+                        'mt_status' => 0,
+                        'mt_error' => '',
+                        'online_mt' => 0,
+                    ]);
+                } else {
+                    Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->update([
+                        'mt_status' => 0,
+                        'mt_error' => '',
+                        'online_mt' => 0,
+                    ]);
+                }
+            }
+        }
+        if ($platform == 2 || $platform == 4) {
+            MedicineCategory::where('shop_id', $shop_id)->update(['ele_id' => '']);
+            if ($platform == 4) {
+                if (empty($product_ids)) {
+                    Medicine::where('shop_id', $shop_id)->update([
+                        'ele_status' => 0,
+                        'ele_error' => '',
+                        'online_ele' => 0,
+                    ]);
+                } else {
+                    Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->update([
+                        'ele_status' => 0,
+                        'ele_error' => '',
+                        'online_ele' => 0,
+                    ]);
+                }
+            }
+        }
         return $this->success();
     }
 
@@ -1170,7 +1377,7 @@ class MedicineController extends Controller
                 return $this->error('门店不存在!');
             }
         }
-        if (!$product = Medicine::query()->where('shop_id', $shop_id)->where('upc', $upc)->first()) {
+        if (!$product = Medicine::where('shop_id', $shop_id)->where('upc', $upc)->first()) {
             return $this->error('药品管理中不存在此药品');
         }
         $data = [

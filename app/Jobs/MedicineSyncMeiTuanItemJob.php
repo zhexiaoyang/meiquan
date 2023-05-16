@@ -80,7 +80,12 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                 $error_msg = $res['error']['msg'] ?? '';
                 $error_msg = substr($error_msg, 0, 200);
                 if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
+                    $update_data = ['mt_status' => 1];
+                    // 库存大于0 为上架状态
+                    if ($this->params['stock'] > 0) {
+                        $update_data['online_mt'] = 1;
+                    }
+                    if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
                         // MedicineSyncLog::where('id', $this->key)->increment('success');
                         $status = true;
                     }

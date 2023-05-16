@@ -86,6 +86,7 @@ class MedicineUpdateImportJob implements ShouldQueue
         }
         $mt = true;
         $ele = true;
+        $medicine = Medicine::find($medicine->id);
         if ($platform === 0 || $platform === 1) {
             // 同步美团
             if ($medicine->mt_status === 2) {
@@ -107,11 +108,22 @@ class MedicineUpdateImportJob implements ShouldQueue
                             $meituan = app('meiquan');
                         }
                         if ($update_store_id_status) {
-                            // 更新商家商品编码
+                            // 更新商家商品ID
+                            $code_data[] = [
+                                'upc' => $medicine->upc,
+                                'app_medicine_code_new' => $medicine->store_id,
+                            ];
+                            $params_code['app_poi_code'] = $shop->waimai_mt;
+                            $params_code['medicine_data'] = json_encode($code_data);
+                            if ($shop->meituan_bind_platform === 31) {
+                                $params_code['access_token'] = $meituan->getShopToken($shop_id);
+                            }
+                            $meituan->medicineCodeUpdate($params_code);
+                            \Log::info('导入更新修改编码');
                         }
                         $params = [
                             'app_poi_code' => $shop->waimai_mt,
-                            'app_medicine_code' => $medicine->upc,
+                            'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
                         ];
                         if (isset($medicine_data['price'])) {
                             $params['price'] = $medicine_data['price'];
@@ -160,7 +172,7 @@ class MedicineUpdateImportJob implements ShouldQueue
                     }
                     $params = [
                         'shop_id' => $shop->waimai_ele,
-                        'custom_sku_id' => $medicine->upc,
+                        'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
                     ];
                     if (isset($medicine_data['price'])) {
                         $params['sale_price'] = (int) ($medicine_data['price']* 100);
