@@ -781,7 +781,7 @@ class MedicineController extends Controller
                             $data['mt4']++;
                         }
                         // 上下架
-                        if ($medicine->online_ele) {
+                        if ($medicine->online_mt) {
                             $data['mt5']++;
                         } else {
                             $data['mt6']++;
