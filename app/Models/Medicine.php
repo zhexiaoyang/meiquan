@@ -10,7 +10,7 @@ class Medicine extends Model
     protected $table = 'wm_medicines';
 
     protected $fillable = ['shop_id','depot_id','name','sequence','category','upc','brand','spec','stock','price',
-        'down_price','store_id','guidance_price','depot_id','cover','gpm','down_gpm'];
+        'down_price','store_id','guidance_price','cover','gpm','down_gpm'];
 
     protected $casts = [
         'price' => 'float',
