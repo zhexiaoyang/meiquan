@@ -65,7 +65,7 @@ class MedicineSyncEleItemJob implements ShouldQueue
             // $this->log('创建药品返回', [$res]);
             $res = $ele->add_product($this->params);
             if ($res['body']['error'] === 'success') {
-                if (Medicine::where('id', $this->medicine_id)->update(['ele_status' => 1])) {
+                if (Medicine::where('id', $this->medicine_id)->update(['ele_status' => 1, 'online_ele' => 1])) {
                     $status = true;
                 }
             } else {

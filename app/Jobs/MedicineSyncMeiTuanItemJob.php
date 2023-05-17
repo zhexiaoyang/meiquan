@@ -72,7 +72,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             $res = $meituan->medicineSave($this->params);
             $this->log('创建药品返回', [$res]);
             if ($res['data'] === 'ok') {
-                if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
+                if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
                     // MedicineSyncLog::where('id', $this->key)->increment('success');
                     $status = true;
                 }
