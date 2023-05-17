@@ -71,11 +71,11 @@ class MedicineSyncEleItemJob implements ShouldQueue
             } else {
                 $error_msg = $res['body']['error'] ?? '';
                 if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                    $update_data = ['ele_status' => 1];
+                    $update_data = ['ele_status' => 1, 'online_ele' => 1];
                     // 库存大于0 为上架状态
-                    if ($this->params['left_num'] > 0) {
-                        $update_data['online_ele'] = 1;
-                    }
+                    // if ($this->params['left_num'] > 0) {
+                    //     $update_data['online_ele'] = 1;
+                    // }
                     if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
                         $status = true;
                     }
