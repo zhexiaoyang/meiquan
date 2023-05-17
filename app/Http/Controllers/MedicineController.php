@@ -165,7 +165,21 @@ class MedicineController extends Controller
             }
         }
 
-        $data =$query->orderBy('sequence')->paginate($request->get('page_size', 10));
+        $sort_field = $request->get('sortField', '');
+        if (!$sort_field || !in_array($sort_field, ['stock', 'sequence', 'price', 'gpm'])) {
+            $sort_field = '';
+        }
+        // ascend
+        $sort_order = $request->get('sortOrder');
+        if ($sort_order === 'descend') {
+            $query->orderByDesc($sort_field);
+        } else if ($sort_order === 'ascend') {
+            $query->orderBy($sort_field);
+        } else {
+            $query->orderBy('sequence');
+        }
+
+        $data =$query->paginate($request->get('page_size', 10));
 
         return $this->page($data, [],'data');
     }
