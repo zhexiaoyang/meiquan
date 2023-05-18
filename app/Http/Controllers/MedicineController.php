@@ -687,8 +687,19 @@ class MedicineController extends Controller
             return $this->error($error_msg, 422);
         }
 
-        Medicine::where('shop_id', $shop->id)->delete();
-        MedicineCategory::where('shop_id', $shop->id)->delete();
+        // 为 3 的时候就删除同步记录
+        $type = (int) $request->get('type', 1);
+        if ($type === 1) {
+            Medicine::where('shop_id', $shop->id)->delete();
+            MedicineCategory::where('shop_id', $shop->id)->delete();
+        } else {
+            MedicineCategory::where('shop_id', $shop_id)->update(['mt_id' => '']);
+            Medicine::where('shop_id', $shop_id)->update([
+                'mt_status' => 0,
+                'mt_error' => '',
+                'online_mt' => 0,
+            ]);
+        }
 
         return $this->success();
     }
