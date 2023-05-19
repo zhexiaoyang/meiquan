@@ -88,8 +88,14 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("medicine/statistics/status", "MedicineController@statistics_status");
         // 品库添加商品
         Route::get("medicine/depot/product", "MedicineController@depot_index");
+        // 从品库新增商品
         Route::post("medicine/depot/add", "MedicineController@depot_add");
+        // 批量更改毛利率
         Route::post("medicine/gpm/update", "MedicineController@batchUpdateGpm");
+        // 获取ERP同步开关状态
+        Route::get("medicine/erp/status", "MedicineController@erpStatus");
+        // 更改ERP同步开关状态
+        Route::post("medicine/erp/status", "MedicineController@erpChangeStatus");
         /**
          * WebMI
          */

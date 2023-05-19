@@ -10,6 +10,7 @@ use App\Jobs\MedicineSyncEleItemJob;
 use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
 use App\Jobs\MedicineUpdateImportJob;
+use App\Models\ErpAccessShop;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
@@ -1570,6 +1571,42 @@ class MedicineController extends Controller
             //     }
             // }
         }
+        return $this->success();
+    }
+
+    /**
+     * 获取ERP同步开关状态
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/19 9:49 上午
+     */
+    public function erpStatus(Request $request)
+    {
+        if (!$shop_id = $request->shop_id) {
+            return $this->error('门店ID不存在');
+        }
+        $data = ErpAccessShop::where('shop_id', $shop_id)->first();
+        return $this->success(['status' => $data->sync_status]);
+    }
+
+    /**
+     * 设置ERP同步开关状态
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/19 9:49 上午
+     */
+    public function erpChangeStatus(Request $request)
+    {
+        if (!$shop_id = $request->shop_id) {
+            return $this->error('门店ID不存在');
+        }
+        $sync_status = 0;
+        if ($request->get('status', 1)) {
+            $sync_status = 1;
+        }
+        ErpAccessShop::where('shop_id', $shop_id)->update(['sync_status' => $sync_status]);
         return $this->success();
     }
 }
