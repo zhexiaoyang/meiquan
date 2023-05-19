@@ -67,6 +67,10 @@ class ProductController extends Controller
         if (!$key_shop = ErpAccessShop::where(['shop_id' => $shop->id, 'access_id' => $access->id])->first()) {
             return $this->error("门店不存在", 701);
         }
+        if (!$key_shop->sync_status) {
+            \Log::info("中台关闭数据同步|shop_id:{$shop->id}");
+            return $this->error("中台关闭数据同步", 701);
+        }
         \Log::info("ERPV2全部参数门店ID{$shop->id}", $request->all());
 
 
