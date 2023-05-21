@@ -560,6 +560,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop/example/three_id", "ShopController@apply_three_id_save")->name("admin.shop.example.three_id.save");
             // **门店管理-全部门店列表
             Route::get("shop/all", "ShopController@all");
+            // **门店管理-ERP状态切换
+            Route::post("shop/erp/status", "ShopController@erpStatus");
             // **门店管理-保存仓库设置
             Route::post("shop/warehouse", "ShopController@warehouse");
             // 修改跑腿订单加价
