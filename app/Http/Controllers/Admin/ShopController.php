@@ -204,6 +204,7 @@ class ShopController extends Controller
                 // VIP\ERP
                 // $tmp['is_vip'] = $shop->vip_status;
                 // $tmp['is_erp'] = $shop->erp ?? 0;
+                $tmp['is_erp'] = $shop->erp_status === 1;
                 $tmp['erp_status'] = $shop->erp_status;
                 // 赋值
                 $data[] = $tmp;
