@@ -25,7 +25,7 @@ class ShopController extends Controller
         $shop_status = $request->get('shop_status', 0);
         $query = Shop::with(['online_shop' => function($query) {
             $query->select("shop_id", "contract_status");
-        }, 'apply_three_id', 'setting.shop', 'contract','users','user','erp']);
+        }, 'apply_three_id', 'setting.shop', 'contract','users','user']);
 
         // 搜索条件
         if ($shop_id = $request->get('shop_id')) {
@@ -202,8 +202,9 @@ class ShopController extends Controller
                     }
                 }
                 // VIP\ERP
-                $tmp['is_vip'] = $shop->vip_status;
-                $tmp['is_erp'] = $shop->erp ?? 0;
+                // $tmp['is_vip'] = $shop->vip_status;
+                // $tmp['is_erp'] = $shop->erp ?? 0;
+                $tmp['erp_status'] = $shop->erp_status;
                 // 赋值
                 $data[] = $tmp;
             }
@@ -557,6 +558,28 @@ class ShopController extends Controller
         } catch (\Exception $exception) {
             return $this->error('操作失败，请稍后再试');
         }
+        return $this->success();
+    }
+
+    /**
+     * ERP状态切换
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/5/20 10:25 下午
+     */
+    public function erpStatus(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        if ($shop->erp_status != 1) {
+            $shop->erp_status = 1;
+        } else {
+            $shop->erp_status = 2;
+        }
+        $shop->save();
+
         return $this->success();
     }
 }
