@@ -27,7 +27,7 @@ class MedicineController extends Controller
 {
     public function shops(Request $request)
     {
-        $query = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('status', '>=', 0);
+        $query = Shop::select('id', 'shop_name', 'erp_status')->where('second_category', 200001)->where('status', '>=', 0);
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
             $query->whereIn('id', $request->user()->shops()->pluck('id')->toArray());
@@ -37,7 +37,7 @@ class MedicineController extends Controller
         } else {
             if ($select_shops = MedicineSelectShop::where('user_id', $request->user()->id)->first()) {
                 $shops = $query->orderBy('id')->limit(14)->get();
-                $shop_select = Shop::select('id', 'shop_name')->find($select_shops->shop_id);
+                $shop_select = Shop::select('id', 'shop_name', 'erp_status')->find($select_shops->shop_id);
                 $shops->prepend($shop_select);
             } else {
                 $shops = $query->orderBy('id')->limit(15)->get();
@@ -1586,8 +1586,10 @@ class MedicineController extends Controller
         if (!$shop_id = $request->shop_id) {
             return $this->error('门店ID不存在');
         }
-        $data = ErpAccessShop::where('shop_id', $shop_id)->first();
-        return $this->success(['status' => $data->sync_status]);
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        return $this->success(['status' => $shop->sync_status]);
     }
 
     /**
@@ -1602,11 +1604,15 @@ class MedicineController extends Controller
         if (!$shop_id = $request->shop_id) {
             return $this->error('门店ID不存在');
         }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在');
+        }
         $sync_status = 0;
         if ($request->get('status', 1)) {
             $sync_status = 1;
         }
-        ErpAccessShop::where('shop_id', $shop_id)->update(['sync_status' => $sync_status]);
+        $shop->sync_status = $sync_status;
+        $shop->save();
         return $this->success();
     }
 }
