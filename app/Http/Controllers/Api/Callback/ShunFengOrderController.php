@@ -102,7 +102,7 @@ class ShunFengOrderController extends Controller
                         'phone' => $phone,
                     ]);
                     $this->log_info('顺丰配送员已改派，更改信息成功');
-                    // return json_encode($res);
+                    return json_encode($res);
                 }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
