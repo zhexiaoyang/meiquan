@@ -338,7 +338,7 @@ class OrderController extends Controller
                 $order->fail_zb = '重新呼叫-不选择';
             }
         } else {
-            $order->uu_status = 0;
+            $order->zb_status = 0;
             $order->fail_zb = '';
         }
 
