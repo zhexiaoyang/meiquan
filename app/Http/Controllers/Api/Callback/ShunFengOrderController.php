@@ -37,6 +37,7 @@ class ShunFengOrderController extends Controller
         $rider_lat = $request->get("rider_lat", "");
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
+        $status_desc = $request->get("status_desc", "");
         // 定义日志格式
         $this->prefix = str_replace('###', "订单状态&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
@@ -87,6 +88,22 @@ class ShunFengOrderController extends Controller
             // 回调状态判断
             // 10-配送员确认;12:配送员到店;15:配送员配送中
             if ($status == 10) {
+                if (strpos($status_desc, '改派') !== false) {
+                    // 配送员配送中
+                    $order->courier_name = $name;
+                    $order->courier_phone = $phone;
+                    $order->save();
+                    // 记录订单日志
+                    OrderLog::create([
+                        'ps' => 7,
+                        "order_id" => $order->id,
+                        "des" => "[顺丰]跑腿，配送员已改派",
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                    $this->log_info('顺丰配送员已改派，更改信息成功');
+                    // return json_encode($res);
+                }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...

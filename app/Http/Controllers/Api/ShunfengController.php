@@ -33,6 +33,7 @@ class ShunfengController
         $rider_lat = $request->get("rider_lat", "");
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
+        $status_desc = $request->get("status_desc", "");
 
         if (in_array($status, [10, 15])) {
             Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
@@ -91,6 +92,22 @@ class ShunfengController
             // 回调状态判断
             // 10-配送员确认;12:配送员到店;15:配送员配送中
             if ($status == 10) {
+                if (strpos($status_desc, '改派') !== false) {
+                    // 配送员配送中
+                    $order->courier_name = $name;
+                    $order->courier_phone = $phone;
+                    $order->save();
+                    // 记录订单日志
+                    OrderLog::create([
+                        'ps' => 7,
+                        "order_id" => $order->id,
+                        "des" => "[顺丰]跑腿，配送员已改派",
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                    Log::info($log_prefix . '顺丰配送员已改派，更改信息成功');
+                    // return json_encode($res);
+                }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
