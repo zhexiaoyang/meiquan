@@ -218,6 +218,11 @@ class ProductController extends Controller
 
         $res = $meituan->medicineCodeUpdate($params);
 
+        if (!isset($res['data'])) {
+            \Log::info("[ERP接口]-[美团返回异常]-全部参数", [$res]);
+            return $this->error("美团返回异常", 3004);
+        }
+
         if ($res['data'] != 'ok') {
             // \Log::info("[ERP接口]-[美团返回异常]-全部参数", $res);
             return $this->error($res['error']['msg'] ?? "", 3004);
