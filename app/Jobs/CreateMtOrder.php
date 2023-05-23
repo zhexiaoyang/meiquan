@@ -48,6 +48,9 @@ class CreateMtOrder implements ShouldQueue
     // 顺丰
     protected $sf_order_id = '';
     protected $money_sf = 0;
+    // 顺丰
+    protected $zb_order_id = '';
+    protected $money_zb = 0;
     // 日志格式
     protected $log = "";
     // 仓库ID
@@ -222,6 +225,52 @@ class CreateMtOrder implements ShouldQueue
         $manager_money = $shop->running_manager_add;
         $this->add_money = $add_money;
         $this->log("用户加价金额：{$add_money}");
+
+        // **********************************************************************************
+        // ***************************  美  团  众  包  跑  腿  *******************************
+        // **********************************************************************************
+        // 判断是否开启顺丰跑腿(是否存在顺丰的门店ID，设置是否打开，没用失败信息)
+        $zhongbaoapp = null;
+        $meituan_shop_id = '';
+        if ($order->platform != 1) {
+            $this->log("不是美团订单，停止「美团众包」派单");
+        } elseif ($order->shop_id != $shop->id) {
+            $this->log("转仓库订单，停止「美团众包」派单");
+        } elseif ($order->fail_zb) {
+            $this->log("已经有「美团众包」失败信息：{$order->fail_zb}，停止「美团众包」派单");
+        } elseif ($order->fail_zb != 0) {
+            $this->log("订单状态：{$order->zb_status}，不是0，停止「美团众包」派单");
+        } else {
+            if ($shop->meituan_bind_platform == 4) {
+                $zhongbaoapp = app('minkang');
+            } elseif ($shop->meituan_bind_platform == 31) {
+                $meituan_shop_id = $shop->waimai_mt;
+                $zhongbaoapp = app('meiquan');
+            }
+            if ($zhongbaoapp) {
+                $check_zb= $zhongbaoapp->zhongBaoShippingFee($order->order_id, $meituan_shop_id);
+                $money_zb = $check_zb['data'][0]['shipping_fee'] ?? 0;
+                $this->log("「美团众包」金额：{$money_zb}");
+                if ($money_zb > 0) {
+                    // 判断用户金额是否满足美团众包订单
+                    if ($user->money < 0.2) {
+                        if ($order->status < 20) {
+                            DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                        }
+                        dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                        $this->log("用户金额不足发0.2元，停止不能发自主运力派单");
+                        return;
+                    }
+                    $this->money_zb = $money_zb;
+                    $order->money_zb = $money_zb;
+                    $this->services['zhongbao'] = $money_zb;
+                } else {
+                    $zb_error_msg = "美团众包校验订单请求失败";
+                    $order->fail_zb = $zb_error_msg;
+                    $this->log("「美团众包」校验订单失败:{$zb_error_msg}，停止「美团众包」派单", [$check_zb]);
+                }
+            }
+        }
 
         // **********************************************************************************
         // ******************************  顺  丰  跑  腿  ***********************************
@@ -682,10 +731,73 @@ class CreateMtOrder implements ShouldQueue
                 $this->log("发送「顺丰」订单失败");
             }
             return;
+        } else if ($ps === "zhongbao") {
+            if ($this->zhongbao($money_zb, $zhongbaoapp, $meituan_shop_id)) {
+                if (count($this->services) > 1) {
+                    dispatch(new CheckSendStatus($this->order, $order_ttl));
+                }
+            } else {
+                $this->log("发送「美团众包」订单失败");
+            }
+            return;
         }
         $this->log("发送订单失败，没有返回最小平台");
 
         $lock->release();
+    }
+
+    public function zhongbao($money, $zhongbaoapp, $meituan_shop_id)
+    {
+        if (!$zhongbaoapp) {
+            return false;
+        }
+        $order = Order::find($this->order->id);
+        $shop_id = $order->warehouse_id ?: $order->shop_id;
+        $shop = Shop::find($shop_id);
+
+        if ($order->status > 30) {
+            $this->log("不能发送「美团众包」订单，订单状态：{$order->status},大于30，停止派单");
+            return false;
+        }
+
+        if ($order->fail_zb) {
+            $this->log("已有「美团众包」错误信息，停止派单");
+            return false;
+        }
+
+        // 发送美团众包订单
+        $result_zb = $zhongbaoapp->zhongBaoDispatch($order->order_id, $money, $meituan_shop_id);
+        if ($result_zb['data'] === 'ok') {
+            // 订单发送成功
+            $this->log("发送「美团众包」订单成功|返回参数", [$result_zb]);
+            // 写入订单信息
+            $update_info = [
+                'zb_status' => 20,
+                'status' => 20,
+                'push_at' => date("Y-m-d H:i:s")
+            ];
+            DB::table('orders')->where('id', $this->order->id)->update($update_info);
+            DB::table('order_logs')->insert([
+                'ps' => 8,
+                'order_id' => $this->order->id,
+                'des' => '「美团众包」跑腿发单',
+                'created_at' => date("Y-m-d H:i:s"),
+                'updated_at' => date("Y-m-d H:i:s"),
+            ]);
+            $this->log("「美团众包」更新创建订单状态成功");
+            return true;
+        } else {
+            $fail_zb = $result_uu['error']['msg'] ?? "美团众包创建订单失败";
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_zb' => $fail_zb, 'zb_status' => 3]);
+            $this->log("「美团众包」发送订单失败：{$fail_zb}");
+            if (count($this->services) > 1) {
+                dispatch(new CreateMtOrder($this->order, 30));
+            } else {
+                $this->log("「美团众包」发送订单失败，没有平台了");
+            }
+        }
+
+        return false;
     }
 
     public function uu()
@@ -730,7 +842,7 @@ class CreateMtOrder implements ShouldQueue
             return true;
         } else {
             $fail_uu = $result_uu['return_msg'] ?? "UU创建订单失败";
-            DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $fail_uu, 'dd_status' => 3]);
+            DB::table('orders')->where('id', $this->order->id)->update(['fail_uu' => $fail_uu, 'uu_status' => 3]);
             $this->log("「UU」发送订单失败：{$fail_uu}");
             if (count($this->services) > 1) {
                 dispatch(new CreateMtOrder($this->order, 30));

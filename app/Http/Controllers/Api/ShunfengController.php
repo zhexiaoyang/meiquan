@@ -10,6 +10,7 @@ use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
+use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\Redis;
 
 class ShunfengController
 {
+    use RiderOrderCancel;
+
     public function status(Request $request)
     {
         $res = ["error_code" => 0, "error_msg" => "success"];
@@ -296,6 +299,10 @@ class ShunfengController
                         'des' => '取消【UU跑腿】订单',
                     ]);
                     Log::info($log_prefix . '取消UU待接单订单成功');
+                }
+                // 取消众包跑腿
+                if ($order->zb_status === 20 || $order->zb_status === 30) {
+                    $this->cancelRiderOrderMeiTuanZhongBao($order, 10);
                 }
 
                 // 更改信息，扣款

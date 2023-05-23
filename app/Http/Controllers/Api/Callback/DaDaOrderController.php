@@ -10,6 +10,7 @@ use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
+use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -18,7 +19,7 @@ use Illuminate\Support\Facades\Redis;
 
 class DaDaOrderController
 {
-    use LogTool, NoticeTool;
+    use LogTool, NoticeTool, RiderOrderCancel;
 
     public $prefix_title = '[达达服务商订单回调&###]';
 
@@ -224,6 +225,10 @@ class DaDaOrderController
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
                     $this->log_info('取消顺丰待接单订单成功');
+                }
+                // 取消众包跑腿
+                if ($order->zb_status === 20 || $order->zb_status === 30) {
+                    $this->cancelRiderOrderMeiTuanZhongBao($order, 8);
                 }
                 // 更改信息，扣款
                 try {

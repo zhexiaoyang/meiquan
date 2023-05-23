@@ -14,6 +14,7 @@ use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
+use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\Redis;
 
 class OrderController extends Controller
 {
+    use RiderOrderCancel;
+
     public function __construct()
     {
         $this->middleware('auth:api')->except('sync', 'sync2', 'cancel');
@@ -54,6 +57,7 @@ class OrderController extends Controller
             'dd_status','money_dd','fail_dd',
             'uu_status','money_uu','fail_uu',
             'sf_status','money_sf','fail_sf',
+            'zb_status','money_zb','fail_zb',
             'courier_name','courier_phone','warehouse_id','day_seq','wm_poi_name','caution','wm_id',
             'send_at','created_at','over_at','cancel_at','receive_at','take_at','goods_pickup_info',
             'platform','receiver_lng','expected_delivery_time','receiver_lat','status');
@@ -327,6 +331,15 @@ class OrderController extends Controller
         } else {
             $order->uu_status = 0;
             $order->fail_uu = '';
+        }
+
+        if ($request->get("zb", 0) === 0) {
+            if (!$order->fail_zb) {
+                $order->fail_zb = '重新呼叫-不选择';
+            }
+        } else {
+            $order->uu_status = 0;
+            $order->fail_zb = '';
         }
 
         if ($order->status == 99) {
@@ -1512,7 +1525,7 @@ class OrderController extends Controller
      * @param Order $order
      * @return mixed
      */
-    public function cancel2(Order $order)
+    public function cancel2(Order $order, Request $request)
     {
         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-开始");
         $ps = $order->ps;
@@ -2060,74 +2073,74 @@ class OrderController extends Controller
                 }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
-                        try {
-                            DB::transaction(function () use ($order, $result) {
-                                // 用户余额日志
-                                if ($order->shipper_type_sf == 0) {
-                                    // 计算扣款
-                                    $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
-                                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
-                                    // 当前用户
-                                    $current_user = DB::table('users')->find($order->user_id);
+                    try {
+                        DB::transaction(function () use ($order, $result) {
+                            // 用户余额日志
+                            if ($order->shipper_type_sf == 0) {
+                                // 计算扣款
+                                $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
+                                \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
+                                // 当前用户
+                                $current_user = DB::table('users')->find($order->user_id);
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "用户操作取消顺丰跑腿订单：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                                if ($jian_money > 0) {
                                     UserMoneyBalance::query()->create([
                                         "user_id" => $order->user_id,
-                                        "money" => $order->money,
-                                        "type" => 1,
-                                        "before_money" => $current_user->money,
-                                        "after_money" => ($current_user->money + $order->money),
-                                        "description" => "用户操作取消顺丰跑腿订单：" . $order->order_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "用户操作取消顺丰跑腿订单扣款：" . $order->order_id,
                                         "tid" => $order->id
                                     ]);
-                                    if ($jian_money > 0) {
-                                        UserMoneyBalance::query()->create([
-                                            "user_id" => $order->user_id,
-                                            "money" => $jian_money,
-                                            "type" => 2,
-                                            "before_money" => ($current_user->money + $order->money),
-                                            "after_money" => ($current_user->money + $order->money - $jian_money),
-                                            "description" => "用户操作取消顺丰跑腿订单扣款：" . $order->order_id,
-                                            "tid" => $order->id
-                                        ]);
-                                    }
-                                    DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                                    \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户");
-                                    if ($jian_money > 0) {
-                                        $jian_data = [
-                                            'order_id' => $order->id,
-                                            'money' => $jian_money,
-                                            'ps' => $order->ps
-                                        ];
-                                        OrderDeduction::create($jian_data);
-                                    }
-                                } else {
-                                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
                                 }
-                                DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                    'status' => 99,
-                                    'sf_status' => 99,
-                                    'cancel_at' => date("Y-m-d H:i:s")
-                                ]);
-                                OrderLog::create([
-                                    "order_id" => $order->id,
-                                    "des" => "用户操作取消【顺丰跑腿】订单"
-                                ]);
-                            });
-                        } catch (\Exception $e) {
-                            $message = [
-                                $e->getCode(),
-                                $e->getFile(),
-                                $e->getLine(),
-                                $e->getMessage()
-                            ];
-                            \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户失败", $message);
-                            $logs = [
-                                "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
-                                "id" => $order->id,
-                                "ps" => "顺丰",
-                                "order_id" => $order->order_id
-                            ];
-                            $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
-                        }
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                            } else {
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-自主注册闪送，取消不扣款");
+                            }
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'sf_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
+                            ]);
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "用户操作取消【顺丰跑腿】订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户失败", $message);
+                        $logs = [
+                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "顺丰",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("用户操作取消订单将钱返回给用户失败", $logs);
+                    }
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-取消顺丰订单返回失败", [$result]);
                     $logs = [
@@ -2138,6 +2151,8 @@ class OrderController extends Controller
                     ];
                     $dd->sendMarkdownMsgArray("用户操作取消订单，取消顺丰订单返回失败", $logs);
                 }
+            } elseif ($ps == 8) {
+                $this->cancelRiderOrderMeiTuanZhongBao($order, 1, $request->user()->id);
             }
             return $this->success();
         } elseif (in_array($order->status, [20, 30])) {
@@ -2278,6 +2293,9 @@ class OrderController extends Controller
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，顺丰成功");
                 }
+            }
+            if (in_array($order->zb_status, [20, 30])) {
+                $this->cancelRiderOrderMeiTuanZhongBao($order, 1, $request->user()->id);
             }
             return $this->success();
         } else {
@@ -2511,6 +2529,7 @@ class OrderController extends Controller
             'dd' => $shop->shop_id_dd ?? 0,
             'mqd' => $shop->shop_id_mqd ?? 0,
             'uu' => $shop->shop_id_uu ?? 0,
+            'zb' => $shop->shop_id_zb ?? 0,
             'mt_switch' => $mt_switch ?? 1,
             'fn_switch' => $fn_switch ?? 1,
             'ss_switch' => $ss_switch ?? 1,
@@ -2518,6 +2537,7 @@ class OrderController extends Controller
             'dd_switch' => $dd_switch ?? 1,
             'uu_switch' => $uu_switch ?? 1,
             'sf_switch' => $sf_switch ?? 1,
+            'zb_switch' => 1,
             'warehouse' => $warehouse,
             'warehouse_name' => $warehouse ? $shop->shop_name : '',
         ];
