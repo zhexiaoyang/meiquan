@@ -979,6 +979,11 @@ class EleOrderController extends Controller
             $status = $order['order']['status'];
             // 饿了么门店ID
             $ele_shop_id = $order['shop']['id'];
+            /********************* 判断订单是否存在 *********************/
+            if (Order::where("order_id", $order_id)->first()) {
+                $this->log_info('订单已存在');
+                return $this->res("order.status.success");
+            }
 
             // 判断是否是接单状态
             if ($status !== 5) {
