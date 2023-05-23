@@ -120,6 +120,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("门店不存在，停止派单|shop_id:{$order->shop_id}");
             return;
         }
+        $shop_yuan = $shop;
         // if (!$user = User::find($shop->user_id ?? 0)) {
         //     $this->log("用户不存在，停止派单|user_id:{$shop->user_id}");
         //     return;
@@ -232,14 +233,16 @@ class CreateMtOrder implements ShouldQueue
         // 判断是否开启顺丰跑腿(是否存在顺丰的门店ID，设置是否打开，没用失败信息)
         $zhongbaoapp = null;
         $meituan_shop_id = '';
-        if ($order->platform != 1) {
+        if (!$shop_yuan->shop_id_zb) {
+            $this->log("未开通众包，停止「美团众包」派单");
+        } elseif ($order->platform != 1) {
             $this->log("不是美团订单，停止「美团众包」派单");
         } elseif ($order->shop_id != $shop->id) {
             $this->log("转仓库订单，停止「美团众包」派单");
         } elseif ($order->fail_zb) {
             $this->log("已经有「美团众包」失败信息：{$order->fail_zb}，停止「美团众包」派单");
-        } elseif ($order->fail_zb != 0) {
-            $this->log("订单状态：{$order->zb_status}，不是0，停止「美团众包」派单");
+        } elseif ($order->zb_status != 0) {
+            $this->log("订单众包状态：{$order->zb_status}，不是0，停止「美团众包」派单");
         } else {
             if ($shop->meituan_bind_platform == 4) {
                 $zhongbaoapp = app('minkang');
