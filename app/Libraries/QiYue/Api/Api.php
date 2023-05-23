@@ -161,6 +161,7 @@ class Api extends Request
     /**
      * 合同草稿
      * 美团-桃子处方
+     * @param int $type  1 美团，2 饿了么 3 线上
      * @data 2021/12/10 3:13 下午
      */
     public function shopDraftTaozi(OnlineShop $shop, $type = 1)
@@ -341,9 +342,10 @@ class Api extends Request
     /**
      * 签署公章-桃子医院盖章
      * @param $contract_id
+     * @param int $type  1 美团，2 饿了么
      * @return mixed
      * @author zhangzhen
-     * @data 2021/12/10 3:23 下午
+     * @data dateTime
      */
     public function companysignTaozi($contract_id, $type = 1)
     {
