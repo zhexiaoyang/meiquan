@@ -255,11 +255,11 @@ class OrderController
                 } elseif ($status === 10) {
                     // 骑手接单
                     // 取消美团订单
-                    if ($order->mt_status === 20 || $order->mt_status === 30) {
+                    if ($pt_order->mt_status === 20 || $pt_order->mt_status === 30) {
                         $meituan = app("meituan");
                         $result = $meituan->delete([
-                            'delivery_id' => $order->delivery_id,
-                            'mt_peisong_id' => $order->mt_order_id,
+                            'delivery_id' => $pt_order->delivery_id,
+                            'mt_peisong_id' => $pt_order->mt_order_id,
                             'cancel_reason_id' => 399,
                             'cancel_reason' => '其他原因',
                         ]);
@@ -269,16 +269,16 @@ class OrderController
                         // 记录订单日志
                         OrderLog::create([
                             'ps' => 1,
-                            "order_id" => $order->id,
+                            "order_id" => $pt_order->id,
                             "des" => "取消【美团】跑腿订单",
                         ]);
                         $this->log_info('取消美团待接单订单成功');
                     }
                     // 取消蜂鸟订单
-                    if ($order->fn_status === 20 || $order->fn_status === 30) {
+                    if ($pt_order->fn_status === 20 || $pt_order->fn_status === 30) {
                         $fengniao = app("fengniao");
                         $result = $fengniao->cancelOrder([
-                            'partner_order_code' => $order->order_id,
+                            'partner_order_code' => $pt_order->order_id,
                             'order_cancel_reason_code' => 2,
                             'order_cancel_code' => 9,
                             'order_cancel_time' => time() * 1000,
@@ -289,51 +289,51 @@ class OrderController
                         // 记录订单日志
                         OrderLog::create([
                             'ps' => 2,
-                            "order_id" => $order->id,
+                            "order_id" => $pt_order->id,
                             "des" => "取消【蜂鸟】跑腿订单",
                         ]);
                         $this->log_info('取消蜂鸟待接单订单成功');
                     }
                     // 取消闪送订单
-                    if ($order->ss_status === 20 || $order->ss_status === 30) {
-                        if ($order->shipper_type_ss) {
+                    if ($pt_order->ss_status === 20 || $pt_order->ss_status === 30) {
+                        if ($pt_order->shipper_type_ss) {
                             $shansong = new ShanSongService(config('ps.shansongservice'));
                         } else {
                             $shansong = app("shansong");
                         }
-                        $result = $shansong->cancelOrder($order->ss_order_id);
+                        $result = $shansong->cancelOrder($pt_order->ss_order_id);
                         if ($result['status'] != 200) {
                             $this->log_info('闪送待接单取消失败');
                         }
                         OrderLog::create([
                             'ps' => 3,
-                            'order_id' => $order->id,
+                            'order_id' => $pt_order->id,
                             'des' => '取消【闪送】跑腿订单',
                         ]);
                         $this->log_info('取消闪送待接单订单成功');
                     }
                     // 取消达达订单
-                    if ($order->dd_status === 20 || $order->dd_status === 30) {
-                        if ($order->shipper_type_dd) {
+                    if ($pt_order->dd_status === 20 || $pt_order->dd_status === 30) {
+                        if ($pt_order->shipper_type_dd) {
                             $config = config('ps.dada');
-                            $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
+                            $config['source_id'] = get_dada_source_by_shop($pt_order->warehouse_id ?: $pt_order->shop_id);
                             $dada = new DaDaService($config);
                         } else {
                             $dada = app("dada");
                         }
-                        $result = $dada->orderCancel($order->order_id);
+                        $result = $dada->orderCancel($pt_order->order_id);
                         if ($result['code'] != 0) {
                             $this->log_info('达达待接单取消失败');
                         }
                         OrderLog::create([
                             'ps' => 5,
-                            'order_id' => $order->id,
+                            'order_id' => $pt_order->id,
                             'des' => '取消【达达】跑腿订单',
                         ]);
                         $this->log_info('取消达达待接单订单成功');
                     }
                     // 取消UU订单
-                    if ($order->uu_status === 20 || $order->uu_status === 30) {
+                    if ($pt_order->uu_status === 20 || $pt_order->uu_status === 30) {
                         $uu = app("uu");
                         $result = $uu->cancelOrder($order);
                         if ($result['return_code'] != 'ok') {
@@ -341,14 +341,14 @@ class OrderController
                         }
                         OrderLog::create([
                             'ps' => 6,
-                            'order_id' => $order->id,
+                            'order_id' => $pt_order->id,
                             'des' => '取消【UU跑腿】订单',
                         ]);
                         $this->log_info('取消UU待接单订单成功');
                     }
                     // 取消顺丰订单
-                    if ($order->sf_status === 20 || $order->sf_status === 30) {
-                        if ($order->shipper_type_sf) {
+                    if ($pt_order->sf_status === 20 || $pt_order->sf_status === 30) {
+                        if ($pt_order->shipper_type_sf) {
                             $sf = app("shunfengservice");
                         } else {
                             $sf = app("shunfeng");
@@ -360,29 +360,29 @@ class OrderController
                         }
                         OrderLog::create([
                             'ps' => 7,
-                            'order_id' => $order->id,
+                            'order_id' => $pt_order->id,
                             'des' => '取消【顺丰】跑腿订单',
                         ]);
                         $this->log_info('取消顺丰待接单订单成功');
                     }
                     try {
-                        DB::transaction(function () use ($order, $name, $phone) {
+                        DB::transaction(function () use ($pt_order, $name, $phone) {
                             // 更改订单信息
-                            Order::where("id", $order->id)->update([
+                            Order::where("id", $pt_order->id)->update([
                                 'ps' => 8,
-                                'money' => $order->money_zb,
+                                'money' => $pt_order->money_zb,
                                 'profit' => 0.2,
                                 'status' => 50,
                                 'zb_status' => 50,
-                                'mt_status' => $order->mt_status < 20 ?: 7,
-                                'fn_status' => $order->fn_status < 20 ?: 7,
-                                'ss_status' => $order->ss_status < 20 ?: 7,
-                                'mqd_status' => $order->mqd_status < 20 ?: 7,
-                                'uu_status' => $order->uu_status < 20 ?: 7,
-                                'sf_status' => $order->sf_status < 20 ?: 7,
-                                'dd_status' => $order->dd_status < 20 ?: 7,
+                                'mt_status' => $pt_order->mt_status < 20 ?: 7,
+                                'fn_status' => $pt_order->fn_status < 20 ?: 7,
+                                'ss_status' => $pt_order->ss_status < 20 ?: 7,
+                                'mqd_status' => $pt_order->mqd_status < 20 ?: 7,
+                                'uu_status' => $pt_order->uu_status < 20 ?: 7,
+                                'sf_status' => $pt_order->sf_status < 20 ?: 7,
+                                'dd_status' => $pt_order->dd_status < 20 ?: 7,
                                 'receive_at' => date("Y-m-d H:i:s"),
-                                'peisong_id' => $order->id,
+                                'peisong_id' => $pt_order->id,
                                 'courier_name' => $name,
                                 'courier_phone' => $phone,
                                 'courier_lng' => 0,
@@ -393,7 +393,7 @@ class OrderController
                             // 记录订单日志
                             OrderLog::create([
                                 'ps' => 8,
-                                "order_id" => $order->id,
+                                "order_id" => $pt_order->id,
                                 "des" => "「美团众包」跑腿，待取货",
                                 'name' => $name,
                                 'phone' => $phone,
@@ -415,18 +415,18 @@ class OrderController
                     // 骑手已到店
                 } elseif ($status === 20) {
                     // 骑手已取货
-                    $order->status = 60;
-                    $order->zb_status = 60;
-                    $order->take_at = date("Y-m-d H:i:s");
-                    $order->courier_name = $name;
-                    $order->courier_phone = $phone;
-                    $order->courier_lng = 0;
-                    $order->courier_lat = 0;
-                    $order->save();
+                    $pt_order->status = 60;
+                    $pt_order->zb_status = 60;
+                    $pt_order->take_at = date("Y-m-d H:i:s");
+                    $pt_order->courier_name = $name;
+                    $pt_order->courier_phone = $phone;
+                    $pt_order->courier_lng = 0;
+                    $pt_order->courier_lat = 0;
+                    $pt_order->save();
                     // 记录订单日志
                     OrderLog::create([
                         'ps' => 8,
-                        "order_id" => $order->id,
+                        "order_id" => $pt_order->id,
                         "des" => "「美团众包」配送中",
                         'name' => $name,
                         'phone' => $phone,
@@ -435,20 +435,20 @@ class OrderController
                     $this->log_info('取件成功，配送中，更改信息成功');
                 } elseif ($status === 40) {
                     // 骑手已送达
-                    $order->status = 70;
-                    $order->zb_status = 70;
-                    $order->over_at = date("Y-m-d H:i:s");
-                    $order->courier_name = $name;
-                    $order->courier_phone = $phone;
-                    $order->courier_lng = $order->receiver_lng;
-                    $order->courier_lat = $order->receiver_lat;
-                    $order->pay_status = 1;
-                    $order->pay_at = date("Y-m-d H:i:s");
-                    $order->save();
+                    $pt_order->status = 70;
+                    $pt_order->zb_status = 70;
+                    $pt_order->over_at = date("Y-m-d H:i:s");
+                    $pt_order->courier_name = $name;
+                    $pt_order->courier_phone = $phone;
+                    $pt_order->courier_lng = $pt_order->receiver_lng;
+                    $pt_order->courier_lat = $pt_order->receiver_lat;
+                    $pt_order->pay_status = 1;
+                    $pt_order->pay_at = date("Y-m-d H:i:s");
+                    $pt_order->save();
                     // 记录订单日志
                     OrderLog::create([
                         'ps' => 8,
-                        "order_id" => $order->id,
+                        "order_id" => $pt_order->id,
                         "des" => "「美团众包」已送达",
                         'name' => $name,
                         'phone' => $phone,
@@ -456,20 +456,20 @@ class OrderController
                     $this->log_info('配送完成，更改信息成功');
                     // dispatch(new MtLogisticsSync($order));
                     // 查找扣款用户，为了记录余额日志
-                    $current_user = DB::table('users')->find($order->user_id);
+                    $current_user = DB::table('users')->find($pt_order->user_id);
                     // 减去用户配送费
                     // 服务费
                     $service_fee = 0.2;
-                    DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
+                    DB::table('users')->where('id', $pt_order->user_id)->decrement('money', $service_fee);
                     // 用户余额日志
                     UserMoneyBalance::create([
-                        "user_id" => $order->user_id,
+                        "user_id" => $pt_order->user_id,
                         "money" => $service_fee,
                         "type" => 2,
                         "before_money" => $current_user->money,
                         "after_money" => ($current_user->money - $service_fee),
-                        "description" => "美团众包订单服务费：" . $order->order_id,
-                        "tid" => $order->id
+                        "description" => "美团众包订单服务费：" . $pt_order->order_id,
+                        "tid" => $pt_order->id
                     ]);
                     $this->log_info('配送完成，扣款成功');
                 } elseif ($status === 100) {
