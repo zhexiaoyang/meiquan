@@ -206,6 +206,8 @@ trait RiderOrderCancel
             $token = true;
             $zhongbaoapp = app("meiquan");
         }
+        $res_reason = $zhongbaoapp->getCancelDeliveryReason($order->order_id, $shop->waimai_mt, $token);
+        Log::info("$log_prefix-取消众包获取原因", [$res_reason]);
         // 101512 已选择其他配送方式 (未接单)
         // 102112 已选择其他配送方式 （已接单）
         // 103011 商家自身原因 （已取货）
