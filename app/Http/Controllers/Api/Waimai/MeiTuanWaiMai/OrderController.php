@@ -215,7 +215,7 @@ class OrderController
         $order_id = $request->get('order_id', '');
         $status = (int) $request->get('logistics_status', '');
         $time = $request->get('time', 0);
-        $name = $request->get('dispatcher_name', '');
+        $name = urldecode($request->get('dispatcher_name', ''));
         $phone = $request->get('dispatcher_mobile', '');
 
         if ($order_id && $status) {
