@@ -213,7 +213,7 @@ class OrderController
     public function rider(Request $request, $platform)
     {
         $order_id = $request->get('order_id', '');
-        $status = $request->get('logistics_status', '');
+        $status = (int) $request->get('logistics_status', '');
         $time = $request->get('time', 0);
         $name = $request->get('dispatcher_name', '');
         $phone = $request->get('dispatcher_mobile', '');
