@@ -25,6 +25,8 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::any('order/partrefund/{platform}', "OrderController@partrefund");
     // 推送美配订单配送状态
     Route::post('order/rider/{platform}', "OrderController@rider");
+    // 推送美配订单异常配送状态
+    Route::post('order/rider_exception/{platform}', "OrderController@rider_exception");
     // 自配订单配送状态
     Route::post('order/status/self/{platform}', "OrderController@status_self");
     // 推送已完成订单
