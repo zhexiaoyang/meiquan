@@ -474,6 +474,36 @@ class OrderController
                     $this->log_info('配送完成，扣款成功');
                 } elseif ($status === 100) {
                     // 配送单已取消
+                    try {
+                        DB::transaction(function () use ($pt_order, $name, $phone) {
+                            $update_data = [
+                                'zb_status' => 99
+                            ];
+                            if (in_array($pt_order->mt_status, [0,1,3,7,80,99]) && in_array($pt_order->fn_status, [0,1,3,7,80,99]) && in_array($pt_order->ss_status, [0,1,3,7,80,99]) && in_array($pt_order->mqd_status, [0,1,3,7,80,99]) && in_array($pt_order->sf_status, [0,1,3,7,80,99]) && in_array($pt_order->uu_status, [0,1,3,7,80,99]) && in_array($pt_order->dd_status, [0,1,3,7,80,99])) {
+                                $update_data = [
+                                    'status' => 99,
+                                    'zb_status' => 99
+                                ];
+                            }
+                            Order::where("id", $pt_order->id)->update($update_data);
+                            OrderLog::create([
+                                'ps' => 8,
+                                'order_id' => $pt_order->id,
+                                'des' => '「美团众包」跑腿，发起取消配送',
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        $this->log_info('取消订单事务提交失败', $message);
+                        $this->ding_error('取消订单事务提交失败');
+                        return json_encode(['code' => 100]);
+                    }
+                    $this->log_info('接口取消订单成功');
                 }
                 $this->log_info("订单号：{$order_id}|跑腿订单-结束");
             } else {
