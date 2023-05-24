@@ -242,7 +242,7 @@ trait RiderOrderCancel
             ]);
             OrderLog::create([
                 "order_id" => $order->id,
-                "des" => "用户操作取消【美团众包】订单"
+                "des" => $action_text. "操作取消「美团众包」订单"
             ]);
             Log::info("$log_prefix-取消美团众包成功");
             return [ 'status' => true, 'mes' => '取消美团众包成功'];
