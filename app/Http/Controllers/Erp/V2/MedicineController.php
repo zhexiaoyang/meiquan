@@ -78,9 +78,9 @@ class MedicineController extends Controller
         } else {
             $ele = app('ele');
             $res = $ele->getSkuList($shop->waimai_ele, $page, $pageSize);
-            if (!isset($res['total']) && !empty($res['list'])) {
-                $total = $res['total'];
-                foreach ($res['list'] as $v) {
+            if (isset($res['body']['data']['total']) && !empty($res['body']['data']['list'])) {
+                $total = $res['body']['data']['total'];
+                foreach ($res['body']['data']['list'] as $v) {
                     $list[] = [
                         "id" => $v['custom_sku_id'],
                         "name" => $v['name'],
@@ -96,13 +96,13 @@ class MedicineController extends Controller
                 }
             }
         }
-        $res = [
+        $result = [
             'total' => $total,
             'page' => $page,
             'pageSize' => $pageSize,
             'list' => $list,
         ];
-        return $this->success($res);
+        return $this->success($result);
     }
 
     public function add(Request $request)
