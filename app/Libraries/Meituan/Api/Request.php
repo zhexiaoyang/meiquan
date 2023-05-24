@@ -92,8 +92,16 @@ class Request
         $url = $this->url.$method."?sig=".$sig."&".$this->concatParams($params);
 
         $response = $http->get($url, $params);
-
-        $result = json_decode(strval($response->getBody()), true);
+        if (!$response) {
+            \Log::info('美团返回结果为null', [
+                'method' => $method,
+                'params' => $params,
+                'response' => $response,
+            ]);
+            $result = [];
+        } else {
+            $result = json_decode(strval($response->getBody()), true);
+        }
 
         // $this->checkErrorAndThrow($result);
 
