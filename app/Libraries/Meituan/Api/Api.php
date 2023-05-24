@@ -840,9 +840,9 @@ class Api extends Request
                         'refresh_token' => $res['refresh_token'],
                     ]);
                 }
-                $this->ding_error("重新获取Token成功，shop_id:{$shop_id}");
+                $this->ding_exception("重新获取Token成功，shop_id:{$shop_id}");
             } else {
-                $this->ding_error("闪购门店刷新token获取token失败错误，shop_id:{$shop_id}");
+                $this->ding_exception("闪购门店刷新token获取token失败错误，shop_id:{$shop_id}");
                 \Log::info("闪购门店刷新token获取token失败错误", [$res]);
                 return false;
             }
