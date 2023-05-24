@@ -220,6 +220,7 @@ class OrderController
 
         if ($order_id && $status) {
             $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&美配订单状态回调|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
+            $this->log_info("全部参数", $request->all());
             // 更改外卖订单状态
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if (in_array($status, [10, 20, 40]) && $order->status < 16) {
@@ -369,7 +370,7 @@ class OrderController
                             // 更改订单信息
                             Order::where("id", $order->id)->update([
                                 'ps' => 8,
-                                'money' => $order->money_dd,
+                                'money' => $order->money_zb,
                                 'profit' => 0.2,
                                 'status' => 50,
                                 'zb_status' => 50,
