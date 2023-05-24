@@ -77,12 +77,7 @@ class MedicineController extends Controller
             }
         } else {
             $ele = app('ele');
-            $params = [
-                'shop_id' => $shop->waimai_ele,
-                'page' => $page,
-                'pageSize' => $pageSize,
-            ];
-            $res = $ele->skuList($params);
+            $res = $ele->getSkuList($shop->waimai_ele, $page, $pageSize);
             if (!isset($res['total']) && !empty($res['list'])) {
                 $total = $res['total'];
                 foreach ($res['list'] as $v) {
