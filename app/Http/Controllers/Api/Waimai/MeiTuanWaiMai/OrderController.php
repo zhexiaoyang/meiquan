@@ -335,7 +335,7 @@ class OrderController
                     // 取消UU订单
                     if ($pt_order->uu_status === 20 || $pt_order->uu_status === 30) {
                         $uu = app("uu");
-                        $result = $uu->cancelOrder($order);
+                        $result = $uu->cancelOrder($pt_order);
                         if ($result['return_code'] != 'ok') {
                             $this->log_info('UU待接单取消失败');
                         }
@@ -353,7 +353,7 @@ class OrderController
                         } else {
                             $sf = app("shunfeng");
                         }
-                        $result = $sf->cancelOrder($order);
+                        $result = $sf->cancelOrder($pt_order);
                         if ($result['error_code'] != 0) {
                             // 顺丰待接单取消失败
                             $this->log_info('顺丰待接单取消失败');
