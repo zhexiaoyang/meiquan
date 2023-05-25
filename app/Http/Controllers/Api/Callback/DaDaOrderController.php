@@ -344,7 +344,7 @@ class DaDaOrderController
                 $current_user = DB::table('users')->find($order->user_id);
                 // 减去用户配送费
                 // 服务费
-                $service_fee = 0.2;
+                $service_fee = 0.1;
                 DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
                 // 用户余额日志
                 UserMoneyBalance::create([
