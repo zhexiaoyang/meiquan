@@ -598,6 +598,7 @@ class ShunfengController
         Log::info('顺丰跑腿回调-骑手撤单-全部参数', $request->all());
         // 商家订单ID
         $order_id = $request->get("shop_order_id", "");
+        $this->ding_error("顺丰骑手撤单：{$order_id}");
         if ($order = Order::where('delivery_id', $order_id)->first()) {
             if ((int) $order->ps === 7) {
                 $sf = app("shunfeng");
@@ -655,7 +656,6 @@ class ShunfengController
         } else {
             Log::info('顺丰跑腿回调-骑手撤单-未找到订单');
         }
-        $this->ding_error("顺丰骑手撤单：{$order_id}");
         return json_encode($res);
     }
 
