@@ -4,14 +4,18 @@
 namespace App\Http\Controllers\Api;
 
 
+use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
+use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,7 +23,7 @@ use Illuminate\Support\Facades\Redis;
 
 class ShunfengController
 {
-    use RiderOrderCancel;
+    use RiderOrderCancel, NoticeTool;
 
     public function status(Request $request)
     {
@@ -592,13 +596,66 @@ class ShunfengController
     {
         $res = ["error_code" => 0, "error_msg" => "success"];
         Log::info('顺丰跑腿回调-骑手撤单-全部参数', $request->all());
-        // 钉钉报警提醒
-        $dingding = app("ding");
-        $logs = [
-            "des" => "【顺丰订单回调】骑手撤单",
-            "request" => json_encode($request->all())
-        ];
-        $dingding->sendMarkdownMsgArray("顺丰跑腿回调-骑手撤单", $logs);
+        // 商家订单ID
+        $order_id = $request->get("shop_order_id", "");
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
+            if ((int) $order->ps === 7) {
+                $sf = app("shunfeng");
+                $result = $sf->cancelOrder($order);
+                if ($result['error_code'] !== 0) {
+                    OrderLog::create([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '「顺丰」跑腿骑手撤单，取消顺丰跑腿订单',
+                    ]);
+                    $delivery_id = $order->order_id . (OrderResend::where('order_id', $order->id)->count() + 1);
+                    OrderResend::create(['order_id' => $order->id, 'delivery_id' => $delivery_id, 'user_id' => 0]);
+                    $order->delivery_id = $delivery_id;
+                    $order->mt_status = 0;
+                    $order->fail_mt = '';
+
+                    $order->fn_status = 0;
+                    $order->fail_fn = '';
+
+                    $order->ss_status = 0;
+                    $order->fail_ss = '';
+
+                    $order->dd_status = 0;
+                    $order->fail_dd = '';
+
+                    $order->uu_status = 0;
+                    $order->fail_uu = '';
+
+                    $order->sf_status = 0;
+                    // $order->fail_sf = '骑手撤单，重新发送不选择';
+                    $order->fail_sf = '';
+
+                    $order->zb_status = 0;
+                    $order->fail_zb = '';
+
+                    $order->status = 8;
+                    $order->ps = 0;
+                    $order->shipper_type_ss = 0;
+                    $order->shipper_type_dd = 0;
+                    $order->shipper_type_sf = 0;
+                    $order->save();
+                    $order = Order::find($order->id);
+                    dispatch(new CreateMtOrder($order));
+                    OrderLog::create([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '「顺丰」跑腿骑手撤单，重新派单',
+                    ]);
+                } else {
+                    Log::info('顺丰跑腿回调-骑手撤单-取消顺丰跑腿订单失败');
+                }
+            } else {
+                Log::info('顺丰跑腿回调-骑手撤单-不是顺丰配送');
+            }
+        } else {
+            Log::info('顺丰跑腿回调-骑手撤单-未找到订单');
+        }
+        $this->ding_error("顺丰骑手撤单：{$order_id}");
         return json_encode($res);
     }
 
