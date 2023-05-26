@@ -602,7 +602,7 @@ class ShunfengController
             if ((int) $order->ps === 7) {
                 $sf = app("shunfeng");
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] !== 0) {
+                if ($result['error_code'] == 0) {
                     OrderLog::create([
                         'ps' => 7,
                         'order_id' => $order->id,
