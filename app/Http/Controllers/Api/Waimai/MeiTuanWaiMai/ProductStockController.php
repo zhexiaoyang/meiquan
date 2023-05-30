@@ -52,8 +52,13 @@ class ProductStockController
             $hd_shop_id = $wanxiang_mqp[$shop_id];
             $this->log_info("万祥商品库存拉取,万祥门店ID:{$hd_shop_id}", $product_ids);
             $product_in = implode(',', $product_ids);
-            $data = DB::connection('wanxiang_haidian')
+            try {
+                $data = DB::connection('wanxiang_haidian')
                 ->select("SELECT 药品ID as id,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$hd_shop_id}' AND [药品ID] IN ({$product_in})");
+            } catch (\Exception $exception) {
+                $this->log_info("万祥商品库存拉取-万祥数据库报错,万祥门店ID:{$hd_shop_id}", $product_ids);
+                $data = [];
+            }
             if (!empty($data)) {
                 $res_data = [];
                 foreach ($data as $v) {
