@@ -36,7 +36,7 @@ class PushDeliveryOrder implements ShouldQueue
     {
         $order = Order::find($this->order_id);
 
-        if (!$order) {
+        if (!$order || !isset($order->status)) {
             \Log::error("推送预订单错误", [$this->order_id]);
             return;
         }
