@@ -126,7 +126,7 @@ class YaoguiController extends Controller
                     }
                 }
                 if ($order->order_type) {
-                    dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - 3600)));
+                    dispatch(new PushDeliveryOrder($order->id, ($order->expected_delivery_time - time() - 3600)));
                     \Log::info('众柜创建预约订单成功', $order->toArray());
 
                     $ding_notice = app("ding");

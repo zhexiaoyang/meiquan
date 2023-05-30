@@ -64,7 +64,7 @@ class CheckOrderJob extends CronJob
                                 if ($order->distance <= 2) {
                                     $qu = 1800;
                                 }
-                                dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                                dispatch(new PushDeliveryOrder($order->id, ($order->expected_delivery_time - time() - $qu)));
                                 \Log::info('美团创建预约订单成功', $order->toArray());
 
                                 $ding_notice = app("ding");

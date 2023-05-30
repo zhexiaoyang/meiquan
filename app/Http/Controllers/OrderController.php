@@ -694,7 +694,7 @@ class OrderController extends Controller
                             $qu = 1800;
                         }
 
-                        dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                        dispatch(new PushDeliveryOrder($order->id, ($order->expected_delivery_time - time() - $qu)));
 
                         // \Log::info('美团创建预约订单成功', $order->toArray());
                         \Log::info("[跑腿订单-同步订单]-[订单号: {$order_id}]-[来源: {$type}]-美团创建预约订单成功");

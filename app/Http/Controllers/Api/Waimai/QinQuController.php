@@ -95,7 +95,7 @@ class QinQuController extends Controller
                                 $qu = 1800;
                             }
 
-                            dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                            dispatch(new PushDeliveryOrder($order->id, ($order->expected_delivery_time - time() - $qu)));
                             Log::info("【外卖-寝趣-推送已确认订单】（{$mt_order_id}）：美团创建预约订单成功");
                             // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);
 

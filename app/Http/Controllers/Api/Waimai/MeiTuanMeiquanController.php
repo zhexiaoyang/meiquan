@@ -259,7 +259,7 @@ class MeiTuanMeiquanController extends Controller
                         }
 
                         if ($g_status < 30) {
-                            dispatch(new PushDeliveryOrder($order, ($order->expected_delivery_time - time() - $qu)));
+                            dispatch(new PushDeliveryOrder($order->id, ($order->expected_delivery_time - time() - $qu)));
                         }
                         Log::info("【外卖-美团服务商】（{$mt_order_id}）：美团创建预约订单成功");
                         // \Log::info('美团创建预约订单成功', ['id' => $order->id, 'order_id' => $order->order_id]);

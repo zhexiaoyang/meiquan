@@ -376,7 +376,7 @@ class OrderConfirmController
                             $order_pt->status = 3;
                             $order_pt->expected_send_time = $order_pt->expected_delivery_time - $qu;
                             $order_pt->save();
-                            dispatch(new PushDeliveryOrder($order_pt, ($order_pt->expected_delivery_time - time() - $qu)));
+                            dispatch(new PushDeliveryOrder($order_pt->id, ($order_pt->expected_delivery_time - time() - $qu)));
                             $this->log_info("-预约单派单成功，{$qu}秒后发单");
                         } else {
                             $order_pt->send_at = date("Y-m-d H:i:s");
