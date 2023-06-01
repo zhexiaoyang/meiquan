@@ -95,7 +95,7 @@ class AnalysisController extends Controller
             }
             $query->where('shop_id', $shop_id);
         } else {
-            // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
         $query2 = clone($query);
