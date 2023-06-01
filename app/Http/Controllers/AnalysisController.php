@@ -453,4 +453,65 @@ class AnalysisController extends Controller
         ];
         return $this->success($res);
     }
+
+    public function running(Request $request)
+    {
+        $sdate = $request->get('sdate');
+        if (!$sdate) {
+            $sdate = date("Y-m-d", strtotime("-7 day"));
+        }
+        $edate = $request->get('edate');
+        if (!$edate) {
+            $edate = date("Y-m-d", strtotime("-1 day"));
+        }
+        if (strtotime($sdate) < date("Y-m-d",strtotime("-93 day"))) {
+            return $this->error('只能查询3个月内的数据');
+        }
+        if ((strtotime($edate) - strtotime($sdate)) > 86400 *31) {
+            return $this->error('查询范围不能超过31天');
+        }
+
+        // $shops = $request->user()->shops();
+        // $shops = Shop::query()->whereIn('id', [6121,2597,2583,2241])->get();
+        $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        $shop_ids = [];
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                $shop_ids[] = $shop->id;
+            }
+        }
+        $orders = Order::select('id', 'ps', 'money', 'receive_at', 'over_at')
+            ->where('status', 70)
+            ->where('created_at', '>=', $sdate)->where('created_at', '<', date("Y-m-d", strtotime($edate) + 86400))
+            ->whereIn('shop_id', $shop_ids)->get();
+        $res = [];
+        $ps_map = ['', '美团', '蜂鸟', '闪送', '美全达', '达达', 'UU', '顺丰', '美团众包'];
+        if (!empty($orders)) {
+            $order_ps = [];
+            foreach ($orders as $order) {
+                isset($order_ps[$order->ps]['order_total']) || $order_ps[$order->ps]['order_total'] = 0;
+                isset($order_ps[$order->ps]['second']) || $order_ps[$order->ps]['second'] = 0;
+                isset($order_ps[$order->ps]['money']) || $order_ps[$order->ps]['money'] = 0;
+                isset($order_ps[$order->ps]['tip']) || $order_ps[$order->ps]['tip'] = 0;
+
+                $order_ps[$order->ps]['order_total']++;
+                $order_ps[$order->ps]['second'] += strtotime($order->over_at) - strtotime($order->receive_at);
+                $order_ps[$order->ps]['money'] += $order->money * 100;
+            }
+            foreach ($order_ps as $ps => $order) {
+                $tmp['ps'] = $ps_map[$ps];
+                $tmp['ps_type'] = $ps;
+                $tmp['order_total'] = $order['order_total'];
+                $tmp['unit_price'] = (float) sprintf("%.2f", $order['money'] / $order['order_total'] / 100);
+                $tmp['money'] = $order['money'] / 100;
+                $tmp['total_money'] = ($order['money'] + $order['tip']) / 100;
+                $avg_time = gmdate("H:i:s", intval($order['second'] / $order['order_total']));
+                $avg_time = str_replace('00:', '', $avg_time);
+                $tmp['avg_time'] = $avg_time;
+                $tmp['tip'] = $order['tip'] / 100;
+                $res[] = $tmp;
+            }
+        }
+        return $this->success($res);
+    }
 }

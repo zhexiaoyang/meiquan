@@ -41,6 +41,7 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("analysis/business_history", "AnalysisController@business_history");
         Route::get("analysis/shop", "AnalysisController@shop");
         Route::get("analysis/platform", "AnalysisController@platform");
+        Route::get("analysis/running", "AnalysisController@running");
         /**
          * 子账号管理
          */
