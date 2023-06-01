@@ -35,6 +35,13 @@ Route::middleware(["force-json"])->group(function() {
      */
     Route::middleware("multiauth:api")->group(function () {
         /**
+         * 数据分析
+         */
+        Route::get("analysis/business", "AnalysisController@business");
+        Route::get("analysis/business_history", "AnalysisController@business_history");
+        Route::get("analysis/shop", "AnalysisController@shop");
+        Route::get("analysis/platform", "AnalysisController@platform");
+        /**
          * 子账号管理
          */
         // 子账号-门店列表
