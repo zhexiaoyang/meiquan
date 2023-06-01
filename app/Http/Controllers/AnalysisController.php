@@ -128,7 +128,11 @@ class AnalysisController extends Controller
                     $res['profit'] += $order->poi_receive* 100 - $running_money - $order->vip_cost* 100 - $order->prescription_fee* 100;
                 }
             }
-            $res['order_average'] = (float) sprintf("%.2f", $res['sales_volume'] / ($res['order_complete_number'] + $res['order_ongoing_number']) / 100);
+            if (($res['order_complete_number'] + $res['order_ongoing_number']) > 0) {
+                $res['order_average'] = (float) sprintf("%.2f", $res['sales_volume'] / ($res['order_complete_number'] + $res['order_ongoing_number']) / 100);
+            } else {
+                $res['order_average'] = 0;
+            }
 
         }
         if (!empty($orders2)) {
