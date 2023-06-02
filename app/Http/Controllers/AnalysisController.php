@@ -322,6 +322,18 @@ class AnalysisController extends Controller
         }
 
         $res = [];
+        $total_data = [
+            'shop_id' => '合计',
+            'shop_name' => '',
+            'sales_volume' => 0,
+            'order_receipts' => 0,
+            'order_effective_number' => 0,
+            'order_cancel_number' => 0,
+            'product_cost' => 0,
+            'running_money' => 0,
+            'prescription' => 0,
+            'profit' => 0,
+        ];
 
         if (!empty($shop_ids)) {
             $data_arr = WmAnalysis::where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 0)
@@ -349,17 +361,42 @@ class AnalysisController extends Controller
                 foreach ($shops as $shop) {
                     $tmp['shop_id'] = $shop->id;
                     $tmp['shop_name'] = $shop->shop_name;
-                    $tmp['sales_volume'] = ($data_shop_id[$shop->id]['sales_volume'] ?? 0) / 100;
-                    $tmp['order_receipts'] = ($data_shop_id[$shop->id]['order_receipts'] ?? 0) / 100;
-                    $tmp['order_effective_number'] = ($data_shop_id[$shop->id]['order_effective_number'] ?? 0);
-                    $tmp['order_cancel_number'] = ($data_shop_id[$shop->id]['order_cancel_number'] ?? 0);
-                    $tmp['product_cost'] = ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100;
-                    $tmp['running_money'] = ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100;
-                    $tmp['prescription'] = ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100;
-                    $tmp['profit'] = ($data_shop_id[$shop->id]['profit'] ?? 0) / 100;
+                    $tmp['sales_volume'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['sales_volume'] ?? 0) / 100);
+                    $tmp['order_receipts'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_receipts'] ?? 0) / 100);
+                    $tmp['order_effective_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_effective_number'] ?? 0));
+                    $tmp['order_cancel_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_cancel_number'] ?? 0));
+                    $tmp['product_cost'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100);
+                    $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
+                    $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
+                    $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
+
+                    $total_data['sales_volume'] += ($data_shop_id[$shop->id]['sales_volume'] ?? 0) / 100;
+                    $total_data['order_receipts'] += ($data_shop_id[$shop->id]['order_receipts'] ?? 0) / 100;
+                    $total_data['order_effective_number'] += ($data_shop_id[$shop->id]['order_effective_number'] ?? 0);
+                    $total_data['order_cancel_number'] += ($data_shop_id[$shop->id]['order_cancel_number'] ?? 0);
+                    $total_data['product_cost'] += ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100;
+                    $total_data['running_money'] += ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100;
+                    $total_data['prescription'] += ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100;
+                    $total_data['profit'] += ($data_shop_id[$shop->id]['profit'] ?? 0) / 100;
+                    $profit_margin = 0;
+                    if ($tmp['order_receipts'] > 0) {
+                        $profit_margin = (float) sprintf("%.2f", $tmp['profit'] / $tmp['order_receipts'] * 100);
+                    }
+                    $tmp['profit_margin'] = $profit_margin . '%';
                     $res[] = $tmp;
                 }
             }
+        }
+        if (count($res) > 0) {
+            $total_data['sales_volume'] = (float) sprintf("%.2f", $total_data['sales_volume']);
+            $total_data['order_receipts'] = (float) sprintf("%.2f", $total_data['order_receipts']);
+            $total_data['order_effective_number'] = (float) sprintf("%.2f", $total_data['order_effective_number']);
+            $total_data['order_cancel_number'] = (float) sprintf("%.2f", $total_data['order_cancel_number']);
+            $total_data['product_cost'] = (float) sprintf("%.2f", $total_data['product_cost']);
+            $total_data['running_money'] = (float) sprintf("%.2f", $total_data['running_money']);
+            $total_data['prescription'] = (float) sprintf("%.2f", $total_data['prescription']);
+            $total_data['profit'] = (float) sprintf("%.2f", $total_data['profit']);
+            array_push($res, $total_data);
         }
 
         return $this->success($res);
@@ -409,6 +446,11 @@ class AnalysisController extends Controller
             }
         }
         $zong['platform'] = '总计';
+        if ($zong['order_receipts'] > 0) {
+            $zong['profit_margin'] = sprintf("%.2f", $zong['profit'] / $zong['order_receipts'] * 100) . '%';
+        } else {
+            $zong['profit_margin'] = '0%';
+        }
         $mt = WmAnalysis::select(
             DB::raw("sum(sales_volume) as sales_volume"),
             DB::raw("sum(order_receipts) as order_receipts"),
@@ -427,6 +469,11 @@ class AnalysisController extends Controller
             }
         }
         $mt['platform'] = '美团';
+        if ($mt['order_receipts'] > 0) {
+            $mt['profit_margin'] = sprintf("%.2f", $mt['profit'] / $mt['order_receipts'] * 100) . '%';
+        } else {
+            $mt['profit_margin'] = '0%';
+        }
         $ele = WmAnalysis::select(
             DB::raw("sum(sales_volume) as sales_volume"),
             DB::raw("sum(order_receipts) as order_receipts"),
@@ -445,6 +492,11 @@ class AnalysisController extends Controller
             }
         }
         $ele['platform'] = '饿了么';
+        if ($ele['order_receipts'] > 0) {
+            $ele['profit_margin'] = sprintf("%.2f", $ele['profit'] / $ele['order_receipts'] * 100) . '%';
+        } else {
+            $ele['profit_margin'] = '0%';
+        }
 
         $res = [
             $zong,
@@ -485,6 +537,16 @@ class AnalysisController extends Controller
             ->where('created_at', '>=', $sdate)->where('created_at', '<', date("Y-m-d", strtotime($edate) + 86400))
             ->whereIn('shop_id', $shop_ids)->get();
         $res = [];
+        $res_total = [
+            'ps' => '合计',
+            'ps_type' => 'total',
+            'order_total' => 0,
+            'unit_price' => '',
+            'avg_time' => '',
+            'money' => 0,
+            'total_money' => 0,
+            'tip' => 0,
+        ];
         $ps_map = ['', '美团', '蜂鸟', '闪送', '美全达', '达达', 'UU', '顺丰', '美团众包'];
         if (!empty($orders)) {
             $order_ps = [];
@@ -509,8 +571,20 @@ class AnalysisController extends Controller
                 $avg_time = str_replace('00:', '', $avg_time);
                 $tmp['avg_time'] = $avg_time;
                 $tmp['tip'] = $order['tip'] / 100;
+
+                $res_total['order_total'] += $tmp['order_total'];
+                $res_total['money'] += $tmp['money'];
+                $res_total['tip'] += $tmp['tip'];
+                $res_total['total_money'] += $tmp['total_money'];
+
                 $res[] = $tmp;
             }
+        }
+        if (count($res) > 0) {
+            $res_total['money'] = (float) sprintf("%.2f", $res_total['money']);
+            $res_total['tip'] = (float) sprintf("%.2f", $res_total['tip']);
+            $res_total['total_money'] = (float) sprintf("%.2f", $res_total['total_money']);
+            array_push($res, $res_total);
         }
         return $this->success($res);
     }
