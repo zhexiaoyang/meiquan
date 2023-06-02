@@ -36,12 +36,12 @@ class ErpAdminAccessKeyShopController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error("门店不存在");
         }
-        if (!$shop->waimai_mt) {
-            return $this->error("该门店没有绑定美团外卖，请先绑定");
-        }
-        if (!in_array($shop->meituan_bind_platform, [31, 4])) {
-            return $this->error("该门店未绑定到民康或者闪购，请核对");
-        }
+        // if (!$shop->waimai_mt) {
+        //     return $this->error("该门店没有绑定美团外卖，请先绑定");
+        // }
+        // if (!in_array($shop->meituan_bind_platform, [31, 4])) {
+        //     return $this->error("该门店未绑定到民康或者闪购，请核对");
+        // }
 
         $data['shop_name'] = $shop->shop_name;
         $data['shop_id'] = $shop->id;
