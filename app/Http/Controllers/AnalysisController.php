@@ -339,7 +339,7 @@ class AnalysisController extends Controller
                     isset($data_shop_id[$datum->shop_id]['profit']) || $data_shop_id[$datum->shop_id]['profit'] = 0;
                     $data_shop_id[$datum->shop_id]['sales_volume'] += $datum->sales_volume * 100;
                     $data_shop_id[$datum->shop_id]['order_receipts'] += $datum->order_receipts * 100;
-                    $data_shop_id[$datum->shop_id]['order_effective_number'] += $datum->order_total_number;
+                    $data_shop_id[$datum->shop_id]['order_effective_number'] += $datum->order_effective_number;
                     $data_shop_id[$datum->shop_id]['order_cancel_number'] += $datum->order_cancel_number;
                     $data_shop_id[$datum->shop_id]['product_cost'] += $datum->product_cost * 100;
                     $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
