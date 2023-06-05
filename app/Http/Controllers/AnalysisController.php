@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\WmAnalysisShopExport;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\WmAnalysis;
@@ -11,6 +12,13 @@ use Illuminate\Support\Facades\DB;
 
 class AnalysisController extends Controller
 {
+    /**
+     * 营业概况
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/4 8:42 下午
+     */
     public function business(Request $request)
     {
         $res = [
@@ -197,30 +205,30 @@ class AnalysisController extends Controller
         // 利润
         $res['profit_compare'] = $res['profit'] - $res2['profit'];
 
-        $res['sales_volume'] /= 100;
-        $res['order_receipts'] /= 100;
-        $res['product_cost'] /= 100;
-        $res['running_money'] /= 100;
-        $res['prescription'] /= 100;
-        $res['profit'] /= 100;
-        $res['sales_volume_compare'] /= 100;
-        $res['order_receipts_compare'] /= 100;
-        $res['product_cost_compare'] /= 100;
-        $res['running_money_compare'] /= 100;
-        $res['prescription_compare'] /= 100;
-        $res['profit_compare'] /= 100;
+        $res['sales_volume'] = (float) sprintf("%.2f", $res['sales_volume'] / 100);
+        $res['order_receipts'] = (float) sprintf("%.2f", $res['order_receipts'] / 100);
+        $res['product_cost'] = (float) sprintf("%.2f", $res['product_cost'] / 100);
+        $res['running_money'] = (float) sprintf("%.2f", $res['running_money'] / 100);
+        $res['prescription'] = (float) sprintf("%.2f", $res['prescription'] / 100);
+        $res['profit'] = (float) sprintf("%.2f", $res['profit'] / 100);
 
-        // $res2['sales_volume'] /= 100;
-        // $res2['order_receipts'] /= 100;
-        // $res2['product_cost'] /= 100;
-        // $res2['running_money'] /= 100;
-        // $res2['prescription'] /= 100;
-        // $res2['profit'] /= 100;
+        $res['sales_volume_compare'] = (float) sprintf("%.2f", $res['sales_volume_compare'] / 100);
+        $res['order_receipts_compare'] = (float) sprintf("%.2f", $res['order_receipts_compare'] / 100);
+        $res['product_cost_compare'] = (float) sprintf("%.2f", $res['product_cost_compare'] / 100);
+        $res['running_money_compare'] = (float) sprintf("%.2f", $res['running_money_compare'] / 100);
+        $res['prescription_compare'] = (float) sprintf("%.2f", $res['prescription_compare'] / 100);
+        $res['profit_compare'] = (float) sprintf("%.2f", $res['profit_compare'] / 100);
 
-        // return $this->success(compact('res', 'res2'));
         return $this->success($res);
     }
 
+    /**
+     * 历史营业数据
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/4 8:43 下午
+     */
     public function business_history(Request $request)
     {
         $platform = $request->get('platform', 0);
@@ -280,20 +288,27 @@ class AnalysisController extends Controller
 
         $res = [];
         foreach ($date_arr as $date) {
-            $tmp['sales_volume'] = ($data_date[$date]['sales_volume'] ?? 0) / 100;
-            $tmp['order_receipts'] = ($data_date[$date]['order_receipts'] ?? 0) / 100;
+            $tmp['sales_volume'] = (float) sprintf("%.2f", ($data_date[$date]['sales_volume'] ?? 0) / 100);
+            $tmp['order_receipts'] = (float) sprintf("%.2f", ($data_date[$date]['order_receipts'] ?? 0) / 100);
             $tmp['order_effective_number'] = ($data_date[$date]['order_effective_number'] ?? 0);
             $tmp['order_cancel_number'] = ($data_date[$date]['order_cancel_number'] ?? 0);
-            $tmp['product_cost'] = ($data_date[$date]['product_cost'] ?? 0) / 100;
-            $tmp['running_money'] = ($data_date[$date]['running_money'] ?? 0) / 100;
-            $tmp['prescription'] = ($data_date[$date]['prescription'] ?? 0) / 100;
-            $tmp['profit'] = ($data_date[$date]['profit'] ?? 0) / 100;
+            $tmp['product_cost'] = (float) sprintf("%.2f", ($data_date[$date]['product_cost'] ?? 0) / 100);
+            $tmp['running_money'] = (float) sprintf("%.2f", ($data_date[$date]['running_money'] ?? 0) / 100);
+            $tmp['prescription'] = (float) sprintf("%.2f", ($data_date[$date]['prescription'] ?? 0) / 100);
+            $tmp['profit'] = (float) sprintf("%.2f", ($data_date[$date]['profit'] ?? 0) / 100);
             $res[] = ['day' => date("n-d", strtotime($date)), 'data' => $tmp];
         }
 
         return $this->success($res);
     }
 
+    /**
+     * 门店分析
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/4 8:43 下午
+     */
     public function shop(Request $request)
     {
         $sdate = $request->get('sdate');
@@ -311,13 +326,25 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
-        // $shops = $request->user()->shops();
-        $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
-        // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
-        $shop_ids = [];
-        if (!empty($shops)) {
-            foreach ($shops as $shop) {
-                $shop_ids[] = $shop->id;
+        $shop_id = $request->get('shop_id', 0);
+        $user_id = $request->user()->id;
+        $shop = null;
+        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+            return $this->error('门店不存在');
+        }
+
+        if ($shop) {
+            $shop_ids = [$shop_id];
+            $shops = [$shop];
+        } else {
+            // $shops = $request->user()->shops();
+            $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+            // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
+            $shop_ids = [];
+            if (!empty($shops)) {
+                foreach ($shops as $shop) {
+                    $shop_ids[] = $shop->id;
+                }
             }
         }
 
@@ -402,6 +429,39 @@ class AnalysisController extends Controller
         return $this->success($res);
     }
 
+    public function shop_down(Request $request, WmAnalysisShopExport $export)
+    {
+        $sdate = $request->get('sdate');
+        if (!$sdate) {
+            $sdate = date("Y-m-d", strtotime("-1 day"));
+        }
+        $edate = $request->get('edate');
+        if (!$edate) {
+            $edate = date("Y-m-d", strtotime("-1 day"));
+        }
+        if (strtotime($sdate) < date("Y-m-d",strtotime("-93 day"))) {
+            return $this->error('只能查询3个月内的数据');
+        }
+        if ((strtotime($edate) - strtotime($sdate)) > 86400 *31) {
+            return $this->error('查询范围不能超过31天');
+        }
+
+        $shop_id = $request->get('shop_id', 0);
+        $user_id = $request->user()->id;
+        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+            return $this->error('门店不存在');
+        }
+
+        return $export->withRequest($sdate, $edate, $shop_id, $request->user()->id);
+    }
+
+    /**
+     * 平台分析
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/4 8:43 下午
+     */
     public function platform(Request $request)
     {
         $sdate = $request->get('sdate');
@@ -506,6 +566,13 @@ class AnalysisController extends Controller
         return $this->success($res);
     }
 
+    /**
+     * 跑腿分析
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/4 8:43 下午
+     */
     public function running(Request $request)
     {
         $sdate = $request->get('sdate');
@@ -587,5 +654,12 @@ class AnalysisController extends Controller
             array_push($res, $res_total);
         }
         return $this->success($res);
+    }
+
+    public function user_shops(Request $request)
+    {
+        $shops = Shop::query()->select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+
+        return $this->success($shops);
     }
 }
