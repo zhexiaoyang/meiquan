@@ -479,13 +479,24 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
-        // $shops = $request->user()->shops();
-        // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
-        $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
-        $shop_ids = [];
-        if (!empty($shops)) {
-            foreach ($shops as $shop) {
-                $shop_ids[] = $shop->id;
+        $shop_id = $request->get('shop_id', 0);
+        $user_id = $request->user()->id;
+        $shop = null;
+        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+            return $this->error('门店不存在');
+        }
+        if ($shop) {
+            $shop_ids = [$shop_id];
+            $shops = [$shop];
+        } else {
+            // $shops = $request->user()->shops();
+            // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
+            $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+            $shop_ids = [];
+            if (!empty($shops)) {
+                foreach ($shops as $shop) {
+                    $shop_ids[] = $shop->id;
+                }
             }
         }
         $zong = WmAnalysis::select(
