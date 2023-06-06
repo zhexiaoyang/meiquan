@@ -122,6 +122,9 @@ class ShopController extends Controller
                 $tmp['mt_shop_id'] = $shop->mt_shop_id;
                 $tmp['city'] = $shop->city;
 
+                // 佣金设置
+                $tmp['commission_mt'] = $shop->commission_mt;
+                $tmp['commission_ele'] = $shop->commission_ele;
                 // 跑腿加价
                 $tmp['running_add'] = $shop->running_add;
                 $tmp['running_manager_add'] = $shop->running_manager_add;
@@ -579,6 +582,36 @@ class ShopController extends Controller
         } else {
             $shop->erp_status = 2;
         }
+        $shop->save();
+
+        return $this->success();
+    }
+
+    /**
+     * 佣金设置
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/6 5:01 下午
+     */
+    public function commissionSet(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $commission_mt = floatval($request->get('commission_mt', 0));
+        $commission_ele = floatval($request->get('commission_ele', 0));
+
+        if ($commission_mt < 0 || $commission_mt > 100) {
+            return $this->error('请正确填写美团代运营费率');
+        }
+        if ($commission_ele < 0 || $commission_ele > 100) {
+            return $this->error('请正确填写饿了么代运营费率');
+        }
+
+        $shop->commission_mt = $commission_mt;
+        $shop->commission_ele = $commission_ele;
         $shop->save();
 
         return $this->success();

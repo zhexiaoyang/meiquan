@@ -576,6 +576,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop/warehouse", "ShopController@warehouse");
             // 修改跑腿订单加价
             Route::post("shop/running/money/add", "ShopController@moneyAdd")->name("admin.shop.running.money.add");
+            // 佣金设置
+            Route::post("shop/commission/set", "ShopController@commissionSet")->name("admin.shop.commission.set");
             // **门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
             /**
