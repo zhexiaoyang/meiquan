@@ -358,6 +358,7 @@ class AnalysisController extends Controller
                 if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
+                $shop = Shop::find($shop_id);
             } else {
                 if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
                     return $this->error('门店不存在');
@@ -527,6 +528,7 @@ class AnalysisController extends Controller
                 if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
+                $shop = Shop::find($shop_id);
             } else {
                 if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
                     return $this->error('门店不存在');
