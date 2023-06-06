@@ -97,13 +97,24 @@ class AnalysisController extends Controller
             $query->select('id', 'wm_id', 'status', 'money');
         }])->select('id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at');
 
+        $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
-            if (!Shop::where('user_id', $request->user()->id)->where('id', $shop_id)->first()) {
-                return $this->error('门店不存在');
+            if ($user->hasRole('city_manager')) {
+                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                    return $this->error('门店不存在');
+                }
+            } else {
+                if (!Shop::where('user_id', $user->id)->where('id', $shop_id)->first()) {
+                    return $this->error('门店不存在');
+                }
             }
             $query->where('shop_id', $shop_id);
         } else {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            if ($user->hasRole('city_manager')) {
+                $query->whereIn('shop_id', $user->shops()->pluck('id'));
+            } else {
+                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+            }
         }
 
         $query2 = clone($query);
@@ -255,13 +266,25 @@ class AnalysisController extends Controller
         // return $date_arr;
         $query = WmAnalysis::where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', $platform);
 
+        $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
-            if (!Shop::where('user_id', $request->user()->id)->where('id', $shop_id)->first()) {
-                return $this->error('门店不存在');
+            if ($user->hasRole('city_manager')) {
+                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                    return $this->error('门店不存在');
+                }
+            } else {
+                if (!Shop::where('user_id', $user->id)->where('id', $shop_id)->first()) {
+                    return $this->error('门店不存在');
+                }
             }
             $query->where('shop_id', $shop_id);
         } else {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            if ($user->hasRole('city_manager')) {
+                $query->whereIn('shop_id', $user->shops()->pluck('id'));
+            } else {
+                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+            }
+            // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
         $data_arr = $query->get();
         if (!empty($data_arr)) {
@@ -327,19 +350,35 @@ class AnalysisController extends Controller
         }
 
         $shop_id = $request->get('shop_id', 0);
+        $user = $request->user();
         $user_id = $request->user()->id;
         $shop = null;
-        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-            return $this->error('门店不存在');
+        if ($shop_id) {
+            if ($user->hasRole('city_manager')) {
+                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                    return $this->error('门店不存在');
+                }
+            } else {
+                if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+                    return $this->error('门店不存在');
+                }
+            }
         }
 
         if ($shop) {
             $shop_ids = [$shop_id];
             $shops = [$shop];
         } else {
-            // $shops = $request->user()->shops();
-            $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
-            // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
+            if ($user->hasRole('city_manager')) {
+                // $query->whereIn('shop_id', $user->shops()->pluck('id'));
+                // $shops = $request->user()->shops();
+                $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
+                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
+            } else {
+                // $shops = $request->user()->shops();
+                $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
+            }
             $shop_ids = [];
             if (!empty($shops)) {
                 foreach ($shops as $shop) {
@@ -480,18 +519,31 @@ class AnalysisController extends Controller
         }
 
         $shop_id = $request->get('shop_id', 0);
+        $user = $request->user();
         $user_id = $request->user()->id;
         $shop = null;
-        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-            return $this->error('门店不存在');
+        if ($shop_id) {
+            if ($user->hasRole('city_manager')) {
+                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                    return $this->error('门店不存在');
+                }
+            } else {
+                if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+                    return $this->error('门店不存在');
+                }
+            }
         }
         if ($shop) {
             $shop_ids = [$shop_id];
-            $shops = [$shop];
         } else {
-            // $shops = $request->user()->shops();
-            // $shops = Shop::query()->whereIn('id', [6610,6467,6058,6308])->get();
-            $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+            if ($user->hasRole('city_manager')) {
+                $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
+            } else {
+                $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+                // $shops = $request->user()->shops();
+                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
+                // $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+            }
             $shop_ids = [];
             if (!empty($shops)) {
                 foreach ($shops as $shop) {
@@ -601,9 +653,15 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
+        $user = $request->user();
         // $shops = $request->user()->shops();
-        // $shops = Shop::query()->whereIn('id', [6121,2597,2583,2241])->get();
-        $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        // $shops = Shop::whereIn('id', [6121,2597,2583,2241])->get();
+        if ($user->hasRole('city_manager')) {
+            $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
+        } else {
+            $shops = Shop::select('id', 'shop_name')->where('user_id', $user->id)->get();
+        }
+        // $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
         $shop_ids = [];
         if (!empty($shops)) {
             foreach ($shops as $shop) {
@@ -669,7 +727,13 @@ class AnalysisController extends Controller
 
     public function user_shops(Request $request)
     {
-        $shops = Shop::query()->select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        $user = $request->user();
+        if ($user->hasRole('city_manager')) {
+            $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
+            // $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        } else {
+            $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        }
 
         return $this->success($shops);
     }

@@ -6,6 +6,7 @@ use App\Models\Medicine;
 use App\Models\MedicineSyncLog;
 use App\Models\MedicineSyncLogItem;
 use App\Models\Shop;
+use App\Models\User;
 use App\Models\WmOrder;
 use Maatwebsite\Excel\Concerns\Exportable;
 use Illuminate\Contracts\Support\Responsable;
@@ -46,7 +47,15 @@ class WmAnalysisShopExport extends DefaultValueBinder implements  WithStrictNull
         if ($this->shop_id) {
             $query->where('shop_id', $this->shop_id);
         } else {
-            $query->whereIn('shop_id', Shop::select('id')->where('user_id', $this->user_id)->get()->pluck('id'));
+            $user = User::find($this->user_id);
+            if ($user->hasRole('city_manager')) {
+                $shop_ids = $user->shops()->pluck('id');
+                // $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
+            } else {
+                // $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
+                $shop_ids = Shop::select('id')->where('user_id', $this->user_id)->get()->pluck('id');
+            }
+            $query->whereIn('shop_id', $shop_ids);
         }
         \Log::info('a');
         return $query;
