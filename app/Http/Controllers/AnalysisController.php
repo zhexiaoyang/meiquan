@@ -100,7 +100,7 @@ class AnalysisController extends Controller
         $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
             if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
             } else {
@@ -269,7 +269,7 @@ class AnalysisController extends Controller
         $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
             if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
             } else {
@@ -355,7 +355,7 @@ class AnalysisController extends Controller
         $shop = null;
         if ($shop_id) {
             if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
             } else {
@@ -524,7 +524,7 @@ class AnalysisController extends Controller
         $shop = null;
         if ($shop_id) {
             if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id'))) {
+                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
                     return $this->error('门店不存在');
                 }
             } else {
