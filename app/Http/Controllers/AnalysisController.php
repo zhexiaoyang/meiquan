@@ -487,9 +487,18 @@ class AnalysisController extends Controller
         }
 
         $shop_id = $request->get('shop_id', 0);
+        $user = $request->user();
         $user_id = $request->user()->id;
-        if ($shop_id && !$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-            return $this->error('门店不存在');
+        if ($shop_id) {
+            if ($user->hasRole('city_manager')) {
+                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
+                    return $this->error('门店不存在');
+                }
+            } else {
+                if (!Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
+                    return $this->error('门店不存在');
+                }
+            }
         }
 
         return $export->withRequest($sdate, $edate, $shop_id, $request->user()->id);
