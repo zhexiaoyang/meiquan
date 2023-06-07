@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
+use App\Models\Medicine;
 use App\Models\Shop;
 use App\Models\VipProduct;
 use App\Models\VipProductException;
+use App\Models\WmProduct;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
@@ -32,7 +34,7 @@ class ProductController
                 $app_poi_code = $v['app_poi_code'];
                 $upc = $v['upc'];
                 if ($shop = Shop::select('id','shop_name')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
-                    if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                    if ($product = VipProduct::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         // $this->ding_exception("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                         $this->log_info("添加商品已存在,ID:{$product->id}|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                     } else {
@@ -105,11 +107,12 @@ class ProductController
                     continue;
                 }
                 $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? '';
+                $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['price']['is_sold_out'] ?? null;
                 if ($price) {
-                    $this->log_info('价格全部参数', $request->all());
+                    $this->log_info('修改价格');
                     if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
-                        if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                            if (VipProduct::query()->where('id', $product->id)->update(['price' => $price])) {
+                        if ($product = VipProduct::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                            if (VipProduct::where('id', $product->id)->update(['price' => $price])) {
                                 $this->log_info("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                             } else {
                                 // $this->ding_exception("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
@@ -119,10 +122,20 @@ class ProductController
                         }
                     }
                 }
-
-                if ($app_poi_code == '13676234') {
-                    $this->log_info('公园道店全部参数【更新】', $request->all());
+                if (!is_null($is_sold_out)) {
+                    $this->log_info('美团修改商品库存');
+                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
+                        if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                            if (Medicine::where('id', $product->id)->update(['online_mt' => $is_sold_out ? 0 : 1])) {
+                                $this->log_info("美团修改商品库存成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},is_sold_out:{$is_sold_out}");
+                            }
+                        }
+                    }
                 }
+
+                // if ($app_poi_code == '13676234') {
+                //     $this->log_info('公园道店全部参数【更新】', $request->all());
+                // }
             }
         }
 
@@ -149,7 +162,7 @@ class ProductController
                     continue;
                 }
                 if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
-                    if ($product = VipProduct::query()->where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                    if ($product = VipProduct::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
                         if ($product->delete()) {
                             $this->log_info("删除VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                         } else {
