@@ -163,7 +163,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                         "courier_name" => $shipper_name ?: $order->courier_name,
                         "courier_phone" => $shipper_phone ?: $order->courier_phone,
                         "logistics_status" => $mt_status,
-                        "third_carrier_order_id" => $order->peisong_id,
+                        "third_carrier_order_id" => $order->peisong_id ?: $order->order_id,
                         'logistics_provider_code' => $codes[$order->ps ?: 4],
                         'latitude' => $latitude,
                         'longitude' => $longitude,
