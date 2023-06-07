@@ -107,7 +107,7 @@ class ProductController
                     continue;
                 }
                 $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? '';
-                $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['price']['is_sold_out'] ?? null;
+                $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['is_sold_out']['result'] ?? null;
                 if ($price) {
                     $this->log_info('修改价格');
                     if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
