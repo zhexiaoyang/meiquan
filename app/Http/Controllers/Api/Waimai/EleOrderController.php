@@ -1060,6 +1060,8 @@ class EleOrderController extends Controller
                     "is_vip" => $shop->vip_ele,
                     // "prescription_fee" => $is_prescription ? 1.5 : 0,
                     "prescription_fee" => $is_prescription ? $shop->prescription_cost_ele : 0,
+                    "operate_service_rate" => $shop->commission_ele,
+                    "operate_service_fee" => ($shop->commission_ele * $order['order']['shop_fee'] / 100) / 100,
                 ];
                 // 创建外卖订单
                 $order_wm = WmOrder::create($order_wm_data);

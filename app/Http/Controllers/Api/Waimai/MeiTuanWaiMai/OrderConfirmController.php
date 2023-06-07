@@ -140,6 +140,8 @@ class OrderConfirmController
                     "logistics_code" => $logistics_code,
                     "is_vip" => $shop->vip_mt,
                     "prescription_fee" => $prescription_fee,
+                    "operate_service_rate" => $shop->commission_mt,
+                    "operate_service_fee" => ($shop->commission_mt * $poi_receive_detail_yuan['poiReceive'] ?? 0) / 100,
                 ];
                 // 创建外卖订单
                 $order_wm = WmOrder::create($order_wm_data);
