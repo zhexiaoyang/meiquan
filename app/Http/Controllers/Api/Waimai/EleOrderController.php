@@ -1015,6 +1015,7 @@ class EleOrderController extends Controller
                     $delivery_time = $order['order']['latest_send_time'];
                 }
 
+                $operate_service_fee = ($shop->commission_ele * $order['order']['shop_fee'] / 100) / 100;
                 $order_wm_data = [
                     'user_id' => $shop->user_id,
                     "shop_id" => $shop->id ?? 0,
@@ -1061,7 +1062,7 @@ class EleOrderController extends Controller
                     // "prescription_fee" => $is_prescription ? 1.5 : 0,
                     "prescription_fee" => $is_prescription ? $shop->prescription_cost_ele : 0,
                     "operate_service_rate" => $shop->commission_ele,
-                    "operate_service_fee" => ($shop->commission_ele * $order['order']['shop_fee'] / 100) / 100,
+                    "operate_service_fee" => $operate_service_fee > 0 ? $operate_service_fee : 0,
                 ];
                 // 创建外卖订单
                 $order_wm = WmOrder::create($order_wm_data);

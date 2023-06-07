@@ -127,6 +127,7 @@ class OrderConfirmController
             } else {
                 $mt_shop_id = substr($mt_order_id, 0, 7);
             }
+            $operate_service_fee = ($shop->commission_mt * $poi_receive_detail['wmPoiReceiveCent'] / 100) / 100;
             $order_wm_data = [
                 'user_id' => $shop->user_id,
                 "shop_id" => $shop->id,
@@ -171,7 +172,7 @@ class OrderConfirmController
                 "logistics_code" => $logistics_code,
                 "is_vip" => $shop->vip_mt,
                 "operate_service_rate" => $shop->commission_mt,
-                "operate_service_fee" => ($shop->commission_mt * $poi_receive_detail['wmPoiReceiveCent'] / 100) / 100,
+                "operate_service_fee" => $operate_service_fee > 0 ? $operate_service_fee : 0,
             ];
             $this->log_info('$order_wm_data', $order_wm_data);
             // 创建外卖订单
