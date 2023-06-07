@@ -170,6 +170,8 @@ class OrderConfirmController
                 // "is_poi_first_order" => intval($data['isPoiFirstOrder'] ?? 0),
                 "logistics_code" => $logistics_code,
                 "is_vip" => $shop->vip_mt,
+                "operate_service_rate" => $shop->commission_mt,
+                "operate_service_fee" => ($shop->commission_mt * $poi_receive_detail['wmPoiReceiveCent'] / 100) / 100,
             ];
             $this->log_info('$order_wm_data', $order_wm_data);
             // 创建外卖订单
