@@ -39,11 +39,13 @@ class DaDaController extends Controller
         $longitude = '';
         $latitude = '';
         $cancel_from = $data['cancel_from'] ?? 2;
-
-
         // 定义日志格式
         $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}]-";
         Log::info($log_prefix . '全部参数', $data);
+        if ($status === 1) {
+            return json_encode($res);
+        }
+
         $dingding = app("ding");
 
         // 查找订单
