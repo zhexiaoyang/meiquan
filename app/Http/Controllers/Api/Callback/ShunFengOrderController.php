@@ -245,7 +245,7 @@ class ShunFengOrderController extends Controller
                         Order::where("id", $order->id)->update([
                             'ps' => 7,
                             'money' => $order->money_sf,
-                            'profit' => 1,
+                            'profit' => 0,
                             'status' => 50,
                             'sf_status' => 50,
                             'uu_status' => $order->uu_status < 20 ?: 7,
@@ -381,6 +381,7 @@ class ShunFengOrderController extends Controller
             $order->courier_lng = $order->receiver_lng;
             $order->courier_lat = $order->receiver_lat;
             $order->pay_status = 1;
+            $order->profit = $service_fee;
             $order->service_fee = $service_fee;
             $order->pay_at = date("Y-m-d H:i:s");
             $order->save();

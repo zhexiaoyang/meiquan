@@ -407,6 +407,10 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 3) {
+                $shop = Shop::select('id', 'running_add')->find($order->shop_id);
+                // 已送达【已完成】
+                $order->profit = $shop->running_add;
+                $order->add_money = $shop->running_add;
                 // 已送达
                 $order->status = 70;
                 $order->fn_status = 70;

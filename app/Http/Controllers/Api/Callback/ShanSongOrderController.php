@@ -248,7 +248,7 @@ class ShanSongOrderController
                         Order::where("id", $order->id)->update([
                             'ps' => 3,
                             'money' => $order->money_ss,
-                            'profit' => 1,
+                            'profit' => 0,
                             'status' => 50,
                             'ss_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,
@@ -339,6 +339,7 @@ class ShanSongOrderController
                 $order->courier_lng = $order->receiver_lng;
                 $order->courier_lat = $order->receiver_lat;
                 $order->pay_status = 1;
+                $order->profit = $service_fee;
                 $order->service_fee = $service_fee;
                 $order->pay_at = date("Y-m-d H:i:s");
                 $order->save();

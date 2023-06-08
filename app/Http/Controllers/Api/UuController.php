@@ -8,6 +8,7 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
@@ -319,7 +320,7 @@ class UuController extends Controller
                         Order::where("id", $order->id)->update([
                             'ps' => 6,
                             'money' => $order->money_uu,
-                            'profit' => 1,
+                            'profit' => 0,
                             'status' => 50,
                             'uu_status' => 50,
                             'dd_status' => $order->dd_status < 20 ?: 7,
@@ -406,6 +407,10 @@ class UuController extends Controller
             } elseif (($status == 10) || ($status == 6 && $state_text == '已送达')) {
                 // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
                 if ($order->status != 70) {
+                    $shop = Shop::select('id', 'running_add')->find($order->shop_id);
+                    // 已送达【已完成】
+                    $order->profit = $shop->running_add;
+                    $order->add_money = $shop->running_add;
                     $order->status = 70;
                     $order->uu_status = 70;
                     $order->over_at = date("Y-m-d H:i:s");

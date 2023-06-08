@@ -336,7 +336,7 @@ class OrderController
                         Order::where("id", $order->id)->update([
                             'ps' => 3,
                             'money' => $order->money_ss,
-                            'profit' => 1,
+                            'profit' => 0,
                             'status' => 50,
                             'ss_status' => 50,
                             'mt_status' => $order->mt_status < 20 ?: 7,
@@ -421,6 +421,10 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 50) {
+                $shop = Shop::select('id', 'running_add')->find($order->shop_id);
+                // 已送达【已完成】
+                $order->profit = $shop->running_add;
+                $order->add_money = $shop->running_add;
                 $order->status = 70;
                 $order->ss_status = 70;
                 $order->over_at = date("Y-m-d H:i:s");
