@@ -123,7 +123,7 @@ class Order extends Model
                         if (!empty($_users)) {
                             foreach ($_users as $_user) {
                                 if (in_array($_user->user_id, $manager_ids)) {
-                                    $order_profit = 1;
+                                    $order_profit = $order->profit;
                                     $manager = User::find($_user->user_id);
                                     if (!$manager_return = UserReturn::where('user_id', $_user->user_id)->first()) {
                                         Log::info("未找到城市经理收益，收益未结算|门店ID：{$order->shop_id}|经理ID：{$_user->user_id}");
