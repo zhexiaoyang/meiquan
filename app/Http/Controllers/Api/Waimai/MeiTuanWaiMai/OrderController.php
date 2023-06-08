@@ -434,6 +434,8 @@ class OrderController
                     // dispatch(new MtLogisticsSync($order));
                     $this->log_info('取件成功，配送中，更改信息成功');
                 } elseif ($status === 40) {
+                    // 服务费
+                    $service_fee = 0.1;
                     // 骑手已送达
                     $pt_order->status = 70;
                     $pt_order->zb_status = 70;
@@ -443,6 +445,7 @@ class OrderController
                     $pt_order->courier_lng = $pt_order->receiver_lng;
                     $pt_order->courier_lat = $pt_order->receiver_lat;
                     $pt_order->pay_status = 1;
+                    $order->service_fee = $service_fee;
                     $pt_order->pay_at = date("Y-m-d H:i:s");
                     $pt_order->save();
                     // 记录订单日志
@@ -458,8 +461,6 @@ class OrderController
                     // 查找扣款用户，为了记录余额日志
                     $current_user = DB::table('users')->find($pt_order->user_id);
                     // 减去用户配送费
-                    // 服务费
-                    $service_fee = 0.1;
                     DB::table('users')->where('id', $pt_order->user_id)->decrement('money', $service_fee);
                     // 用户余额日志
                     UserMoneyBalance::create([

@@ -370,6 +370,8 @@ class ShunFengOrderController extends Controller
                 $this->ding_error("顺丰签收类型：商家退回签收|id:{$order->id},order_id:{$order->order_id}");
                 return json_encode($res);
             }
+            // 服务费
+            $service_fee = 0.1;
 
             $order->status = 70;
             $order->sf_status = 70;
@@ -379,6 +381,7 @@ class ShunFengOrderController extends Controller
             $order->courier_lng = $order->receiver_lng;
             $order->courier_lat = $order->receiver_lat;
             $order->pay_status = 1;
+            $order->service_fee = $service_fee;
             $order->pay_at = date("Y-m-d H:i:s");
             $order->save();
             // 记录订单日志
@@ -394,8 +397,6 @@ class ShunFengOrderController extends Controller
             // 查找扣款用户，为了记录余额日志
             $current_user = DB::table('users')->find($order->user_id);
             // 减去用户配送费
-            // 服务费
-            $service_fee = 0.1;
             DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
             // 用户余额日志
             UserMoneyBalance::create([
