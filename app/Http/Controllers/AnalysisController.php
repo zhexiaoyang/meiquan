@@ -44,6 +44,7 @@ class AnalysisController extends Controller
             'prescription' => 0,
             // 利润
             'profit' => 0,
+            'operate_service' => 0,
             // --------------------------------
             // 销售总额
             'sales_volume_compare' => 0,
@@ -67,6 +68,7 @@ class AnalysisController extends Controller
             'prescription_compare' => 0,
             // 利润
             'profit_compare' => 0,
+            'operate_service_compare' => 0,
         ];
         $res2 = [
             // 销售总额
@@ -91,11 +93,12 @@ class AnalysisController extends Controller
             'prescription' => 0,
             // 利润
             'profit' => 0,
+            'operate_service' => 0,
         ];
 
         $query = WmOrder::with(['running' => function($query) {
             $query->select('id', 'wm_id', 'status', 'money');
-        }])->select('id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at');
+        }])->select('id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at','operate_service_fee');
 
         $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
@@ -144,6 +147,7 @@ class AnalysisController extends Controller
                     }
                     $res['running_money'] += $running_money;
                     $res['prescription'] += $order->prescription_fee * 100;
+                    $res['operate_service'] += $order->operate_service_fee * 100;
                     $res['profit'] += $order->poi_receive* 100 - $running_money - $order->vip_cost* 100 - $order->prescription_fee* 100;
                 }
             }
@@ -176,6 +180,7 @@ class AnalysisController extends Controller
                     }
                     $res2['running_money'] += $running_money;
                     $res2['prescription'] += $order->prescription_fee * 100;
+                    $res['operate_service'] += $order->operate_service_fee * 100;
                     $res2['profit'] += $order->poi_receive* 100 - $running_money - $order->vip_cost* 100 - $order->prescription_fee* 100;
                 }
             }
@@ -215,6 +220,7 @@ class AnalysisController extends Controller
         $res['prescription_compare'] = $res['prescription'] - $res2['prescription'];
         // 利润
         $res['profit_compare'] = $res['profit'] - $res2['profit'];
+        $res['operate_service_compare'] = $res['operate_service'] - $res2['operate_service'];
 
         $res['sales_volume'] = (float) sprintf("%.2f", $res['sales_volume'] / 100);
         $res['order_receipts'] = (float) sprintf("%.2f", $res['order_receipts'] / 100);
@@ -222,6 +228,7 @@ class AnalysisController extends Controller
         $res['running_money'] = (float) sprintf("%.2f", $res['running_money'] / 100);
         $res['prescription'] = (float) sprintf("%.2f", $res['prescription'] / 100);
         $res['profit'] = (float) sprintf("%.2f", $res['profit'] / 100);
+        $res['operate_service'] = (float) sprintf("%.2f", $res['operate_service'] / 100);
 
         $res['sales_volume_compare'] = (float) sprintf("%.2f", $res['sales_volume_compare'] / 100);
         $res['order_receipts_compare'] = (float) sprintf("%.2f", $res['order_receipts_compare'] / 100);
@@ -229,6 +236,7 @@ class AnalysisController extends Controller
         $res['running_money_compare'] = (float) sprintf("%.2f", $res['running_money_compare'] / 100);
         $res['prescription_compare'] = (float) sprintf("%.2f", $res['prescription_compare'] / 100);
         $res['profit_compare'] = (float) sprintf("%.2f", $res['profit_compare'] / 100);
+        $res['operate_service_compare'] = (float) sprintf("%.2f", $res['operate_service_compare'] / 100);
 
         return $this->success($res);
     }
