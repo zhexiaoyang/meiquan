@@ -43,7 +43,7 @@ class WmAnalysisShopExport extends DefaultValueBinder implements  WithStrictNull
 
     public function query()
     {
-        $query = WmOrder::select('id','order_id','platform','wm_shop_name','poi_receive','vip_cost','running_fee','prescription_fee','status','created_at','finish_at')
+        $query = WmOrder::select('id','order_id','platform','wm_shop_name','poi_receive','vip_cost','running_fee','prescription_fee','status','created_at','finish_at','operate_service')
             ->where('status', '<', 30)->where('created_at', '>=', $this->sdate)
             ->where('created_at', '<', date("Y-m-d", strtotime($this->edate) + 86400));
         if ($this->shop_id) {
@@ -78,6 +78,7 @@ class WmAnalysisShopExport extends DefaultValueBinder implements  WithStrictNull
             (float) sprintf("%.2f", $order->vip_cost),
             (float) sprintf("%.2f", $order->running_fee),
             (float) sprintf("%.2f", $order->prescription_fee),
+            (float) sprintf("%.2f", $order->operate_service),
             $status[$order->status],
             $order->created_at,
             $order->finish_at,
@@ -94,6 +95,7 @@ class WmAnalysisShopExport extends DefaultValueBinder implements  WithStrictNull
             '商品成本价总计',
             '跑腿费',
             '处方费',
+            '代运营',
             '订单状态',
             '下单时间',
             '完成时间',
