@@ -408,6 +408,7 @@ class AnalysisController extends Controller
             'running_money' => 0,
             'prescription' => 0,
             'profit' => 0,
+            'operate_service' => 0,
         ];
 
         if (!empty($shop_ids)) {
@@ -424,6 +425,7 @@ class AnalysisController extends Controller
                     isset($data_shop_id[$datum->shop_id]['running_money']) || $data_shop_id[$datum->shop_id]['running_money'] = 0;
                     isset($data_shop_id[$datum->shop_id]['prescription']) || $data_shop_id[$datum->shop_id]['prescription'] = 0;
                     isset($data_shop_id[$datum->shop_id]['profit']) || $data_shop_id[$datum->shop_id]['profit'] = 0;
+                    isset($data_shop_id[$datum->shop_id]['operate_service']) || $data_shop_id[$datum->shop_id]['operate_service'] = 0;
                     $data_shop_id[$datum->shop_id]['sales_volume'] += $datum->sales_volume * 100;
                     $data_shop_id[$datum->shop_id]['order_receipts'] += $datum->order_receipts * 100;
                     $data_shop_id[$datum->shop_id]['order_effective_number'] += $datum->order_effective_number;
@@ -432,6 +434,7 @@ class AnalysisController extends Controller
                     $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
                     $data_shop_id[$datum->shop_id]['prescription'] += $datum->prescription * 100;
                     $data_shop_id[$datum->shop_id]['profit'] += $datum->profit * 100;
+                    $data_shop_id[$datum->shop_id]['operate_service'] += $datum->operate_service * 100;
                 }
                 foreach ($shops as $shop) {
                     $tmp['shop_id'] = $shop->id;
@@ -444,6 +447,7 @@ class AnalysisController extends Controller
                     $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
                     $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
                     $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
+                    $tmp['operate_service'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100);
 
                     $total_data['sales_volume'] += ($data_shop_id[$shop->id]['sales_volume'] ?? 0) / 100;
                     $total_data['order_receipts'] += ($data_shop_id[$shop->id]['order_receipts'] ?? 0) / 100;
@@ -453,6 +457,7 @@ class AnalysisController extends Controller
                     $total_data['running_money'] += ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100;
                     $total_data['prescription'] += ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100;
                     $total_data['profit'] += ($data_shop_id[$shop->id]['profit'] ?? 0) / 100;
+                    $total_data['operate_service'] += ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100;
                     $profit_margin = 0;
                     if ($tmp['order_receipts'] > 0) {
                         $profit_margin = (float) sprintf("%.2f", $tmp['profit'] / $tmp['order_receipts'] * 100);
@@ -471,6 +476,7 @@ class AnalysisController extends Controller
             $total_data['running_money'] = (float) sprintf("%.2f", $total_data['running_money']);
             $total_data['prescription'] = (float) sprintf("%.2f", $total_data['prescription']);
             $total_data['profit'] = (float) sprintf("%.2f", $total_data['profit']);
+            $total_data['operate_service'] = (float) sprintf("%.2f", $total_data['operate_service']);
             array_push($res, $total_data);
         }
 
@@ -578,7 +584,8 @@ class AnalysisController extends Controller
             DB::raw("sum(product_cost) as product_cost"),
             DB::raw("sum(running_money) as running_money"),
             DB::raw("sum(prescription) as prescription"),
-            DB::raw("sum(profit) as profit")
+            DB::raw("sum(profit) as profit"),
+            DB::raw("sum(operate_service) as operate_service")
         )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 0)->whereIn('shop_id', $shop_ids)->first()->toArray();
         foreach ($zong as $k => $v) {
             if (is_null($v)) {
@@ -601,7 +608,8 @@ class AnalysisController extends Controller
             DB::raw("sum(product_cost) as product_cost"),
             DB::raw("sum(running_money) as running_money"),
             DB::raw("sum(prescription) as prescription"),
-            DB::raw("sum(profit) as profit")
+            DB::raw("sum(profit) as profit"),
+            DB::raw("sum(operate_service) as operate_service")
         )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 1)->whereIn('shop_id', $shop_ids)->first()->toArray();
         foreach ($mt as $k => $v) {
             if (is_null($v)) {
@@ -624,7 +632,8 @@ class AnalysisController extends Controller
             DB::raw("sum(product_cost) as product_cost"),
             DB::raw("sum(running_money) as running_money"),
             DB::raw("sum(prescription) as prescription"),
-            DB::raw("sum(profit) as profit")
+            DB::raw("sum(profit) as profit"),
+            DB::raw("sum(operate_service) as operate_service")
         )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 2)->whereIn('shop_id', $shop_ids)->first()->toArray();
         foreach ($ele as $k => $v) {
             if (is_null($v)) {
