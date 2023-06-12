@@ -259,8 +259,10 @@ class ProductController extends Controller
                             ];
                         }
                     }
-                    $medicine = Medicine::create($medicine_arr);
-                    \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                    if (isset($medicine_arr)) {
+                        $medicine = Medicine::create($medicine_arr);
+                        \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                    }
                 }
             }
         }
