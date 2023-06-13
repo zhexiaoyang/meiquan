@@ -28,6 +28,7 @@ use App\Traits\NoticeTool;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class OrderConfirmController
 {
@@ -88,6 +89,10 @@ class OrderConfirmController
                 $this->log_info('没有找到门店');
                 return json_encode(['data' => 'ok']);
             }
+        }
+        if ($shop->print_auto == 1) {
+            $redis_key = 'print_order_' . $shop->account_id ?: $shop->user_id;
+            Redis::incr($redis_key);
         }
         $this->log_info("-门店信息,ID:{$shop->id},名称:{$shop->shop_name}");
         DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2, $mt) {

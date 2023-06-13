@@ -10,6 +10,7 @@ use App\Models\WmOrder;
 use App\Models\WmOrderExtra;
 use App\Models\WmPrinter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class WmOrderController extends Controller
 {
@@ -366,6 +367,16 @@ class WmOrderController extends Controller
     public function printer_one(Request $request)
     {
         // \Log::info('account_shop_id:' . $request->user()->account_shop_id);
+        $redis_key = 'print_order_' . $request->user()->id;
+        if (is_null(Redis::get($redis_key))) {
+            // Redis::del($redis_key);
+            return $this->success();
+        }
+        // \Log::info('获取到Redis', [$redis_res]);
+        $redis_res = Redis::decr($redis_key);
+        if ($redis_res <= 0) {
+            Redis::del($redis_key);
+        }
         if ($request->user()->account_shop_id) {
             // 子账号
             $user_id = $request->user()->id;
@@ -394,7 +405,7 @@ class WmOrderController extends Controller
         //     $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)->orderBy('id')->first();
         // }
         $order = WmOrder::whereIn('shop_id', $shop_ids)->where('print_number', 0)
-            ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("-10 minutes")))->orderBy('id')->first();
+            ->where('created_at', '>', date("Y-m-d h:i:s", strtotime("-2 minutes")))->orderBy('id')->first();
 
         if ($order) {
             $items = [];

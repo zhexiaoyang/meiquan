@@ -31,6 +31,7 @@ use App\Traits\NoticeTool;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class EleOrderController extends Controller
 {
@@ -997,6 +998,10 @@ class EleOrderController extends Controller
                 $this->log_info("门店不存在，不能创建订单");
                 // $this->ding_error("门店不存在，不能创建订单");
                 return $this->res("order.status.success");
+            }
+            if ($shop->print_auto == 1) {
+                $redis_key = 'print_order_' . $shop->account_id ?: $shop->user_id;
+                Redis::incr($redis_key);
             }
 
             // 创建订单
