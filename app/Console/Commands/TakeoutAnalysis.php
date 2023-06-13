@@ -42,6 +42,7 @@ class TakeoutAnalysis extends Command
         $date = date("Y-m-d", time() - 86400);
         if (WmAnalysis::where('date', $date)->get()->count() > 0) {
             \Log::info("TakeoutAnalysis已经计算过了");
+            $this->info("TakeoutAnalysis已经计算过了");
             return ;
         }
         $orders = WmOrder::with(['running' => function($query) {
