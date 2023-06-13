@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Callback;
 
+use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
@@ -42,6 +43,7 @@ class DaDaOrderController
         $phone = $data['dm_mobile'] ?? '';
         $longitude = '';
         $latitude = '';
+        $cancel_from = $data['cancel_from'] ?? 2;
         // 定义日志格式
         $this->prefix = str_replace('###', "中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $data);
@@ -366,7 +368,7 @@ class DaDaOrderController
             } elseif ($status == 5) {
                 if ($order->status >= 20 && $order->status < 70 ) {
                     try {
-                        DB::transaction(function () use ($order, $name, $phone) {
+                        DB::transaction(function () use ($order, $name, $phone, $cancel_from) {
                             $update_data = [
                                 'dd_status' => 99
                             ];
@@ -382,6 +384,11 @@ class DaDaOrderController
                                 'order_id' => $order->id,
                                 'des' => '「达达」跑腿，发起取消配送',
                             ]);
+                            if (in_array(in_array($order->zb_status, [0,1,3,7,80,99]) && $order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
+                                if ($cancel_from === 1 || $cancel_from === 3) {
+                                    dispatch(new CreateMtOrder($order, 2));
+                                }
+                            }
                         });
                     } catch (\Exception $e) {
                         $message = [

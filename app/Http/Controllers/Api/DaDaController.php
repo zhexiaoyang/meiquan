@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
@@ -456,6 +457,11 @@ class DaDaController extends Controller
                                 'order_id' => $order->id,
                                 'des' => '【达达】跑腿，发起取消配送',
                             ]);
+                            if (in_array(in_array($order->zb_status, [0,1,3,7,80,99]) && $order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
+                                if ($cancel_from === 1 || $cancel_from === 3) {
+                                    dispatch(new CreateMtOrder($order, 2));
+                                }
+                            }
                         });
                     } catch (\Exception $e) {
                         $message = [

@@ -48,6 +48,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
     public function map($medicine): array
     {
         $type = [0 => '未同步', 1 => '成功', 2 => '失败'];
+        $online_type = [0 => '下架', 1 => '上架'];
         return [
             $medicine->name,
             $medicine->upc,
@@ -58,8 +59,10 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
             $medicine->down_gpm,
             $type[$medicine->mt_status],
             $medicine->mt_status !== 2 ? '' : $medicine->mt_error,
+            $online_type[$medicine->online_mt],
             $type[$medicine->ele_status],
             $medicine->ele_status !== 2 ? '' : $medicine->ele_error,
+            $online_type[$medicine->online_ele],
         ];
     }
 
@@ -75,8 +78,10 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
             '线下毛利率',
             '美团状态',
             '美团异常',
+            '美团上下架',
             '饿了么状态',
             '饿了么异常',
+            '饿了么上下架',
         ];
     }
 

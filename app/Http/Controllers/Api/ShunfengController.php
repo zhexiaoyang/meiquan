@@ -559,6 +559,12 @@ class ShunfengController
                             'order_id' => $order->id,
                             'des' => '【顺丰】跑腿，发起取消配送',
                         ]);
+                        if (in_array($order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) &&
+                            in_array($order->zb_status, [0,1,3,7,80,99]) &&
+                            in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) &&
+                            in_array($order->uu_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99])) {
+                            dispatch(new CreateMtOrder($order, 2));
+                        }
                     });
                 } catch (\Exception $e) {
                     $message = [

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\MeiTuan;
 
+use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
@@ -432,9 +433,10 @@ class OrderController
                 return json_encode(['code' => 0]);
             } elseif ($status == 99) {
                 // 已取消
+                $reason_code = $request->get('cancel_reason_id', 0);
                 if ($order->status >= 20 && $order->status < 70 && $order->ps == 1) {
                     try {
-                        DB::transaction(function () use ($order, $data, $log_prefix) {
+                        DB::transaction(function () use ($order, $data, $log_prefix, $reason_code) {
                             if ($order->status == 50 || $order->status == 60) {
                                 // 查询当前用户，做余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
@@ -481,6 +483,11 @@ class OrderController
                                 'name' => $data['courier_name'] ?? '',
                                 'phone' => $data['courier_phone'] ?? '',
                             ]);
+                            if (in_array(in_array($order->zb_status, [0,1,3,7,80,99]) && $order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->dd_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
+                                if (in_array($reason_code, [1201,1202,1203,1299,1399])) {
+                                    dispatch(new CreateMtOrder($order, 2));
+                                }
+                            }
                         });
                     } catch (\Exception $e) {
                         $message = [
