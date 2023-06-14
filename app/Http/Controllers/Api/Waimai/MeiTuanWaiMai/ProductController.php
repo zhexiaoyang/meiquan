@@ -107,6 +107,10 @@ class ProductController
                     continue;
                 }
                 if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
+                    // 获取信息修改的信息
+                    $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? null;
+                    $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['is_sold_out']['result'] ?? null;
+                    $stock = $v['diff_contents']['skus'][0]['diffContentMap']['stock']['result'] ?? null;
                     if (!is_null($price)) {
                         $this->log_info('修改价格');
                         if ($shop->vip_sync_status === 1) {
@@ -122,10 +126,6 @@ class ProductController
                         }
                     }
                     if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                        // 获取信息修改的信息
-                        $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? null;
-                        $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['is_sold_out']['result'] ?? null;
-                        $stock = $v['diff_contents']['skus'][0]['diffContentMap']['stock']['result'] ?? null;
                         // 组合修改信息数组
                         $update_data = [];
                         if (!is_null($is_sold_out)) {
