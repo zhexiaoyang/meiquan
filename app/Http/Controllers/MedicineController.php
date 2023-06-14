@@ -53,6 +53,16 @@ class MedicineController extends Controller
             return $this->success();
         }
         $logs = MedicineSyncLog::where('shop_id', $shop_id)->orderByDesc('id')->limit(10)->get();
+        if (!empty($logs)) {
+            foreach ($logs as $log) {
+                if ($log->status === 1) {
+                    if ((strtotime($log->created_at) + 60 * 10) < time()) {
+                        MedicineSyncLog::where('id', $log->id)->update(['status' => 2, 'updated_at' => date("Y-m-d H:i:s")]);
+                        $log->status = 2;
+                    }
+                }
+            }
+        }
 
         return $this->success($logs);
     }
