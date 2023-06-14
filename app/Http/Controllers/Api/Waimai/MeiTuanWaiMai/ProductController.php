@@ -106,31 +106,62 @@ class ProductController
                 if (!$upc) {
                     continue;
                 }
-                $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? '';
-                $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['is_sold_out']['result'] ?? null;
-                if ($price) {
-                    $this->log_info('修改价格');
-                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->where('vip_sync_status', 1)->first()) {
-                        if ($product = VipProduct::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                            if (VipProduct::where('id', $product->id)->update(['price' => $price])) {
-                                $this->log_info("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
+                    if (!is_null($price)) {
+                        $this->log_info('修改价格');
+                        if ($shop->vip_sync_status === 1) {
+                            if ($product = VipProduct::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                                if (VipProduct::where('id', $product->id)->update(['price' => $price])) {
+                                    $this->log_info("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                                } else {
+                                    // $this->ding_exception("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
+                                }
                             } else {
-                                // $this->ding_exception("更新VIP商品成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                            }
-                        } else {
-                            // $this->ding_exception("更新商品,商品不存在|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
-                        }
-                    }
-                }
-                if (!is_null($is_sold_out)) {
-                    $this->log_info('美团修改商品库存');
-                    if ($shop = Shop::select('id')->where('waimai_mt', $app_poi_code)->first()) {
-                        if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
-                            if (Medicine::where('id', $product->id)->update(['online_mt' => $is_sold_out ? 0 : 1])) {
-                                $this->log_info("美团修改商品库存成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},is_sold_out:{$is_sold_out}");
+                                // $this->ding_exception("更新商品,商品不存在|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc}");
                             }
                         }
                     }
+                    if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                        // 获取信息修改的信息
+                        $price = $v['diff_contents']['skus'][0]['diffContentMap']['price']['result'] ?? null;
+                        $is_sold_out = $v['diff_contents']['skus'][0]['diffContentMap']['is_sold_out']['result'] ?? null;
+                        $stock = $v['diff_contents']['skus'][0]['diffContentMap']['stock']['result'] ?? null;
+                        // 组合修改信息数组
+                        $update_data = [];
+                        if (!is_null($is_sold_out)) {
+                            $update_data['online_mt'] = $is_sold_out ? 0 : 1;
+                            $this->log_info("美团修改上下架|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},is_sold_out:{$is_sold_out}");
+                        }
+                        if (!is_null($stock)) {
+                            $update_data['stock'] = $stock;
+                            $this->log_info("美团修改商品库存|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},stock:{$stock}");
+                        }
+                        if (!is_null($price)) {
+                            $update_data['price'] = $price;
+                            $this->log_info("美团修改商品价格|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},price:{$price}");
+                        }
+                        // 如果修改信息不为空，操作修改
+                        if (!empty($update_data)) {
+                            Medicine::where('id', $product->id)->update($update_data);
+                            $this->log_info("美团修改商品信息操作成功");
+                        }
+                    }
+                    // if (!is_null($is_sold_out)) {
+                    //     $this->log_info('美团修改上下架');
+                    //     if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                    //         if (Medicine::where('id', $product->id)->update(['online_mt' => $is_sold_out ? 0 : 1])) {
+                    //             $this->log_info("美团修改上下架成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},is_sold_out:{$is_sold_out}");
+                    //         }
+                    //     }
+                    // }
+                    // if (!is_null($stock)) {
+                    //     $this->log_info('美团修改商品库存');
+                    //     if ($product = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+                    //         if (Medicine::where('id', $product->id)->update(['stock' => $stock])) {
+                    //             $this->log_info("美团修改商品库存成功|门店:{$shop->id},门店:{$app_poi_code},upc:{$upc},stock:{$stock}");
+                    //         }
+                    //     }
+                    // }
                 }
 
                 // if ($app_poi_code == '13676234') {
