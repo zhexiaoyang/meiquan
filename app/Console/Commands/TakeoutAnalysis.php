@@ -47,7 +47,7 @@ class TakeoutAnalysis extends Command
         }
         $orders = WmOrder::with(['running' => function($query) {
             $query->select('id', 'wm_id', 'status', 'money','shipper_type_ss','shipper_type_dd','shipper_type_zb','shipper_type_sf');
-        }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at', 'platform')
+        }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee')
             ->where('created_at', '>=', $date)
             ->where('created_at', '<', date("Y-m-d", strtotime($date) + 86400))->get();
         $this->info('总数：' . $orders->count());
