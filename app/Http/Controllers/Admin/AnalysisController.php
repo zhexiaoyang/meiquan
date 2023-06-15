@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
-use App\Exports\WmAnalysisShopExport;
+use App\Exports\Admin\WmAnalysisShopExport;
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Shop;
 use App\Models\WmAnalysis;
@@ -100,26 +101,6 @@ class AnalysisController extends Controller
             $query->select('id', 'wm_id', 'status', 'money');
         }])->select('id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at','operate_service_fee');
 
-        $user = $request->user();
-        if ($shop_id = $request->get('shop_id')) {
-            if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
-                    return $this->error('门店不存在');
-                }
-            } else {
-                if (!Shop::where('user_id', $user->id)->where('id', $shop_id)->first()) {
-                    return $this->error('门店不存在');
-                }
-            }
-            $query->where('shop_id', $shop_id);
-        } else {
-            if ($user->hasRole('city_manager')) {
-                $query->whereIn('shop_id', $user->shops()->pluck('id'));
-            } else {
-                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
-            }
-        }
-
         $query2 = clone($query);
         $orders = $query->where('created_at', '>=', date("Y-m-d"))->get();
         $orders2 = $query2->where('created_at', '>=', date("Y-m-d", time() - 86400))
@@ -189,14 +170,7 @@ class AnalysisController extends Controller
             } else {
                 $res2['order_average'] = 0;
             }
-            // $res2['sales_volume'] /= 100;
-            // $res2['order_receipts'] /= 100;
-            // $res2['product_cost'] /= 100;
-            // $res2['running_money'] /= 100;
-            // $res2['prescription'] /= 100;
-            // $res2['profit'] /= 100;
         }
-
 
         // 销售总额
         $res['sales_volume_compare'] = $res['sales_volume'] - $res2['sales_volume'];
@@ -271,28 +245,9 @@ class AnalysisController extends Controller
             $day++;
             array_push($date_arr, date("Y-m-d", strtotime($sdate) + 86400 * $day));
         }
-        // return $date_arr;
         $query = WmAnalysis::where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', $platform);
-
-        $user = $request->user();
         if ($shop_id = $request->get('shop_id')) {
-            if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
-                    return $this->error('门店不存在');
-                }
-            } else {
-                if (!Shop::where('user_id', $user->id)->where('id', $shop_id)->first()) {
-                    return $this->error('门店不存在');
-                }
-            }
             $query->where('shop_id', $shop_id);
-        } else {
-            if ($user->hasRole('city_manager')) {
-                $query->whereIn('shop_id', $user->shops()->pluck('id'));
-            } else {
-                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
-            }
-            // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
         $data_arr = $query->get();
         if (!empty($data_arr)) {
@@ -357,42 +312,21 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
-        $shop_id = $request->get('shop_id', 0);
-        $user = $request->user();
-        $user_id = $request->user()->id;
-        $shop = null;
-        if ($shop_id) {
-            if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
-                    return $this->error('门店不存在');
-                }
-                $shop = Shop::find($shop_id);
-            } else {
-                if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-                    return $this->error('门店不存在');
-                }
-            }
+        $shop_query = Shop::select('id', 'shop_name', 'vip_status')->where('user_id', '>', 0);
+        // if ($shop_id = $request->get('shop_id', '0')) {
+        //     $shop_query->where('id', $shop_id);
+        // }
+        if ($name = $request->get('name', '0')) {
+            $shop_query->where('shop_name', 'like', "%{$name}%");
         }
-
-        if ($shop) {
-            $shop_ids = [$shop_id];
-            $shops = [$shop];
-        } else {
-            if ($user->hasRole('city_manager')) {
-                // $query->whereIn('shop_id', $user->shops()->pluck('id'));
-                // $shops = $request->user()->shops();
-                $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
-                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
-            } else {
-                // $shops = $request->user()->shops();
-                $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
-                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
-            }
-            $shop_ids = [];
-            if (!empty($shops)) {
-                foreach ($shops as $shop) {
-                    $shop_ids[] = $shop->id;
-                }
+        if ($request->get('vip')) {
+            $shop_query->where('vip_status', 1);
+        }
+        $shops = $shop_query->orderBy('id')->paginate($request->get('page_size', 10));
+        // return $shops;
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                $shop_ids[] = $shop->id;
             }
         }
 
@@ -480,7 +414,12 @@ class AnalysisController extends Controller
             array_push($res, $total_data);
         }
 
-        return $this->success($res);
+        $res_data = [
+            'total' => $shops->total(),
+            'data' => $res,
+        ];
+
+        return $this->success($res_data);
     }
 
     public function shop_down(Request $request, WmAnalysisShopExport $export)
@@ -500,22 +439,10 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
-        $shop_id = $request->get('shop_id', 0);
-        $user = $request->user();
-        $user_id = $request->user()->id;
-        if ($shop_id) {
-            if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
-                    return $this->error('门店不存在');
-                }
-            } else {
-                if (!Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-                    return $this->error('门店不存在');
-                }
-            }
-        }
+        $shop_id = $request->get('name');
+        $vip = $request->get('vip', 0);
 
-        return $export->withRequest($sdate, $edate, $shop_id, $request->user()->id);
+        return $export->withRequest($sdate, $edate, $shop_id, $vip);
     }
 
     /**
@@ -543,40 +470,7 @@ class AnalysisController extends Controller
         }
 
         $shop_id = $request->get('shop_id', 0);
-        $user = $request->user();
-        $user_id = $request->user()->id;
-        $shop = null;
-        if ($shop_id) {
-            if ($user->hasRole('city_manager')) {
-                if (!in_array($shop_id, $user->shops()->pluck('id')->toArray())) {
-                    return $this->error('门店不存在');
-                }
-                $shop = Shop::find($shop_id);
-            } else {
-                if (!$shop = Shop::where('user_id', $user_id)->where('id', $shop_id)->first()) {
-                    return $this->error('门店不存在');
-                }
-            }
-        }
-        if ($shop) {
-            $shop_ids = [$shop_id];
-        } else {
-            if ($user->hasRole('city_manager')) {
-                $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
-            } else {
-                $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
-                // $shops = $request->user()->shops();
-                // $shops = Shop::whereIn('id', [6610,6467,6058,6308])->get();
-                // $shops = Shop::select('id', 'shop_name')->where('user_id', $user_id)->get();
-            }
-            $shop_ids = [];
-            if (!empty($shops)) {
-                foreach ($shops as $shop) {
-                    $shop_ids[] = $shop->id;
-                }
-            }
-        }
-        $zong = WmAnalysis::select(
+        $zong_query = WmAnalysis::select(
             DB::raw("sum(sales_volume) as sales_volume"),
             DB::raw("sum(order_receipts) as order_receipts"),
             DB::raw("sum(order_effective_number) as order_effective_number"),
@@ -586,7 +480,11 @@ class AnalysisController extends Controller
             DB::raw("sum(prescription) as prescription"),
             DB::raw("sum(profit) as profit"),
             DB::raw("sum(operate_service) as operate_service")
-        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 0)->whereIn('shop_id', $shop_ids)->first()->toArray();
+        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 0);
+        if ($shop_id) {
+            $zong_query->where('shop_id', $shop_id);
+        }
+        $zong = $zong_query->first()->toArray();
         foreach ($zong as $k => $v) {
             if (is_null($v)) {
                 $zong[$k] = 0;
@@ -600,7 +498,7 @@ class AnalysisController extends Controller
         } else {
             $zong['profit_margin'] = '0%';
         }
-        $mt = WmAnalysis::select(
+        $mt_query = WmAnalysis::select(
             DB::raw("sum(sales_volume) as sales_volume"),
             DB::raw("sum(order_receipts) as order_receipts"),
             DB::raw("sum(order_effective_number) as order_effective_number"),
@@ -610,7 +508,11 @@ class AnalysisController extends Controller
             DB::raw("sum(prescription) as prescription"),
             DB::raw("sum(profit) as profit"),
             DB::raw("sum(operate_service) as operate_service")
-        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 1)->whereIn('shop_id', $shop_ids)->first()->toArray();
+        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 1);
+        if ($shop_id) {
+            $mt_query->where('shop_id', $shop_id);
+        }
+        $mt = $mt_query->first()->toArray();
         foreach ($mt as $k => $v) {
             if (is_null($v)) {
                 $mt[$k] = 0;
@@ -624,7 +526,7 @@ class AnalysisController extends Controller
         } else {
             $mt['profit_margin'] = '0%';
         }
-        $ele = WmAnalysis::select(
+        $ele_query = WmAnalysis::select(
             DB::raw("sum(sales_volume) as sales_volume"),
             DB::raw("sum(order_receipts) as order_receipts"),
             DB::raw("sum(order_effective_number) as order_effective_number"),
@@ -634,7 +536,11 @@ class AnalysisController extends Controller
             DB::raw("sum(prescription) as prescription"),
             DB::raw("sum(profit) as profit"),
             DB::raw("sum(operate_service) as operate_service")
-        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 2)->whereIn('shop_id', $shop_ids)->first()->toArray();
+        )->where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 2);
+        if ($shop_id) {
+            $ele_query->where('shop_id', $shop_id);
+        }
+        $ele = $ele_query->first()->toArray();
         foreach ($ele as $k => $v) {
             if (is_null($v)) {
                 $ele[$k] = 0;
@@ -680,26 +586,10 @@ class AnalysisController extends Controller
         if ((strtotime($edate) - strtotime($sdate)) > 86400 *31) {
             return $this->error('查询范围不能超过31天');
         }
-
-        $user = $request->user();
-        // $shops = $request->user()->shops();
-        // $shops = Shop::whereIn('id', [6121,2597,2583,2241])->get();
-        if ($user->hasRole('city_manager')) {
-            $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
-        } else {
-            $shops = Shop::select('id', 'shop_name')->where('user_id', $user->id)->get();
-        }
-        // $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
-        $shop_ids = [];
-        if (!empty($shops)) {
-            foreach ($shops as $shop) {
-                $shop_ids[] = $shop->id;
-            }
-        }
         $orders = Order::select('id', 'ps', 'money', 'receive_at', 'over_at')
             ->where('status', 70)
             ->where('created_at', '>=', $sdate)->where('created_at', '<', date("Y-m-d", strtotime($edate) + 86400))
-            ->whereIn('shop_id', $shop_ids)->get();
+            ->get();
         $res = [];
         $res_total = [
             'ps' => '合计',
@@ -725,23 +615,25 @@ class AnalysisController extends Controller
                 $order_ps[$order->ps]['money'] += $order->money * 100;
             }
             foreach ($order_ps as $ps => $order) {
-                $tmp['ps'] = $ps_map[$ps];
-                $tmp['ps_type'] = $ps;
-                $tmp['order_total'] = $order['order_total'];
-                $tmp['unit_price'] = (float) sprintf("%.2f", $order['money'] / $order['order_total'] / 100);
-                $tmp['money'] = $order['money'] / 100;
-                $tmp['total_money'] = ($order['money'] + $order['tip']) / 100;
-                $avg_time = gmdate("H:i:s", intval($order['second'] / $order['order_total']));
-                $avg_time = str_replace('00:', '', $avg_time);
-                $tmp['avg_time'] = $avg_time;
-                $tmp['tip'] = $order['tip'] / 100;
+                if ($ps) {
+                    $tmp['ps'] = $ps_map[$ps];
+                    $tmp['ps_type'] = $ps;
+                    $tmp['order_total'] = $order['order_total'];
+                    $tmp['unit_price'] = (float) sprintf("%.2f", $order['money'] / $order['order_total'] / 100);
+                    $tmp['money'] = $order['money'] / 100;
+                    $tmp['total_money'] = ($order['money'] + $order['tip']) / 100;
+                    $avg_time = gmdate("H:i:s", intval($order['second'] / $order['order_total']));
+                    $avg_time = str_replace('00:', '', $avg_time);
+                    $tmp['avg_time'] = $avg_time;
+                    $tmp['tip'] = $order['tip'] / 100;
 
-                $res_total['order_total'] += $tmp['order_total'];
-                $res_total['money'] += $tmp['money'];
-                $res_total['tip'] += $tmp['tip'];
-                $res_total['total_money'] += $tmp['total_money'];
+                    $res_total['order_total'] += $tmp['order_total'];
+                    $res_total['money'] += $tmp['money'];
+                    $res_total['tip'] += $tmp['tip'];
+                    $res_total['total_money'] += $tmp['total_money'];
 
-                $res[] = $tmp;
+                    $res[] = $tmp;
+                }
             }
         }
         if (count($res) > 0) {
@@ -755,13 +647,10 @@ class AnalysisController extends Controller
 
     public function user_shops(Request $request)
     {
-        $user = $request->user();
-        if ($user->hasRole('city_manager')) {
-            $shops = Shop::select('id', 'shop_name')->whereIn('id', $user->shops()->pluck('id'))->get();
-            // $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
-        } else {
-            $shops = Shop::select('id', 'shop_name')->where('user_id', $request->user()->id)->get();
+        if (!$name = $request->get('name')) {
+            return $this->success();
         }
+        $shops = Shop::select('id', 'shop_name')->where('user_id', '>', 0)->where('shop_name', 'like', "%{$name}%")->get();
 
         return $this->success($shops);
     }

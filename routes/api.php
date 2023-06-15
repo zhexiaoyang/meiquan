@@ -433,6 +433,16 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
+             * 数据分析
+             */
+            Route::get("analysis/user_shops", "AnalysisController@user_shops");
+            Route::get("analysis/business", "AnalysisController@business");
+            Route::get("analysis/business_history", "AnalysisController@business_history");
+            Route::get("analysis/shop", "AnalysisController@shop");
+            Route::get("analysis/shop_down", "AnalysisController@shop_down");
+            Route::get("analysis/platform", "AnalysisController@platform");
+            Route::get("analysis/running", "AnalysisController@running");
+            /**
              * 商城品库管理
              */
             Route::get("supplier/depot/index", "SupplierDepotController@index")->name("admin.supplier.depot.index");
