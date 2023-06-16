@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\OpenApi\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateMtOrder;
 use App\Models\ErpAccessKey;
 use App\Models\ErpAccessShop;
 use App\Models\Order;
@@ -140,6 +141,7 @@ class OrderController extends Controller
                 $order_wm = WmOrder::create($order_wm_data);
                 $order_pt_data['wm_id'] = $order_wm->id;
                 $order_pt = Order::create($order_pt_data);
+                dispatch(new CreateMtOrder($order_pt, 3));
                 return $order_wm;
             });
         } catch (\Exception $e) {
