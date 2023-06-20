@@ -61,7 +61,7 @@ class MedicineSyncEleItemJob implements ShouldQueue
         $ele = app('ele');
         try {
             // $this->log('创建药品参数', $this->params);
-            $res = $ele->add_product($this->params);
+            // $res = $ele->add_product($this->params);
             // $this->log('创建药品返回', [$res]);
             $res = $ele->add_product($this->params);
             if ($res['body']['error'] === 'success') {
