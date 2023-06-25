@@ -41,8 +41,8 @@ class PrescriptionOrderExport extends DefaultValueBinder implements WithStrictNu
         $sdate = $request->get('sdate', '');
         $edate = $request->get('edate', '');
 
-        $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
-            ->where('shop_id', $shop_id)
+        $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime','prescription_fee')
+            // ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
             ->where('ctime', '>=', strtotime($sdate))
             ->where('ctime', '<', strtotime($edate) + 86400);
@@ -51,6 +51,11 @@ class PrescriptionOrderExport extends DefaultValueBinder implements WithStrictNu
         }
         if ($platform) {
             $query->where('platform', $platform);
+        }
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
         return $query;
@@ -63,6 +68,7 @@ class PrescriptionOrderExport extends DefaultValueBinder implements WithStrictNu
             $order->wm_shop_name,
             $order->status === 18 ? '已完成' : ($order->status > 18 ? '已取消' : '进行中'),
             $order->platform === 1 ? '美团外卖' : '饿了么',
+            $order->prescription_fee,
             date("Y-m-d H:i:s", $order->ctime),
         ];
     }
@@ -74,6 +80,7 @@ class PrescriptionOrderExport extends DefaultValueBinder implements WithStrictNu
             '门店名称',
             '订单状态',
             '订单平台',
+            '处方费',
             '下单时间',
         ];
     }

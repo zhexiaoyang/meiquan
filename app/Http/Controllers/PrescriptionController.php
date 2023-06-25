@@ -21,13 +21,13 @@ class PrescriptionController extends Controller
         $request->validate([
             'sdate'   => 'required|date_format:Y-m-d,Y-m-d',
             'edate'   => 'required|date_format:Y-m-d,Y-m-d',
-            'shop_id'   => 'required',
+            // 'shop_id'   => 'required',
         ], [
             'sdate.required'   => '开始日期不能为空',
             'sdate.date_format'   => '开始日期格式不正确',
             'edate.required'   => '结束时间不能为空',
             'edate.date_format'   => '结束时间格式不正确',
-            'shop_id.required'   => '请选择要下载处方图片的门店',
+            // 'shop_id.required'   => '请选择要下载处方图片的门店',
         ]);
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
@@ -38,16 +38,18 @@ class PrescriptionController extends Controller
         if ((strtotime($edate) - strtotime($sdate)) >= 86400 * 31) {
             return $this->error('查询时间范围不能超过31天');
         }
-        if (!$shop = Shop::find($shop_id)) {
-            return $this->error('门店不存在');
+        if ($shop_id) {
+            if (!$shop = Shop::find($shop_id)) {
+                return $this->error('门店不存在');
+            }
         }
-        $user_id = $request->user()->id;
-        MedicineSelectShop::updateOrCreate(
-            [ 'user_id' => $user_id ],
-            [ 'user_id' => $user_id, 'shop_id' => $shop_id ]
-        );
+        // $user_id = $request->user()->id;
+        // MedicineSelectShop::updateOrCreate(
+        //     [ 'user_id' => $user_id ],
+        //     [ 'user_id' => $user_id, 'shop_id' => $shop_id ]
+        // );
         $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
-            ->where('shop_id', $shop_id)
+            // ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
             // ->where('rp_picture', '<>', '')
             ->where('ctime', '>=', strtotime($sdate))
@@ -57,6 +59,11 @@ class PrescriptionController extends Controller
         }
         if ($platform) {
             $query->where('platform', $platform);
+        }
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
         $orders = $query->orderByDesc('id')->paginate($page_size);
@@ -106,13 +113,13 @@ class PrescriptionController extends Controller
         $request->validate([
             'sdate'   => 'required|date_format:Y-m-d,Y-m-d',
             'edate'   => 'required|date_format:Y-m-d,Y-m-d',
-            'shop_id'   => 'required',
+            // 'shop_id'   => 'required',
         ], [
             'sdate.required'   => '开始日期不能为空',
             'sdate.date_format'   => '开始日期格式不正确',
             'edate.required'   => '结束时间不能为空',
             'edate.date_format'   => '结束时间格式不正确',
-            'shop_id.required'   => '请选择要下载处方图片的门店',
+            // 'shop_id.required'   => '请选择要下载处方图片的门店',
         ]);
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
@@ -122,11 +129,16 @@ class PrescriptionController extends Controller
         if ((strtotime($edate) - strtotime($sdate)) >= 86400 * 31) {
             return $this->error('下载时间范围不能超过31天');
         }
-        if (!$shop = Shop::find($shop_id)) {
-            return $this->error('门店不存在');
+        // if (!$shop = Shop::find($shop_id)) {
+        //     return $this->error('门店不存在');
+        // }
+        if ($shop_id) {
+            if (!$shop = Shop::find($shop_id)) {
+                return $this->error('门店不存在');
+            }
         }
         $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
-            ->where('shop_id', $shop_id)
+            // ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
             ->where('rp_picture', '<>', '')
             ->where('ctime', '>=', strtotime($sdate))
@@ -137,12 +149,17 @@ class PrescriptionController extends Controller
         if ($platform) {
             $query->where('platform', $platform);
         }
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
         $orders = $query->get();
         if ($orders->isNotEmpty()) {
             \Log::info('任务触发一次');
             $log = WmPrescriptionDown::create([
-                'title' => $shop->shop_name . '处方图片',
-                'shop_id' => $shop->id,
+                'title' => isset($shop) ? $shop->shop_name . '处方图片' : '全部门店处方图片',
+                'shop_id' => isset($shop) ? $shop->id : 0,
                 'user_id' => $request->user()->id,
                 'count' => count($orders),
                 'sdate' => $sdate,
@@ -171,9 +188,9 @@ class PrescriptionController extends Controller
         $xx_num = 0;
         $xx_money = 0;
 
-        if ($sdate && $edate && $shop_id && (strtotime($edate) - strtotime($sdate)) < 86400 * 31) {
+        if ($sdate && $edate && (strtotime($edate) - strtotime($sdate)) < 86400 * 31) {
             $query = WmOrder::select('id', 'platform')
-                ->where('shop_id', $shop_id)
+                // ->where('shop_id', $shop_id)
                 ->where('is_prescription', 1)
                 ->where('ctime', '>=', strtotime($sdate))
                 ->where('ctime', '<', strtotime($edate) + 86400);
@@ -183,6 +200,11 @@ class PrescriptionController extends Controller
             }
             if ($platform) {
                 $query->where('platform', $platform);
+            }
+            if ($shop_id) {
+                $query->where('shop_id', $shop_id);
+            } else {
+                $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
             }
             $data = $query->get();
             if (!empty($data)) {
