@@ -371,7 +371,7 @@ class OrderController
                             Order::where("id", $pt_order->id)->update([
                                 'ps' => 8,
                                 'money' => $pt_order->money_zb,
-                                'profit' => 0.2,
+                                'profit' => 0,
                                 'status' => 50,
                                 'zb_status' => 50,
                                 'mt_status' => $pt_order->mt_status < 20 ?: 7,
@@ -445,6 +445,7 @@ class OrderController
                     $pt_order->courier_lng = $pt_order->receiver_lng;
                     $pt_order->courier_lat = $pt_order->receiver_lat;
                     $pt_order->pay_status = 1;
+                    $order->profit = $service_fee;
                     $order->service_fee = $service_fee;
                     $pt_order->pay_at = date("Y-m-d H:i:s");
                     $pt_order->save();
