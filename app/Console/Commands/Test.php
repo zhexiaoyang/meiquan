@@ -44,7 +44,7 @@ class Test extends Command
         if (!empty($orders)) {
             $minkang = app('minkang');
             foreach ($orders as $order) {
-                $res = $minkang->getOrderRefundDetail($order->order_id);
+                $res = $minkang->getOrderRefundDetail($order->order_id, false, $order->app_poi_code);
                 $refund_settle_amount = 0;
                 $refund_platform_charge_fee = 0;
                 if (!empty($res['data']) && is_array($res['data'])) {
