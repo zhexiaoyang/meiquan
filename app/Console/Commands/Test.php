@@ -42,7 +42,7 @@ class Test extends Command
         $orders = WmOrder::select('order_id','id','app_poi_code')->where('status', 18)->where('refund_fee', '>', 0)->where('from_type', 31)->where('created_at', '>', '2023-06-01')->get();
         $this->info(count($orders));
         if (!empty($orders)) {
-            $minkang = app('minkang');
+            $minkang = app('meiquan');
             foreach ($orders as $order) {
                 $res = $minkang->getOrderRefundDetail($order->order_id, false, $order->app_poi_code);
                 $refund_settle_amount = 0;
