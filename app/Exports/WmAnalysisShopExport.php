@@ -43,7 +43,8 @@ class WmAnalysisShopExport extends DefaultValueBinder implements  WithStrictNull
 
     public function query()
     {
-        $query = WmOrder::select('id','order_id','platform','wm_shop_name','poi_receive','vip_cost','running_fee','prescription_fee','status','created_at','finish_at','operate_service_fee')
+        $query = WmOrder::select('id','order_id','platform','wm_shop_name','poi_receive','vip_cost','running_fee','prescription_fee',
+            'status','created_at','finish_at','operate_service_fee','refund_settle_amount','refund_operate_service_fee')
             ->where('status', '<', 30)->where('created_at', '>=', $this->sdate)
             ->where('created_at', '<', date("Y-m-d", strtotime($this->edate) + 86400));
         if ($this->shop_id) {
