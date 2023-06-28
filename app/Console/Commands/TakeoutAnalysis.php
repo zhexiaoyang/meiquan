@@ -108,32 +108,32 @@ class TakeoutAnalysis extends Command
                             // $running_money = $v->logistics_fee * 100;
                         }
                         $sales_volume += $v->original_price * 100;
-                        $order_receipts += $v->poi_receive * 100;
+                        $order_receipts += ($v->poi_receive + $v->refund_settle_amount) * 100;
                         $product_cost += $v->vip_cost * 100;
                         $running_money_total += $running_money;
                         $prescription += $v->prescription_fee * 100;
-                        $profit += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100;
-                        $operate_service += $v->operate_service_fee * 100;
+                        $profit += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100 + $v->refund_operate_service_fee * 100 + $v->refund_settle_amount * 100;
+                        $operate_service += ($v->operate_service_fee + $v->refund_operate_service_fee) * 100;
                         if ($v->platform === 1) {
                             $order_total_number1++;
                             $order_effective_number1++;
                             $sales_volume1 += $v->original_price * 100;
-                            $order_receipts1 += $v->poi_receive * 100;
+                            $order_receipts1 += ($v->poi_receive + $v->refund_settle_amount) * 100;
                             $product_cost1 += $v->vip_cost * 100;
                             $running_money_total1 += $running_money;
                             $prescription1 += $v->prescription_fee * 100;
-                            $profit1 += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100;
-                            $operate_service1 += $v->operate_service_fee * 100;
+                            $profit1 += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100 + $v->refund_operate_service_fee * 100 + $v->refund_settle_amount * 100;
+                            $operate_service1 += ($v->operate_service_fee + $v->refund_operate_service_fee) * 100;
                         } elseif ($v->platform === 2) {
                             $order_total_number2++;
                             $order_effective_number2++;
                             $sales_volume2 += $v->original_price * 100;
-                            $order_receipts2 += $v->poi_receive * 100;
+                            $order_receipts2 += ($v->poi_receive + $v->refund_settle_amount) * 100;
                             $product_cost2 += $v->vip_cost * 100;
                             $running_money_total2 += $running_money;
                             $prescription2 += $v->prescription_fee * 100;
-                            $profit2 += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100;
-                            $operate_service2 += $v->operate_service_fee * 100;
+                            $profit2 += $v->poi_receive* 100 - $running_money - $v->vip_cost* 100 - $v->prescription_fee* 100 - $v->operate_service_fee * 100 + $v->refund_operate_service_fee * 100 + $v->refund_settle_amount * 100;
+                            $operate_service2 += ($v->operate_service_fee + $v->refund_operate_service_fee) * 100;
                         }
                     } else {
                         $order_cancel_number++;
