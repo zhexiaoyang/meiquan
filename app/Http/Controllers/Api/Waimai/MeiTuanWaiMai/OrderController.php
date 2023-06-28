@@ -118,6 +118,7 @@ class OrderController
                         'refund_fee' => $money,
                         'refund_settle_amount' => $refund_settle_amount,
                         'refund_platform_charge_fee' => $refund_platform_charge_fee,
+                        'refund_operate_service_fee' => $refund_settle_amount * $order->operate_service_rate / 100,
                         'refund_at' => date("Y-m-d H:i:s"),
                     ]);
                     $food_str = $request->get('food');
