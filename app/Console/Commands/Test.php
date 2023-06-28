@@ -39,7 +39,7 @@ class Test extends Command
     public function handle()
     {
         // 获取退款订单
-        $orders = WmOrder::select('order_id','id','app_poi_code')->where('status', 18)->where('refund_fee', '>', 0)->where('from_type', 31)->where('created_at', '>', '2023-06-01')->get();
+        $orders = WmOrder::select('order_id','id','app_poi_code','operate_service_rate')->where('status', 18)->where('refund_fee', '>', 0)->where('from_type', 31)->where('created_at', '>', '2023-06-01')->get();
         $this->info(count($orders));
         if (!empty($orders)) {
             $minkang = app('meiquan');
@@ -56,6 +56,7 @@ class Test extends Command
                     WmOrder::where('id', $order->id)->update([
                         'refund_settle_amount' => $refund_settle_amount,
                         'refund_platform_charge_fee' => $refund_platform_charge_fee,
+                        'refund_operate_service_fee' => $refund_settle_amount * $order->operate_service_rate / 100,
                     ]);
                     $this->info("{$order->order_id}更改成功,{$refund_settle_amount},{$refund_platform_charge_fee}");
                 } else {
