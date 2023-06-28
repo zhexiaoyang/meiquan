@@ -39,7 +39,7 @@ class Test extends Command
     public function handle()
     {
         // 获取退款订单
-        $orders = WmOrder::select('order_id','id')->where('status', 18)->where('refund_fee', '>', 0)->where('from_type', 31)->where('created_at', '>', '2023-06-01')->get();
+        $orders = WmOrder::select('order_id','id','app_poi_code')->where('status', 18)->where('refund_fee', '>', 0)->where('from_type', 31)->where('created_at', '>', '2023-06-01')->get();
         $this->info(count($orders));
         if (!empty($orders)) {
             $minkang = app('minkang');
