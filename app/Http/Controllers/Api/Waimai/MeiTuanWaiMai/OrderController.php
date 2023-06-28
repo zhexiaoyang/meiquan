@@ -116,8 +116,8 @@ class OrderController
                     WmOrder::where('id', $order->id)->update([
                         'refund_status' => 2,
                         'refund_fee' => $money,
-                        'settle_amount' => $refund_settle_amount,
-                        'platform_charge_fee' => $refund_platform_charge_fee,
+                        'refund_settle_amount' => $refund_settle_amount,
+                        'refund_platform_charge_fee' => $refund_platform_charge_fee,
                         'refund_at' => date("Y-m-d H:i:s"),
                     ]);
                     $food_str = $request->get('food');
