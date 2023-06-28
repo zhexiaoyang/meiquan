@@ -16,7 +16,8 @@ class WmOrder extends Model
         'estimate_arrival_time','pick_type','day_seq','logistics_code','is_favorites','is_poi_first_order',
         'is_pre_sale_order','is_prescription','send_at','finish_at','shipper_phone','is_vip','running_fee','prescription_fee',
         'cancel_reason','cancel_at','refund_fee','refund_status','vip_cost','user_id','print_number','rp_picture',
-        'running_service_type','running_service_fee','operate_service_rate','operate_service_fee'
+        'running_service_type','running_service_fee','operate_service_rate','operate_service_fee',
+        'refund_platform_charge_fee','refund_settle_amount'
     ];
 
     public function items()
