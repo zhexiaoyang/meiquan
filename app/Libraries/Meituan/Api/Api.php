@@ -909,6 +909,9 @@ class Api extends Request
      */
     public function retailCatList($params)
     {
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
         return $this->request_get('v1/retailCat/list', $params);
     }
     public function retailCatUpdate($params)
@@ -917,6 +920,9 @@ class Api extends Request
     }
     public function retailList($params)
     {
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
         return $this->request_get('v1/retail/list', $params);
     }
     public function retailGet($params)
