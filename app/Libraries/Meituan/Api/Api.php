@@ -764,7 +764,7 @@ class Api extends Request
      */
     public function medicineList(array $params, bool $token = false)
     {
-        if ($token) {
+        if ($this->appKey == 6167) {
             $params['access_token'] = $this->getShopToken($params['app_poi_code']);
         }
         return $this->request_get('v1/medicine/list', $params);
