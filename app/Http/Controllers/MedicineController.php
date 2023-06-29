@@ -436,15 +436,15 @@ class MedicineController extends Controller
             ]);
             $fail = 0;
             foreach ($medicine_list as $medicine) {
-                if ($medicine->mt_status === 1) {
-                    $fail++;
-                    MedicineSyncLogItem::create([
-                        'log_id' => $log->id,
-                        'name' => $medicine->name,
-                        'upc' => $medicine->upc,
-                        'msg' => '失败：已经通过过了，不能在同步',
-                    ]);
-                }
+                // if ($medicine->mt_status === 1) {
+                //     $fail++;
+                //     MedicineSyncLogItem::create([
+                //         'log_id' => $log->id,
+                //         'name' => $medicine->name,
+                //         'upc' => $medicine->upc,
+                //         'msg' => '失败：已经通过过了，不能在同步',
+                //     ]);
+                // }
                 if ($medicine->price <= 0) {
                     $fail++;
                     MedicineSyncLogItem::create([
@@ -463,9 +463,9 @@ class MedicineController extends Controller
                 }
             }
             foreach ($medicine_list as $medicine) {
-                if ($medicine->mt_status === 1) {
-                    continue;
-                }
+                // if ($medicine->mt_status === 1) {
+                //     continue;
+                // }
                 if ($medicine->price <= 0) {
                     continue;
                 }
@@ -489,7 +489,7 @@ class MedicineController extends Controller
                     $medicine_data['access_token'] = $meituan->getShopToken($shop->waimai_mt);
                 }
                 // MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop->toArray, $medicine->id, $medicine->name, $medicine->upc)
-                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc)
+                MedicineSyncMeiTuanItemJob::dispatch($log->id, $medicine_data, $shop->meituan_bind_platform, $shop, $medicine->id, $medicine->depot_id, $medicine->name, $medicine->upc, $medicine->mt_status === 1)
                 ->onQueue('medicine');
 
             }

@@ -26,13 +26,14 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
     public $depot_id;
     public $name;
     public $upc;
+    public $update;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(string $key, array $params, $api, Shop $shop, $medicine_id, $depot_id = 0, $name = '', $upc = '')
+    public function __construct(string $key, array $params, $api, Shop $shop, $medicine_id, $depot_id = 0, $name = '', $upc = '', $update = false)
     {
         // 日志ID
         $this->key = $key;
@@ -50,6 +51,8 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
         $this->name = $name;
         // 药品条码
         $this->upc = $upc;
+        // 是否更新操作
+        $this->update = $update;
     }
 
     /**
@@ -68,31 +71,68 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
             return;
         }
         try {
-            $this->log('创建药品参数', $this->params);
-            $res = $meituan->medicineSave($this->params);
-            $this->log('创建药品返回', [$res]);
-            if ($res['data'] === 'ok') {
-                if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
-                    // MedicineSyncLog::where('id', $this->key)->increment('success');
-                    $status = true;
-                }
-            } elseif ($res['data'] === 'ng') {
-                $error_msg = $res['error']['msg'] ?? '';
-                $error_msg = substr($error_msg, 0, 200);
-                if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
-                    $update_data = ['mt_status' => 1, 'online_mt' => 1];
-                    // 库存大于0 为上架状态
-                    // if ($this->params['stock'] > 0) {
-                    //     $update_data['online_mt'] = 1;
-                    // }
-                    if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
+            if ($this->update) {
+                $this->log('更新药品参数', $this->params);
+                // $update_params = [
+                //     'app_poi_code' => $this->params['app_poi_code'],
+                //     'app_medicine_code' => $this->params['app_medicine_code'],
+                //     'price' => $this->params['price'],
+                //     'stock' => $this->params['stock'],
+                // ];
+                $res = $meituan->medicineUpdate($this->params);
+                $this->log('更新药品返回', [$res]);
+                if ($res['data'] === 'ok') {
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
                         // MedicineSyncLog::where('id', $this->key)->increment('success');
                         $status = true;
                     }
-                } else {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
-                        // MedicineSyncLog::where('id', $this->key)->increment('fail');
-                        $status = false;
+                } elseif ($res['data'] === 'ng') {
+                    $error_msg = $res['error']['msg'] ?? '';
+                    $error_msg = substr($error_msg, 0, 200);
+                    // if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                    //     $update_data = ['mt_status' => 1, 'online_mt' => 1];
+                    //     // 库存大于0 为上架状态
+                    //     // if ($this->params['stock'] > 0) {
+                    //     //     $update_data['online_mt'] = 1;
+                    //     // }
+                    //     if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
+                    //         // MedicineSyncLog::where('id', $this->key)->increment('success');
+                    //         $status = true;
+                    //     }
+                    // } else {
+                        if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
+                            // MedicineSyncLog::where('id', $this->key)->increment('fail');
+                            $status = false;
+                        }
+                    // }
+                }
+            } else {
+                $this->log('创建药品参数', $this->params);
+                $res = $meituan->medicineSave($this->params);
+                $this->log('创建药品返回', [$res]);
+                if ($res['data'] === 'ok') {
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
+                        // MedicineSyncLog::where('id', $this->key)->increment('success');
+                        $status = true;
+                    }
+                } elseif ($res['data'] === 'ng') {
+                    $error_msg = $res['error']['msg'] ?? '';
+                    $error_msg = substr($error_msg, 0, 200);
+                    if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                        $update_data = ['mt_status' => 1, 'online_mt' => 1];
+                        // 库存大于0 为上架状态
+                        // if ($this->params['stock'] > 0) {
+                        //     $update_data['online_mt'] = 1;
+                        // }
+                        if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
+                            // MedicineSyncLog::where('id', $this->key)->increment('success');
+                            $status = true;
+                        }
+                    } else {
+                        if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
+                            // MedicineSyncLog::where('id', $this->key)->increment('fail');
+                            $status = false;
+                        }
                     }
                 }
             }
