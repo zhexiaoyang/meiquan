@@ -351,7 +351,13 @@ class Api extends Request
 
     public function getShopCats($shop_id)
     {
-        return $this->request_get('v1/medicineCat/list', ['app_poi_code' => $shop_id]);
+        $params = [
+            'app_poi_code' => $shop_id
+        ];
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
+        return $this->request_get('v1/medicineCat/list', $params);
     }
 
     public function deleteShopCats($params)
@@ -513,6 +519,9 @@ class Api extends Request
 
     public function getOrderDetail(array $params)
     {
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
         return $this->request_get('v1/order/getOrderDetail', $params);
     }
 
