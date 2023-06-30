@@ -302,6 +302,7 @@ class ShopController extends Controller
                 // }
                 // VIP\ERP
                 $tmp['is_vip'] = $shop->vip_status;
+                $tmp['vip_status_new'] = $shop->vip_status_new;
                 $tmp['is_erp'] = $shop->erp_status === 1;
                 // 门店建店人信息
                 // $tmp['running_money'] = $shop->user->money ?? 0;
