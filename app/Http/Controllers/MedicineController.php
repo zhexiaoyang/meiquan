@@ -1767,9 +1767,10 @@ class MedicineController extends Controller
                         ];
                         $medicine = Medicine::create($medicine_arr);
                         foreach ($category_list as $v) {
+                            $c_name = empty($v['secondary_category_name']) ? $v['category_name'] : $v['secondary_category_name'];
                             \DB::table('wm_medicine_category')->insert([
                                 'medicine_id' => $medicine->id,
-                                'category_id' => $category_map[$v['secondary_category_name'] ?: $v['category_name']]
+                                'category_id' => $category_map[$c_name]
                             ]);
                         }
                     } catch (\Exception $exception) {
