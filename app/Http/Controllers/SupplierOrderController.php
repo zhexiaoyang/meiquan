@@ -378,6 +378,7 @@ class SupplierOrderController extends Controller
         $order_info['product_fee'] = $order->product_fee;
         $order_info['frozen_fee'] = $order->frozen_fee;
         $order_info['pay_fee'] = $order->pay_fee;
+        $order_info['paid_at'] = $order->paid_at;
         $order_info['original_amount'] = $order->original_amount;
         $order_info['payment_method'] = $order->payment_method;
         $order_info['status'] = $order->status;
@@ -496,5 +497,20 @@ class SupplierOrderController extends Controller
         return $this->success($res);
     }
 
+    public function orderStatus(Request $request)
+    {
+        $user = Auth::user();
+        $no = $request->get("no", '');
+        $order = SupplierOrder::select("id", "no", "user_id", "status", "created_at")
+            ->where('pay_no', $no)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$order) {
+            return $this->success(['status' => '']);
+        }
+
+        return $this->success(['status' => $order->status, 'id' => $order->id]);
+    }
 
 }

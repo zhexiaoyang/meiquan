@@ -878,6 +878,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("cart/number", "SupplierCartController@number");
             // 地址
             Route::get("address", "SupplierAddressController@index");
+            // 支付订单-支付状态
+            Route::post("order/status", "SupplierOrderController@orderStatus");
             // 订单
             Route::resource("order", "SupplierOrderController");
             // 支付订单

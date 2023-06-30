@@ -39,7 +39,7 @@ class SupplierOrder extends Model
     ];
 
     protected $dates = [
-        'paid_at',
+        // 'paid_at',
     ];
 
     protected static function boot()
