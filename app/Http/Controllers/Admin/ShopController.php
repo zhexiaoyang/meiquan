@@ -209,6 +209,7 @@ class ShopController extends Controller
                 // $tmp['is_erp'] = $shop->erp ?? 0;
                 $tmp['is_erp'] = $shop->erp_status === 1;
                 $tmp['erp_status'] = $shop->erp_status;
+                $tmp['vip_status_new'] = $shop->vip_status_new;
                 // 赋值
                 $data[] = $tmp;
             }
@@ -581,6 +582,21 @@ class ShopController extends Controller
             $shop->erp_status = 1;
         } else {
             $shop->erp_status = 2;
+        }
+        $shop->save();
+
+        return $this->success();
+    }
+
+    public function vipStatus(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        if ($shop->vip_status_new != 1) {
+            $shop->vip_status_new = 1;
+        } else {
+            $shop->vip_status_new = 0;
         }
         $shop->save();
 

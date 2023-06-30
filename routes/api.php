@@ -585,6 +585,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("shop/all", "ShopController@all");
             // **门店管理-ERP状态切换
             Route::post("shop/erp/status", "ShopController@erpStatus");
+            // **门店管理-VIP状态切换
+            Route::post("shop/vip/status", "ShopController@vipStatus");
             // **门店管理-保存仓库设置
             Route::post("shop/warehouse", "ShopController@warehouse");
             // 修改跑腿订单加价
