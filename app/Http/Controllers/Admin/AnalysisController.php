@@ -312,7 +312,7 @@ class AnalysisController extends Controller
             return $this->error('查询范围不能超过31天');
         }
 
-        $shop_query = Shop::select('id', 'shop_name', 'vip_status')->where('user_id', '>', 0);
+        $shop_query = Shop::select('id', 'shop_name', 'vip_status_new')->where('user_id', '>', 0);
         // if ($shop_id = $request->get('shop_id', '0')) {
         //     $shop_query->where('id', $shop_id);
         // }
@@ -320,7 +320,7 @@ class AnalysisController extends Controller
             $shop_query->where('shop_name', 'like', "%{$name}%");
         }
         if ($request->get('vip')) {
-            $shop_query->where('vip_status', 1);
+            $shop_query->where('vip_status_new', 1);
         }
         $shops = $shop_query->orderBy('id')->paginate($request->get('page_size', 10));
         // return $shops;
