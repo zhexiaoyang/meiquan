@@ -63,6 +63,9 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 药品管理
          */
+        // 同步美团商品到中台
+        Route::post("medicine/sync/medicine/meituan", "MedicineController@fromMeituan");
+        Route::post("medicine/destroy", "MedicineController@destroy");
         // 药品门店列表
         Route::get("medicine/shops", "MedicineController@shops");
         // 删除药品

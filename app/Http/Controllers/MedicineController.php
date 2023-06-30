@@ -1625,4 +1625,162 @@ class MedicineController extends Controller
         $shop->save();
         return $this->success();
     }
+
+    /**
+     * 同步美团商品到中台
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/6/29 8:13 下午
+     */
+    public function fromMeituan(Request $request)
+    {
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($shop->id, $request->user()->shops()->pluck('id')->toArray())) {
+                return $this->error('门店不存在。');
+            }
+        }
+        if (!$shop->waimai_mt) {
+            return $this->error('门店未绑定美团');
+        }
+        if ($shop->meituan_bind_platform === 4) {
+            $mt = app('minkang');
+        } else if ($shop->meituan_bind_platform === 4) {
+            $mt = app('meiquan');
+        } else {
+            return $this->error('餐饮不支持此操作');
+        }
+        $category_res = $mt->retailCatList(['app_poi_code' => $shop->waimai_mt]);
+        // if ()
+        if (!is_array($category_res['data'])) {
+            return $this->error('获取商品失败');
+        }
+        if (empty($category_res['data'])) {
+            return $this->error('美团商品为空');
+        }
+        $category_map = [];
+        foreach ($category_res['data'] as $category) {
+            $c_p = MedicineCategory::firstOrCreate(
+                [
+                    'shop_id' => $shop->id,
+                    'name' => $category['name'],
+                ],
+                [
+                    'shop_id' => $shop->id,
+                    'pid' => 0,
+                    'name' => $category['name'],
+                    'sort' => $category['sequence'],
+                    'mt_id' => $category['code'],
+                ]
+            );
+            $category_map[$category['name']] = $c_p->id;
+            if (!empty($category['children'])) {
+                foreach ($category['children'] as $child) {
+                    $c = MedicineCategory::firstOrCreate(
+                        [
+                            'shop_id' => $shop->id,
+                            'name' => $child['name'],
+                        ],
+                        [
+                            'shop_id' => $shop->id,
+                            'pid' => $c_p->id,
+                            'name' => $child['name'],
+                            'sort' => $child['sequence'],
+                            'mt_id' => $child['code'],
+                        ]
+                    );
+                    $category_map[$child['name']] = $c->id;
+                }
+            }
+        }
+        for ($i = 0; $i < 50; $i++) {
+            $product_data = $mt->retailList([
+                'app_poi_code' => $shop->waimai_mt,
+                'offset' => $i * 200,
+                'limit' => 200,
+            ]);
+            $products = $product_data['data'] ?? [];
+            if (!empty($products)) {
+                // \Log::info("{$mtid}|获取数据：" . count($products));
+                foreach ($products as $product) {
+                    try {
+                        $category_list = json_decode($product['category_list'] ?? '', true);
+                        if (empty($category_list)) {
+                            if (!isset($category_map['暂未分类'])) {
+                                // 创建-暂未分类
+                                $c = MedicineCategory::firstOrCreate(
+                                    [
+                                        'shop_id' => $shop->id,
+                                        'name' => '暂未分类',
+                                    ],
+                                    [
+                                        'shop_id' => $shop->id,
+                                        'pid' => 0,
+                                        'name' => '暂未分类',
+                                        'sort' => 1000,
+                                    ]
+                                );;
+                                $category_map['暂未分类'] = $c->id;
+                            }
+                            $category_list[] = [
+                                'secondary_category_name' => '',
+                                'category_name' => '暂未分类',
+                            ];
+                        }
+                        $covers = explode(',', $product['picture']);
+                        $cover = $covers[0] ?? '';
+                        $skus = json_decode($product['skus'], true);
+                        if (!is_array($skus[0])) {
+                            continue;
+                        }
+                        $sku = $skus[0];
+                        if ($medicine = Medicine::where(['shop_id' => $shop->id, 'upc' => $sku['upc']])->first()) {
+                            // $medicine->cover = $cover;
+                            $medicine->price = $sku['price'];
+                            $medicine->stock = $sku['stock'];
+                            $medicine->sequence = $product['sequence'];
+                            $medicine->store_id = $product['app_spu_code'];
+                            $medicine->online_mt = $product['is_sold_out'] === 0 ? 1 : 0;
+                            $medicine->save();
+                            continue;
+                        }
+                        $medicine_arr = [
+                            'shop_id' => $shop->id,
+                            'name' => $product['name'],
+                            'upc' => $sku['upc'],
+                            'cover' => $cover,
+                            // 'brand' => $depot->brand,
+                            'spec' => $sku['spec'],
+                            'price' => $sku['price'],
+                            'stock' => $sku['stock'],
+                            'guidance_price' => 0,
+                            // 'depot_id' => $depot->id,
+                            'depot_id' => 0,
+                            'down_price' => 0,
+                            'sequence' => $product['sequence'],
+                            'store_id' => $product['app_spu_code'],
+                            'mt_status' => 1,
+                            'online_mt' => $product['is_sold_out'] === 0 ? 1 : 0
+                        ];
+                        $medicine = Medicine::create($medicine_arr);
+                        foreach ($category_list as $v) {
+                            \DB::table('wm_medicine_category')->insert([
+                                'medicine_id' => $medicine->id,
+                                'category_id' => $category_map[$v['secondary_category_name'] ?: $v['category_name']]
+                            ]);
+                        }
+                    } catch (\Exception $exception) {
+                        \Log::info("拉取美团商品出错：{$shop->id}", [$product, $exception->getMessage()]);
+                        continue;
+                    }
+                }
+            } else {
+                break;
+            }
+        }
+        return $this->success();
+    }
 }
