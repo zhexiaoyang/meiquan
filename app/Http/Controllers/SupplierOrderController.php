@@ -501,10 +501,19 @@ class SupplierOrderController extends Controller
     {
         $user = Auth::user();
         $no = $request->get("no", '');
-        $order = SupplierOrder::select("id", "no", "user_id", "status", "created_at")
-            ->where('pay_no', $no)
-            ->where('user_id', $user->id)
-            ->first();
+        $id = $request->get("id", 0);
+
+        if ($id) {
+            $order = SupplierOrder::select("id", "no", "user_id", "status", "created_at")
+                ->where('id', $id)
+                ->where('user_id', $user->id)
+                ->first();
+        } else {
+            $order = SupplierOrder::select("id", "no", "user_id", "status", "created_at")
+                ->where('pay_no', $no)
+                ->where('user_id', $user->id)
+                ->first();
+        }
 
         if (!$order) {
             return $this->success(['status' => '']);
