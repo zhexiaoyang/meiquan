@@ -50,7 +50,7 @@ class DaDaOrderController
         if ($status === 1) {
             return json_encode($res);
         }
-        if ($cancel_from === 2) {
+        if (intval($cancel_from) === 2) {
             $this->log_info('商家主动取消，不进行操作');
             return json_encode($res);
         }
