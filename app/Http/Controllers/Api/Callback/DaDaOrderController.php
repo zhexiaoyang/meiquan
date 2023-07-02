@@ -50,6 +50,10 @@ class DaDaOrderController
         if ($status === 1) {
             return json_encode($res);
         }
+        if ($cancel_from === 2) {
+            $this->log_info('商家主动取消，不进行操作');
+            return json_encode($res);
+        }
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
