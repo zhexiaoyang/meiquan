@@ -324,7 +324,16 @@ class AuthController extends Controller
                 $data['permissions'] = array_values($permissions);
             }
         }
-
+        // 查询是否有打印门店
+        if ($request->user()->account_shop_id) {
+            // 子账号
+            $user_id = $request->user()->id;
+            $shops = Shop::select('id','waimai_mt','waimai_ele')->where('account_id', $user_id)->where('print_auto', 1)->get();
+        } else {
+            $user_id = $request->user()->id;
+            $shops = Shop::select('id','waimai_mt','waimai_ele')->where('user_id', $user_id)->where('print_auto', 1)->where('account_id', 0)->get();
+        }
+        // 返回数据
         $user = [
             'id' => $request->user()->phone ?? '',
             'user_id' => $request->user()->id ?? '',
@@ -337,7 +346,8 @@ class AuthController extends Controller
             'operate_money' => $request->user()->operate_money ?? '',
             'created_at' => isset($request->user()->created_at) ? date("Y年m月d日", strtotime($request->user()->created_at)) : '',
             'role' => $data,
-            'user_im_mt' => UserWebIm::where('user_id', $request->user()->id)->exists()
+            'user_im_mt' => UserWebIm::where('user_id', $request->user()->id)->exists(),
+            'print_off' => $shops->count() > 0 ? 1 : 0
         ];
         return $this->success($user);
     }
