@@ -1648,7 +1648,7 @@ class MedicineController extends Controller
         }
         if ($shop->meituan_bind_platform === 4) {
             $mt = app('minkang');
-        } else if ($shop->meituan_bind_platform === 4) {
+        } else if ($shop->meituan_bind_platform === 31) {
             $mt = app('meiquan');
         } else {
             return $this->error('餐饮不支持此操作');
