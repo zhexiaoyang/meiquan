@@ -207,7 +207,7 @@ class EleOrderController extends Controller
     public function finishOrder($order_id)
     {
         $this->prefix = str_replace('###', "完成订单|订单号:{$order_id}", $this->prefix_title);
-        if ($order = WmOrder::where('order_id', $order_id)->first()) {
+        if ($order = WmOrder::select('id','status','is_prescription','is_vip','bill_date','finish_at')->where('order_id', $order_id)->first()) {
             if ($order->status < 18) {
                 $bill_date = date("Y-m-d");
                 // if (($order->ctime < strtotime($bill_date)) && (time() < strtotime(date("Y-m-d 09:00:00")))) {
@@ -225,7 +225,9 @@ class EleOrderController extends Controller
             } else {
                 $this->log_info("订单号：{$order_id}|操作失败|系统订单状态：{$order->status}");
             }
-            PrescriptionFeeDeductionJob::dispatch($order->id);
+            if ($order->is_prescription) {
+                PrescriptionFeeDeductionJob::dispatch($order->id);
+            }
         } else {
             $this->log_info("订单号：{$order_id}|外卖订单不存在");
         }
