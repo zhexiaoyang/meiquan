@@ -69,7 +69,7 @@ class MeiTuanMeiquanController extends Controller
 
             // 处理门店
             // 查询门店个数
-            $shops = Shop::query()->where("mtwm", $shop_id)->get();
+            $shops = Shop::where("mtwm", $shop_id)->get();
             if ($shop = $shops->first()) {
                 if ($shops->count() > 1) {
                     $this->ding_error("美团外卖ID，数量大于1");
