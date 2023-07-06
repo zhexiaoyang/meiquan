@@ -45,7 +45,7 @@ class OnlineController extends Controller
 
         $page_size = $request->get("page_size", 10);
 
-        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name","contact_phone")
+        $query = OnlineShop::select("id","name","status","address","reason","contact_name","contact_phone")
             ->where("user_id", $user->id);
 
         if ($name = $request->get("name")) {
@@ -61,7 +61,7 @@ class OnlineController extends Controller
     {
         $user = $request->user();
 
-        if (!$shop = OnlineShop::query()->find($request->get("id"))) {
+        if (!$shop = OnlineShop::find($request->get("id"))) {
             return $this->error("门店不存在");
         }
 
@@ -175,7 +175,7 @@ class OnlineController extends Controller
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
         // }
-        // if (!$manager = User::query()->find($manager_id)) {
+        // if (!$manager = User::find($manager_id)) {
         //     return $this->error("城市经理不存在");
         // }
         // $data["manager_id"] = $manager_id;
@@ -303,11 +303,11 @@ class OnlineController extends Controller
         }
         $data["ylqx_end_time"] = $ylqx_end_time;
 
-        if (!$shop = Shop::query()->where(['id' => $shop_id, 'own_id' => $user->id])->first()) {
+        if (!$shop = Shop::where(['id' => $shop_id, 'own_id' => $user->id])->first()) {
             return $this->error("选择门店不存在，稍后再试");
         }
         $data["manager_id"] = $shop->manager_id;
-        if ($manager = User::query()->find($shop->manager_id)) {
+        if ($manager = User::find($shop->manager_id)) {
             $data["manager_name"] = $manager->name;
             $data["manager_phone"] = $manager->phone;
         }
@@ -323,7 +323,7 @@ class OnlineController extends Controller
 
         \DB::beginTransaction();
         try {
-            OnlineShop::query()->create($data);
+            OnlineShop::create($data);
             $shop->material = 1;
             $shop->save();
             \DB::commit();
@@ -350,7 +350,7 @@ class OnlineController extends Controller
         $data["is_jddj"] = intval($request->get("is_jddj", 0));
         $data["is_btoc"] = intval($request->get("is_btoc", 0));
 
-        if (!$shop = OnlineShop::query()->where(['id' => $id, 'user_id' => $user->id])->first()) {
+        if (!$shop = OnlineShop::where(['id' => $id, 'user_id' => $user->id])->first()) {
             return $this->error("门店不存在");
         }
 
@@ -441,7 +441,7 @@ class OnlineController extends Controller
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
         // }
-        // if (!$manager = User::query()->find($manager_id)) {
+        // if (!$manager = User::find($manager_id)) {
         //     return $this->error("城市经理不存在");
         // }
         // $data["manager_id"] = $manager_id;
@@ -581,7 +581,7 @@ class OnlineController extends Controller
         $data['status'] = 10;
         $shop->update($data);
 
-        $p_shop = Shop::query()->find($shop->shop_id);
+        $p_shop = Shop::find($shop->shop_id);
         $p_shop->material = 1;
         $p_shop->save();
 
@@ -599,7 +599,7 @@ class OnlineController extends Controller
             return $this->error("状态错误");
         }
 
-        $query = OnlineShop::query()->select("id","name","status","address","reason","contact_name",
+        $query = OnlineShop::select("id","name","status","address","reason","contact_name",
             "contact_phone","is_meituan","is_ele","is_jddj","is_btoc");
 
         // 判断可以查询的药店
@@ -654,11 +654,11 @@ class OnlineController extends Controller
             return $this->error("驳回原因不能为空");
         }
 
-        if (!$onlineShop = OnlineShop::query()->find($request->get("id"))) {
+        if (!$onlineShop = OnlineShop::find($request->get("id"))) {
             return $this->error("资料不存在");
         }
 
-        $shop = Shop::query()->find($onlineShop->shop_id);
+        $shop = Shop::find($onlineShop->shop_id);
 
         if ($onlineShop->status > 10) {
             return $this->error("资料状态错误，不能审核");
@@ -706,7 +706,7 @@ class OnlineController extends Controller
                     // ]);
                     // $paotui->save();
 
-                    if (!$res = ShopAuthentication::query()->where(['shop_id' => $shop->id])->first() ) {
+                    if (!$res = ShopAuthentication::where(['shop_id' => $shop->id])->first() ) {
                         // 保存跑腿门店资质
                         $shop_auth = new ShopAuthentication([
                             'shop_id' => $onlineShop->shop_id,
