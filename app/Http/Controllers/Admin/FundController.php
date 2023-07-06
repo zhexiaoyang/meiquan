@@ -205,8 +205,8 @@ class FundController extends Controller
             ["completion_at", '<', $end_date],
         ];
 
-        $running_orders = Order::query()->select("id","money","profit")->where($where_running)->get();
-        $shopping_orders = SupplierOrder::query()->select("id","total_fee","mq_charge_fee","pay_charge_fee","payment_method")->where($where_shopping)->get();
+        $running_orders = Order::select("id","money","profit")->where($where_running)->get();
+        $shopping_orders = SupplierOrder::select("id","total_fee","mq_charge_fee","pay_charge_fee","payment_method")->where($where_shopping)->get();
 
         // 收入
         if (!empty($running_orders)) {
@@ -223,9 +223,9 @@ class FundController extends Controller
                 $total_income_shop += $shopping_order->total_fee;
             }
         }
-        $user_running = User::query()->sum("money");
-        $user_shopping = User::query()->sum("frozen_money");
-        $user_operate = User::query()->sum("operate_money");
+        $user_running = User::sum("money");
+        $user_shopping = User::sum("frozen_money");
+        $user_operate = User::sum("operate_money");
 
         // 支出
         if (!empty($running_orders)) {
