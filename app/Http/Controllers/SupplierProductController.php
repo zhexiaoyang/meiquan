@@ -31,12 +31,12 @@ class SupplierProductController extends Controller
         $price_order = intval($request->get("price_order", 1));
 
         // 判断是否有收货门店
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("没有认证的门店");
         }
 
         // 查询门店城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
         if (!isset($city_code->id)) {
             \Log::info("没有citycode", [
                 $request->user(),
@@ -44,7 +44,7 @@ class SupplierProductController extends Controller
             ]);
         }
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_meituan","is_ele","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::select("id","depot_id","user_id","price","sale_count","is_control","is_meituan","is_ele","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
@@ -141,14 +141,14 @@ class SupplierProductController extends Controller
         $second = intval($request->get("second", 0));
 
         // 判断是否有收货门店
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("没有认证的门店");
         }
 
         // 查询门店城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price","is_meituan","is_ele")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price","is_meituan","is_ele")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
@@ -237,8 +237,8 @@ class SupplierProductController extends Controller
         $city_price = null;
 
         if ($shop = Shop::find($shop_id)) {
-            if ($city_code = AddressCity::query()->where("code", $shop->citycode)->first()) {
-                $city_price = SupplierProductCityPriceItem::query()->where([
+            if ($city_code = AddressCity::where("code", $shop->citycode)->first()) {
+                $city_price = SupplierProductCityPriceItem::where([
                     "product_id" => $supplierProduct->id,
                     "city_code" => $city_code->id
                 ])->first();
