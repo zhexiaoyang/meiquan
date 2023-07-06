@@ -260,8 +260,12 @@ class ProductController extends Controller
                         }
                     }
                     if (isset($medicine_arr)) {
-                        $medicine = Medicine::create($medicine_arr);
-                        \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                        try {
+                            $medicine = Medicine::create($medicine_arr);
+                            \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
+                        } catch (\Exception $exception) {
+                            \Log::info("V2添加商品失败", [$exception->getMessage(), $exception->getLine(), $exception->getFile()]);
+                        }
                     }
                 }
             }
