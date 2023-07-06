@@ -23,7 +23,7 @@ class OnlineStatisticController extends Controller
             return $this->success($res);
         }
 
-        $query = OnlineShop::query()->select("status", DB::raw('count(status) as status_count'))->where("created_at", ">", $start_date)
+        $query = OnlineShop::select("status", DB::raw('count(status) as status_count'))->where("created_at", ">", $start_date)
             ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
         // 判断可以查询的药店
