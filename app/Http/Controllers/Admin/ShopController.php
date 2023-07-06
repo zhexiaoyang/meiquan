@@ -258,7 +258,7 @@ class ShopController extends Controller
 
         $print = $request->get('print', false);
 
-        if ($setting = OrderSetting::query()->where("shop_id", $shop_id)->first()) {
+        if ($setting = OrderSetting::where("shop_id", $shop_id)->first()) {
             $setting->warehouse = $warehouse;
             $setting->warehouse_print = (bool) $print;
             $setting->warehouse_time = $stime . '-' . $etime;
@@ -270,7 +270,7 @@ class ShopController extends Controller
             $data['warehouse_print'] =  (bool) $print;
             $data['warehouse_time'] = $stime . '-' . $etime;
             OrderSetting::create($data);
-            // OrderSetting::query()->create([
+            // OrderSetting::create([
             //     'shop_id' => $shop_id,
             //     // 延时发送订单，单位：秒
             //     'delay_send' => 60,
@@ -340,12 +340,12 @@ class ShopController extends Controller
         }
 
         if ($status == 1) {
-            if (!$shop = Shop::query()->find($apply->shop_id)) {
+            if (!$shop = Shop::find($apply->shop_id)) {
                 return $this->error('门店不存在');
             }
 
             if (($mtwm = $apply->mtwm) && !$shop->mtwm) {
-                if ($mtwm && ($_shop = Shop::query()->where('mtwm', $mtwm)->first())) {
+                if ($mtwm && ($_shop = Shop::where('mtwm', $mtwm)->first())) {
                     return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
                 }
                 $shop->mtwm = $mtwm;
@@ -366,7 +366,7 @@ class ShopController extends Controller
                 }
             }
             if (($ele = $apply->ele) && !$shop->ele) {
-                if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
+                if ($ele && ($_shop = Shop::where('ele', $ele)->first())) {
                     return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
                 }
                 $shop->ele = $ele;
@@ -403,7 +403,7 @@ class ShopController extends Controller
         }
         $shop_id = $request->get('id', 0);
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在');
         }
 
@@ -416,7 +416,7 @@ class ShopController extends Controller
         $jddj = $request->get('jddj');
 
         if (!is_null($mtwm)) {
-            if ($mtwm && ($_shop = Shop::query()->where('mtwm', $mtwm)->first())) {
+            if ($mtwm && ($_shop = Shop::where('mtwm', $mtwm)->first())) {
                 if ($_shop->id != $shop_id) {
                     return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
                 }
@@ -441,7 +441,7 @@ class ShopController extends Controller
             }
         }
         if (!is_null($ele)) {
-            if ($ele && ($_shop = Shop::query()->where('ele', $ele)->first())) {
+            if ($ele && ($_shop = Shop::where('ele', $ele)->first())) {
                 if ($_shop->id != $shop_id) {
                     return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
                 }
