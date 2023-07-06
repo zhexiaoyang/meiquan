@@ -24,7 +24,7 @@ class ShoppingStatisticController extends Controller
             return $this->success($res);
         }
 
-        $query = SupplierOrder::query()->select("status","receive_shop_id","total_fee","mq_charge_fee")
+        $query = SupplierOrder::select("status","receive_shop_id","total_fee","mq_charge_fee")
             ->where("status", '>=', 70)->where("created_at", ">", $start_date)
             ->where("created_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
         // 判断可以查询的药店
