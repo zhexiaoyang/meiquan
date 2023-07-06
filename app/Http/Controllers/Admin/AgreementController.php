@@ -10,7 +10,7 @@ class AgreementController extends Controller
 {
     public function index()
     {
-        $agreements = Agreement::query()->orderBy('sort')->get();
+        $agreements = Agreement::orderBy('sort')->get();
 
         return $this->success($agreements);
     }
@@ -32,7 +32,7 @@ class AgreementController extends Controller
         $data = $request->only('title','url','sort','status');
         $data['date'] = date("Y-m-d");
 
-        Agreement::query()->create($data);
+        Agreement::create($data);
 
         return $this->success();
     }
