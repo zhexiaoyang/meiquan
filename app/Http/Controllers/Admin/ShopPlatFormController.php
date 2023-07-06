@@ -20,7 +20,7 @@ class ShopPlatFormController extends Controller
         $page_size = intval($request->get("page_size", 10)) ?: 10;
         $name = trim($request->get("name", ""));
 
-        $query = Shop::query()->select("id","shop_name","ele_shop_id","mt_shop_id","shop_id","shop_id_fn",
+        $query = Shop::select("id","shop_name","ele_shop_id","mt_shop_id","shop_id","shop_id_fn",
             "shop_id_ss","shop_id_dd","shop_id_mqd","shop_id_uu","shop_id_sf");
 
         if ($name) {
@@ -44,7 +44,7 @@ class ShopPlatFormController extends Controller
         // 门店ID
         $shop_id = $request->get("shop_id", 0);
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("门店不存在");
         }
 
