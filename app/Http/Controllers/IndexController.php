@@ -42,7 +42,7 @@ class IndexController extends Controller
             $supplier_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         }
 
-        $supplier_new_orders = SupplierOrder::query()->select('receive_shop_id')->where('created_at', '>=', date("Y-m-01"))->get();
+        $supplier_new_orders = SupplierOrder::select('receive_shop_id')->where('created_at', '>=', date("Y-m-01"))->get();
         $old_ids = SupplierOrder::select('receive_shop_id')->where('created_at', '<', date("Y-m-01"))->pluck('receive_shop_id')->toArray();
         $supplier_new = 0;
         if (!empty($supplier_new_orders)) {
@@ -225,7 +225,7 @@ class IndexController extends Controller
         $end_date = date("Y-m-d", strtotime($end) + 86400);
         $result = [];
 
-        $users = User::query()->with(['commission', 'shops' => function ($query) {
+        $users = User::with(['commission', 'shops' => function ($query) {
             $query->select("id");
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
@@ -235,7 +235,7 @@ class IndexController extends Controller
         if (!empty($users)) {
             foreach ($users as $user) {
                 $shop_ids = empty($user->shops) ? [] : $user->shops->pluck("id");
-                $orders = Order::query()->select(DB::raw("SUM(money) as money_sum"),DB::raw("COUNT(id) as order_count"))
+                $orders = Order::select(DB::raw("SUM(money) as money_sum"),DB::raw("COUNT(id) as order_count"))
                     ->where("over_at", ">=", $start_date)->where("over_at", "<", $end_date)
                     ->whereIn('shop_id', $shop_ids)
                     ->where("status", 70)->first();
@@ -284,7 +284,7 @@ class IndexController extends Controller
         $end_date = date("Y-m-d", strtotime($end) + 86400);
         $result = [];
 
-        $users = User::query()->with(['shops' => function ($query) {
+        $users = User::with(['shops' => function ($query) {
             $query->select("id");
         }])->select("id","name","phone","nickname","status")
             ->whereHas('roles', function ($query) {
@@ -297,7 +297,7 @@ class IndexController extends Controller
                 $example = 0;
                 $return_back = 0;
                 $shop_ids = empty($user->shops) ? [] : $user->shops->pluck("id");
-                $onlines = OnlineShop::query()->select("id","status")
+                $onlines = OnlineShop::select("id","status")
                     ->where("created_at", ">=", $start_date)->where("created_at", "<", $end_date)
                     ->whereIn('shop_id', $shop_ids)->get();
                 if (!empty($onlines)) {
