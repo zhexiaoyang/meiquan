@@ -24,10 +24,10 @@ class RunningStatisticController extends Controller
             return $this->success($res);
         }
 
-        $query = Order::query()->select("id", "shop_id", "status", "money")
+        $query = Order::select("id", "shop_id", "status", "money")
             ->where("status", 70)->where("over_at", ">", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
-        $cancel_query = Order::query()->where("cancel_at", ">=", $start_date)->where("status", 99)
+        $cancel_query = Order::where("cancel_at", ">=", $start_date)->where("status", 99)
             ->where("cancel_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
         // 判断可以查询的药店
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
