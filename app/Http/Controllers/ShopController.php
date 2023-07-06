@@ -399,7 +399,7 @@ class ShopController extends Controller
      */
     public function shopAll(Request $request)
     {
-        $query = Shop::query()->select("id", "shop_name");
+        $query = Shop::select("id", "shop_name");
 
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
         // if (!$request->user()->hasRole('super_man')) {
@@ -448,7 +448,7 @@ class ShopController extends Controller
     // 返回用户下所有可发单的门店
     public function all(Request $request)
     {
-        $query = Shop::query()->select('id','shop_id','shop_name','contact_name','contact_phone','shop_address')
+        $query = Shop::select('id','shop_id','shop_name','contact_name','contact_phone','shop_address')
             ->where('status', 40);
 
         // if ($request->user()->hasRole('super_man')) {
@@ -583,7 +583,7 @@ class ShopController extends Controller
     {
         $resrange = [];
         if (!$shop->range) {
-            ShopRange::query()->create(['shop_id' => $shop->id, 'range' => '', 'range_fn' => '']);
+            ShopRange::create(['shop_id' => $shop->id, 'range' => '', 'range_fn' => '']);
         }
 
         $shop->load('range');
@@ -660,7 +660,7 @@ class ShopController extends Controller
      */
     public function rangeByShopId(Request $request)
     {
-        if (!$shop = Shop::query()->where('shop_id', $request->get('shop_id', 0))->first()) {
+        if (!$shop = Shop::where('shop_id', $request->get('shop_id', 0))->first()) {
             return $this->error('门店不存在');
         }
 
@@ -678,7 +678,7 @@ class ShopController extends Controller
                         unset($tmp);
                     }
                 }
-                ShopRange::query()->create(['shop_id' => $shop->id, 'range' => json_encode($scope)]);
+                ShopRange::create(['shop_id' => $shop->id, 'range' => json_encode($scope)]);
                 $shop->load('range');
             }
         }
@@ -804,7 +804,7 @@ class ShopController extends Controller
             return $this->error("参数错误");
         }
 
-        if (!$shop = Shop::query()->where(['id' => $shop_id, 'user_id' => $user->id])->first()) {
+        if (!$shop = Shop::where(['id' => $shop_id, 'user_id' => $user->id])->first()) {
             return $this->error("门店不存在");
         }
 
@@ -847,7 +847,7 @@ class ShopController extends Controller
      */
     public function bindingTakeout(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+        if (!$shop = Shop::find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
         }
 
@@ -904,7 +904,7 @@ class ShopController extends Controller
 
     public function bindingChufang(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+        if (!$shop = Shop::find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
         }
 
@@ -929,23 +929,23 @@ class ShopController extends Controller
         $mtwm = $request->get("mtwm", '');
         $ele = $request->get("ele", '');
 
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+        if (!$shop = Shop::find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
         }
 
         if ($mtwm) {
-            if ($_shop = Shop::query()->where('mt_shop_id', $mtwm)->first()) {
+            if ($_shop = Shop::where('mt_shop_id', $mtwm)->first()) {
                 return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
             }
-            if ($_shop = Shop::query()->where('auto_mtwm', $mtwm)->first()) {
+            if ($_shop = Shop::where('auto_mtwm', $mtwm)->first()) {
                 return $this->error("美团ID已存在：绑定门店名称[{$_shop->shop_name}]");
             }
         }
         if ($ele) {
-            if ($_shop = Shop::query()->where('ele_shop_id', $ele)->first()) {
+            if ($_shop = Shop::where('ele_shop_id', $ele)->first()) {
                 return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
             }
-            if ($_shop = Shop::query()->where('auto_ele', $ele)->first()) {
+            if ($_shop = Shop::where('auto_ele', $ele)->first()) {
                 return $this->error("饿了ID已存在：绑定门店名称[{$_shop->shop_name}]");
             }
         }
@@ -1017,7 +1017,7 @@ class ShopController extends Controller
      */
     public function closeAuto(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+        if (!$shop = Shop::find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
         }
 
@@ -1041,7 +1041,7 @@ class ShopController extends Controller
      */
     public function openAuto(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get("shop_id", 0))) {
+        if (!$shop = Shop::find($request->get("shop_id", 0))) {
             return $this->error("门店不存在");
         }
 
@@ -1145,7 +1145,7 @@ class ShopController extends Controller
     {
         $shop_id = $request->get('id', 0);
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error('门店不存在');
         }
 
