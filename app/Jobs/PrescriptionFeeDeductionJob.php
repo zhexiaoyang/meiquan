@@ -39,6 +39,9 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
         $this->log('开始');
         // 处方订单
         $order = DB::table('wm_orders')->find($this->order_id);
+        if (!$order->is_prescription) {
+            return $this->log("不是处方单{$order->order_id},{$order->id}");
+        }
         $shop = DB::table('shops')->find($order->shop_id);
         if (!$shop) {
             $this->log('门店不存在');
