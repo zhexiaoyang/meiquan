@@ -23,7 +23,7 @@ class SupplierShopController extends Controller
             return $this->error("供货商不存在");
         }
 
-        $shop->count = SupplierProduct::query()->where([
+        $shop->count = SupplierProduct::where([
             "user_id"=> $shop_id,
             "status"=> 20,
         ])->count();
@@ -39,19 +39,19 @@ class SupplierShopController extends Controller
         $search_key = $request->get("search_key", "");
         $sort = $request->get("sort", "default");
 
-        if (!$supplier_shop = SupplierUser::query()->find($supplier_id)) {
+        if (!$supplier_shop = SupplierUser::find($supplier_id)) {
             return $this->error("供货商不存在");
         }
 
         // 判断是否有收货门店
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("没有认证的门店");
         }
 
         // 查询门店城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
 
-        $query = SupplierProduct::query()->select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
+        $query = SupplierProduct::select("id","depot_id","user_id","price","sale_count","is_control","is_active","control_price")->whereHas("depot", function(Builder $query) use ($search_key) {
             if ($search_key) {
                 $query->where("name", "like", "%{$search_key}%");
             }
