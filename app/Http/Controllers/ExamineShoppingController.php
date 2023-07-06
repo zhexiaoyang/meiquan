@@ -78,11 +78,11 @@ class ExamineShoppingController extends Controller
             $reason = "";
         }
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("门店不存在");
         }
 
-        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
+        if (!$shop_auth = ShopAuthentication::where("shop_id", $shop->id)->first()) {
             return $this->error("门店未提交资质");
         }
         try {
@@ -172,7 +172,7 @@ class ExamineShoppingController extends Controller
             $reason = "";
         }
 
-        if (!$check_shop = ShopAuthenticationChange::query()->find($id)) {
+        if (!$check_shop = ShopAuthenticationChange::find($id)) {
             return $this->error("门店不存在");
         }
 
@@ -183,7 +183,7 @@ class ExamineShoppingController extends Controller
             return $this->success();
         }
 
-        $shop = ShopAuthentication::query()->where("shop_id", $check_shop->shop_id)->first();
+        $shop = ShopAuthentication::where("shop_id", $check_shop->shop_id)->first();
 
         \DB::beginTransaction();
         try {
