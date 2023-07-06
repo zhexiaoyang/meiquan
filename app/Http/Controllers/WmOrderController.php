@@ -38,7 +38,7 @@ class WmOrderController extends Controller
             }])->select('id', 'wm_id', 'courier_name', 'courier_phone', 'status');
         }, 'shop' => function ($query) {
             $query->select('id', 'shop_lng', 'shop_lat');
-        }])->select('id','platform','day_seq','is_prescription','order_id','delivery_time','estimate_arrival_time',
+        }])->select('id','platform','day_seq','shop_id','is_prescription','order_id','delivery_time','estimate_arrival_time',
             'status','recipient_name','recipient_phone','is_poi_first_order','way','recipient_address_detail','wm_shop_name',
             'ctime','caution','print_number','poi_receive','vip_cost','running_fee','prescription_fee');
 
