@@ -45,11 +45,11 @@ class ShoppingController extends Controller
     public function store(Request $request)
     {
         \Log::info("[商城认证-全部参数]：", $request->all());
-        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
+        if (!$shop = Shop::find($request->get("shop_id"))) {
             return $this->error("门店不存在");
         }
 
-        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
+        if (!$shop_auth = ShopAuthentication::where("shop_id", $shop->id)->first()) {
             $shop_auth = new ShopAuthentication();
         }
 
@@ -134,11 +134,11 @@ class ShoppingController extends Controller
      */
     public function update(Request $request)
     {
-        if (!$shop = Shop::query()->find($request->get("shop_id"))) {
+        if (!$shop = Shop::find($request->get("shop_id"))) {
             return $this->error("门店不存在");
         }
 
-        if (!$shop_auth = ShopAuthentication::query()->where("shop_id", $shop->id)->first()) {
+        if (!$shop_auth = ShopAuthentication::where("shop_id", $shop->id)->first()) {
             $shop_auth = new ShopAuthentication();
         }
 
@@ -311,10 +311,10 @@ class ShoppingController extends Controller
         $user = Auth::user();
 
         if ($user->account_shop_id) {
-            $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("id", $user->account_shop_id)
+            $shops = Shop::select("id", "shop_name", "shop_address")->where("id", $user->account_shop_id)
                 ->where("auth", 10)->get();
         } else {
-            $shops = Shop::query()->select("id", "shop_name", "shop_address")->where("own_id", $user->id)
+            $shops = Shop::select("id", "shop_name", "shop_address")->where("own_id", $user->id)
                 ->where("auth", 10)->get();
         }
 
