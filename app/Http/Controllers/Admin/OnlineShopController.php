@@ -80,7 +80,7 @@ class OnlineShopController extends Controller
         $user_id = \Auth::id();
         $shop_id = (int) $request->get('shop_id', 0);
 
-        if (!$shop = OnlineShop::query()->where(['shop_id' => $shop_id])->first()) {
+        if (!$shop = OnlineShop::where(['shop_id' => $shop_id])->first()) {
             return $this->error("门店不存在");
         }
 
@@ -183,7 +183,7 @@ class OnlineShopController extends Controller
         // if (!$manager_id = $request->get("manager_id")) {
         //     return $this->error("城市经理不能为空");
         // }
-        // if (!$manager = User::query()->find($manager_id)) {
+        // if (!$manager = User::find($manager_id)) {
         //     return $this->error("城市经理不存在");
         // }
         // $data["manager_id"] = $manager_id;
