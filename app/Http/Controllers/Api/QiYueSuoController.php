@@ -19,11 +19,11 @@ class QiYueSuoController extends Controller
         $status = intval($request->get("status", 0));
 
         if ($status === 1) {
-            if ($user = User::query()->where("applicant_id", $id)->first()) {
+            if ($user = User::where("applicant_id", $id)->first()) {
                 $user->contract = 1;
                 $user->save();
             }
-            // if ($shop = Shop::query()->where("applicant_id", $id)->first()) {
+            // if ($shop = Shop::where("applicant_id", $id)->first()) {
             //     $shop->contract = 1;
             //     $shop->save();
             // }
@@ -49,7 +49,7 @@ class QiYueSuoController extends Controller
             if (isset($result['contractId']) && isset($result['contractStatus']) && ($result['contractStatus'] === 'COMPLETE')) {
                 Log::info("[契约锁回调-合同状态回调]-合同状态：COMPLETE");
                 $contract_id = $result['contractId'];
-                if ($shop = ContractOrder::query()->where("three_contract_id", $contract_id)->first()) {
+                if ($shop = ContractOrder::where("three_contract_id", $contract_id)->first()) {
                     Log::info("[契约锁回调-合同状态回调]-合同状态，更改");
                     $shop->status = 1;
                     $shop->save();
@@ -67,7 +67,7 @@ class QiYueSuoController extends Controller
 
         if ($status == 1) {
             Log::info("[契约锁回调-门店认证状态回调]-状态为：1");
-            if ($shop = OnlineShop::query()->where("contract_auth_id", $id)->first()) {
+            if ($shop = OnlineShop::where("contract_auth_id", $id)->first()) {
                 Log::info("[契约锁回调-门店认证状态回调]-门店ID：{$shop->id}");
                 $shop->contract_auth = 2;
                 $shop->save();
