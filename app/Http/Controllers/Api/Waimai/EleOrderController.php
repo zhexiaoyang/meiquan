@@ -114,7 +114,7 @@ class EleOrderController extends Controller
     {
         $this->prefix = str_replace('###', "饿了么门店状态修改|ID:{$ele_id}|type:{$type}", $this->prefix_title);
         // 查询门店个数
-        $shops = Shop::query()->where("ele", $ele_id)->get();
+        $shops = Shop::where("ele", $ele_id)->get();
         if ($shop = $shops->first()) {
             if ($shops->count() > 1) {
                 $this->ding_error("饿了么门店状态修改|ID:{$ele_id}，数量大于1");
@@ -144,7 +144,7 @@ class EleOrderController extends Controller
         foreach ($shops as $shop) {
             $ele_id = $shop['baidu_shop_id'];
             // 查询门店个数
-            $shops = Shop::query()->where("ele", $ele_id)->get();
+            $shops = Shop::where("ele", $ele_id)->get();
             if ($shop = $shops->first()) {
                 if ($shops->count() > 1) {
                     $this->ding_error("饿了么绑定门店ID:{$ele_id}，数量大于1");
@@ -177,7 +177,7 @@ class EleOrderController extends Controller
         foreach ($shops as $shop) {
             $ele_id = $shop['baidu_shop_id'];
             // 查询门店个数
-            $shops = Shop::query()->where("ele", $ele_id)->get();
+            $shops = Shop::where("ele", $ele_id)->get();
             if ($shop = $shops->first()) {
                 if ($shops->count() > 1) {
                     $this->ding_error("饿了么解绑门店ID:{$ele_id}，数量大于1");
@@ -258,8 +258,8 @@ class EleOrderController extends Controller
         } else {
             $this->log_info("外卖订单不存在");
         }
-        if ($order = Order::query()->where("order_id", $order_id)->first()) {
-            // $order = Order::query()->where('order_id', $order_id)->first();
+        if ($order = Order::where("order_id", $order_id)->first()) {
+            // $order = Order::where('order_id', $order_id)->first();
             \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order_id}]-开始");
 
             if (!$order) {
@@ -299,7 +299,7 @@ class EleOrderController extends Controller
                                 }
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -309,7 +309,7 @@ class EleOrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -377,7 +377,7 @@ class EleOrderController extends Controller
                                 }
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -387,7 +387,7 @@ class EleOrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -459,7 +459,7 @@ class EleOrderController extends Controller
                                         }
                                     }
                                     $current_user = DB::table('users')->find($order->user_id);
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $order->money,
                                         "type" => 1,
@@ -468,7 +468,7 @@ class EleOrderController extends Controller
                                         "description" => "（饿了么）取消闪送跑腿订单：" . $order->order_id,
                                         "tid" => $order->id
                                     ]);
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -528,7 +528,7 @@ class EleOrderController extends Controller
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -594,7 +594,7 @@ class EleOrderController extends Controller
                                     }
                                     // 用户余额日志
                                     $current_user = DB::table('users')->find($order->user_id);
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $order->money,
                                         "type" => 1,
@@ -604,7 +604,7 @@ class EleOrderController extends Controller
                                         "tid" => $order->id
                                     ]);
                                     if ($jian_money > 0) {
-                                        UserMoneyBalance::query()->create([
+                                        UserMoneyBalance::create([
                                             "user_id" => $order->user_id,
                                             "money" => $jian_money,
                                             "type" => 2,
@@ -672,7 +672,7 @@ class EleOrderController extends Controller
                                 }
                                 // 当前用户
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -681,7 +681,7 @@ class EleOrderController extends Controller
                                     "description" => "（饿了么）取消UU跑腿订单：" . $order->order_id,
                                     "tid" => $order->id
                                 ]);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -739,7 +739,7 @@ class EleOrderController extends Controller
                                     \Log::info("[跑腿订单-饿了么接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
                                     // 当前用户
                                     $current_user = DB::table('users')->find($order->user_id);
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $order->money,
                                         "type" => 1,
@@ -749,7 +749,7 @@ class EleOrderController extends Controller
                                         "tid" => $order->id
                                     ]);
                                     if ($jian_money > 0) {
-                                        UserMoneyBalance::query()->create([
+                                        UserMoneyBalance::create([
                                             "user_id" => $order->user_id,
                                             "money" => $jian_money,
                                             "type" => 2,
