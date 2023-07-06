@@ -14,8 +14,8 @@ class ManagerProfitController extends Controller
             $query->select('id', 'shop_name');
         }])->select('id','shop_id','order_no','type','profit','return_type','return_value','description','created_at')
         ->where('user_id', $user_id);
-        $running = ManagerProfit::query()->where('type', 1)->where('user_id', $user_id);
-        $shopping = ManagerProfit::query()->where('type', 2)->where('user_id', $user_id);
+        $running = ManagerProfit::where('type', 1)->where('user_id', $user_id);
+        $shopping = ManagerProfit::where('type', 2)->where('user_id', $user_id);
 
         if ($type = $request->get("type", 1)) {
             $query->where('type', $type);
