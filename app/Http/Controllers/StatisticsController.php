@@ -71,7 +71,7 @@ class StatisticsController extends Controller
             $start += 86400;
         }
 
-        $query = Order::query()->select("id","shop_id","ps","money","over_at")->where("status", 70)
+        $query = Order::select("id","shop_id","ps","money","over_at")->where("status", 70)
             ->where("over_at", ">=", $start_date)
             ->where("over_at", "<", date("Y-m-d", strtotime($end_date) + 86400));
 
