@@ -103,12 +103,12 @@ class SupplierOrderController extends Controller
         \Log::info("[商城订单-创建订单]-[用户ID：{$user->id}]-全部参数", $request->all());
 
         // 判断是否有收货门店
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             \Log::info("[商城订单-创建订单]-没有认证的门店");
             return $this->error("没有认证的门店");
         }
         // 城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
 
         // 购物车商品
         $carts = SupplierCart::with(["product.depot" => function($query) {
@@ -132,7 +132,7 @@ class SupplierOrderController extends Controller
 
         if (!empty($data)) {
             foreach ($data as $shop_id => $v) {
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->find($shop_id)) {
+                if (!$supplier = SupplierUser::select("id", "name", "starting")->find($shop_id)) {
                     unset($data[$shop_id]);
                     continue;
                 }
@@ -259,9 +259,9 @@ class SupplierOrderController extends Controller
                 }
 
                 // 配送费计算
-                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
-                // if ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first()) {
-                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::where(['code' => $shop->citycode])->first())) {
+                // if ($shop_city_id = AddressCity::where(['code' => $shop->citycode])->first()) {
+                    if ($freight = SupplierFreightCity::where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
                         $first_weight = $freight->first_weight * 100;
                         $continuation_weight = $freight->continuation_weight * 100;
                         $weight1 = $freight->weight1 * 1;

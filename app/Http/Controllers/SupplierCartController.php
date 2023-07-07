@@ -20,12 +20,12 @@ class SupplierCartController extends Controller
         $user_id = $user->id;
         $shop_id = $user->shop_id;
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("没有认证的门店");
         }
 
         // 查询门店城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
         if (!isset($city_code->id)) {
             \Log::info("没有citycode", [
                 $request->user(),
@@ -57,7 +57,7 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
+                if (!$supplier = SupplierUser::select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
                     continue;
                 }
                 $starting = $supplier->starting;
@@ -116,20 +116,20 @@ class SupplierCartController extends Controller
         $user_frozen_money = $user->frozen_money ?? 0;
 
         // 判断是否有收货门店
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->error("没有认证的门店");
         }
         // 城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
 
         // 判断是否直接购买流程
         $product_id = $request->get("product_id", 0);
 
-        if ($product = SupplierProduct::query()->find($product_id)) {
+        if ($product = SupplierProduct::find($product_id)) {
 
-            SupplierCart::query()->where("user_id", $user_id)->update(['checked' => 0]);
+            SupplierCart::where("user_id", $user_id)->update(['checked' => 0]);
 
-            if ($cart = SupplierCart::query()->where(["user_id" => $user_id, 'product_id' => $product_id])->first()) {
+            if ($cart = SupplierCart::where(["user_id" => $user_id, 'product_id' => $product_id])->first()) {
                 $cart->checked = 1;
                 $cart->save();
             } else {
@@ -142,7 +142,7 @@ class SupplierCartController extends Controller
         }
 
         // if ($shop_id) {
-        //     if (!$shop = Shop::query()->where('own_id', $user_id)->find($shop_id)) {
+        //     if (!$shop = Shop::where('own_id', $user_id)->find($shop_id)) {
         //         return $this->error("收货门店不存在");
         //     }
         //
@@ -150,7 +150,7 @@ class SupplierCartController extends Controller
         //         return $this->error("收货门店未认证，不能下单");
         //     }
         // } else {
-        //     $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
+        //     $shop = Shop::where("user_id", $user_id)->orderBy("id", "asc")->first();
         // }
 
         // 返回数据
@@ -182,7 +182,7 @@ class SupplierCartController extends Controller
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
 
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
+                if (!$supplier = SupplierUser::select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
                     continue;
                 }
 
@@ -235,8 +235,8 @@ class SupplierCartController extends Controller
                 $frozen_money += $_frozen_money;
                 $total += $_total;
 
-                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
-                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::where(['code' => $shop->citycode])->first())) {
+                    if ($freight = SupplierFreightCity::where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
                         $first_weight = $freight->first_weight * 100;
                         $continuation_weight = $freight->continuation_weight * 100;
                         $weight1 = $freight->weight1 * 1;
@@ -276,7 +276,7 @@ class SupplierCartController extends Controller
         $address_id = $request->get("address_id");
 
         if ($address_id) {
-            if (!$shop = Shop::query()->where('own_id', $user_id)->find($address_id)) {
+            if (!$shop = Shop::where('own_id', $user_id)->find($address_id)) {
                 return $this->error("收货门店不存在");
             }
 
@@ -284,7 +284,7 @@ class SupplierCartController extends Controller
                 return $this->error("收货门店未认证，不能下单");
             }
         } else {
-            $shop = Shop::query()->where("user_id", $user_id)->orderBy("id", "asc")->first();
+            $shop = Shop::where("user_id", $user_id)->orderBy("id", "asc")->first();
         }
 
         $result = [];
@@ -330,11 +330,11 @@ class SupplierCartController extends Controller
                     }
                 }
 
-                // SupplierFreightCity::query()->where('')
+                // SupplierFreightCity::where('')
                 // $product_weight
 
-                if (($product_weight > 0) && ($shop_city_id = AddressCity::query()->where(['code' => $shop->citycode])->first())) {
-                    if ($freight = SupplierFreightCity::query()->where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
+                if (($product_weight > 0) && ($shop_city_id = AddressCity::where(['code' => $shop->citycode])->first())) {
+                    if ($freight = SupplierFreightCity::where(['user_id' => $shop_id, 'city_code' => $shop_city_id->id])->first()) {
                         $first_weight = $freight->first_weight;
                         $continuation_weight = $freight->continuation_weight;
                         $weight1 = $freight->weight1;
@@ -367,7 +367,7 @@ class SupplierCartController extends Controller
         $amount = $request->get('amount', 0);
         $user = $request->user();
 
-        if (!$product = SupplierProduct::query()->find($product_id)) {
+        if (!$product = SupplierProduct::find($product_id)) {
             return $this->error("商品不存在");
         }
 
@@ -386,7 +386,7 @@ class SupplierCartController extends Controller
 
     public function destroy(Request $request)
     {
-        if ($cart = SupplierCart::query()->where(['id' => $request->get("id", 0), "user_id" => Auth::id()])->first()) {
+        if ($cart = SupplierCart::where(['id' => $request->get("id", 0), "user_id" => Auth::id()])->first()) {
             $cart->delete();
         }
 
@@ -401,7 +401,7 @@ class SupplierCartController extends Controller
             return $this->error("数量错误");
         }
 
-        if (!$cart = SupplierCart::query()->find($request->get("id", 0))) {
+        if (!$cart = SupplierCart::find($request->get("id", 0))) {
             return $this->error("购物车无此商品");
         }
 
@@ -423,10 +423,10 @@ class SupplierCartController extends Controller
 
         if (isset($all) && $all === 1) {
             $user_id = Auth::id();
-            SupplierCart::query()->where("user_id", $user_id)->update(["checked" => 1]);
+            SupplierCart::where("user_id", $user_id)->update(["checked" => 1]);
 
         } else {
-            if (!$cart = SupplierCart::query()->find($request->get("id", 0))) {
+            if (!$cart = SupplierCart::find($request->get("id", 0))) {
                 return $this->error("购物车无此商品");
             }
 
@@ -453,12 +453,12 @@ class SupplierCartController extends Controller
         $shop_id = $user->shop_id;
         $number= 0;
 
-        if (!$shop = Shop::query()->find($shop_id)) {
+        if (!$shop = Shop::find($shop_id)) {
             return $this->success(['number' => $number]);
         }
 
         // 查询门店城市编码
-        $city_code = AddressCity::query()->where("code", $shop->citycode)->first();
+        $city_code = AddressCity::where("code", $shop->citycode)->first();
 
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
@@ -479,7 +479,7 @@ class SupplierCartController extends Controller
                 $shop_cart_data[$cart->product->user_id][] = $cart;
             }
             foreach ($shop_cart_data as $shop_id => $shop_cart) {
-                if (!$supplier = SupplierUser::query()->select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
+                if (!$supplier = SupplierUser::select("id", "name", "starting")->where("online", 1)->find($shop_id)) {
                     continue;
                 }
                 foreach ($shop_cart as $item) {

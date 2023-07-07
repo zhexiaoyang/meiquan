@@ -10,7 +10,7 @@ class SupplierCategoryController extends Controller
 {
     public function index(Request $request)
     {
-        $categories = SupplierCategory::query()->select("id","title")->where(
+        $categories = SupplierCategory::select("id","title")->where(
             [
                 "parent_id" => 0,
                 "status" => 1

@@ -16,7 +16,7 @@ class SupplierUserController extends Controller
 
     public function example(Request $request)
     {
-        if (!$supplier = SupplierUser::query()->find($request->get("supplier_id", 0))) {
+        if (!$supplier = SupplierUser::find($request->get("supplier_id", 0))) {
             return $this->error("供货商不存在");
         }
 
