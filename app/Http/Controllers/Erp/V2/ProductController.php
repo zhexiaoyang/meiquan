@@ -28,9 +28,9 @@ class ProductController extends Controller
             return $this->error("参数错误：timestamp必传", 701);
         }
 
-        if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
-            return $this->error("参数错误：timestamp有误", 701);
-        }
+        // if (($timestamp < time() - 300) || ($timestamp > time() + 300)) {
+        //     return $this->error("参数错误：timestamp有误", 701);
+        // }
 
         $data = $request->get("data");
 
