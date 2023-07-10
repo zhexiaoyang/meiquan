@@ -284,7 +284,7 @@ class ProductController extends Controller
         foreach ($params as $key => $item) {
             if (!empty($item)) {
                 if (is_array($item)) {
-                    $waitSign .= '&'.$key.'='.json_encode($item, JSON_UNESCAPED_UNICODE);
+                    $waitSign .= '&'.$key.'='.json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                 } else {
                     $waitSign .= '&'.$key.'='.$item;
                 }
