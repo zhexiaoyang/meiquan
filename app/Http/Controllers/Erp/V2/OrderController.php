@@ -34,11 +34,14 @@ class OrderController extends Controller
                 $params_mt = [
                     'order_id' => $order_id,
                 ];
-                $mt_res = $meituan->getOrderDetail($params_mt);
+                $mt_res = $meituan->getOrderDetail($params_mt, $shop->meituan_bind_platform === 31 ? $mt_id : '');
                 if (!empty($mt_res) && is_array($mt_res['data']) && !empty($mt_res['data'])) {
                     $mt_data = $mt_res['data'];
                     // 是否处方
-                    $order_tag_list = json_decode(urldecode($mt_data['order_tag_list']), true);
+                    $order_tag_list = $mt_data['order_tag_list'];
+                    if (!is_array($order_tag_list)) {
+                        $order_tag_list = json_decode(urldecode($mt_data['order_tag_list']), true);
+                    }
                     $is_prescription = 0;
                     if (in_array(8, $order_tag_list)) {
                         $is_prescription = 1;
