@@ -294,6 +294,7 @@ class ProductController extends Controller
         $waitSign = substr($waitSign, 1).$secret;
         // \Log::info("[ERP接口V2]-[校验方法]-签名字符串：{$waitSign}");
         // \Log::info("[ERP接口V2]-[校验方法]-md5字符串：".md5($waitSign));
+        \Log::info("VVV:{$waitSign}");
 
         return $signature === md5($waitSign);
     }
