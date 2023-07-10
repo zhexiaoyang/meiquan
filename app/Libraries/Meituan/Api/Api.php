@@ -517,10 +517,10 @@ class Api extends Request
         return $this->request_get('v1/poi/mget', $params);
     }
 
-    public function getOrderDetail(array $params)
+    public function getOrderDetail(array $params, $app_poi_code = '')
     {
         if ($this->appKey == 6167) {
-            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+            $params['access_token'] = $this->getShopToken($app_poi_code);
         }
         return $this->request_get('v1/order/getOrderDetail', $params);
     }
