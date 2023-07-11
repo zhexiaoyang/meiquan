@@ -71,7 +71,7 @@ class ProductController extends Controller
         if (!$key_shop = ErpAccessShop::where(['shop_id' => $shop->id, 'access_id' => $access->id])->first()) {
             return $this->error("门店不存在", 701);
         }
-        \Log::info("ERPV2全部参数门店ID{$shop->id}", $request->all());
+        // \Log::info("ERPV2全部参数门店ID{$shop->id}", $request->all());
 
 
         // 组合参数
@@ -264,7 +264,7 @@ class ProductController extends Controller
                             $medicine = Medicine::create($medicine_arr);
                             \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $c->id]);
                         } catch (\Exception $exception) {
-                            \Log::info("V2添加商品失败", [$exception->getMessage(), $exception->getLine(), $exception->getFile()]);
+                            // \Log::info("V2添加商品失败", [$exception->getMessage(), $exception->getLine(), $exception->getFile()]);
                         }
                     }
                 }
@@ -294,9 +294,9 @@ class ProductController extends Controller
         $waitSign = substr($waitSign, 1).$secret;
         // \Log::info("[ERP接口V2]-[校验方法]-签名字符串：{$waitSign}");
         // \Log::info("[ERP接口V2]-[校验方法]-md5字符串：".md5($waitSign));
-        if ($signature === '2c5e411e0cc42c1bade6e5851c05cc43') {
-            \Log::info("WWWWWW:{$waitSign}");
-        }
+        // if ($signature === '2c5e411e0cc42c1bade6e5851c05cc43') {
+        //     \Log::info("WWWWWW:{$waitSign}");
+        // }
 
         return $signature === md5($waitSign);
     }
