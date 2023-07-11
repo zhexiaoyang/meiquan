@@ -142,7 +142,7 @@ class EleOrderController extends Controller
     {
         $this->prefix = str_replace('###', "门店绑定", $this->prefix_title);
         foreach ($shops as $shop) {
-            $ele_id = $shop['baidu_shop_id'];
+            $ele_id = $shop['shop_id'];
             // 查询门店个数
             $shops = Shop::where("ele", $ele_id)->get();
             if ($shop = $shops->first()) {
