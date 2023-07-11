@@ -345,12 +345,16 @@ class MedicineController extends Controller
                         'left_num' => $medicine->stock,
                         'category_list' => $medicine_category,
                         // 'sequence' => $medicine->sequence,
-                        'status' => 1,
+                        'status' => $medicine->online_ele,
                         'base_rec_enable' => true,
                         'photo_rec_enable' => true,
                         'summary_rec_enable' => true,
                         'cat_prop_rec_enable' => true,
                     ];
+                    if ($medicine->mt_status === 1 && $medicine->online_mt !== $medicine->online_ele) {
+                        $medicine_data['status'] = $medicine->online_mt;
+                        Medicine::where('id', $medicine->id)->update(['online_ele' => $medicine->online_mt]);
+                    }
                     MedicineSyncEleItemJob::dispatch(
                         $log->id,
                         $medicine_data,
