@@ -493,7 +493,7 @@ class DaDaController extends Controller
         return json_encode($res);
     }
 
-    public function message(Request $request)
+    public function dadaMessage(Request $request)
     {
         $messageType = $request->get('messageType', 0);
         $messageBody = $request->get('messageBody');

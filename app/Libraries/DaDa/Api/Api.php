@@ -181,4 +181,14 @@ class Api extends Request
     {
         return $this->post('/api/shop/detail', ['origin_shop_id' => $shop_id]);
     }
+
+
+    public function refuseMessage($order_id)
+    {
+        $data = [
+            'orderId' => $order_id,
+            'isConfirm' => 0,
+        ];
+        return $this->post('/api/message/confirm', $data);
+    }
 }
