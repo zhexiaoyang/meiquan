@@ -166,6 +166,7 @@ Route::middleware(['force-json'])->prefix('mqd')->namespace('Api')->group(functi
  */
 Route::middleware(['force-json'])->prefix('dada')->namespace('Api')->group(function () {
     Route::post('order', "DaDaController@order_status");
+    Route::post('message', "DaDaController@message");
 });
 
 /**

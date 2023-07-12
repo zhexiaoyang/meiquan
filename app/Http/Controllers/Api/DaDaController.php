@@ -492,4 +492,23 @@ class DaDaController extends Controller
         }
         return json_encode($res);
     }
+
+    public function message(Request $request)
+    {
+        $messageType = $request->get('messageType', 0);
+        $messageBody = $request->get('messageBody');
+        $data = [];
+        if ($messageBody) {
+            $data = json_decode($messageBody, true);
+        }
+        if (!empty($data)) {
+            if ($messageType == 1) {
+                Log::info('聚合达达消息通知-全部参数', $request->all());
+                $dada = app('dada');
+                $res = $dada->refuseMessage($dada['orderId']);
+                Log::info('聚合达达消息通知-拒绝返回', [$res]);
+            }
+        }
+        return $this->success(['status' => 'ok']);
+    }
 }
