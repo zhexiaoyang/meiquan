@@ -505,7 +505,7 @@ class DaDaController extends Controller
             if ($messageType == 1) {
                 Log::info('聚合达达消息通知-全部参数', $request->all());
                 $dada = app('dada');
-                $res = $dada->refuseMessage($dada['orderId']);
+                $res = $dada->refuseMessage($data['orderId']);
                 Log::info('聚合达达消息通知-拒绝返回', [$res]);
             }
         }
