@@ -509,6 +509,6 @@ class DaDaController extends Controller
                 Log::info('聚合达达消息通知-拒绝返回', [$res]);
             }
         }
-        return $this->success(['status' => 'ok']);
+        return json_encode(['status' => 'ok']);
     }
 }
