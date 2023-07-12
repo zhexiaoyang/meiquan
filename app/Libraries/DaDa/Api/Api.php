@@ -189,6 +189,6 @@ class Api extends Request
             'orderId' => $order_id,
             'isConfirm' => 0,
         ];
-        return $this->post('/api/message/confirm', $data);
+        return $this->post('/api/message/confirm', ['messageType' => 1, 'messageBody' => json_encode($data)]);
     }
 }
