@@ -99,7 +99,19 @@ class TakeoutAnalysis extends Command
                         if (isset($v->running->money) && $v->running->money > 0) {
                             if ($v->running->status === 70) {
                                 $running_money = $v->running->money * 100;
-                                if ($v->running->shipper_type_ss || $v->running->shipper_type_sf || $v->running->shipper_type_dd || $v->running->shipper_type_zb) {
+                                if ($v->running->ps == 3 && $v->running->shipper_type_ss) {
+                                    // 自有运力
+                                    $running_money += 10;
+                                }
+                                if ($v->running->ps == 7 && $v->running->shipper_type_sf) {
+                                    // 自有运力
+                                    $running_money += 10;
+                                }
+                                if ($v->running->ps == 5 && $v->running->shipper_type_dd) {
+                                    // 自有运力
+                                    $running_money += 10;
+                                }
+                                if ($v->running->ps == 8 && $v->running->shipper_type_zb) {
                                     // 自有运力
                                     $running_money += 10;
                                 }
