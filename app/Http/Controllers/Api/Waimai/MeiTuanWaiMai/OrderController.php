@@ -458,8 +458,8 @@ class OrderController
                     $pt_order->courier_lng = $pt_order->receiver_lng;
                     $pt_order->courier_lat = $pt_order->receiver_lat;
                     $pt_order->pay_status = 1;
-                    $order->profit = $service_fee;
-                    $order->service_fee = $service_fee;
+                    $pt_order->profit = $service_fee;
+                    $pt_order->service_fee = $service_fee;
                     $pt_order->pay_at = date("Y-m-d H:i:s");
                     $pt_order->save();
                     // 记录订单日志
@@ -487,6 +487,7 @@ class OrderController
                         "tid" => $pt_order->id
                     ]);
                     $this->log_info('配送完成，扣款成功');
+                    WmOrder::where('id', $order->id)->update(['running_fee' => $pt_order->money, 'running_service_fee' => $service_fee]);
                 } elseif ($status === 100) {
                     // 配送单已取消
                     try {
