@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
+use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
@@ -34,6 +35,12 @@ class DaDaController extends Controller
         // 订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10, 骑士到店=100,
         // 创建达达运单失败=1000 可参考文末的状态说明）
         $status = $data['order_status'] ?? '';
+        // 重复回传状态原因
+        $repeat_reason_type = $data['repeat_reason_type'] ?? 0;
+        if ($repeat_reason_type) {
+            $ding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
+            $ding->sendTextMsg("{$order_id}:重复回传状态原因:{$repeat_reason_type}");
+        }
         // 配送员姓名
         $name = $data['dm_name'] ?? '';
         // 配送员手机号
