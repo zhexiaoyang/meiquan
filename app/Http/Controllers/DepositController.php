@@ -231,8 +231,6 @@ class DepositController extends Controller
 
         // 判断是否授权过了
         if (!$auth) {
-            // wxbcf370d8f3e9f07f
-            // 18f04fe76c83464cc5a0c662107a78e2
             $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat.miniapp_id') . "&secret=18f04fe76c83464cc5a0c662107a78e2&js_code={$code}&grant_type=authorization_code";
             $auth_json = file_get_contents($url);
             $auth = json_decode($auth_json, true);
