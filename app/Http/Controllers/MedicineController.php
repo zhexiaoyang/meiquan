@@ -27,7 +27,7 @@ class MedicineController extends Controller
 {
     public function shops(Request $request)
     {
-        $query = Shop::select('id', 'shop_name', 'erp_status')->where('second_category', 200001)->where('status', '>=', 0);
+        $query = Shop::select('id', 'shop_name', 'erp_status')->where('second_category', 200001)->where('user_id', '>', 0)->where('status', '>=', 0);
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
             $query->whereIn('id', $request->user()->shops()->pluck('id')->toArray());
