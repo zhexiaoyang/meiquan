@@ -91,7 +91,7 @@ class DepositController extends Controller
                 return $this->error('微信未授权，无法使用支付');
             }
 
-            $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=wxd0ea0008a2364d9f&secret=58beb50cbf852451d317d75b5c1f266e&code={$code}&grant_type=authorization_code";
+            $url = "https://api.weixin.qq.com/sns/oauth2/access_token?appid=" . config('pay.wechat_supplier.app_id') . "&secret=58beb50cbf852451d317d75b5c1f266e&code={$code}&grant_type=authorization_code";
 
             $auth_json = file_get_contents($url);
 
@@ -159,7 +159,7 @@ class DepositController extends Controller
 
         // 判断是否授权过了
         if (!$auth) {
-            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=wxeb5269cc785be36a&secret=386b2178ed640318807cca45e013659f&js_code={$code}&grant_type=authorization_code";
+            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat_supplier.miniapp_id') . "&secret=386b2178ed640318807cca45e013659f&js_code={$code}&grant_type=authorization_code";
             $auth_json = file_get_contents($url);
             $auth = json_decode($auth_json, true);
             // Log::info($prefix . "openid不存在，微信未授权，无法使用支付", [$auth]);
@@ -233,7 +233,7 @@ class DepositController extends Controller
         if (!$auth) {
             // wxbcf370d8f3e9f07f
             // 18f04fe76c83464cc5a0c662107a78e2
-            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=wxbcf370d8f3e9f07f&secret=18f04fe76c83464cc5a0c662107a78e2&js_code={$code}&grant_type=authorization_code";
+            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat.miniapp_id') . "&secret=18f04fe76c83464cc5a0c662107a78e2&js_code={$code}&grant_type=authorization_code";
             $auth_json = file_get_contents($url);
             $auth = json_decode($auth_json, true);
             // Log::info($prefix . "openid不存在，微信未授权，无法使用支付", [$auth]);
