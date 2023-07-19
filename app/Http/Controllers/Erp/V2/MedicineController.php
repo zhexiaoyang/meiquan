@@ -192,12 +192,14 @@ class MedicineController extends Controller
                 'cover' => $depot->cover,
                 'brand' => $depot->brand,
                 'spec' => $depot->spec,
-                'price' => 0,
-                'down_price' => $price,
+                'price' => $price,
                 'stock' => $stock,
                 'guidance_price' => $cost,
                 'depot_id' => $depot->id,
                 'store_id' => $store_code,
+                'sequence' => $sequence,
+                'online_mt' => $status == 1 ? 1 : 0,
+                'online_ele' => $status == 1 ? 1 : 0,
             ];
         } else {
             $l = strlen($upc);
@@ -214,12 +216,14 @@ class MedicineController extends Controller
                 'upc' => $upc,
                 'brand' => '',
                 'spec' => '',
-                'price' => 0,
-                'down_price' => $price,
+                'price' => $price,
                 'stock' => $stock,
                 'guidance_price' => $cost,
                 'depot_id' => $_depot->id ?? 0,
                 'store_id' => $store_code,
+                'sequence' => $sequence,
+                'online_mt' => $status == 1 ? 1 : 0,
+                'online_ele' => $status == 1 ? 1 : 0,
             ];
         }
         $medicine = Medicine::updateOrCreate(['shop_id' => $shop->id, 'upc' => $upc], $medicine_arr);
@@ -358,8 +362,34 @@ class MedicineController extends Controller
         }
         $mtCode = 701;
         $eleCode = 701;
-        $mtMsg = '美团更新商品成功';
-        $eleMsg = '饿了么更新商品成功';
+        $mtMsg = '美团未更新';
+        $eleMsg = '饿了么未更新';
+        $shop = null;
+        if ($mt_id) {
+            $shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt', 'waimai_ele')->where('waimai_mt', $mt_id)->first();
+            if ($ele_id) {
+                if ($shop->waimai_ele != $ele_id) {
+                    return $this->error('美团ID和饿了么ID未绑定在一个门店。');
+                }
+            }
+        }
+        if ($ele_id && !$mt_id) {
+            $shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt', 'waimai_ele')->where('waimai_ele', $ele_id)->first();
+        }
+        if ($shop === null) {
+            return $this->error('美团ID和饿了么ID不正确。');
+        }
+        if (!$medicine = Medicine::where('shop_id', $shop->id)->where('store_id', $store_code)->first()) {
+            return $this->error('商品不存在，请先添加商品');
+        }
+        Medicine::where('id', $medicine->id)->update([
+            'price' => $price,
+            'stock' => $stock,
+            'online_mt' => $status == 1 ? 1 : 0,
+            'online_ele' => $status == 1 ? 1 : 0,
+            'sequence' => $sequence
+        ]);
+
         if ($mt_id) {
             if ($shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt')->where('waimai_mt', $mt_id)->first()) {
                 $meituan = null;
@@ -383,7 +413,7 @@ class MedicineController extends Controller
                     $mt_res = $meituan->medicineUpdate($params_mt);
                     if ($mt_res['data'] === 'ok') {
                         $mtCode = 0;
-                        $mtMsg = '美团成功';
+                        $mtMsg = '美团更新商品成功';
                     } else {
                         $mtCode = 702;
                         $mtMsg = $create_log['error']['msg'] ?? '美团失败';
@@ -409,7 +439,7 @@ class MedicineController extends Controller
             $res = $ele->skuUpdate($params_ele);
             if ($res['body']['error'] === 'success') {
                 $eleCode = 0;
-                $eleMsg = '饿了么成功';
+                $eleMsg = '饿了么更新商品成功';
             } else {
                 $eleCode = 702;
                 $eleMsg = $res['body']['error'] ?? '';
