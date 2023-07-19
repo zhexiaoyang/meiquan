@@ -392,7 +392,7 @@ class MedicineController extends Controller
             'online_mt' => $status == 1 ? 1 : 0,
             'online_ele' => $status == 1 ? 1 : 0,
             'sequence' => $sequence,
-            'cost' => $cost
+            'guidance_price' => $cost
         ]);
 
         if ($mt_id) {
