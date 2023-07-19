@@ -65,8 +65,10 @@ class DaDaOrderController
         if ($order = Order::where('order_id', $order_id)->first()) {
             // 重复回传状态原因-重新分配骑士:取消订单
             if ($repeat_reason_type == 1) {
-                $dd = app("dada");
-                $result = $dd->orderCancel($order->order_id);
+                $config = config('ps.dada');
+                $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
+                $dada_app = new DaDaService($config);
+                $result = $dada_app->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
                     // 重复回传状态原因-重新分配骑士:取消订单成功
                     $this->ding_error("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}|取消达达订单成功");
