@@ -244,7 +244,7 @@ class MedicineController extends Controller
                         'price' => $price,
                         'stock' => $stock,
                         'category_name' => implode(',', $category_create_result['mt']),
-                        'is_sold_out' => 0,
+                        'is_sold_out' => $status == 1 ? 0 : 1,
                         'sequence' => $sequence
                     ];
                     if ($shop->meituan_bind_platform === 31) {
@@ -255,7 +255,7 @@ class MedicineController extends Controller
                         $mtCode = 0;
                         $mtMsg = '美团新增商品成功';
                         $update['mt_status'] = 1;
-                        $update['online_mt'] = 1;
+                        $update['online_mt'] = $status == 1 ? 1 : 0;
                     } else {
                         $mtCode = 702;
                         $mtMsg = $mt_res['error']['msg'] ?? '美团失败';
@@ -263,7 +263,7 @@ class MedicineController extends Controller
                             $mtCode = 0;
                             $mtMsg = '美团新增商品成功';
                             $update['mt_status'] = 1;
-                            $update['online_mt'] = 1;
+                            $update['online_mt'] = $status == 1 ? 1 : 0;
                         }
                     }
                 }
@@ -282,7 +282,7 @@ class MedicineController extends Controller
                     'sale_price' => (int) ($price * 100),
                     'left_num' => $stock,
                     'category_name' => $category_create_result['ele'],
-                    'status' => 1,
+                    'is_sold_out' => $status == 1 ? 1 : 0,
                     'base_rec_enable' => true,
                     'photo_rec_enable' => true,
                     'summary_rec_enable' => true,
@@ -293,7 +293,7 @@ class MedicineController extends Controller
                     $eleCode = 0;
                     $eleMsg = '饿了么新增商品成功';
                     $update['ele_status'] = 1;
-                    $update['online_ele'] = 1;
+                    $update['online_ele'] = $status == 1 ? 1 : 0;
                 } else {
                     $eleCode = 702;
                     $eleMsg = $res['body']['error'] ?? '';
@@ -341,6 +341,7 @@ class MedicineController extends Controller
             return $this->error('商品库存格式不正确。');
         }
         if (!$status = $request->get('status')) {
+            // 上下架状态（1 上架，2 下架）
             return $this->error('商品状态不能为空');
         }
         if (!in_array($status, [1, 2])) {
@@ -373,7 +374,7 @@ class MedicineController extends Controller
                         'app_medicine_code' => $store_code,
                         'price' => $price,
                         'stock' => $stock,
-                        'is_sold_out' => 0,
+                        'is_sold_out' => $status == 1 ? 0 : 1,
                         'sequence' => $sequence
                     ];
                     if ($shop->meituan_bind_platform === 31) {
@@ -399,7 +400,7 @@ class MedicineController extends Controller
                 'custom_sku_id' => $store_code,
                 'sale_price' => (int) ($price * 100),
                 'left_num' => $stock,
-                'status' => 1,
+                'status' => $status == 1 ? 1 : 0,
                 'base_rec_enable' => true,
                 'photo_rec_enable' => true,
                 'summary_rec_enable' => true,
