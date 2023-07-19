@@ -226,7 +226,7 @@ class MedicineController extends Controller
                 'online_ele' => $status == 1 ? 1 : 0,
             ];
         }
-        $medicine = Medicine::updateOrCreate(['shop_id' => $shop->id, 'upc' => $upc], $medicine_arr);
+        $medicine = Medicine::firstOrCreate(['shop_id' => $shop->id, 'upc' => $upc], $medicine_arr);
         $category_create_result = $this->createCategory($shop, $medicine, (bool) $mt_id, (bool) $ele_id);
         $update = [];
 
@@ -386,7 +386,7 @@ class MedicineController extends Controller
         if (!$medicine = Medicine::where('shop_id', $shop->id)->where('store_id', $store_code)->first()) {
             return $this->error('商品不存在，请先添加商品');
         }
-        Medicine::where('id', $medicine->id)->update([
+        $medicine->update([
             'price' => $price,
             'stock' => $stock,
             'online_mt' => $status == 1 ? 1 : 0,
