@@ -360,6 +360,10 @@ class MedicineController extends Controller
         if ($sequence < 0) {
             return $this->error('商品排序格式不正确。');
         }
+        $cost = $request->get('cost', 0);
+        if (!is_numeric($cost)) {
+            return $this->error('成本价格式不正确。');
+        }
         $mtCode = 701;
         $eleCode = 701;
         $mtMsg = '美团未更新';
