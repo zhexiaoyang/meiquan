@@ -8,6 +8,7 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
@@ -62,6 +63,80 @@ class DaDaOrderController
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 重复回传状态原因-重新分配骑士:取消订单
+            if ($repeat_reason_type == 1) {
+                $dd = app("dada");
+                $result = $dd->orderCancel($order->order_id);
+                if ($result['code'] == 0) {
+                    // 重复回传状态原因-重新分配骑士:取消订单成功
+                    $this->ding_error("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}|取消达达订单成功");
+                    if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
+                        $this->ding_error("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}|返还配送费");
+                        // 查询当前用户，做余额日志
+                        $current_user = DB::table('users')->find($order->user_id);
+                        UserMoneyBalance::create([
+                            "user_id" => $order->user_id,
+                            "money" => $order->money,
+                            "type" => 1,
+                            "before_money" => $current_user->money,
+                            "after_money" => ($current_user->money + $order->money),
+                            "description" => "达达骑手取消跑腿订单：" . $order->order_id,
+                            "tid" => $order->id
+                        ]);
+                        // 将配送费返回
+                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_sf);
+                    }
+                    OrderLog::create([
+                        'ps' => 5,
+                        'order_id' => $order->id,
+                        'des' => '「达达」骑手取消跑腿订单',
+                    ]);
+                    $delivery_id = $order->order_id . (OrderResend::where('order_id', $order->id)->count() + 1);
+                    OrderResend::create(['order_id' => $order->id, 'delivery_id' => $delivery_id, 'user_id' => 0]);
+                    $order->delivery_id = $delivery_id;
+                    $order->mt_status = 0;
+                    $order->fail_mt = '';
+
+                    $order->fn_status = 0;
+                    $order->fail_fn = '';
+
+                    $order->ss_status = 0;
+                    $order->fail_ss = '';
+
+                    $order->dd_status = 0;
+                    $order->fail_dd = '';
+
+                    $order->uu_status = 0;
+                    $order->fail_uu = '';
+
+                    $order->sf_status = 0;
+                    $order->fail_sf = '';
+
+                    $order->zb_status = 0;
+                    $order->fail_zb = '';
+
+                    $order->status = 8;
+                    $order->ps = 0;
+                    $order->shipper_type_ss = 0;
+                    $order->shipper_type_dd = 0;
+                    $order->shipper_type_sf = 0;
+                    $order->save();
+                    $order = Order::find($order->id);
+                    dispatch(new CreateMtOrder($order));
+                    OrderLog::create([
+                        'ps' => 5,
+                        'order_id' => $order->id,
+                        'des' => '「达达」骑手取消跑腿订单，重新派单',
+                    ]);
+                } else {
+                    // 重复回传状态原因-重新分配骑士:取消订单失败
+                    $this->ding_error("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}|取消达达订单失败");
+                }
+                return json_encode($res);
+            }
+            if ($repeat_reason_type == 2) {
+                return json_encode($res);
+            }
             $this->log_info("中台订单状态：{$order->status}");
             // 获取达达配送员坐标
             // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,

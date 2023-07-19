@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Erp\V2;
 
 use App\Http\Controllers\Controller;
 use App\Models\Medicine;
+use App\Models\MedicineCategory;
+use App\Models\MedicineDepot;
 use App\Models\Shop;
+use App\Traits\MedicineCategoryTrait;
 use Illuminate\Http\Request;
 
 class MedicineController extends Controller
 {
+    use MedicineCategoryTrait;
+
     public function index(Request $request)
     {
         $shopId = $request->get('shopId');
@@ -140,9 +145,6 @@ class MedicineController extends Controller
         if ($stock < 0) {
             return $this->error('商品库存格式不正确。');
         }
-        if (!$categoryName = $request->get('categoryName')) {
-            return $this->error('商品分类不能为空');
-        }
         if (!$status = $request->get('status')) {
             return $this->error('商品状态不能为空');
         }
@@ -158,12 +160,76 @@ class MedicineController extends Controller
         if ($sequence < 0) {
             return $this->error('商品排序格式不正确。');
         }
+        $cost = $request->get('cost', 0);
+        if (!is_numeric($cost)) {
+            return $this->error('成本价格式不正确。');
+        }
         $mtCode = 701;
         $eleCode = 701;
-        $mtMsg = '美团新增商品成功';
-        $eleMsg = '饿了么新增商品成功';
+        $mtMsg = '美团未新增';
+        $eleMsg = '饿了么未新增';
+        $shop = null;
         if ($mt_id) {
-            if ($shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt')->where('waimai_mt', $mt_id)->first()) {
+            $shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt', 'waimai_ele')->where('waimai_mt', $mt_id)->first();
+            if ($ele_id) {
+                if ($shop->waimai_ele != $ele_id) {
+                    return $this->error('美团ID和饿了么ID未绑定在一个门店。');
+                }
+            }
+        }
+        if ($ele_id && !$mt_id) {
+            $shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt', 'waimai_ele')->where('waimai_ele', $ele_id)->first();
+        }
+        if ($shop === null) {
+            return $this->error('美团ID和饿了么ID不正确。');
+        }
+
+        if ($depot = MedicineDepot::where('upc', $upc)->first()) {
+            $medicine_arr = [
+                'shop_id' => $shop->id,
+                'name' => $depot->name,
+                'upc' => $depot->upc,
+                'cover' => $depot->cover,
+                'brand' => $depot->brand,
+                'spec' => $depot->spec,
+                'price' => 0,
+                'down_price' => $price,
+                'stock' => $stock,
+                'guidance_price' => $cost,
+                'depot_id' => $depot->id,
+                'store_id' => $store_code,
+            ];
+        } else {
+            $l = strlen($upc);
+            if ($l >= 7 && $l <= 19) {
+                $_depot = MedicineDepot::create([
+                    'name' => $name,
+                    'upc' => $upc
+                ]);
+                \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
+            }
+            $medicine_arr = [
+                'shop_id' => $shop->id,
+                'name' => $name,
+                'upc' => $upc,
+                'brand' => '',
+                'spec' => '',
+                'price' => 0,
+                'down_price' => $price,
+                'stock' => $stock,
+                'guidance_price' => $cost,
+                'depot_id' => $_depot->id ?? 0,
+                'store_id' => $store_code,
+            ];
+        }
+        $medicine = Medicine::updateOrCreate(['shop_id' => $shop->id, 'upc' => $upc], $medicine_arr);
+        $category_create_result = $this->createCategory($shop, $medicine, (bool) $mt_id, (bool) $ele_id);
+        $update = [];
+
+        if ($mt_id) {
+            if (empty($category_create_result['mt'])) {
+                $mtMsg = '美团未新增：创建分类失败';
+            } else {
                 $meituan = null;
                 if ($shop->meituan_bind_platform === 4) {
                     $meituan = app('minkang');
@@ -171,22 +237,13 @@ class MedicineController extends Controller
                     $meituan = app('meiquan');
                 }
                 if ($meituan) {
-                    $category_params = [
-                        "app_poi_code" => $shop->waimai_mt,
-                        "category_name" => $categoryName,
-                        "sequence" => 100,
-                    ];
-                    if ($shop->meituan_bind_platform === 31) {
-                        $category_params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
-                    }
-                    $meituan->medicineCatSave($category_params);
                     $params_mt = [
                         'app_poi_code' => $shop->waimai_mt,
                         'app_medicine_code' => $store_code,
                         'upc' => $upc,
                         'price' => $price,
                         'stock' => $stock,
-                        'category_name' => $categoryName,
+                        'category_name' => implode(',', $category_create_result['mt']),
                         'is_sold_out' => 0,
                         'sequence' => $sequence
                     ];
@@ -196,40 +253,55 @@ class MedicineController extends Controller
                     $mt_res = $meituan->medicineSave($params_mt);
                     if ($mt_res['data'] === 'ok') {
                         $mtCode = 0;
-                        $mtMsg = '美团成功';
+                        $mtMsg = '美团新增商品成功';
+                        $update['mt_status'] = 1;
+                        $update['online_mt'] = 1;
                     } else {
                         $mtCode = 702;
-                        $mtMsg = $create_log['error']['msg'] ?? '美团失败';
+                        $mtMsg = $mt_res['error']['msg'] ?? '美团失败';
+                        if ((strpos($mtMsg, '已经存在') !== false) || (strpos($mtMsg, '已存在') !== false)) {
+                            $mtCode = 0;
+                            $mtMsg = '美团新增商品成功';
+                            $update['mt_status'] = 1;
+                            $update['online_mt'] = 1;
+                        }
                     }
                 }
-            } else {
-                $mtMsg = '门店不存在';
             }
         }
         if ($ele_id) {
-            $ele = app('ele');
-            $params_ele = [
-                'shop_id' => $ele_id,
-                'name' => $name,
-                'upc' => $upc,
-                'custom_sku_id' => $store_code,
-                'sale_price' => (int) ($price * 100),
-                'left_num' => $stock,
-                'category_name' => $categoryName,
-                'status' => 1,
-                'base_rec_enable' => true,
-                'photo_rec_enable' => true,
-                'summary_rec_enable' => true,
-                'cat_prop_rec_enable' => true,
-            ];
-            $res = $ele->add_product($params_ele);
-            if ($res['body']['error'] === 'success') {
-                $eleCode = 0;
-                $eleMsg = '饿了么成功';
+            if (empty($category_create_result['ele'])) {
+                $mtMsg = '饿了么未新增：创建分类失败';
             } else {
-                $eleCode = 702;
-                $eleMsg = $res['body']['error'] ?? '';
+                $ele = app('ele');
+                $params_ele = [
+                    'shop_id' => $ele_id,
+                    'name' => $name,
+                    'upc' => $upc,
+                    'custom_sku_id' => $store_code,
+                    'sale_price' => (int) ($price * 100),
+                    'left_num' => $stock,
+                    'category_name' => $category_create_result['ele'],
+                    'status' => 1,
+                    'base_rec_enable' => true,
+                    'photo_rec_enable' => true,
+                    'summary_rec_enable' => true,
+                    'cat_prop_rec_enable' => true,
+                ];
+                $res = $ele->add_product($params_ele);
+                if ($res['body']['error'] === 'success') {
+                    $eleCode = 0;
+                    $eleMsg = '饿了么新增商品成功';
+                    $update['ele_status'] = 1;
+                    $update['online_ele'] = 1;
+                } else {
+                    $eleCode = 702;
+                    $eleMsg = $res['body']['error'] ?? '';
+                }
             }
+        }
+        if (!empty($update)) {
+            Medicine::where('id', $medicine->id)->update($update);
         }
         $res = [
             "meituanCode" => $mtCode, //美团新增状态码（0 成功，其它失败）
