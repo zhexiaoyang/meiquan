@@ -50,6 +50,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
         $type = [0 => '未同步', 1 => '成功', 2 => '失败'];
         $online_type = [0 => '下架', 1 => '上架'];
         return [
+            $medicine->store_id,
             $medicine->name,
             $medicine->upc,
             $medicine->price,
@@ -70,6 +71,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
     public function headings(): array
     {
         return [
+            '店内码',
             '商品名称',
             '商品条码',
             '线上价格',
