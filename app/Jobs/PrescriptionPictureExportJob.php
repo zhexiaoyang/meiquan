@@ -62,15 +62,17 @@ class PrescriptionPictureExportJob implements ShouldQueue
             $dir = 'prescription-zip/' . date('Ym/d/');
             $name = ($this->title ?: time()) . '.zip';
             $res = $oss->putObject('meiquan-file', $dir.$name, file_get_contents($zip_file));
-            // 删除临时文件
-            unlink($zip_file);
             if (isset($res['info']['url'])) {
                 WmPrescriptionDown::where('id', $log_id)->update(['status' => 2, 'url' => $res['info']['url']]);
             }
+            // 删除临时文件
+            unlink($zip_file);
         } catch (\Exception $exception) {
             \Log::info('下载处方图片JOB执行失败', [$exception->getMessage(),$exception->getLine(),$exception->getFile()]);
             WmPrescriptionDown::where('id', $log_id)->update(['status' => 2]);
-            unlink($zip_file);
+            if (is_file($zip_file)) {
+                unlink($zip_file);
+            }
         }
     }
 }
