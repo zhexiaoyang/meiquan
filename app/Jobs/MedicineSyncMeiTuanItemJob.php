@@ -110,6 +110,11 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                 $this->log('创建药品参数', $this->params);
                 $res = $meituan->medicineSave($this->params);
                 $this->log('创建药品返回', [$res]);
+                $error_msg = $res['error']['msg'] ?? '';
+                if ($error_msg === '药品分类不存在') {
+                    $this->params['category_name'] = '未分类';
+                    $res = $meituan->medicineSave($this->params);
+                }
                 if ($res['data'] === 'ok') {
                     if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
                         // MedicineSyncLog::where('id', $this->key)->increment('success');
