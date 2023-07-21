@@ -122,8 +122,10 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                     }
                 } elseif ($res['data'] === 'ng') {
                     $error_msg = $res['error']['msg'] ?? '';
-                    $error_msg = substr($error_msg, 0, 200);
-                    if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
+                    // $error_msg = substr($error_msg, 0, 200);
+                    // \Log::info('$error_msg', [$error_msg]);
+                    if ((strstr($error_msg, '已存在') !== false) || (strstr($error_msg, '已经存在') !== false)) {
+                        \Log::info('true' . $error_msg);
                         $update_data = ['mt_status' => 1, 'online_mt' => 1];
                         // 库存大于0 为上架状态
                         // if ($this->params['stock'] > 0) {
@@ -134,6 +136,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                             $status = true;
                         }
                     } else {
+                        \Log::info('false' . $error_msg);
                         if (Medicine::where('id', $this->medicine_id)->update(['mt_error' => $res['error']['msg'] ?? '','mt_status' => 2])) {
                             // MedicineSyncLog::where('id', $this->key)->increment('fail');
                             $status = false;
