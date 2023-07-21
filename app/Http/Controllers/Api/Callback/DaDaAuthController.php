@@ -19,13 +19,13 @@ class DaDaAuthController extends Controller
         if (!$source_id = $request->get('sourceId')) {
             return '授权失败，商户ID不存在';
         }
+        $this->log('全部参数', $request->all());
         if (!$shop_no = $request->get('shopNo')) {
             return '授权失败，达达门店ID不存在';
         }
         if (!$shop_id = $request->get('state')) {
             return '授权失败，门店ID不存在';
         }
-        $this->log('全部参数', $request->all());
 
         $shop_id = Cache::get('dadaticket:' . $ticket);
         if (!$shop_id) {
