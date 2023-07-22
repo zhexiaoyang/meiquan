@@ -20,7 +20,7 @@ class Api extends Request
         "330" => 99,
     ];
 
-    public function precreateorder(Order $order, Shop $shop)
+    public function precreateorder($order, Shop $shop)
     {
         // $shop = Shop::query()->find($order->shop_id);
         $time = time();
@@ -55,7 +55,7 @@ class Api extends Request
         return $this->post('/open/api/external/precreateorder', $data);
     }
 
-    public function createOrder(Order $order, Shop $shop)
+    public function createOrder($order, Shop $shop)
     {
         $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
         // $shop = Shop::query()->find($order->shop_id);
@@ -187,5 +187,16 @@ class Api extends Request
             "shop_type" => 2,
         ];
         return $this->post('/open/api/external/riderviewv2', $data);
+    }
+
+    public function listorderfeed($order_id, $shop_id, $shop_type)
+    {
+        $data = [
+            'order_id' => $order_id,
+            'order_type' => 2,
+            "shop_id" => $shop_id,
+            "shop_type" => $shop_type,
+        ];
+        return $this->post('/open/api/external/listorderfeed', $data);
     }
 }
