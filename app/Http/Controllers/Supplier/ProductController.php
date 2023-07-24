@@ -280,8 +280,17 @@ class ProductController extends Controller
         $data['is_ele'] = $request->get("is_ele", 0);
         $data['control_price'] = $request->get("control_price", 0);
 
-        if (!$product = SupplierProduct::query()->find($request->get("id"))) {
+        if (!$product = SupplierProduct::find($request->get("id"))) {
             return $this->error("药品不存在");
+        }
+
+        if ($depot = SupplierDepot::find($product->depot_id)) {
+            if (!empty($depot->term_of_validity) && intval($depot->term_of_validity) > 0) {
+                $month = intval($depot->term_of_validity);
+                $end_date = date("Y-m-d", strtotime("+{$month} month",strtotime($request->get("product_date"))) - 86400);
+                \Log::info($end_date);
+                $data['product_end_date'] = $end_date;
+            }
         }
 
         $product->update($data);
