@@ -9,6 +9,7 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
+use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
@@ -490,7 +491,86 @@ class ShunFengOrderController extends Controller
     public function revoke(Request $request)
     {
         \Log::info("顺丰revoke", $request->all());
+
         $res = ["error_code" => 0, "error_msg" => "success"];
+        Log::info('顺丰跑腿回调-骑手撤单-全部参数', $request->all());
+        // 商家订单ID
+        $order_id = $request->get("shop_order_id", "");
+        $this->ding_error("顺丰骑手撤单：{$order_id}");
+        if ($order = Order::where('delivery_id', $order_id)->first()) {
+            if ((int) $order->ps === 7) {
+                $sf = app("shunfengservice");
+                $result = $sf->cancelOrder($order);
+                if ($result['error_code'] == 0) {
+                    if (($order->status == 50 || $order->status == 60) && $order->ps == 7) {
+                        $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
+                        // 查询当前用户，做余额日志
+                        $current_user = DB::table('users')->find($order->user_id);
+                        // DB::table("user_money_balances")->insert();
+                        UserMoneyBalance::create([
+                            "user_id" => $order->user_id,
+                            "money" => $order->money,
+                            "type" => 1,
+                            "before_money" => $current_user->money,
+                            "after_money" => ($current_user->money + $order->money),
+                            "description" => "顺丰骑手撤单取消顺丰跑腿订单：" . $order->order_id,
+                            "tid" => $order->id
+                        ]);
+                        // 将配送费返回
+                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_sf);
+                    }
+                    OrderLog::create([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '「顺丰」跑腿骑手撤单，取消顺丰跑腿订单',
+                    ]);
+                    $delivery_id = $order->order_id . (OrderResend::where('order_id', $order->id)->count() + 1);
+                    OrderResend::create(['order_id' => $order->id, 'delivery_id' => $delivery_id, 'user_id' => 0]);
+                    $order->delivery_id = $delivery_id;
+                    $order->mt_status = 0;
+                    $order->fail_mt = '';
+
+                    $order->fn_status = 0;
+                    $order->fail_fn = '';
+
+                    $order->ss_status = 0;
+                    $order->fail_ss = '';
+
+                    $order->dd_status = 0;
+                    $order->fail_dd = '';
+
+                    $order->uu_status = 0;
+                    $order->fail_uu = '';
+
+                    $order->sf_status = 0;
+                    // $order->fail_sf = '骑手撤单，重新发送不选择';
+                    $order->fail_sf = '';
+
+                    $order->zb_status = 0;
+                    $order->fail_zb = '';
+
+                    $order->status = 8;
+                    $order->ps = 0;
+                    $order->shipper_type_ss = 0;
+                    $order->shipper_type_dd = 0;
+                    $order->shipper_type_sf = 0;
+                    $order->save();
+                    $order = Order::find($order->id);
+                    dispatch(new CreateMtOrder($order));
+                    OrderLog::create([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '「顺丰」跑腿骑手撤单，重新派单',
+                    ]);
+                } else {
+                    Log::info('顺丰跑腿回调-骑手撤单-取消顺丰跑腿订单失败');
+                }
+            } else {
+                Log::info('顺丰跑腿回调-骑手撤单-不是顺丰配送');
+            }
+        } else {
+            Log::info('顺丰跑腿回调-骑手撤单-未找到订单');
+        }
         return json_encode($res);
     }
 
