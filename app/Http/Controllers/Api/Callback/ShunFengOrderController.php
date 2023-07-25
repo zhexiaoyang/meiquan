@@ -502,23 +502,23 @@ class ShunFengOrderController extends Controller
                 $sf = app("shunfengservice");
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
-                    if (($order->status == 50 || $order->status == 60) && $order->ps == 7) {
-                        $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
-                        // 查询当前用户，做余额日志
-                        $current_user = DB::table('users')->find($order->user_id);
-                        // DB::table("user_money_balances")->insert();
-                        UserMoneyBalance::create([
-                            "user_id" => $order->user_id,
-                            "money" => $order->money,
-                            "type" => 1,
-                            "before_money" => $current_user->money,
-                            "after_money" => ($current_user->money + $order->money),
-                            "description" => "顺丰骑手撤单取消顺丰跑腿订单：" . $order->order_id,
-                            "tid" => $order->id
-                        ]);
-                        // 将配送费返回
-                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_sf);
-                    }
+                    // if (($order->status == 50 || $order->status == 60) && $order->ps == 7) {
+                    //     $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
+                    //     // 查询当前用户，做余额日志
+                    //     $current_user = DB::table('users')->find($order->user_id);
+                    //     // DB::table("user_money_balances")->insert();
+                    //     UserMoneyBalance::create([
+                    //         "user_id" => $order->user_id,
+                    //         "money" => $order->money,
+                    //         "type" => 1,
+                    //         "before_money" => $current_user->money,
+                    //         "after_money" => ($current_user->money + $order->money),
+                    //         "description" => "顺丰骑手撤单取消顺丰跑腿订单：" . $order->order_id,
+                    //         "tid" => $order->id
+                    //     ]);
+                    //     // 将配送费返回
+                    //     DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_sf);
+                    // }
                     OrderLog::create([
                         'ps' => 7,
                         'order_id' => $order->id,
