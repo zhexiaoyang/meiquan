@@ -143,17 +143,14 @@ class ProductController extends Controller
                 if (!is_numeric($cost)) {
                     $cost = 0;
                 }
-                if (Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
-                    $update_data = [
-                        'stock' => $v['stock'],
-                        // 'price' => 0,
-                        'down_price' => $price,
-                        'guidance_price' => $cost,
-                    ];
+                if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
+                    $medicine->stock = $v['stock'];
+                    $medicine->down_price = $price;
+                    $medicine->guidance_price = $cost;
                     if (!empty($v['id'])) {
-                        $update_data['store_id'] = $v['id'];
+                        $medicine->store_id = $v['id'];
                     }
-                    Medicine::where('upc', $upc)->where('shop_id', $shop->id)->update($update_data);
+                    $medicine->save();
                 } else {
                     if ($depot = MedicineDepot::where('upc', $upc)->first()) {
                         $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
