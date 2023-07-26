@@ -487,7 +487,7 @@ class MedicineController extends Controller
                     'stock' => $medicine->stock,
                     'category_name' => implode(',', $medicine_category),
                     'sequence' => $medicine->sequence,
-                    'is_sold_out' => 0,
+                    'is_sold_out' => $medicine->online_mt == 1 ? 0: 1,
                 ];
                 if ($shop->meituan_bind_platform == 31) {
                     $medicine_data['access_token'] = $meituan->getShopToken($shop->waimai_mt);
