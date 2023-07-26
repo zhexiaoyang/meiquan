@@ -22,6 +22,15 @@ class OrderController extends Controller
         if (!$etime = $request->get('end_time')) {
             return $this->error('结束时间不能为空');
         }
+        $s_int = strtotime($stime);
+        $e_int = strtotime($etime);
+        if ($e_int < $s_int) {
+            return $this->error('起始时间不能大于结束时间');
+        }
+        $day = ($e_int - $s_int) / 86400;
+        if ($day > 10) {
+            return $this->error('只能查询10天内的订单');
+        }
         $shop = null;
         if ($mt_id) {
             if (!$shop = Shop::select('id', 'waimai_mt')->where('waimai_mt', $mt_id)->first()) {
