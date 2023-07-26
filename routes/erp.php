@@ -22,6 +22,7 @@ Route::middleware(['force-json'])->prefix("erp")->namespace("Erp")->group(functi
         Route::post("medicine/delete", "MedicineController@delete");
         Route::post("order/info", "OrderController@info");
         Route::post("order/status", "OrderController@orderStatus");
+        Route::post("order/no", "OrderController@order_no");
     });
 });
 Route::middleware(['force-json'])->prefix("test/erp")->namespace("Erp")->group(function() {

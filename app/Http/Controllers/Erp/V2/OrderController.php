@@ -4,10 +4,76 @@ namespace App\Http\Controllers\Erp\V2;
 
 use App\Http\Controllers\Controller;
 use App\Models\Shop;
+use App\Models\WmOrder;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    public function order_no(Request $request)
+    {
+        $mt_id = $request->get('shopIdMeiTuan');
+        $ele_id = $request->get('shopIdEle');
+        if (!$mt_id && !$ele_id) {
+            return $this->error('美团ID和饿了么ID至少需要一个');
+        }
+        if (!$stime = $request->get('start_time')) {
+            return $this->error('起始时间不能为空');
+        }
+        if (!$etime = $request->get('end_time')) {
+            return $this->error('结束时间不能为空');
+        }
+        $shop = null;
+        if ($mt_id) {
+            if (!$shop = Shop::select('id', 'waimai_mt')->where('waimai_mt', $mt_id)->first()) {
+                return $this->error('美团ID对应门店不存在');
+            }
+        }
+        if ($ele_id) {
+            if (!$shop_ele = Shop::select('id', 'waimai_ele')->where('waimai_ele', $ele_id)->first()) {
+                return $this->error('饿了么ID对应门店不存在');
+            }
+            if ($shop) {
+                if ($shop->id != $shop_ele->id) {
+                    return $this->error('美团ID和饿了么ID不是一个门店');
+                }
+            } else {
+                $shop = $shop_ele;
+            }
+        }
+        if (!$shop) {
+            return $this->error('门店不存在');
+        }
+
+        $result = [];
+        $orders = WmOrder::select('id','order_id','platform')->where('shop_id', $shop->id)
+            ->where('created_at', '>=', $stime)->where('created_at', '<=', $etime)->get();
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if ($mt_id && $order->platform == 1) {
+                    $result[] = [
+                        'order_id' => $order->order_id,
+                        'platform' => $order->platform,
+                    ];
+                }
+                if ($ele_id && $order->platform == 2) {
+                    $result[] = [
+                        'order_id' => $order->order_id,
+                        'platform' => $order->platform,
+                    ];
+                }
+            }
+        }
+
+        return $this->success($result);
+    }
+
+    /**
+     * 订单详情
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/7/26 3:34 下午
+     */
     public function info(Request $request)
     {
         $mt_id = $request->get('shopIdMeiTuan');
