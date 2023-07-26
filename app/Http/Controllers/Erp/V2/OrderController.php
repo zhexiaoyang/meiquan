@@ -54,7 +54,7 @@ class OrderController extends Controller
         }
 
         $result = [];
-        $orders = WmOrder::select('id','order_id','platform')->where('shop_id', $shop->id)
+        $orders = WmOrder::select('id','order_id','platform','created_at')->where('shop_id', $shop->id)
             ->where('created_at', '>=', $stime)->where('created_at', '<=', $etime)->get();
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -62,12 +62,14 @@ class OrderController extends Controller
                     $result[] = [
                         'order_id' => $order->order_id,
                         'platform' => $order->platform,
+                        'created_at' => $order->created_at,
                     ];
                 }
                 if ($ele_id && $order->platform == 2) {
                     $result[] = [
                         'order_id' => $order->order_id,
                         'platform' => $order->platform,
+                        'created_at' => $order->created_at,
                     ];
                 }
             }
