@@ -62,14 +62,14 @@ class OrderController extends Controller
                     $result[] = [
                         'order_id' => $order->order_id,
                         'platform' => $order->platform,
-                        'created_at' => $order->created_at,
+                        'created_at' => date("Y-m-d H:i:s", strtotime($order->created_at)),
                     ];
                 }
                 if ($ele_id && $order->platform == 2) {
                     $result[] = [
                         'order_id' => $order->order_id,
                         'platform' => $order->platform,
-                        'created_at' => $order->created_at,
+                        'created_at' => date("Y-m-d H:i:s", strtotime($order->created_at)),
                     ];
                 }
             }
