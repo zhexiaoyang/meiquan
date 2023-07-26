@@ -76,7 +76,8 @@ class MedicineUpdateImportJob implements ShouldQueue
             $medicine_data['down_gpm'] = ($medicine_data['down_price'] - $medicine->guidance_price) / $medicine_data['down_price'] * 100;
         }
         try {
-            Medicine::where('id', $medicine->id)->update($medicine_data);
+            // $medicine = Medicine::find($medicine->id);
+            $medicine->update($medicine_data);
         } catch (\Exception $exception) {
             \Log::info("商品管理批量更新导入创建药品失败", [$medicine->id,$medicine_data,$exception->getMessage(),$exception->getFile(),$exception->getLine()]);
             return $this->checkEnd2($medicine_data, MedicineSyncLogItem::UPDATE_ERROR);
