@@ -609,14 +609,14 @@ class ShunfengController
         Log::info('顺丰跑腿回调-骑手撤单-全部参数', $request->all());
         // 商家订单ID
         $order_id = $request->get("shop_order_id", "");
-        $this->ding_error("顺丰骑手撤单：{$order_id}");
+        // $this->ding_error("顺丰骑手撤单：{$order_id}");
         if ($order = Order::where('delivery_id', $order_id)->first()) {
             if ((int) $order->ps === 7) {
                 $sf = app("shunfeng");
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     if (($order->status == 50 || $order->status == 60) && $order->ps == 7) {
-                        $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
+                        // $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
                         // 查询当前用户，做余额日志
                         $current_user = DB::table('users')->find($order->user_id);
                         // DB::table("user_money_balances")->insert();
