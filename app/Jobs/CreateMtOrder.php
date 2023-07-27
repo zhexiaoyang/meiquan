@@ -718,6 +718,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("已经操作接单，停止派单");
             return;
         }
+        $jiedan_lock->release();
 
         if ($ps === "meituan") {
             if ($this->meituan()) {
