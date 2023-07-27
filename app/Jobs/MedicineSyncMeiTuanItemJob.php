@@ -82,7 +82,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                 $res = $meituan->medicineUpdate($this->params);
                 $this->log('更新药品返回', [$res]);
                 if ($res['data'] === 'ok') {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
                         // MedicineSyncLog::where('id', $this->key)->increment('success');
                         $status = true;
                     }
@@ -116,7 +116,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                     $res = $meituan->medicineSave($this->params);
                 }
                 if ($res['data'] === 'ok') {
-                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1, 'online_mt' => 1])) {
+                    if (Medicine::where('id', $this->medicine_id)->update(['mt_status' => 1])) {
                         // MedicineSyncLog::where('id', $this->key)->increment('success');
                         $status = true;
                     }
@@ -126,7 +126,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                     // \Log::info('$error_msg', [$error_msg]);
                     if ((strstr($error_msg, '已存在') !== false) || (strstr($error_msg, '已经存在') !== false)) {
                         \Log::info('true' . $error_msg);
-                        $update_data = ['mt_status' => 1, 'online_mt' => 1];
+                        $update_data = ['mt_status' => 1];
                         // 库存大于0 为上架状态
                         // if ($this->params['stock'] > 0) {
                         //     $update_data['online_mt'] = 1;
