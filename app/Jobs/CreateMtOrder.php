@@ -1269,6 +1269,42 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $zz, $result_ss) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $result_ss['data']['orderNumber'] ?? '',
+                        'platform' => 3,
+                        'type' => $zz ? 1 : 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => ($result_ss['data']['totalFeeAfterSave'] ?? 0) / 100,
+                        'original' => ($result_ss['data']['totalAmount'] ?? 0) / 100,
+                        'coupon' => ($result_ss['data']['couponSaveFee'] ?? 0) / 100,
+                        'distance' => $result_ss['data']['totalDistance'] ?? 0,
+                        'weight' => $result_ss['data']['totalWeight'] ?? 0,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => '闪送单号：' . $result_ss['data']['orderNumber'] ?? '',
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("闪送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「闪送」更新创建订单状态成功");
             return true;
         } else {
