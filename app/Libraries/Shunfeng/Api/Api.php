@@ -132,7 +132,7 @@ class Api extends Request
 
     public function notifyproductready(Order $order)
     {
-        $shop = Shop::query()->find($order->shop_id);
+        $shop = Shop::find($order->shop_id);
         $data = [
             'order_id' => $order->order_id,
             'order_type' => 2,
