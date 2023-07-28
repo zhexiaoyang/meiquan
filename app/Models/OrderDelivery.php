@@ -10,6 +10,6 @@ class OrderDelivery extends Model
         'type','day_seq','money','original','coupon','insurance','tip','distance','weight','remark','delivery_name',
         'delivery_phone','delivery_lng','delivery_lat','is_payment','is_refund','status','track','send_at','arrival_at',
         'atshop_at','pickup_at','finished_at','cancel_at','paid_at','refund_at',
-        'user_id',
+        'user_id','add_money','addfee'
     ];
 }
