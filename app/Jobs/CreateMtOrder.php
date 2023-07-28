@@ -1137,7 +1137,7 @@ class CreateMtOrder implements ShouldQueue
                         'order_id' => $order->id,
                         'wm_id' => $order->wm_id,
                         'order_no' => $order->order_id,
-                        'three_order_no' => $check_dd['result']['deliveryNo'] ?? '',
+                        'three_order_no' => $order->order_id,
                         'platform' => 5,
                         'type' => $zz_dd ? 1 : 0,
                         'day_seq' => $order->day_seq,
@@ -1159,7 +1159,7 @@ class CreateMtOrder implements ShouldQueue
                         'delivery_id' => $delivery_id,
                         'status' => 20,
                         'status_des' => '下单成功',
-                        'description' => '达达单号：' . $check_dd['result']['deliveryNo'] ?? '',
+                        'description' => '达达单号：' . $order->order_id,
                     ]);
                 });
             } catch (\Exception $exception) {
