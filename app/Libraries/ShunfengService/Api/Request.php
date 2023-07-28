@@ -29,11 +29,11 @@ class Request
     {
         $http = $this->getHttp();
 
-        $post_data = array_merge($data, [
+        $post_data = array_merge([
             'dev_id' => $this->app_id,
             'push_time' => time(),
             'version' => 17
-        ]);
+        ], $data);
 
         $post_json = json_encode($post_data);
         $signChar = $post_json."&{$this->app_id}&{$this->app_key}";
