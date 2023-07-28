@@ -112,9 +112,9 @@ class OrderController extends Controller
                     'order_id' => $order_id,
                 ];
                 $mt_res = $meituan->getOrderDetail($params_mt, $shop->meituan_bind_platform === 31 ? $mt_id : '');
-                $poi_receive_detail_yuan = json_decode(urldecode($mt_res['poi_receive_detail_yuan']), true);
                 if (!empty($mt_res) && is_array($mt_res['data']) && !empty($mt_res['data'])) {
                     $mt_data = $mt_res['data'];
+                    $poi_receive_detail_yuan = json_decode(urldecode($mt_data['poi_receive_detail_yuan']), true);
                     // 是否处方
                     $order_tag_list = $mt_data['order_tag_list'];
                     if (!is_array($order_tag_list)) {
