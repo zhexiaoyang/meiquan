@@ -354,6 +354,7 @@ class CreateMtOrder implements ShouldQueue
         // **********************************************************************************
         // 判断是否开启UU跑腿(是否存在UU的门店ID，设置是否打开，没有失败信息)
         $uu_add_money = $add_money;
+        $check_uu = null;
         if ($order->fail_uu) {
             $this->log("已经有「UU」失败信息：{$order->fail_uu}，停止「UU」派单");
         } elseif ($order->uu_status != 0) {
@@ -404,6 +405,7 @@ class CreateMtOrder implements ShouldQueue
         // **********************************************************************************
         // 判断是否开启达达跑腿(是否存在美全达的门店ID，设置是否打开，没用失败信息)
         $dd_add_money = $add_money;
+        $check_dd = null;
         if ($order->fail_dd) {
             $this->log("已经有「达达」失败信息：{$order->fail_dd}，停止「达达」派单");
         } elseif ($order->dd_status != 0) {
@@ -747,17 +749,17 @@ class CreateMtOrder implements ShouldQueue
                 $this->log("发送「闪送」订单失败");
             }
             return;
-        } else if ($ps === "meiquanda") {
-            if ($this->meiquanda()) {
-                if (count($this->services) > 1) {
-                    dispatch(new CheckSendStatus($this->order, $order_ttl));
-                }
-            } else {
-                $this->log("发送「美全达」订单失败");
-            }
-            return;
+        // } else if ($ps === "meiquanda") {
+        //     if ($this->meiquanda()) {
+        //         if (count($this->services) > 1) {
+        //             dispatch(new CheckSendStatus($this->order, $order_ttl));
+        //         }
+        //     } else {
+        //         $this->log("发送「美全达」订单失败");
+        //     }
+        //     return;
         } else if ($ps === "dada") {
-            if ($this->dada($zz_dd, $zz_dd_source)) {
+            if ($this->dada($zz_dd, $zz_dd_source, $check_dd)) {
                 if (count($this->services) > 1) {
                     dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
@@ -766,7 +768,7 @@ class CreateMtOrder implements ShouldQueue
             }
             return;
         } else if ($ps === "uu") {
-            if ($this->uu()) {
+            if ($this->uu($check_uu)) {
                 if (count($this->services) > 1) {
                     dispatch(new CheckSendStatus($this->order, $order_ttl));
                 }
@@ -836,6 +838,42 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $money) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $order->order_id,
+                        'platform' => 1,
+                        'type' => 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => $money,
+                        'original' => $money,
+                        'coupon' => 0,
+                        'distance' => 0,
+                        'weight' => 0,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => '美团众包单号：' . $order->order_id,
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("美团众包写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「美团众包」更新创建订单状态成功");
             return true;
         } else {
@@ -852,7 +890,7 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function uu()
+    public function uu($check_uu = [])
     {
         $order = Order::find($this->order->id);
         $shop_id = $order->warehouse_id ?: $order->shop_id;
@@ -890,6 +928,44 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $result_uu, $check_uu) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $result_uu['ordercode'] ?? '',
+                        'platform' => 6,
+                        'type' => 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => ($check_uu['need_paymoney'] ?? 0) / 100,
+                        'add_money' => $this->add_money,
+                        'original' => ($check_uu['total_money'] ?? 0) / 100,
+                        'coupon' => ($check_uu['coupon_amount'] ?? 0) / 100,
+                        'addfee' => ($check_uu['addfee'] ?? 0) / 100,
+                        'distance' => $check_uu['distance'] ?? 0,
+                        'weight' => 0,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => 'UU单号：' . $result_uu['ordercode'] ?? '',
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("UU写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「UU」更新创建订单状态成功");
             return true;
         } else {
@@ -954,6 +1030,43 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $zz_sf, $result_sf) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $result_sf['result']['sf_order_id'] ?? '',
+                        'platform' => 7,
+                        'type' => $zz_sf ? 1 : 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => ($result_sf['result']['real_pay_money'] ?? 0) / 100,
+                        'add_money' => $zz_sf ? $this->add_money : 0,
+                        'original' => ($result_sf['result']['total_pay_money'] ?? 0) / 100,
+                        'coupon' => ($result_sf['result']['coupons_total_fee'] ?? 0) / 100,
+                        'distance' => $result_sf['result']['delivery_distance_meter'] ?? 0,
+                        'weight' => ($result_sf['result']['weight_gram'] ?? 0) / 1000,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => '顺丰单号：' . $result_sf['result']['sf_order_id'] ?? '',
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("顺丰写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「顺丰」更新创建订单状态成功");
             $sf->notifyproductready($order);
             return true;
@@ -971,7 +1084,7 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function dada($zz_dd = false, $zz_dd_source = '')
+    public function dada($zz_dd = false, $zz_dd_source = '', $check_dd = null)
     {
         $order = Order::find($this->order->id);
 
@@ -1015,6 +1128,43 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $zz_dd, $check_dd) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $check_dd['result']['deliveryNo'] ?? '',
+                        'platform' => 7,
+                        'type' => $zz_dd ? 1 : 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => ($check_dd['result']['fee'] ?? 0) / 100,
+                        'add_money' => $zz_dd ? $this->add_money : 0,
+                        'original' => ($check_dd['result']['deliverFee'] ?? 0) / 100,
+                        'coupon' => ($check_dd['result']['couponFee'] ?? 0) / 100,
+                        'distance' => $check_dd['result']['distance'] ?? 0,
+                        'weight' => 0,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => '达达单号：' . $check_dd['result']['deliveryNo'] ?? '',
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("顺丰写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「达达」更新创建订单状态成功");
             return true;
         } else {
@@ -1031,67 +1181,67 @@ class CreateMtOrder implements ShouldQueue
         return false;
     }
 
-    public function meiquanda()
-    {
-        $order = Order::find($this->order->id);
-
-        if ($order->status > 30) {
-            $this->log("不能发送「美全达」订单，订单状态：{$order->status},大于30，停止派单");
-        }
-
-        if ($order->fail_mqd) {
-            $this->log("已有「美全达」错误信息，停止派单");
-            return false;
-        }
-        $shop_id = $order->warehouse_id ?: $order->shop_id;
-        $shop = Shop::find($shop_id);
-        // $shop = Shop::find($this->order->shop_id);
-
-        $meiquanda = app("meiquanda");
-        // 发送美全达订单
-        $result_mqd = $meiquanda->createOrder($shop, $this->order);
-        if ($result_mqd['code'] === 100) {
-            // 订单发送成功
-            $this->log("发送「美全达」订单成功|返回参数", [$result_mqd]);
-            $mqd_order_info = $meiquanda->getOrderInfo($result_mqd['data']['trade_no'] ?? "");
-            // 写入订单信息
-            $update_info = [
-                // 'money_mqd' => $money,
-                'mqd_order_id' => $result_mqd['data']['trade_no'],
-                'mqd_status' => 20,
-                'status' => 20,
-                'push_at' => date("Y-m-d H:i:s")
-            ];
-            if (!empty($mqd_order_info['data']['merchant_pay_fee']) && $mqd_order_info['data']['merchant_pay_fee'] > 0) {
-                $money = $mqd_order_info['data']['merchant_pay_fee'] + $this->add_money;
-                if ($money > $this->add_money) {
-                    $update_info['money_mqd'] = $money;
-                    $this->log("「美全达」创建订单成功，金额：{$money}，加价：{$this->add_money}");
-                }
-            }
-            DB::table('orders')->where('id', $this->order->id)->update($update_info);
-            DB::table('order_logs')->insert([
-                'ps' => 4,
-                'order_id' => $this->order->id,
-                'des' => '「美全达」跑腿发单',
-                'created_at' => date("Y-m-d H:i:s"),
-                'updated_at' => date("Y-m-d H:i:s"),
-            ]);
-            $this->log("「美全达」更新创建订单状态成功");
-            return true;
-        } else {
-            $fail_mqd = $result_mqd['message'] ?? "美全达创建订单失败";
-            DB::table('orders')->where('id', $this->order->id)->update(['fail_mqd' => $fail_mqd, 'mqd_status' => 3]);
-            $this->log("「美全达」发送订单失败：{$fail_mqd}");
-            if (count($this->services) > 1) {
-                dispatch(new CreateMtOrder($this->order, 30));
-            } else {
-                $this->log("「美全达」发送订单失败，没有平台了");
-            }
-        }
-
-        return false;
-    }
+    // public function meiquanda()
+    // {
+    //     $order = Order::find($this->order->id);
+    //
+    //     if ($order->status > 30) {
+    //         $this->log("不能发送「美全达」订单，订单状态：{$order->status},大于30，停止派单");
+    //     }
+    //
+    //     if ($order->fail_mqd) {
+    //         $this->log("已有「美全达」错误信息，停止派单");
+    //         return false;
+    //     }
+    //     $shop_id = $order->warehouse_id ?: $order->shop_id;
+    //     $shop = Shop::find($shop_id);
+    //     // $shop = Shop::find($this->order->shop_id);
+    //
+    //     $meiquanda = app("meiquanda");
+    //     // 发送美全达订单
+    //     $result_mqd = $meiquanda->createOrder($shop, $this->order);
+    //     if ($result_mqd['code'] === 100) {
+    //         // 订单发送成功
+    //         $this->log("发送「美全达」订单成功|返回参数", [$result_mqd]);
+    //         $mqd_order_info = $meiquanda->getOrderInfo($result_mqd['data']['trade_no'] ?? "");
+    //         // 写入订单信息
+    //         $update_info = [
+    //             // 'money_mqd' => $money,
+    //             'mqd_order_id' => $result_mqd['data']['trade_no'],
+    //             'mqd_status' => 20,
+    //             'status' => 20,
+    //             'push_at' => date("Y-m-d H:i:s")
+    //         ];
+    //         if (!empty($mqd_order_info['data']['merchant_pay_fee']) && $mqd_order_info['data']['merchant_pay_fee'] > 0) {
+    //             $money = $mqd_order_info['data']['merchant_pay_fee'] + $this->add_money;
+    //             if ($money > $this->add_money) {
+    //                 $update_info['money_mqd'] = $money;
+    //                 $this->log("「美全达」创建订单成功，金额：{$money}，加价：{$this->add_money}");
+    //             }
+    //         }
+    //         DB::table('orders')->where('id', $this->order->id)->update($update_info);
+    //         DB::table('order_logs')->insert([
+    //             'ps' => 4,
+    //             'order_id' => $this->order->id,
+    //             'des' => '「美全达」跑腿发单',
+    //             'created_at' => date("Y-m-d H:i:s"),
+    //             'updated_at' => date("Y-m-d H:i:s"),
+    //         ]);
+    //         $this->log("「美全达」更新创建订单状态成功");
+    //         return true;
+    //     } else {
+    //         $fail_mqd = $result_mqd['message'] ?? "美全达创建订单失败";
+    //         DB::table('orders')->where('id', $this->order->id)->update(['fail_mqd' => $fail_mqd, 'mqd_status' => 3]);
+    //         $this->log("「美全达」发送订单失败：{$fail_mqd}");
+    //         if (count($this->services) > 1) {
+    //             dispatch(new CreateMtOrder($this->order, 30));
+    //         } else {
+    //             $this->log("「美全达」发送订单失败，没有平台了");
+    //         }
+    //     }
+    //
+    //     return false;
+    // }
 
     public function meituan()
     {
@@ -1145,6 +1295,43 @@ class CreateMtOrder implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
+            try {
+                DB::transaction(function () use ($order, $result_mt) {
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $order->user_id,
+                        'shop_id' => $order->shop_id,
+                        'warehouse_id' => $order->warehouse_id,
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'order_no' => $order->order_id,
+                        'three_order_no' => $result_mt['data']['mt_peisong_id'] ?? '',
+                        'platform' => 1,
+                        'type' => 0,
+                        'day_seq' => $order->day_seq,
+                        'money' => ($result_mt['data']['pay_amount'] ?? 0) / 100,
+                        'add_money' => $this->add_money,
+                        'original' => ($result_mt['data']['delivery_fee'] ?? 0) / 100,
+                        'coupon' => ($result_mt['data']['coupons_amount'] ?? 0) / 100,
+                        'distance' => $result_mt['data']['delivery_distance'] ?? 0,
+                        'weight' => 0,
+                        'status' => 20,
+                        'track' => '待接单',
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $order->id,
+                        'wm_id' => $order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'status' => 20,
+                        'status_des' => '下单成功',
+                        'description' => '美团单号：' . $result_mt['data']['mt_peisong_id'] ?? '',
+                    ]);
+                });
+            } catch (\Exception $exception) {
+                Log::info("美团写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
             $this->log("「美团」更新创建订单状态成功");
             return true;
         } else {
@@ -1283,6 +1470,7 @@ class CreateMtOrder implements ShouldQueue
                         'type' => $zz ? 1 : 0,
                         'day_seq' => $order->day_seq,
                         'money' => ($result_ss['data']['totalFeeAfterSave'] ?? 0) / 100,
+                        'add_money' => $zz ? $this->add_money : 0,
                         'original' => ($result_ss['data']['totalAmount'] ?? 0) / 100,
                         'coupon' => ($result_ss['data']['couponSaveFee'] ?? 0) / 100,
                         'distance' => $result_ss['data']['totalDistance'] ?? 0,
