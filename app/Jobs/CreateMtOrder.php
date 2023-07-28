@@ -869,6 +869,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => '美团众包单号：' . $order->order_id,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
@@ -961,6 +963,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => 'UU单号：' . $result_uu['ordercode'] ?? '',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
@@ -1062,6 +1066,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => '顺丰单号：' . $result_sf['result']['sf_order_id'] ?? '',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
@@ -1160,6 +1166,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => '达达单号：' . $order->order_id,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
@@ -1327,6 +1335,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => '美团单号：' . $result_mt['data']['mt_peisong_id'] ?? '',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
@@ -1488,6 +1498,8 @@ class CreateMtOrder implements ShouldQueue
                         'status' => 20,
                         'status_des' => '下单成功',
                         'description' => '闪送单号：' . $result_ss['data']['orderNumber'] ?? '',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
                     ]);
                 });
             } catch (\Exception $exception) {
