@@ -82,7 +82,7 @@ class Api extends Request
             // "remark" => "",
             "return_flag" => 511,
             "push_time" => $time,
-            "version" => 17,
+            "version" => 19,
             "receive" => [
                 "user_name" => $order->receiver_name,
                 "user_phone" => $order->receiver_phone,
