@@ -112,6 +112,7 @@ class OrderController extends Controller
                     'order_id' => $order_id,
                 ];
                 $mt_res = $meituan->getOrderDetail($params_mt, $shop->meituan_bind_platform === 31 ? $mt_id : '');
+                $poi_receive_detail_yuan = json_decode(urldecode($mt_res['poi_receive_detail_yuan']), true);
                 if (!empty($mt_res) && is_array($mt_res['data']) && !empty($mt_res['data'])) {
                     $mt_data = $mt_res['data'];
                     // 是否处方
@@ -132,6 +133,8 @@ class OrderController extends Controller
                         "shippingFee" => $mt_data['shipping_fee'],
                         "total" => $mt_data['total'],
                         "originalPrice" => $mt_data['original_price'],
+                        "poiReceive" => $poi_receive_detail_yuan['poiReceive'] ?? 0,
+                        "keepAccount" => 0,
                         "caution" => $mt_data['caution'],
                         "status" => $mt_data['status'],
                         "ctime" => $mt_data['ctime'],
@@ -154,6 +157,7 @@ class OrderController extends Controller
                                 "price" => $product['price'],
                                 "unit" => $product['unit'],
                                 "spec" => $product['spec'],
+                                "keepAccount" => 0,
                             ];
                         }
                     }
@@ -179,6 +183,8 @@ class OrderController extends Controller
                     "shippingFee" => $ele_data['order']['send_fee'] / 100,
                     "total" => $ele_data['order']['user_fee'] / 100,
                     "originalPrice" => $ele_data['order']['total_fee'] / 100,
+                    "poiReceive" => $ele_data['order']['shop_fee'] / 100,
+                    "keepAccount" => 0,
                     "caution" => $ele_data['order']['remark'] ?: '',
                     "status" => $status_map[$ele_data['order']['status']],
                     "ctime" => $ele_data['order']['create_time'],
@@ -200,6 +206,7 @@ class OrderController extends Controller
                             "price" => $product['product_price'] / 100,
                             "unit" => '',
                             "spec" => '',
+                            "keepAccount" => 0,
                         ];
                     }
                 }
