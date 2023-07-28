@@ -196,18 +196,20 @@ class OrderController extends Controller
                 ];
                 $detail = [];
                 if (!empty($products)) {
-                    foreach ($products as $product) {
-                        $detail[] = [
-                            "storeCode" => $product['custom_sku_id'],
-                            "skuId" => $product['custom_sku_id'],
-                            "name" => $product['product_name'],
-                            "upc" => $product['upc'] ?? '',
-                            "quantity" => $product['product_amount'],
-                            "price" => $product['product_price'] / 100,
-                            "unit" => '',
-                            "spec" => '',
-                            "keepAccount" => 0,
-                        ];
+                    foreach ($products as $product_bag) {
+                        foreach ($product_bag as $product) {
+                            $detail[] = [
+                                "storeCode" => $product['custom_sku_id'],
+                                "skuId" => $product['custom_sku_id'],
+                                "name" => $product['product_name'],
+                                "upc" => $product['upc'] ?? '',
+                                "quantity" => $product['product_amount'],
+                                "price" => $product['product_price'] / 100,
+                                "unit" => '',
+                                "spec" => '',
+                                "keepAccount" => 0,
+                            ];
+                        }
                     }
                 }
                 $res['detail'] = $detail;
