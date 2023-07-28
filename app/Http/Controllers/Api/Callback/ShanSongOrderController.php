@@ -17,6 +17,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
+/**
+ * Class ShanSongOrderController
+ * @package App\Http\Controllers\Api\Callback
+ * 闪送订单状态回调-自有运力
+ */
 class ShanSongOrderController
 {
     use LogTool, NoticeTool;

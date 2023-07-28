@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Http\Controllers\ShanSong;
-
 
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
@@ -18,6 +16,11 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
+/**
+ * Class OrderController
+ * @package App\Http\Controllers\ShanSong
+ * 闪送订单状态回调-聚合运力
+ */
 class OrderController
 {
     use RiderOrderCancel;
