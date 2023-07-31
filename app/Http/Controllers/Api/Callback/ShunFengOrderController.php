@@ -304,6 +304,7 @@ class ShunFengOrderController extends Controller
                 // 同步美团外卖配送信息
                 $order = Order::where('delivery_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
+                $this->log_info('顺丰接单，更改信息成功，返回：' . json_encode($res));
                 return json_encode($res);
             }elseif ($status == 15) {
                 // 10-配送员确认;12:配送员到店;15:配送员配送中
@@ -325,7 +326,7 @@ class ShunFengOrderController extends Controller
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
-                $this->log_info('取件成功，配送中，更改信息成功');
+                $this->log_info('取件成功，配送中，更改信息成功' . json_encode($res));
                 return json_encode($res);
             }
         }
@@ -411,7 +412,7 @@ class ShunFengOrderController extends Controller
                 "description" => "顺丰跑腿订单服务费：" . $order->order_id,
                 "tid" => $order->id
             ]);
-            $this->log_info('配送完成，扣款成功');
+            $this->log_info('配送完成，扣款成功' . json_encode($res));
         }
 
     }
