@@ -2,16 +2,12 @@
 
 namespace App\Traits;
 
-use App\Http\Requests\Request;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
-use App\Models\OrderDeduction;
 use App\Models\OrderDelivery;
 use App\Models\OrderLog;
 use App\Models\Shop;
-use App\Models\UserMoneyBalance;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 trait RiderOrderCancel
@@ -159,6 +155,20 @@ trait RiderOrderCancel
         $cancel_result = $sf->cancelOrderByOrderId($delivery_id, $shop_id);
         if ($cancel_result['error_code'] != 0) {
             $this->ding_error("[{$message}]取消聚合顺丰订单失败[跑腿ID:{$order_id}|跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['error_msg']];
+        } else {
+            // 记录订单日志
+            $this->cancelLogSave($order_id, 7, '顺丰');
+        }
+        return $result;
+    }
+    public function cancelShunfengOwnOrder($shop_id, $delivery_id, $order_id, $order_no, $message = ''): array
+    {
+        $result = ['status' => true, 'msg' => ''];
+        $sf = app("shunfengservice");
+        $cancel_result = $sf->cancelOrderByOrderId($delivery_id, $shop_id);
+        if ($cancel_result['error_code'] != 0) {
+            $this->ding_error("[{$message}]取消自有顺丰订单失败[跑腿ID:{$order_id}|跑腿订单号:{$order_no}]");
             $result = ['status' => false, 'msg' => $cancel_result['error_msg']];
         } else {
             // 记录订单日志
