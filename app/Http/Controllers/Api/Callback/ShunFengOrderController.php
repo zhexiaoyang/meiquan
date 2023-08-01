@@ -11,6 +11,8 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
+use App\Traits\LogTool;
+use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -20,7 +22,7 @@ use Illuminate\Support\Facades\Redis;
 
 class ShunFengOrderController extends Controller
 {
-    use RiderOrderCancel;
+    use LogTool, NoticeTool, RiderOrderCancel;
 
     public $prefix_title = '[顺丰服务商订单回调&###]';
 
