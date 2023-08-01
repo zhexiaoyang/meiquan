@@ -572,7 +572,10 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  蜂  鸟  跑  腿  ***********************************
         // **********************************************************************************
         // 判断蜂鸟是否可以接单、并加入数组
-        if ($order->fail_fn) {
+        if (true) {
+            $order->fail_mt = "公司关闭蜂鸟跑腿";
+            $this->log("公司关闭「蜂鸟」跑腿，停止「蜂鸟」派单");
+        }elseif ($order->fail_fn) {
             $this->log("已经有「蜂鸟」失败信息：{$order->fail_fn}，停止「蜂鸟」派单");
         } elseif ($order->fn_status != 0) {
             $this->log("订单状态[{$order->fn_status}]不是0，停止「蜂鸟」派单");
