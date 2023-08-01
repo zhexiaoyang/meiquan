@@ -9,8 +9,7 @@ use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
-use App\Traits\LogTool;
-use App\Traits\NoticeTool;
+use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -24,7 +23,7 @@ use Illuminate\Support\Facades\Redis;
  */
 class ShanSongOrderController
 {
-    use LogTool, NoticeTool;
+    use RiderOrderCancel;
 
     public $prefix_title = '[闪送服务商订单回调&###]';
 

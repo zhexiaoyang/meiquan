@@ -6,6 +6,8 @@ use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
@@ -25,6 +27,8 @@ class OrderController
 {
     use RiderOrderCancel;
 
+    public $log_prefix = '[闪送订单回调&###]';
+
     public function status(Request $request)
     {
         $res = ['status' => 200, 'msg' => '', 'data' => ''];
@@ -38,6 +42,10 @@ class OrderController
         $order_id = $data['orderNo'] ?? '';
         // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
         $status = $data['status'] ?? '';
+        if ($status == 20) {
+            // 20：派单中-等待骑手接单
+            return $this->pendingOrder($ss_order_id);
+        }
         // 配送员姓名
         $name = $data['courier']['name'] ?? '';
         // 配送员手机号
@@ -57,6 +65,11 @@ class OrderController
         }
         // 取消类型
         $abort_type = $data['abortType'] ?? 0;
+
+        if ($status == 30) {
+            // 30：取货中-骑手已接单
+            return $this->pickingUp($ss_order_id, $name, $phone, $longitude, $latitude, $locations);
+        }
 
         // 定义日志格式
         $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}]-";
@@ -560,6 +573,155 @@ class OrderController
                 return json_encode($res);
             }
         }
+        return json_encode($res);
+    }
+
+    /**
+     * 待接单
+     */
+    public function pendingOrder($ss_order_id)
+    {
+        $this->log_tool2_prefix = str_replace('###', "派单回调,闪送单号:{$ss_order_id}", $this->log_prefix);
+        $res = ['status' => 200, 'msg' => '', 'data' => ''];
+        if ($delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first()) {
+            $this->log_info("跑腿订单ID{$delivery->order_id}");
+            OrderDeliveryTrack::create([
+                'order_id' => $delivery->order_id,
+                'wm_id' => $delivery->wm_id,
+                'delivery_id' => $delivery->id,
+                'status' => 20,
+                'status_des' => '',
+                'description' => '等待骑手接单',
+            ]);
+        }
+        return json_encode($res);
+    }
+
+    /**
+     * 取货中
+     */
+    public function pickingUp($ss_order_id, $name, $phone, $longitude, $latitude, $locations)
+    {
+        $this->log_tool2_prefix = str_replace('###', "[接单回调,闪送单号:{$ss_order_id}]", $this->log_prefix);
+        $res = ['status' => 200, 'msg' => '', 'data' => ''];
+        if ($delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first()) {
+            $this->log_info("跑腿订单ID{$delivery->order_id}");
+            // 添加配送记录
+            OrderDeliveryTrack::create([
+                'order_id' => $delivery->order_id,
+                'wm_id' => $delivery->wm_id,
+                'delivery_id' => $delivery->id,
+                'status' => 50,
+                'status_des' => '',
+                'description' => '骑手已手接单',
+            ]);
+            if ($delivery->status > 50) {
+                $this->ding_error("闪送接单回调，订单状态异常|运单状态:{$delivery->status}|运单ID:{$delivery->id}|跑腿订单ID:{$delivery->order_id}|闪送订单{$ss_order_id}");
+            }
+            // 查找订单
+            if ($order = Order::find($delivery->order_id)) {
+                $this->log_tool2_prefix = str_replace('###', "[接单回调,闪送单号:{$ss_order_id}|跑腿订单ID:{$delivery->order_id}|跑腿订单号:{$order->order_id}|跑腿订单状态:{$order->status}]", $this->log_prefix);
+                $this->notice_tool2_prefix = str_replace('###', "[接单回调,闪送单号:{$ss_order_id}|跑腿订单ID:{$delivery->order_id}|跑腿订单号:{$order->order_id}|跑腿订单状态:{$order->status}]", $this->log_prefix);
+                $this->log_info("存在跑腿订单");
+                if ($order->status == 99) {
+                    $this->log_info("订单已是取消状态");
+                    $this->ding_error("订单已是取消状态");
+                    return json_encode($res);
+                }
+                if ($order->status == 70) {
+                    $this->log_info("订单已是完成");
+                    $this->ding_error("订单已是完成");
+                    return json_encode($res);
+                }
+                // 如果订单已经有配送平台了，配送平台不是【闪送】发起取消
+                if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3) ) {
+                    $this->log_info("订单已经有配送平台了，配送平台不是闪送,发起取消-开始");
+                    $this->ding_error("订单已经有配送平台了，配送平台不是闪送,发起取消-开始");
+                    $cancel_result = $this->cancelShansongOrder($ss_order_id, '单已经有配送平台了，配送平台不是闪送');
+                    if ($cancel_result['status'] !== true) {
+                        $this->log_info("订单已经有配送平台了，配送平台不是闪送,发起取消-取消失败");
+                        $this->ding_error("订单已经有配送平台了，配送平台不是闪送,发起取消-取消失败");
+                    }
+                    $this->log_info("订单已经有配送平台了，配送平台不是闪送,发起取消-取消成功");
+                    $this->ding_error("订单已经有配送平台了，配送平台不是闪送,发起取消-取消成功");
+                    // 记录订单日志
+                    OrderLog::create([
+                        'ps' => 3,
+                        "order_id" => $order->id,
+                        "des" => "已有平台配送，取消[闪送]跑腿订单",
+                        'name' => $name,
+                        'phone' => $phone,
+                    ]);
+                    return json_encode($res);
+                }
+                // 开始接单逻辑
+                // 开始接单逻辑
+                // 开始接单逻辑
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 5);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁，5秒...
+                    $this->ding_error("闪送重复接单");
+                    $this->log_info("闪送重复接单");
+                }
+                $before_time = time();
+                $this->log_info( "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                // 睡眠1秒，防止发单闪送接单时，发单状态还未改变
+                sleep(1);
+                $after_time = time();
+                $this->log_info( "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
+                // 取货中
+                // 判断订单状态，是否可接单
+                if ($order->status != 20 && $order->status != 30) {
+                    $this->log_info( '订单状态不正确，不能操作接单');
+                    $this->ding_error("订单状态不正确，不能操作接单");
+                    return json_encode($res);
+                }
+                // 取消各个平台待接单订单
+                // 取消各个平台待接单订单
+                // 取消各个平台待接单订单
+                $cancel_text = '闪送已接单';
+                // 取消美团订单
+                if ($order->mt_status === 20 || $order->mt_status === 30) {
+                    $this->cancelMeituanOrder($delivery->three_order_no, $order->delivery_id, $order->id, $order->order_id, $cancel_text);
+                }
+                // 取消达达订单
+                if ($order->dd_status === 20 || $order->dd_status === 30) {
+                    if ($order->shipper_type_dd) {
+                        $this->cancelDadaOwnOrder($order->warehouse_id ?: $order->shop_id, $order->id, $order->order_id, $cancel_text);
+                    } else {
+                        $this->cancelDadaOrder($order->id, $order->order_id, $cancel_text);
+                        $dada = app("dada");
+                    }
+                }
+                // 取消UU订单
+                if ($order->uu_status === 20 || $order->uu_status === 30) {
+                    $this->cancelUuOrder($order->id, $order->order_id, $cancel_text);
+                }
+                // 取消顺丰订单
+                if ($order->sf_status === 20 || $order->sf_status === 30) {
+                    if ($order->shipper_type_sf) {
+                        $this->cancelShunfengOwnOrder($order->warehouse_id ?: $order->shop_id, $order->delivery_id, $order->id, $order->order_id, $cancel_text);
+                    } else {
+                        $this->cancelShunfengOrder($order->warehouse_id ?: $order->shop_id, $order->delivery_id, $order->id, $order->order_id, $cancel_text);
+                    }
+                }
+                // 取消众包跑腿
+                if ($order->zb_status === 20 || $order->zb_status === 30) {
+                    $this->cancelRiderOrderMeiTuanZhongBao($order, 6);
+                }
+            }
+        }
+        return json_encode($res);
+    }
+
+    /**
+     * 送货中
+     * @data 2023/7/31 2:54 下午
+     */
+    public function Delivering($ss_order_id, $name, $phone, $longitude, $latitude, $locations)
+    {
+        $this->prefix = str_replace('###', "接单回调单号:{$ss_order_id}", $this->log_prefix);
+        $res = ['status' => 200, 'msg' => '', 'data' => ''];
         return json_encode($res);
     }
 }

@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Redis;
 
 class ShunFengOrderController extends Controller
 {
-    use LogTool, NoticeTool, RiderOrderCancel;
+    use RiderOrderCancel;
 
     public $prefix_title = '[顺丰服务商订单回调&###]';
 

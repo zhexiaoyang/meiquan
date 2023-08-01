@@ -10,18 +10,15 @@ use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
-use App\Traits\LogTool;
-use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
 class DaDaOrderController
 {
-    use LogTool, NoticeTool, RiderOrderCancel;
+    use RiderOrderCancel;
 
     public $prefix_title = '[达达服务商订单回调&###]';
 
