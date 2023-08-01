@@ -81,6 +81,16 @@ class Api extends Request
         return $this->post('cancelorder.ashx', $data);
     }
 
+    public function cancelOrderByOrderId($order_id)
+    {
+        $data = [
+            'origin_id' => $order_id,
+            'reason' => '顾客更改配送时间'
+        ];
+
+        return $this->post('cancelorder.ashx', $data);
+    }
+
     public function getOrderInfo($order_id)
     {
         $data = [
