@@ -2,19 +2,18 @@
 
 namespace App\Traits;
 
-use App\Http\Requests\Request;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
-use App\Models\OrderDeduction;
+use App\Models\OrderDelivery;
 use App\Models\OrderLog;
 use App\Models\Shop;
-use App\Models\UserMoneyBalance;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 trait RiderOrderCancel
 {
+    use NoticeTool2, LogTool2;
+
     public $cancel_rider_order_action_data = [
         1 => '中台后台',
         2 => '美团外卖',
@@ -29,162 +28,153 @@ trait RiderOrderCancel
         11 => '美团众包',
     ];
 
-    /**
-     * 取消美团跑腿订单（1）
-     */
-    public function cancel_rider_order_mt(Order $order)
+    public function cancelLogSave($order_id, $ps, $ps_text)
     {
-        $meituan = app("meituan");
+        OrderLog::create([
+            'ps' => $ps,
+            "order_id" => $order_id,
+            "des" => "取消[{$ps_text}]跑腿订单",
+        ]);
+    }
 
-        $result = $meituan->delete([
-            'delivery_id' => $order->delivery_id,
-            'mt_peisong_id' => $order->mt_order_id,
+    /**
+     * 取消美团（1）
+     */
+    public function cancelMeituanOrder($mt_peisong_id, $delivery_id, $order_id, $order_no, $message = ''): array
+    {
+        $result = ['status' => true, 'msg' => ''];
+        $meituan = app("meituan");
+        $cancel_result = $meituan->delete([
+            'delivery_id' => $delivery_id,
+            'mt_peisong_id' => $mt_peisong_id,
             'cancel_reason_id' => 399,
             'cancel_reason' => '其他原因',
         ]);
-
-        if (isset($result['code'])) {
-            if ($result['code'] != 0) {
-                return $result['message'];
-            }
+        if ($cancel_result['code'] !== 0) {
+            $this->ding_error("[{$message}]取消美团订单失败[跑腿订单号:{$order_no}|美团订单号{$mt_peisong_id}]");
+            $result = ['status' => false, 'msg' => $cancel_result['message']];
         } else {
-            return '请求接口失败';
+            // 记录订单日志
+            $this->cancelLogSave($order_id, 1, '美团跑腿');
         }
-
-        return true;
+        return $result;
     }
 
     /**
-     * 取消蜂鸟订单（2）
+     * 取消闪送-聚合（3）
      */
-    public function cancel_rider_order_fn(Order $order)
+    public function cancelShansongOrder(OrderDelivery $orderDelivery, $message = ''): array
     {
-        $fengniao = app("fengniao");
-        $result = $fengniao->cancelOrder([
-            'partner_order_code' => $order->order_id,
-            'order_cancel_reason_code' => 2,
-            'order_cancel_code' => 9,
-            'order_cancel_time' => time() * 1000,
-        ]);
-
-        if (isset($result['code'])) {
-            if ($result['code'] != 200) {
-                return $result['msg'];
-            }
+        $result = ['status' => true, 'msg' => ''];
+        $shansong = app("shansong");
+        $cancel_result = $shansong->cancelOrder($orderDelivery->three_order_no);
+        if ($cancel_result['status'] != 200) {
+            $this->ding_error("[{$message}]取消聚合闪送订单失败[跑腿订单ID:{$orderDelivery->order_id}|跑腿订单号:{$orderDelivery->order_no}|闪送订单号{$orderDelivery->three_order_no}]");
+            $result = ['status' => false, 'msg' => $result['msg']];
         } else {
-            return '请求失败';
+            // 记录订单日志
+            $this->cancelLogSave($orderDelivery->order_id, 3, '闪送');
         }
-
-        return true;
+        return $result;
+    }
+    /**
+     * 取消闪送-自有（3）
+     */
+    public function cancelShansongOwnOrder(OrderDelivery $orderDelivery, $message = ''): array
+    {
+        $result = ['status' => true, 'msg' => ''];
+        $shansong = new ShanSongService(config('ps.shansongservice'));
+        $cancel_result = $shansong->cancelOrder($orderDelivery->three_order_no);
+        if ($cancel_result['status'] != 200) {
+            $this->ding_error("取消自有闪送订单失败[跑腿订单ID:{$orderDelivery->order_id}|跑腿订单号:{$orderDelivery->order_no}|闪送订单号{$orderDelivery->three_order_no}]");
+            $result = ['status' => false, 'msg' => $result['msg']];
+        } else {
+            // 记录订单日志
+            $this->cancelLogSave($orderDelivery->order_id, 3, '闪送');
+        }
+        return $result;
     }
 
     /**
-     * 取消闪送订单（3）
+     * 取消达达-聚合（3）
      */
-    public function cancel_rider_order_ss(Order $order)
+    public function cancelDadaOrder($order_id, $order_no, $message = ''): array
     {
-        if ($order->shipper_type_ss) {
-            $shansong = new ShanSongService(config('ps.shansongservice'));
+        $result = ['status' => true, 'msg' => ''];
+        $dada = app("dada");
+        $cancel_result = $dada->orderCancel($order_no);
+        if ($cancel_result['code'] != 0) {
+            $this->ding_error("[{$message}]取消聚合达达订单失败[跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['msg']];
         } else {
-            $shansong = app("shansong");
+            $this->cancelLogSave($order_id, 5, '达达');
         }
-        $result = $shansong->cancelOrder($order->ss_order_id);
-
-        if (isset($result['status'])) {
-            if (($result['status'] != 200) && ($result['msg'] != '订单已经取消')) {
-                return $result['msg'];
-            }
-        } else {
-            return '请求失败';
-        }
-
-        return true;
+        return $result;
     }
-
     /**
-     * 取消美全达（4）
+     * 取消达达-自有（3）
      */
-    public function cancel_rider_order_mqd(Order $order)
+    public function cancelDadaOwnOrder($shop_id, $order_id, $order_no, $message = ''): array
     {
-        $fengniao = app("meiquanda");
-        $result = $fengniao->repealOrder($order->mqd_order_id);
-
-        if (isset($result['code'])) {
-            if ($result['code'] != 100) {
-                return $result['message'];
-            }
+        $result = ['status' => true, 'msg' => ''];
+        $config = config('ps.dada');
+        $config['source_id'] = get_dada_source_by_shop($shop_id);
+        $dada = new DaDaService($config);
+        $cancel_result = $dada->orderCancel($order_no);
+        if ($cancel_result['code'] != 0) {
+            $this->ding_error("[{$message}]取消自有达达订单失败[跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['msg']];
         } else {
-            return '请求失败';
+            $this->cancelLogSave($order_id, 5, '达达');
         }
-
-        return true;
-    }
-
-    /**
-     * 取消达达（5）
-     */
-    public function cancel_rider_order_dd(Order $order)
-    {
-        if ($order->shipper_type_dd) {
-            $config = config('ps.dada');
-            $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
-            $dada = new DaDaService($config);
-        } else {
-            $dada = app("dada");
-        }
-        $result = $dada->orderCancel($order->order_id);
-
-        if (isset($result['code'])) {
-            if ($result['code'] != 0) {
-                return $result['msg'];
-            }
-        } else {
-            return '请求失败';
-        }
-
-        return true;
+        return $result;
     }
 
     /**
      * 取消UU（6）
      */
-    public function cancel_rider_order_uu(Order $order)
+    public function cancelUuOrder($order_id, $order_no, $message = ''): array
     {
+        $result = ['status' => true, 'msg' => ''];
         $uu = app("uu");
-        $result = $uu->cancelOrder($order);
-
-        if (isset($result['return_code'])) {
-            if ($result['return_code'] != 'ok') {
-                return $result['return_msg'];
-            }
+        $cancel_result = $uu->cancelOrderByOrderId($order_id);
+        if ($cancel_result['return_code'] != 'ok') {
+            $this->ding_error("[{$message}]取消UU订单失败[跑腿ID:{$order_id}|跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['return_msg']];
         } else {
-            return '请求失败';
+            // 记录订单日志
+            $this->cancelLogSave($order_id, 6, 'UU');
         }
-
-        return true;
+        return $result;
     }
 
-    /**
-     * 取消顺丰（7）
-     */
-    public function cancel_rider_order_sf(Order $order)
+    public function cancelShunfengOrder($shop_id, $delivery_id, $order_id, $order_no, $message = ''): array
     {
-        if ($order->shipper_type_sf) {
-            $sf = app("shunfengservice");
+        $result = ['status' => true, 'msg' => ''];
+        $sf = app("shunfeng");
+        $cancel_result = $sf->cancelOrderByOrderId($delivery_id, $shop_id);
+        if ($cancel_result['error_code'] != 0) {
+            $this->ding_error("[{$message}]取消聚合顺丰订单失败[跑腿ID:{$order_id}|跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['error_msg']];
         } else {
-            $sf = app("shunfeng");
+            // 记录订单日志
+            $this->cancelLogSave($order_id, 7, '顺丰');
         }
-        $result = $sf->cancelOrder($order);
-
-        if (isset($result['error_code'])) {
-            if ($result['error_code'] != 0) {
-                return $result['error_msg'];
-            }
+        return $result;
+    }
+    public function cancelShunfengOwnOrder($shop_id, $delivery_id, $order_id, $order_no, $message = ''): array
+    {
+        $result = ['status' => true, 'msg' => ''];
+        $sf = app("shunfengservice");
+        $cancel_result = $sf->cancelOrderByOrderId($delivery_id, $shop_id);
+        if ($cancel_result['error_code'] != 0) {
+            $this->ding_error("[{$message}]取消聚合顺丰订单失败[跑腿ID:{$order_id}|跑腿订单号:{$order_no}]");
+            $result = ['status' => false, 'msg' => $cancel_result['error_msg']];
         } else {
-            return '请求失败';
+            // 记录订单日志
+            $this->cancelLogSave($order_id, 7, '顺丰');
         }
-
-        return true;
+        return $result;
     }
 
     /**
@@ -245,12 +235,12 @@ trait RiderOrderCancel
                 "des" => $action_text. "操作取消「美团众包」订单"
             ]);
             Log::info("$log_prefix-取消美团众包成功");
-            return [ 'status' => true, 'mes' => '取消美团众包成功'];
+            return [ 'status' => true, 'msg' => '取消美团众包成功', 'mes' => '取消美团众包成功'];
             // \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美团众包成功");
         } else {
             Log::info("$log_prefix-第二次取消美团众包失败", [$result]);
         }
         Log::info("$log_prefix-取消失败");
-        return [ 'status' => false, 'mes' => '取消美团众包失败'];
+        return [ 'status' => false, 'msg' => '取消美团众包失败', 'mes' => '取消美团众包失败'];
     }
 }
