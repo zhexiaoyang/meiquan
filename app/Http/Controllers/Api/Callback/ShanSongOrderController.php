@@ -9,21 +9,17 @@ use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\UserMoneyBalance;
-use App\Traits\RiderOrderCancel;
+use App\Traits\LogTool;
+use App\Traits\NoticeTool;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redis;
 
-/**
- * Class ShanSongOrderController
- * @package App\Http\Controllers\Api\Callback
- * 闪送订单状态回调-自有运力
- */
 class ShanSongOrderController
 {
-    use RiderOrderCancel;
+    use LogTool, NoticeTool;
 
     public $prefix_title = '[闪送服务商订单回调&###]';
 
@@ -244,10 +240,6 @@ class ShanSongOrderController
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
                     $this->log_info('取消顺丰待接单订单成功');
-                }
-                // 取消众包跑腿
-                if ($order->zb_status === 20 || $order->zb_status === 30) {
-                    $this->cancelRiderOrderMeiTuanZhongBao($order, 8);
                 }
                 // 更改信息，扣款
                 try {
