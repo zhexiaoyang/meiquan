@@ -134,6 +134,17 @@ class Api extends Request
         return $this->post('/open/api/external/cancelorder', $data);
     }
 
+    public function cancelOrderByOrderId($shop_id, $delivery_id)
+    {
+        $data = [
+            'order_id' => $delivery_id,
+            'order_type' => 2,
+            "shop_id" => (string) intval($shop_id),
+            "shop_type" => 2,
+        ];
+        return $this->post('/open/api/external/cancelorder', $data);
+    }
+
     public function notifyproductready(Order $order)
     {
         $shop = Shop::query()->find($order->shop_id);
