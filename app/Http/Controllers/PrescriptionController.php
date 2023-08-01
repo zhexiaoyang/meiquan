@@ -196,7 +196,7 @@ class PrescriptionController extends Controller
                 ->where('ctime', '<', strtotime($edate) + 86400);
 
             if ($order_id) {
-                $query->where('outOrderID', $order_id);
+                $query->where('order_id', $order_id);
             }
             if ($platform) {
                 $query->where('platform', $platform);
