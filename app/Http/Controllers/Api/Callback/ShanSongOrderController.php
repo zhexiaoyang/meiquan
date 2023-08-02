@@ -324,8 +324,8 @@ class ShanSongOrderController
                                 ]
                             );
                         } catch (\Exception $exception) {
-                            Log::info("聚合顺丰-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                            $this->ding_error("聚合顺丰-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                            Log::info("自有闪送-接单回调取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("自有闪送-接单回调取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                         }
                     }
                     $this->log_info('取消顺丰待接单订单成功');

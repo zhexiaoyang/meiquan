@@ -9,6 +9,8 @@ use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Medicine;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
@@ -376,6 +378,34 @@ class OrderController
                             'order_id' => $pt_order->id,
                             'des' => '取消【顺丰】跑腿订单',
                         ]);
+                        // 顺丰跑腿运力
+                        $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                        // 写入顺丰取消足迹
+                        if ($sf_delivery) {
+                            try {
+                                $sf_delivery->update([
+                                    'status' => 99,
+                                    'cancel_at' => date("Y-m-d H:i:s"),
+                                    'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]);
+                                OrderDeliveryTrack::firstOrCreate(
+                                    [
+                                        'delivery_id' => $sf_delivery->id,
+                                        'status' => 99,
+                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                    ], [
+                                        'order_id' => $sf_delivery->order_id,
+                                        'wm_id' => $sf_delivery->wm_id,
+                                        'delivery_id' => $sf_delivery->id,
+                                        'status' => 99,
+                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                    ]
+                                );
+                            } catch (\Exception $exception) {
+                                Log::info("众包取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                                $this->ding_error("众包取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                            }
+                        }
                         $this->log_info('取消顺丰待接单订单成功');
                     }
                     try {
