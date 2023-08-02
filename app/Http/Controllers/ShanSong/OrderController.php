@@ -6,6 +6,8 @@ use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
@@ -65,6 +67,9 @@ class OrderController
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            $this->ding_error("闪送回调：{$order_id}");
+            // 跑腿运力
+            $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
             if ($order->status == 99) {
@@ -89,13 +94,8 @@ class OrderController
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if ($result['status'] != 200) {
                     Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-失败');
-                    // $logs = [
-                    //     "des" => "【闪送订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-失败",
-                    //     "id" => $order->id,
-                    //     "order_id" => $order->order_id
-                    // ];
-                    // $dd->sendMarkdownMsgArray("【ERROR】闪送取消订单失败", $logs);
-                    return ['status' => 0, 'msg' => 'err', 'data' => ''];
+                    $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是【闪送】发起取消-失败|{$order->order_id}|");
+                    return json_encode($res);
                 }
                 // 记录订单日志
                 OrderLog::create([
@@ -134,9 +134,53 @@ class OrderController
                 // $order->ss_status = 30;
                 // $order->save();
                 Log::info($log_prefix . '待接单');
+                if ($delivery) {
+                    try {
+                        $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
+                        OrderDeliveryTrack::create([
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 20,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_WAITING,
+                            'description' => '',
+                        ]);
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-待接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 return json_encode($res);
 
             } elseif ($status == 30) {
+                // 写入接单足迹
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
@@ -334,7 +378,18 @@ class OrderController
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone, $locations) {
+                    DB::transaction(function () use ($order, $name, $phone, $locations, $delivery) {
+                        OrderDelivery::where('id', $delivery->id)->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'is_payment' => 1,
+                            'status' => 50,
+                            'paid_at' => date("Y-m-d H:i:s"),
+                            'arrival_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        ]);
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 3,
@@ -404,6 +459,44 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 40) {
+                // 写入到店、取货足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 60,
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 // 送货中
                 $order->status = 60;
                 $order->ss_status = 60;
@@ -424,6 +517,43 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 50) {
+                // 写入完成足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 70,
+                            'finished_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $shop = Shop::select('id', 'running_add')->find($order->shop_id);
                 // 已送达【已完成】
                 $order->profit = $shop->running_add;
@@ -447,6 +577,33 @@ class OrderController
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 60) {
+                // 写入足迹
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 if ($abort_type < 3) {
                     Log::info($log_prefix . "闪送取消订单通知-商户原因取消");
                     // $logs = [
@@ -493,26 +650,16 @@ class OrderController
                     ];
                     $dd->sendMarkdownMsgArray("【闪送跑腿】，发起取消配送", $logs);
                     Log::info($log_prefix . '接口取消订单成功');
-                    // 操作退款
+                    // 更改取消信息
                     try {
-                        DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
-                            if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
-                                // 查询当前用户，做余额日志
-                                $current_user = DB::table('users')->find($order->user_id);
-                                // DB::table("user_money_balances")->insert();
-                                UserMoneyBalance::create([
-                                    "user_id" => $order->user_id,
-                                    "money" => $order->money,
-                                    "type" => 1,
-                                    "before_money" => $current_user->money,
-                                    "after_money" => ($current_user->money + $order->money),
-                                    "description" => "取消闪送跑腿订单：" . $order->order_id,
-                                    "tid" => $order->id
-                                ]);
-                                // 将配送费返回
-                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
-                                Log::info($log_prefix . '接口取消订单，将钱返回给用户');
-                            }
+                        DB::transaction(function () use ($order, $name, $phone, $log_prefix, $delivery) {
+                            OrderDelivery::where('id', $delivery->id)->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
                             $update_data = [
                                 'ss_status' => 99
                             ];
@@ -536,23 +683,37 @@ class OrderController
                                     'des' => '【闪送】跑腿，发起取消配送，系统重新派单',
                                 ]);
                             }
-
                         });
                     } catch (\Exception $e) {
-                        $message = [
-                            $e->getCode(),
-                            $e->getFile(),
-                            $e->getLine(),
-                            $e->getMessage()
-                        ];
-                        Log::info($log_prefix . '取消订单，将钱返回给用户失败', $message);
-                        $logs = [
-                            "des" => "【闪送订单回调】更改信息、将钱返回给用户失败",
-                            "id" => $order->id,
-                            "order_id" => $order->order_id
-                        ];
-                        $dd->sendMarkdownMsgArray("闪送接口取消订单将钱返回给用户失败", $logs);
-                        return json_encode(['code' => 100]);
+                        $this->ding_error("聚合闪送取消回调更改取消信息失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                    }
+                    // 操作退款
+                    if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
+                        try {
+                            DB::transaction(function () use ($order, $delivery) {
+                                if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
+                                    // 更改退款信息
+                                    OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
+                                        ->update([ 'is_refund' => 1, 'refund_at' => date("Y-m-d H:i:s")]);
+                                    // 查询当前用户，做余额日志
+                                    $current_user = DB::table('users')->find($order->user_id);
+                                    // DB::table("user_money_balances")->insert();
+                                    UserMoneyBalance::create([
+                                        "user_id" => $order->user_id,
+                                        "money" => $order->money,
+                                        "type" => 1,
+                                        "before_money" => $current_user->money,
+                                        "after_money" => ($current_user->money + $order->money),
+                                        "description" => "取消闪送跑腿订单：" . $order->order_id,
+                                        "tid" => $order->id
+                                    ]);
+                                    // 将配送费返回
+                                    DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
+                                }
+                            });
+                        } catch (\Exception $e) {
+                            $this->ding_error("聚合闪送取消回调退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                        }
                     }
                 } else {
                     Log::info($log_prefix . "取消订单，状态不正确。状态(status)：{$order->status}");
