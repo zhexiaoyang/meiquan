@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 use App\Jobs\WarehouseCancelOrderStockSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\Shop;
 use App\Models\VipBillItem;
 use App\Models\WmProduct;
@@ -19,6 +21,7 @@ use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
 use App\Traits\LogTool;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class OrderCancelController
 {
@@ -601,74 +604,102 @@ class OrderCancelController
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
                     $this->log_info("取消已接单顺丰跑腿订单成功");
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
                         try {
-                            DB::transaction(function () use ($order, $result) {
-                                if ($order->shipper_type_sf == 0) {
-                                    // 用户余额日志
-                                    // 计算扣款
-                                    $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
-                                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
-                                    // 当前用户
-                                    $current_user = DB::table('users')->find($order->user_id);
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
+                    try {
+                        DB::transaction(function () use ($order, $result) {
+                            if ($order->shipper_type_sf == 0) {
+                                // 用户余额日志
+                                // 计算扣款
+                                $jian_money = isset($result['result']['deduction_detail']['deduction_fee']) ? ($result['result']['deduction_detail']['deduction_fee']/100) : 0;
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
+                                // 当前用户
+                                $current_user = DB::table('users')->find($order->user_id);
+                                UserMoneyBalance::query()->create([
+                                    "user_id" => $order->user_id,
+                                    "money" => $order->money,
+                                    "type" => 1,
+                                    "before_money" => $current_user->money,
+                                    "after_money" => ($current_user->money + $order->money),
+                                    "description" => "[美团外卖]取消[顺丰]订单：" . $order->order_id,
+                                    "tid" => $order->id
+                                ]);
+                                if ($jian_money > 0) {
                                     UserMoneyBalance::query()->create([
                                         "user_id" => $order->user_id,
-                                        "money" => $order->money,
-                                        "type" => 1,
-                                        "before_money" => $current_user->money,
-                                        "after_money" => ($current_user->money + $order->money),
-                                        "description" => "[美团外卖]取消[顺丰]订单：" . $order->order_id,
+                                        "money" => $jian_money,
+                                        "type" => 2,
+                                        "before_money" => ($current_user->money + $order->money),
+                                        "after_money" => ($current_user->money + $order->money - $jian_money),
+                                        "description" => "[美团外卖]取消[顺丰]订单扣款：" . $order->order_id,
                                         "tid" => $order->id
                                     ]);
-                                    if ($jian_money > 0) {
-                                        UserMoneyBalance::query()->create([
-                                            "user_id" => $order->user_id,
-                                            "money" => $jian_money,
-                                            "type" => 2,
-                                            "before_money" => ($current_user->money + $order->money),
-                                            "after_money" => ($current_user->money + $order->money - $jian_money),
-                                            "description" => "[美团外卖]取消[顺丰]订单扣款：" . $order->order_id,
-                                            "tid" => $order->id
-                                        ]);
-                                    }
-                                    DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
-                                    $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
-                                    if ($jian_money > 0) {
-                                        $jian_data = [
-                                            'order_id' => $order->id,
-                                            'money' => $jian_money,
-                                            'ps' => $order->ps
-                                        ];
-                                        OrderDeduction::create($jian_data);
-                                    }
-                                } else {
-                                    \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
                                 }
-                                DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
-                                    'status' => 99,
-                                    'sf_status' => 99,
-                                    'cancel_at' => date("Y-m-d H:i:s")
-                                ]);
-                                OrderLog::create([
-                                    "order_id" => $order->id,
-                                    "des" => "[美团外卖]取消[顺丰]订单"
-                                ]);
-                            });
-                        } catch (\Exception $e) {
-                            $message = [
-                                $e->getCode(),
-                                $e->getFile(),
-                                $e->getLine(),
-                                $e->getMessage()
-                            ];
-                            $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户失败,退款金额:{$order->money}");
-                            $logs = [
-                                "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
-                                "id" => $order->id,
-                                "ps" => "顺丰",
-                                "order_id" => $order->order_id
-                            ];
-                            $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
-                        }
+                                DB::table('users')->where('id', $order->user_id)->increment('money', ($order->money - $jian_money));
+                                $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户成功,退款金额:{$order->money},扣款金额:{$jian_money}");
+                                if ($jian_money > 0) {
+                                    $jian_data = [
+                                        'order_id' => $order->id,
+                                        'money' => $jian_money,
+                                        'ps' => $order->ps
+                                    ];
+                                    OrderDeduction::create($jian_data);
+                                }
+                            } else {
+                                \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-自主注册顺丰，取消不扣款");
+                            }
+                            DB::table('orders')->where("id", $order->id)->whereIn("status", [40, 50, 60])->update([
+                                'status' => 99,
+                                'sf_status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s")
+                            ]);
+                            OrderLog::create([
+                                "order_id" => $order->id,
+                                "des" => "[美团外卖]取消[顺丰]订单"
+                            ]);
+                        });
+                    } catch (\Exception $e) {
+                        $message = [
+                            $e->getCode(),
+                            $e->getFile(),
+                            $e->getLine(),
+                            $e->getMessage()
+                        ];
+                        $this->log_info("取消已接单顺丰跑腿订单成功,将钱返回给用户失败,退款金额:{$order->money}");
+                        $logs = [
+                            "des" => "【美团外卖接口取消订单】更改信息、将钱返回给用户失败",
+                            "id" => $order->id,
+                            "ps" => "顺丰",
+                            "order_id" => $order->order_id
+                        ];
+                        $dd->sendMarkdownMsgArray("美团外卖接口取消订单将钱返回给用户失败", $logs);
+                    }
                 } else {
                     $this->log_info("取消已接单顺丰跑腿订单失败");
                     $this->ding_error("取消已接单顺丰跑腿订单失败");
@@ -801,6 +832,34 @@ class OrderCancelController
                 }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
+                        try {
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     $order->status = 99;
                     $order->sf_status = 99;
                     $order->cancel_at = date("Y-m-d H:i:s");

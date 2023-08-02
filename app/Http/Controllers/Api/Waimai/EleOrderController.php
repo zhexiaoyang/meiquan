@@ -735,6 +735,34 @@ class EleOrderController extends Controller
                     }
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] == 0) {
+                        // 顺丰跑腿运力
+                        $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                        // 写入顺丰取消足迹
+                        if ($sf_delivery) {
+                            try {
+                                $sf_delivery->update([
+                                    'status' => 99,
+                                    'cancel_at' => date("Y-m-d H:i:s"),
+                                    'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]);
+                                OrderDeliveryTrack::firstOrCreate(
+                                    [
+                                        'delivery_id' => $sf_delivery->id,
+                                        'status' => 99,
+                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                    ], [
+                                        'order_id' => $sf_delivery->order_id,
+                                        'wm_id' => $sf_delivery->wm_id,
+                                        'delivery_id' => $sf_delivery->id,
+                                        'status' => 99,
+                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                    ]
+                                );
+                            } catch (\Exception $exception) {
+                                Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                                $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                            }
+                        }
                         try {
                             DB::transaction(function () use ($order, $result) {
                                 if ($order->shipper_type_sf == 0) {
