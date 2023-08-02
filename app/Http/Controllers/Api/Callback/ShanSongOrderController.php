@@ -407,8 +407,8 @@ class ShanSongOrderController
                             ]
                         );
                     } catch (\Exception $exception) {
-                        Log::info("聚合闪送-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("聚合闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        Log::info("自有闪送-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 // 送货中
@@ -467,8 +467,8 @@ class ShanSongOrderController
                             ]
                         );
                     } catch (\Exception $exception) {
-                        Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        Log::info("自有闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有闪送-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 // 服务费
@@ -543,8 +543,8 @@ class ShanSongOrderController
                             ]
                         );
                     } catch (\Exception $exception) {
-                        Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        Log::info("自有闪送-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有闪送-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 if ($abort_type < 3) {

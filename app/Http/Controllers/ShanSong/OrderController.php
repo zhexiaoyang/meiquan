@@ -550,7 +550,7 @@ class OrderController
                         );
                     } catch (\Exception $exception) {
                         Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        $this->ding_error("聚合闪送-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 $shop = Shop::select('id', 'running_add')->find($order->shop_id);
@@ -599,8 +599,8 @@ class OrderController
                             ]
                         );
                     } catch (\Exception $exception) {
-                        Log::info("聚合闪送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("送达闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        Log::info("聚合闪送-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 if ($abort_type < 3) {
@@ -711,7 +711,7 @@ class OrderController
                                 }
                             });
                         } catch (\Exception $e) {
-                            $this->ding_error("聚合闪送取消回调退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                            $this->ding_error("聚合闪送，取消回调，退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
                         }
                     }
                 } else {

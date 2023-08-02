@@ -8,6 +8,8 @@ use App\Jobs\MtLogisticsSync;
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\OrderResend;
 use App\Models\Shop;
@@ -64,6 +66,8 @@ class DaDaController extends Controller
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 跑腿运力
+            $delivery = OrderDelivery::where('three_order_no', $order_id)->where('platform', 5)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 重复回传状态原因-重新分配骑士:取消订单
             if ($repeat_reason_type == 1) {
                 $dd = app("dada");
@@ -196,7 +200,52 @@ class DaDaController extends Controller
             // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
 
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
-            if ($status == 2) {
+            if ($status == 1) {
+                if ($delivery) {
+                    try {
+                        $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
+                        OrderDeliveryTrack::create([
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 20,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_WAITING,
+                            'description' => '',
+                        ]);
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-待接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合达达-待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
+            } elseif ($status == 2) {
+                // 写入接单足迹
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合达达-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
@@ -388,7 +437,18 @@ class DaDaController extends Controller
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude, $delivery) {
+                        OrderDelivery::where('id', $delivery->id)->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'is_payment' => 1,
+                            'status' => 50,
+                            'paid_at' => date("Y-m-d H:i:s"),
+                            'arrival_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        ]);
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 5,
@@ -456,10 +516,76 @@ class DaDaController extends Controller
                 $order = Order::where('order_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
+            } elseif ($status == 100) {
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_PICKING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-到店回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合达达-到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
             } elseif ($status == 3) {
                 // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
                 // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
                 // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
+                // 到店、取货 足迹记录
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 60,
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 // 送货中
                 $order->status = 60;
                 $order->dd_status = 60;
@@ -480,6 +606,43 @@ class DaDaController extends Controller
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 4) {
+                // 写入完成足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 70,
+                            'finished_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合达达-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $shop = Shop::select('id', 'running_add')->find($order->shop_id);
                 // 已送达【已完成】
                 $order->profit = $shop->running_add;
@@ -503,31 +666,37 @@ class DaDaController extends Controller
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             } elseif ($status == 5) {
+                // 写入足迹
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合达达-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合达达-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 if ($order->status >= 20 && $order->status < 70 ) {
+                    // 更改取消信息
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix, $cancel_from) {
-                            if ($cancel_from === 1 || $cancel_from === 3) {
-                                if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
-                                    // 查询当前用户，做余额日志
-                                    $current_user = DB::table('users')->find($order->user_id);
-                                    // DB::table("user_money_balances")->insert();
-                                    UserMoneyBalance::create([
-                                        "user_id" => $order->user_id,
-                                        "money" => $order->money,
-                                        "type" => 1,
-                                        "before_money" => $current_user->money,
-                                        "after_money" => ($current_user->money + $order->money),
-                                        "description" => "取消达达跑腿订单：" . $order->order_id,
-                                        "tid" => $order->id
-                                    ]);
-                                    // 将配送费返回
-                                    DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
-                                    Log::info($log_prefix . '接口取消订单，将钱返回给用户');
-                                }
-                            } else {
-                                Log::info($log_prefix . '接口取消订单，商户主动取消，不退款');
-                            }
-
                             $update_data = [
                                 'dd_status' => 99
                             ];
@@ -564,6 +733,39 @@ class DaDaController extends Controller
                         ];
                         $dingding->sendMarkdownMsgArray("达达接口取消订单将钱返回给用户失败", $logs);
                         return json_encode(['code' => 100]);
+                    }
+                    // 操作退款
+                    if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
+                        try {
+                            DB::transaction(function () use ($order, $name, $phone, $log_prefix, $cancel_from, $delivery) {
+                                if ($cancel_from === 1 || $cancel_from === 3) {
+                                    if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
+                                        // 更改退款信息
+                                        OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
+                                            ->update([ 'is_refund' => 1, 'refund_at' => date("Y-m-d H:i:s")]);
+                                        // 查询当前用户，做余额日志
+                                        $current_user = DB::table('users')->find($order->user_id);
+                                        // DB::table("user_money_balances")->insert();
+                                        UserMoneyBalance::create([
+                                            "user_id" => $order->user_id,
+                                            "money" => $order->money,
+                                            "type" => 1,
+                                            "before_money" => $current_user->money,
+                                            "after_money" => ($current_user->money + $order->money),
+                                            "description" => "取消达达跑腿订单：" . $order->order_id,
+                                            "tid" => $order->id
+                                        ]);
+                                        // 将配送费返回
+                                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
+                                        Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                                    }
+                                } else {
+                                    Log::info($log_prefix . '接口取消订单，商户主动取消，不退款');
+                                }
+                            });
+                        } catch (\Exception $e) {
+                            $this->ding_error("聚合达达，取消回调退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                        }
                     }
                     Log::info($log_prefix . '接口取消订单成功');
                 } else {
