@@ -96,7 +96,7 @@ trait RiderOrderCancel
     }
 
     /**
-     * 取消达达-聚合（3）
+     * 取消达达-聚合（5）
      */
     public function cancelDadaOrder($order_id, $order_no, $message = ''): array
     {
@@ -112,7 +112,7 @@ trait RiderOrderCancel
         return $result;
     }
     /**
-     * 取消达达-自有（3）
+     * 取消达达-自有（5）
      */
     public function cancelDadaOwnOrder($shop_id, $order_id, $order_no, $message = ''): array
     {
@@ -148,9 +148,12 @@ trait RiderOrderCancel
         return $result;
     }
 
+    /**
+     * 取消顺丰-聚合（7）
+     */
     public function cancelShunfengOrder($shop_id, $delivery_id, $order_id, $order_no, $message = ''): array
     {
-        $result = ['status' => true, 'msg' => ''];
+        $result = ['status' => true, 'msg' => '', 'deduction_fee' => 0];
         $sf = app("shunfeng");
         $cancel_result = $sf->cancelOrderByOrderId($delivery_id, $shop_id);
         if ($cancel_result['error_code'] != 0) {
@@ -159,9 +162,13 @@ trait RiderOrderCancel
         } else {
             // 记录订单日志
             $this->cancelLogSave($order_id, 7, '顺丰');
+            $result['deduction_fee'] = isset($cancel_result['result']['deduction_detail']['deduction_fee']) ? $cancel_result['result']['deduction_detail']['deduction_fee']/ 100 : 0;
         }
         return $result;
     }
+    /**
+     * 取消顺丰-自有（7）
+     */
     public function cancelShunfengOwnOrder($shop_id, $delivery_id, $order_id, $order_no, $message = ''): array
     {
         $result = ['status' => true, 'msg' => ''];
@@ -173,6 +180,7 @@ trait RiderOrderCancel
         } else {
             // 记录订单日志
             $this->cancelLogSave($order_id, 7, '顺丰');
+            $result['deduction_fee'] = isset($cancel_result['result']['deduction_detail']['deduction_fee']) ? $cancel_result['result']['deduction_detail']['deduction_fee']/ 100 : 0;
         }
         return $result;
     }
