@@ -16,9 +16,7 @@ class OrderDeliveryTrack extends Model
 
     const TRACK_DESCRIPTION_PICKING = '配送员已就位，请出货';
     const TRACK_DESCRIPTION_DELIVERING = '配送员已取货，正赶往目的地';
-    const TRACK_DESCRIPTION_FINISH = '客户已收到商品
-
-';
+    const TRACK_DESCRIPTION_FINISH = '客户已收到商品';
 
     protected $fillable = ['delivery_id','order_id','wm_id','status','status_des','delivery_name','delivery_phone',
         'delivery_lng','delivery_lat','description'];
