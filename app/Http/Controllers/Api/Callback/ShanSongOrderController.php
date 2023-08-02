@@ -216,40 +216,40 @@ class ShanSongOrderController
                     ]);
                     $this->log_info('取消美团待接单订单成功');
                 }
-                // 取消蜂鸟订单
-                if ($order->fn_status === 20 || $order->fn_status === 30) {
-                    $fengniao = app("fengniao");
-                    $result = $fengniao->cancelOrder([
-                        'partner_order_code' => $order->order_id,
-                        'order_cancel_reason_code' => 2,
-                        'order_cancel_code' => 9,
-                        'order_cancel_time' => time() * 1000,
-                    ]);
-                    if ($result['code'] != 200) {
-                        $this->log_info('蜂鸟待接单取消失败');
-                    }
-                    // 记录订单日志
-                    OrderLog::create([
-                        'ps' => 2,
-                        "order_id" => $order->id,
-                        "des" => "取消【蜂鸟】跑腿订单",
-                    ]);
-                    $this->log_info('取消蜂鸟待接单订单成功');
-                }
-                // 取消美全达订单
-                if ($order->mqd_status === 20 || $order->mqd_status === 30) {
-                    $meiquanda = app("meiquanda");
-                    $result = $meiquanda->repealOrder($order->mqd_order_id);
-                    if ($result['code'] != 100) {
-                        $this->log_info('美全达待接单取消失败');
-                    }
-                    OrderLog::create([
-                        'ps' => 4,
-                        'order_id' => $order->id,
-                        'des' => '取消【美全达】跑腿订单',
-                    ]);
-                    $this->log_info('取消美全达待接单订单成功');
-                }
+                // // 取消蜂鸟订单
+                // if ($order->fn_status === 20 || $order->fn_status === 30) {
+                //     $fengniao = app("fengniao");
+                //     $result = $fengniao->cancelOrder([
+                //         'partner_order_code' => $order->order_id,
+                //         'order_cancel_reason_code' => 2,
+                //         'order_cancel_code' => 9,
+                //         'order_cancel_time' => time() * 1000,
+                //     ]);
+                //     if ($result['code'] != 200) {
+                //         $this->log_info('蜂鸟待接单取消失败');
+                //     }
+                //     // 记录订单日志
+                //     OrderLog::create([
+                //         'ps' => 2,
+                //         "order_id" => $order->id,
+                //         "des" => "取消【蜂鸟】跑腿订单",
+                //     ]);
+                //     $this->log_info('取消蜂鸟待接单订单成功');
+                // }
+                // // 取消美全达订单
+                // if ($order->mqd_status === 20 || $order->mqd_status === 30) {
+                //     $meiquanda = app("meiquanda");
+                //     $result = $meiquanda->repealOrder($order->mqd_order_id);
+                //     if ($result['code'] != 100) {
+                //         $this->log_info('美全达待接单取消失败');
+                //     }
+                //     OrderLog::create([
+                //         'ps' => 4,
+                //         'order_id' => $order->id,
+                //         'des' => '取消【美全达】跑腿订单',
+                //     ]);
+                //     $this->log_info('取消美全达待接单订单成功');
+                // }
                 // 取消达达订单
                 if ($order->dd_status === 20 || $order->dd_status === 30) {
                     if ($order->shipper_type_dd) {
@@ -300,6 +300,34 @@ class ShanSongOrderController
                         'order_id' => $order->id,
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
+                        try {
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("聚合顺丰-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("聚合顺丰-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     $this->log_info('取消顺丰待接单订单成功');
                 }
                 // 取消众包跑腿

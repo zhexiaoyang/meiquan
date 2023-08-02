@@ -8,6 +8,8 @@ use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
@@ -38,6 +40,7 @@ class UuController extends Controller
         \Log::info("UU跑腿回调全部参数", $data);
 
         // return json_encode($res);
+        $order_code = $data['order_code'] ?? '';
         // 商家订单号
         $order_id = $data['origin_id'] ?? '';
         // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
@@ -51,6 +54,7 @@ class UuController extends Controller
         $phone = $data['driver_mobile'] ?? '';
         $longitude = '';
         $latitude = '';
+        $locations = ['lng' => '', 'lat' => ''];
 
         // 定义日志格式
         $log_prefix = "[UU跑腿回调-订单|订单号:{$order_id}]-";
@@ -59,6 +63,8 @@ class UuController extends Controller
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 跑腿运力
+            $delivery = OrderDelivery::where('three_order_no', $order_code)->first();
             // UU配送员坐标
             // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
             if (in_array($status, [3,5])) {
@@ -70,6 +76,7 @@ class UuController extends Controller
                 $longitude = $driver_lastloc[0] ?? '';
                 // 配送员纬度
                 $latitude = $driver_lastloc[1] ?? '';
+                $locations = ['lng' => $longitude, 'lat' => $latitude];
                 Log::info("UU配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
             }
             // 日志格式
@@ -118,7 +125,52 @@ class UuController extends Controller
             }
 
             // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
-            if ($status == 3) {
+            if ($status == 1) {
+                if ($delivery) {
+                    try {
+                        $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
+                        OrderDeliveryTrack::create([
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 20,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_WAITING,
+                            'description' => '',
+                        ]);
+                    } catch (\Exception $exception) {
+                        Log::info("UU待接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
+            }elseif ($status == 3) {
+                // 写入接单足迹
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("UU接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                 if (!$jiedan_lock->get()) {
                     // 获取锁定5秒...
@@ -308,6 +360,34 @@ class UuController extends Controller
                         'order_id' => $order->id,
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
+                        try {
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("聚合顺丰-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("聚合顺丰-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     Log::info($log_prefix . '取消顺丰待接单订单成功');
                 }
                 // 取消众包跑腿
@@ -316,7 +396,18 @@ class UuController extends Controller
                 }
                 // 更改信息，扣款
                 try {
-                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude) {
+                    DB::transaction(function () use ($order, $name, $phone, $longitude, $latitude, $delivery) {
+                        OrderDelivery::where('id', $delivery->id)->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'is_payment' => 1,
+                            'status' => 50,
+                            'paid_at' => date("Y-m-d H:i:s"),
+                            'arrival_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        ]);
                         // 更改订单信息
                         Order::where("id", $order->id)->update([
                             'ps' => 6,
@@ -384,8 +475,74 @@ class UuController extends Controller
                 $order = Order::where('delivery_id', $order_id)->first();
                 dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
+            } elseif ($status == 4) {
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_PICKING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("UU到店回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
+                return json_encode($res);
             } elseif ($status == 5) {
                 // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 60,
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("UU取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 // 送货中
                 $order->status = 60;
                 $order->uu_status = 60;
@@ -407,6 +564,43 @@ class UuController extends Controller
                 return json_encode($res);
             } elseif (($status == 10) || ($status == 6 && $state_text == '已送达')) {
                 // 订单状态(1下单成功 3跑男抢单 4已到达 5已取件 6到达目的地 10收件人已收货 -1订单取消）
+                // 写入完成足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 70,
+                            'finished_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("UU送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 if ($order->status != 70) {
                     $shop = Shop::select('id', 'running_add')->find($order->shop_id);
                     // 已送达【已完成】
@@ -432,27 +626,59 @@ class UuController extends Controller
                 }
                 return json_encode($res);
             } elseif ($status == -1) {
+                // 写入足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'status' => 99,
+                            'cancel_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("UU取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("UU取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 if ($order->status >= 20 && $order->status < 70 ) {
                     sleep(1);
                     try {
                         DB::transaction(function () use ($order, $name, $phone, $log_prefix) {
-                            if (($order->status == 50 || $order->status == 60) && $order->ps == 6) {
-                                // 查询当前用户，做余额日志
-                                $current_user = DB::table('users')->find($order->user_id);
-                                // DB::table("user_money_balances")->insert();
-                                UserMoneyBalance::create([
-                                    "user_id" => $order->user_id,
-                                    "money" => $order->money,
-                                    "type" => 1,
-                                    "before_money" => $current_user->money,
-                                    "after_money" => ($current_user->money + $order->money),
-                                    "description" => "取消UU跑腿订单：" . $order->order_id,
-                                    "tid" => $order->id
-                                ]);
-                                // 将配送费返回
-                                DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_uu);
-                                Log::info($log_prefix . '接口取消订单，将钱返回给用户');
-                            }
+                            // if (($order->status == 50 || $order->status == 60) && $order->ps == 6) {
+                            //     // 查询当前用户，做余额日志
+                            //     $current_user = DB::table('users')->find($order->user_id);
+                            //     // DB::table("user_money_balances")->insert();
+                            //     UserMoneyBalance::create([
+                            //         "user_id" => $order->user_id,
+                            //         "money" => $order->money,
+                            //         "type" => 1,
+                            //         "before_money" => $current_user->money,
+                            //         "after_money" => ($current_user->money + $order->money),
+                            //         "description" => "取消UU跑腿订单：" . $order->order_id,
+                            //         "tid" => $order->id
+                            //     ]);
+                            //     // 将配送费返回
+                            //     DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_uu);
+                            //     Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                            // }
 
                             $update_data = [
                                 'uu_status' => 99

@@ -50,6 +50,7 @@ class DaDaController extends Controller
         $phone = $data['dm_mobile'] ?? '';
         $longitude = '';
         $latitude = '';
+        $locations = ['lng' => '', 'lat' => ''];
         $cancel_from = $data['cancel_from'] ?? 2;
         // 定义日志格式
         $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}]-";
@@ -149,6 +150,7 @@ class DaDaController extends Controller
                 $dada_info = $dada_app->getOrderInfo($order_id);
                 $longitude = $dada_info['result']['transporterLng'] ?? '';
                 $latitude = $dada_info['result']['transporterLat'] ?? '';
+                $locations = ['lng' => $longitude, 'lat' => $latitude];
                 Log::info("达达配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $longitude, 'lat' => $latitude]);
             }
             // 日志格式
@@ -322,31 +324,31 @@ class DaDaController extends Controller
                     ]);
                     Log::info($log_prefix . '取消美团待接单订单成功');
                 }
-                // 取消蜂鸟订单
-                if ($order->fn_status === 20 || $order->fn_status === 30) {
-                    $fengniao = app("fengniao");
-                    $result = $fengniao->cancelOrder([
-                        'partner_order_code' => $order->order_id,
-                        'order_cancel_reason_code' => 2,
-                        'order_cancel_code' => 9,
-                        'order_cancel_time' => time() * 1000,
-                    ]);
-                    if ($result['code'] != 200) {
-                        // $logs = [
-                        //     "des" => "【达达订单回调】蜂鸟待接单取消失败",
-                        //     "id" => $order->id,
-                        //     "order_id" => $order->order_id
-                        // ];
-                        // $dingding->sendMarkdownMsgArray("【ERROR】蜂鸟待接单取消失败", $logs);
-                    }
-                    // 记录订单日志
-                    OrderLog::create([
-                        'ps' => 2,
-                        "order_id" => $order->id,
-                        "des" => "取消【蜂鸟】跑腿订单",
-                    ]);
-                    Log::info($log_prefix . '取消蜂鸟待接单订单成功');
-                }
+                // // 取消蜂鸟订单
+                // if ($order->fn_status === 20 || $order->fn_status === 30) {
+                //     $fengniao = app("fengniao");
+                //     $result = $fengniao->cancelOrder([
+                //         'partner_order_code' => $order->order_id,
+                //         'order_cancel_reason_code' => 2,
+                //         'order_cancel_code' => 9,
+                //         'order_cancel_time' => time() * 1000,
+                //     ]);
+                //     if ($result['code'] != 200) {
+                //         // $logs = [
+                //         //     "des" => "【达达订单回调】蜂鸟待接单取消失败",
+                //         //     "id" => $order->id,
+                //         //     "order_id" => $order->order_id
+                //         // ];
+                //         // $dingding->sendMarkdownMsgArray("【ERROR】蜂鸟待接单取消失败", $logs);
+                //     }
+                //     // 记录订单日志
+                //     OrderLog::create([
+                //         'ps' => 2,
+                //         "order_id" => $order->id,
+                //         "des" => "取消【蜂鸟】跑腿订单",
+                //     ]);
+                //     Log::info($log_prefix . '取消蜂鸟待接单订单成功');
+                // }
                 // 取消闪送订单
                 if ($order->ss_status === 20 || $order->ss_status === 30) {
                     if ($order->shipper_type_ss) {
@@ -371,24 +373,24 @@ class DaDaController extends Controller
                     Log::info($log_prefix . '取消闪送待接单订单成功');
                 }
                 // 取消美全达订单
-                if ($order->mqd_status === 20 || $order->mqd_status === 30) {
-                    $meiquanda = app("meiquanda");
-                    $result = $meiquanda->repealOrder($order->mqd_order_id);
-                    if ($result['code'] != 100) {
-                        // $logs = [
-                        //     "des" => "【达达订单回调】美全达待接单取消失败",
-                        //     "id" => $order->id,
-                        //     "order_id" => $order->order_id
-                        // ];
-                        // $dingding->sendMarkdownMsgArray("【ERROR】美全达待接单取消失败", $logs);
-                    }
-                    OrderLog::create([
-                        'ps' => 4,
-                        'order_id' => $order->id,
-                        'des' => '取消【美全达】跑腿订单',
-                    ]);
-                    Log::info($log_prefix . '取消美全达待接单订单成功');
-                }
+                // if ($order->mqd_status === 20 || $order->mqd_status === 30) {
+                //     $meiquanda = app("meiquanda");
+                //     $result = $meiquanda->repealOrder($order->mqd_order_id);
+                //     if ($result['code'] != 100) {
+                //         // $logs = [
+                //         //     "des" => "【达达订单回调】美全达待接单取消失败",
+                //         //     "id" => $order->id,
+                //         //     "order_id" => $order->order_id
+                //         // ];
+                //         // $dingding->sendMarkdownMsgArray("【ERROR】美全达待接单取消失败", $logs);
+                //     }
+                //     OrderLog::create([
+                //         'ps' => 4,
+                //         'order_id' => $order->id,
+                //         'des' => '取消【美全达】跑腿订单',
+                //     ]);
+                //     Log::info($log_prefix . '取消美全达待接单订单成功');
+                // }
                 // 取消UU订单
                 if ($order->uu_status === 20 || $order->uu_status === 30) {
                     $uu = app("uu");
@@ -429,6 +431,34 @@ class DaDaController extends Controller
                         'order_id' => $order->id,
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
+                        try {
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("聚合顺丰-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("聚合顺丰-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     Log::info($log_prefix . '取消顺丰待接单订单成功');
                 }
                 // 取消众包跑腿
@@ -544,6 +574,7 @@ class DaDaController extends Controller
                         $this->ding_error("聚合达达-到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
+                return json_encode($res);
             } elseif ($status == 3) {
                 // 达达订单状态(待接单＝1,待取货＝2,配送中＝3,已完成＝4,已取消＝5, 指派单=8,妥投异常之物品返回中=9, 妥投异常之物品返回完成=10,
                 // 骑士到店=100,创建达达运单失败=1000 可参考文末的状态说明）
@@ -583,7 +614,7 @@ class DaDaController extends Controller
                         );
                     } catch (\Exception $exception) {
                         Log::info("聚合达达-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("聚合闪送-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        $this->ding_error("聚合达达-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
                 // 送货中
@@ -669,6 +700,11 @@ class DaDaController extends Controller
                 // 写入足迹
                 if ($delivery) {
                     try {
+                        $delivery->update([
+                            'status' => 99,
+                            'cancel_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                        ]);
                         OrderDeliveryTrack::firstOrCreate(
                             [
                                 'delivery_id' => $delivery->id,
