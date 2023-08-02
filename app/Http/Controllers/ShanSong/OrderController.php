@@ -559,7 +559,7 @@ class OrderController
                         OrderDeliveryTrack::firstOrCreate(
                             [
                                 'delivery_id' => $delivery->id,
-                                'status' => 60,
+                                'status' => 70,
                                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
                                 'delivery_name' => $name,
                                 'delivery_phone' => $phone,
@@ -567,7 +567,7 @@ class OrderController
                                 'order_id' => $delivery->order_id,
                                 'wm_id' => $delivery->wm_id,
                                 'delivery_id' => $delivery->id,
-                                'status' => 60,
+                                'status' => 70,
                                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
                                 'delivery_name' => $name,
                                 'delivery_phone' => $phone,

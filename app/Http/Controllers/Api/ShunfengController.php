@@ -458,10 +458,19 @@ class ShunfengController
             }elseif ($status == 12) {
                 if ($delivery) {
                     try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 50,
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
                         OrderDeliveryTrack::firstOrCreate(
                             [
                                 'delivery_id' => $delivery->id,
-                                'status' => 60,
+                                'status' => 50,
                                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
                                 'delivery_name' => $name,
                                 'delivery_phone' => $phone,
@@ -469,7 +478,7 @@ class ShunfengController
                                 'order_id' => $delivery->order_id,
                                 'wm_id' => $delivery->wm_id,
                                 'delivery_id' => $delivery->id,
-                                'status' => 60,
+                                'status' => 50,
                                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
                                 'delivery_name' => $name,
                                 'delivery_phone' => $phone,
@@ -483,6 +492,7 @@ class ShunfengController
                         $this->ding_error("自有顺丰-到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
+                return json_encode($res);
             }elseif ($status == 15) {
                 // 10-配送员确认;12:配送员到店;15:配送员配送中
                 if ($delivery) {
@@ -493,7 +503,6 @@ class ShunfengController
                             'delivery_lng' => $locations['lng'] ?? '',
                             'delivery_lat' => $locations['lat'] ?? '',
                             'status' => 60,
-                            'atshop_at' => date("Y-m-d H:i:s"),
                             'pickup_at' => date("Y-m-d H:i:s"),
                             'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
                         ]);
@@ -584,7 +593,7 @@ class ShunfengController
                     OrderDeliveryTrack::firstOrCreate(
                         [
                             'delivery_id' => $delivery->id,
-                            'status' => 60,
+                            'status' => 70,
                             'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
@@ -592,7 +601,7 @@ class ShunfengController
                             'order_id' => $delivery->order_id,
                             'wm_id' => $delivery->wm_id,
                             'delivery_id' => $delivery->id,
-                            'status' => 60,
+                            'status' => 70,
                             'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,

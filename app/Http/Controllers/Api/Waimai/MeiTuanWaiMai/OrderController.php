@@ -263,12 +263,51 @@ class OrderController
             }
             // 更改跑腿订单状态
             if ($pt_order = Order::where('order_id', $order_id)->where('zb_status', '>', 0)->where('status', '<', 70)->first()) {
+                // 跑腿运力
+                $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
                 $this->log_info("订单号：{$order_id}|跑腿订单-开始");
                 if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40) {
                     // 已有其它平台接单，取消美团跑腿
                     $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
                 } elseif ($status === 10) {
                     // 骑手接单
+                    // 写入接单足迹
+                    if ($delivery) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 50,
+                                'arrival_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 50,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 50,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("众包接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("众包接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     // 取消美团订单
                     if ($pt_order->mt_status === 20 || $pt_order->mt_status === 30) {
                         $meituan = app("meituan");
@@ -290,25 +329,25 @@ class OrderController
                         $this->log_info('取消美团待接单订单成功');
                     }
                     // 取消蜂鸟订单
-                    if ($pt_order->fn_status === 20 || $pt_order->fn_status === 30) {
-                        $fengniao = app("fengniao");
-                        $result = $fengniao->cancelOrder([
-                            'partner_order_code' => $pt_order->order_id,
-                            'order_cancel_reason_code' => 2,
-                            'order_cancel_code' => 9,
-                            'order_cancel_time' => time() * 1000,
-                        ]);
-                        if ($result['code'] != 200) {
-                            $this->log_info('蜂鸟待接单取消失败');
-                        }
-                        // 记录订单日志
-                        OrderLog::create([
-                            'ps' => 2,
-                            "order_id" => $pt_order->id,
-                            "des" => "取消【蜂鸟】跑腿订单",
-                        ]);
-                        $this->log_info('取消蜂鸟待接单订单成功');
-                    }
+                    // if ($pt_order->fn_status === 20 || $pt_order->fn_status === 30) {
+                    //     $fengniao = app("fengniao");
+                    //     $result = $fengniao->cancelOrder([
+                    //         'partner_order_code' => $pt_order->order_id,
+                    //         'order_cancel_reason_code' => 2,
+                    //         'order_cancel_code' => 9,
+                    //         'order_cancel_time' => time() * 1000,
+                    //     ]);
+                    //     if ($result['code'] != 200) {
+                    //         $this->log_info('蜂鸟待接单取消失败');
+                    //     }
+                    //     // 记录订单日志
+                    //     OrderLog::create([
+                    //         'ps' => 2,
+                    //         "order_id" => $pt_order->id,
+                    //         "des" => "取消【蜂鸟】跑腿订单",
+                    //     ]);
+                    //     $this->log_info('取消蜂鸟待接单订单成功');
+                    // }
                     // 取消闪送订单
                     if ($pt_order->ss_status === 20 || $pt_order->ss_status === 30) {
                         if ($pt_order->shipper_type_ss) {
@@ -456,7 +495,79 @@ class OrderController
                     }
                 } elseif ($status === 15) {
                     // 骑手已到店
+                    if ($delivery) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 50,
+                                'atshop_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 50,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 50,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_PICKING,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("自有顺丰-到店回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("自有顺丰-到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                 } elseif ($status === 20) {
+                    if ($delivery) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 60,
+                                'pickup_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("众包取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("众包取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     // 骑手已取货
                     $pt_order->status = 60;
                     $pt_order->zb_status = 60;
@@ -477,6 +588,45 @@ class OrderController
                     // dispatch(new MtLogisticsSync($order));
                     $this->log_info('取件成功，配送中，更改信息成功');
                 } elseif ($status === 40) {
+                    // 写入完成足迹
+                    if ($delivery) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 70,
+                                'finished_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                'is_payment' => 1,
+                                'paid_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 70,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 70,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("自有顺丰-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("自有顺丰-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     // 服务费
                     $service_fee = 0.1;
                     // 骑手已送达
