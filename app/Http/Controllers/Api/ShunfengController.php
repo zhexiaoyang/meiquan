@@ -71,7 +71,7 @@ class ShunfengController
                 $dingding->sendMarkdownMsgArray("【ERROR】已有配送平台", $logs);
                 $sf = app("shunfeng");
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] != 0) {
+                if ( ($result['error_code'] != 0) && (strstr($result['error_msg'], '已取消') === false) ) {
                     Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【顺丰】发起取消-失败');
                     $logs = [
                         "des" => "【顺丰订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【顺丰】发起取消-失败",
@@ -79,7 +79,7 @@ class ShunfengController
                         "order_id" => $order->order_id
                     ];
                     $dingding->sendMarkdownMsgArray("【ERROR】顺丰取消订单失败", $logs);
-                    return [];
+                    return json_encode($res);
                 }
                 // 记录订单日志
                 OrderLog::create([

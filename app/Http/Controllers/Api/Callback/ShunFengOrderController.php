@@ -69,10 +69,10 @@ class ShunFengOrderController extends Controller
                 $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「顺丰」发起取消-开始");
                 $sf = app("shunfengservice");
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] != 0) {
+                if ( ($result['error_code'] != 0) && (strstr($result['error_msg'], '已取消') === false) ) {
                     $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「顺丰」发起取消-失败", [$result]);
                     $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「顺丰」发起取消-失败");
-                    return [];
+                    return json_encode($res);
                 }
                 // 记录订单日志
                 OrderLog::create([
