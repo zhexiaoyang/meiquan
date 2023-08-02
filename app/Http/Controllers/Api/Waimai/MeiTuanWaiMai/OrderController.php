@@ -264,7 +264,7 @@ class OrderController
             // 更改跑腿订单状态
             if ($pt_order = Order::where('order_id', $order_id)->where('zb_status', '>', 0)->where('status', '<', 70)->first()) {
                 // 跑腿运力
-                $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
+                $delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
                 $this->log_info("订单号：{$order_id}|跑腿订单-开始");
                 if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40) {
                     // 已有其它平台接单，取消美团跑腿
