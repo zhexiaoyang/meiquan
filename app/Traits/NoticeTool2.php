@@ -17,6 +17,6 @@ trait NoticeTool2
     public function ding_error($message, $data = [])
     {
         $ding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
-        $ding->sendTextMsg($message . '|' . $this->notice_tool2_prefix . '|' . date("Y-m-d H:i:s"));
+        $ding->sendTextMsg($message . '|' . $this->notice_tool2_prefix . '|错误' . date("Y-m-d H:i:s"));
     }
 }
