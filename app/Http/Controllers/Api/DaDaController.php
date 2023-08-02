@@ -54,13 +54,13 @@ class DaDaController extends Controller
         // 定义日志格式
         $log_prefix = "[达达跑腿回调-订单|订单号:{$order_id}]-";
         Log::info($log_prefix . '全部参数', $data);
-        if ($status === 1) {
-            return json_encode($res);
-        }
-        if (intval($cancel_from) === 2) {
-            Log::info($log_prefix . '商家主动取消，不进行操作');
-            return json_encode($res);
-        }
+        // if ($status === 1) {
+        //     return json_encode($res);
+        // }
+        // if (intval($cancel_from) === 2) {
+        //     Log::info($log_prefix . '商家主动取消，不进行操作');
+        //     return json_encode($res);
+        // }
 
         $dingding = app("ding");
 
@@ -758,6 +758,7 @@ class DaDaController extends Controller
                                         // 将配送费返回
                                         DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
                                         Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                                        $this->ding_error("接口取消达达订单，将钱返回给用户|{$order->order_id}|");
                                     }
                                 } else {
                                     Log::info($log_prefix . '接口取消订单，商户主动取消，不退款');

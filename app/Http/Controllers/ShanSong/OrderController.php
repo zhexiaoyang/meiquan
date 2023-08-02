@@ -708,6 +708,7 @@ class OrderController
                                     ]);
                                     // 将配送费返回
                                     DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
+                                    $this->ding_error("接口取消闪送订单，将钱返回给用户|{$order->order_id}|");
                                 }
                             });
                         } catch (\Exception $e) {

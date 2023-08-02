@@ -53,13 +53,13 @@ class DaDaOrderController
         // 定义日志格式
         $this->prefix = str_replace('###', "中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $data);
-        if ($status === 1) {
-            return json_encode($res);
-        }
-        if (intval($cancel_from) === 2) {
-            $this->log_info('商家主动取消，不进行操作');
-            return json_encode($res);
-        }
+        // if ($status === 1) {
+        //     return json_encode($res);
+        // }
+        // if (intval($cancel_from) === 2) {
+        //     $this->log_info('商家主动取消，不进行操作');
+        //     return json_encode($res);
+        // }
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
