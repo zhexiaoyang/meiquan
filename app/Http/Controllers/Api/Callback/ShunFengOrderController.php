@@ -8,6 +8,8 @@ use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
@@ -32,10 +34,10 @@ class ShunFengOrderController extends Controller
         // 配送员
         $name = $request->get("operator_name", "");
         $phone = $request->get("operator_phone", "");
-        // 配送员位置经度
+        // 配送员位置经度纬度
         $rider_lng = $request->get("rider_lng", "");
-        // 配送员位置纬度
         $rider_lat = $request->get("rider_lat", "");
+        $locations = ['lng' => $rider_lng, 'lat' => $rider_lat];
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         $status_desc = $request->get("status_desc", "");
@@ -48,6 +50,8 @@ class ShunFengOrderController extends Controller
         }
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            // 跑腿运力
+            $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 日志前缀
             $this->log_info("中台订单状态：{$order->status}");
 
@@ -82,6 +86,40 @@ class ShunFengOrderController extends Controller
                     'name' => $name,
                     'phone' => $phone,
                 ]);
+                // 取消足迹记录
+                if ($delivery) {
+                    $delivery->update([
+                        'delivery_name' => $name,
+                        'delivery_phone' => $phone,
+                        'status' => 99,
+                        'cancel_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    ]);
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("自有顺丰-接单回调取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有顺丰-接单回调取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「顺丰」发起取消-成功");
                 return json_encode($res);
             }
@@ -89,6 +127,43 @@ class ShunFengOrderController extends Controller
             // 回调状态判断
             // 10-配送员确认;12:配送员到店;15:配送员配送中
             if ($status == 10) {
+                // 写入接单足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 50,
+                            'arrival_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("自有顺丰-接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有顺丰-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 if (strpos($status_desc, '改派') !== false) {
                     // 配送员配送中
                     $order->courier_name = $name;
@@ -304,8 +379,73 @@ class ShunFengOrderController extends Controller
                 dispatch(new MtLogisticsSync($order));
                 $this->log_info('顺丰接单，更改信息成功，返回：' . json_encode($res));
                 return json_encode($res);
+            }elseif ($status == 12) {
+                if ($delivery) {
+                    try {
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_PICKING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("自有顺丰-到店回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有顺丰-到店回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
             }elseif ($status == 15) {
                 // 10-配送员确认;12:配送员到店;15:配送员配送中
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 60,
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 60,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("自有顺丰-取货回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有顺丰-取货回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 // 配送员配送中
                 $order->status = 60;
                 $order->sf_status = 60;
@@ -343,8 +483,8 @@ class ShunFengOrderController extends Controller
         $phone = $request->get("operator_phone", "");
         // 配送员位置经度
         $rider_lng = $request->get("rider_lng", "");
-        // 配送员位置纬度
         $rider_lat = $request->get("rider_lat", "");
+        $locations = ['lng' => $rider_lng, 'lat' => $rider_lat];
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         // 定义日志格式
@@ -355,6 +495,47 @@ class ShunFengOrderController extends Controller
         $receipt_type = $request->get("receipt_type", 1);
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            // 跑腿运力
+            $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+            // 写入完成足迹
+            if ($delivery) {
+                try {
+                    $delivery->update([
+                        'delivery_name' => $name,
+                        'delivery_phone' => $phone,
+                        'delivery_lng' => $locations['lng'] ?? '',
+                        'delivery_lat' => $locations['lat'] ?? '',
+                        'status' => 70,
+                        'finished_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        'is_payment' => 1,
+                        'paid_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    OrderDeliveryTrack::firstOrCreate(
+                        [
+                            'delivery_id' => $delivery->id,
+                            'status' => 60,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                        ], [
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 60,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                        ]
+                    );
+                } catch (\Exception $exception) {
+                    Log::info("自有顺丰-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    $this->ding_error("自有顺丰-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                }
+            }
             // 日志前缀
             $this->log_info("中台订单状态：{$order->status}");
             // 判断状态
@@ -421,11 +602,54 @@ class ShunFengOrderController extends Controller
         Log::info('顺丰跑腿回调-订单取消回调-全部参数', $request->all());
         // 商家订单ID
         $order_id = $request->get("shop_order_id", "");
+        // 配送员
+        $name = $request->get("operator_name", "");
+        $phone = $request->get("operator_phone", "");
+        // 配送员位置经度
+        $rider_lng = $request->get("rider_lng", "");
+        // 配送员位置纬度
+        $rider_lat = $request->get("rider_lat", "");
         // 定义日志格式
         $this->prefix = str_replace('###', "取消订单&中台单号:{$order_id}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            // 跑腿运力
+            $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+            // 写入足迹
+            if ($delivery) {
+                try {
+                    $delivery->update([
+                        'delivery_name' => $name,
+                        'delivery_phone' => $phone,
+                        'status' => 99,
+                        'cancel_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    ]);
+                    OrderDeliveryTrack::firstOrCreate(
+                        [
+                            'delivery_id' => $delivery->id,
+                            'status' => 99,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                        ], [
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 99,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $rider_lng,
+                            'delivery_lat' => $rider_lat,
+                        ]
+                    );
+                } catch (\Exception $exception) {
+                    Log::info("自有顺丰-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    $this->ding_error("自有顺丰-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                }
+            }
             // 日志前缀
             $this->log_info("中台订单状态：{$order->status}");
             // 判断状态
@@ -501,23 +725,29 @@ class ShunFengOrderController extends Controller
                 $sf = app("shunfengservice");
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
-                    // if (($order->status == 50 || $order->status == 60) && $order->ps == 7) {
-                    //     $this->ding_error("顺丰骑手撤单：{$order_id}，返还配送费");
-                    //     // 查询当前用户，做余额日志
-                    //     $current_user = DB::table('users')->find($order->user_id);
-                    //     // DB::table("user_money_balances")->insert();
-                    //     UserMoneyBalance::create([
-                    //         "user_id" => $order->user_id,
-                    //         "money" => $order->money,
-                    //         "type" => 1,
-                    //         "before_money" => $current_user->money,
-                    //         "after_money" => ($current_user->money + $order->money),
-                    //         "description" => "顺丰骑手撤单取消顺丰跑腿订单：" . $order->order_id,
-                    //         "tid" => $order->id
-                    //     ]);
-                    //     // 将配送费返回
-                    //     DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_sf);
-                    // }
+                    // 跑腿运力
+                    $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入足迹
+                    if ($delivery) {
+                        try {
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("自有顺丰-骑手撤单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("自有顺丰-骑手撤单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                     OrderLog::create([
                         'ps' => 7,
                         'order_id' => $order->id,
