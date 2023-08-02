@@ -67,7 +67,6 @@ class OrderController
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
-            $this->ding_error("闪送回调：{$order_id}|{$order->id}");
             // 跑腿运力
             $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
@@ -459,7 +458,7 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 40) {
-                // 写入到店、取货足迹
+                // 到店、取货 足迹记录
                 if ($delivery) {
                     try {
                         $delivery->update([
