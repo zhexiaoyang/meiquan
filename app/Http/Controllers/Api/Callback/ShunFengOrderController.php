@@ -730,6 +730,11 @@ class ShunFengOrderController extends Controller
                     // 写入足迹
                     if ($delivery) {
                         try {
+                            $delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
                             OrderDeliveryTrack::firstOrCreate(
                                 [
                                     'delivery_id' => $delivery->id,
