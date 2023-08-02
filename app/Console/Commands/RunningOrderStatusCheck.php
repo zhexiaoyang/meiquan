@@ -5,8 +5,11 @@ namespace App\Console\Commands;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
+use App\Models\OrderDelivery;
+use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class RunningOrderStatusCheck extends Command
 {
@@ -42,16 +45,74 @@ class RunningOrderStatusCheck extends Command
     public function handle()
     {
         // $orders = Order::whereIn("status", [20, 50, 60])->where('push_at', '<', date("Y-m-d H:i:s", time() - 3600 * 2))->orderBy('id')->get();
-        $orders = Order::whereIn("status", [20])->where('push_at', '<', date("Y-m-d H:i:s", time() - 3600 * 2))->orderBy('id')->get();
-        $this->info("数量：" . $orders->count());
+        // 2小时未接单
+        $orders = Order::where("status", 20)->where('push_at', '<', date("Y-m-d H:i:s", time() - 3600 * 2))->orderBy('id')->get();
+        $this->info("未接单数量：" . $orders->count());
         if (!empty($orders)) {
             foreach ($orders as $order) {
-                if ($order->status == 20) {
-                    $this->cancel_order($order);
-                    // $res = $this->cancel_order($order);
-                    // \Log::info("res", [$res]);
-                    $this->info($order->order_id);
-                    // break;
+                $this->cancel_order($order);
+                $this->info($order->order_id);
+            }
+        }
+        // 已接单-2天未完成
+        $orders = Order::select('id','order_id','status','pay_status','ps','receive_at','created_at')->where("status", 50)->where('receive_at', '<', date("Y-m-d H:i:s", time() - 3600 * 24))->orderBy('id')->get();
+        $this->info("接单数量：" . $orders->count());
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if ($order->pay_status === 1 && $order->ps !== 0) {
+                    $this->info("{$order->order_id}|{$order->receive_at}|{$order->created_at}");
+                    $update_data = [];
+                    if ($order->ps == 1) {
+                        $update_data = ['status' => 70, 'mt_status' => 70];
+                    } elseif ($order->ps == 2) {
+                        $update_data = ['status' => 70, 'fn_status' => 70];
+                    } elseif ($order->ps == 3) {
+                        $update_data = ['status' => 70, 'ss_status' => 70];
+                    } elseif ($order->ps == 4) {
+                        $update_data = ['status' => 70, 'mqd_status' => 70];
+                    } elseif ($order->ps == 5) {
+                        $update_data = ['status' => 70, 'dd_status' => 70];
+                    } elseif ($order->ps == 6) {
+                        $update_data = ['status' => 70, 'uu_status' => 70];
+                    } elseif ($order->ps == 7) {
+                        $update_data = ['status' => 70, 'sf_status' => 70];
+                    } elseif ($order->ps == 8) {
+                        $update_data = ['status' => 70, 'zb_status' => 70];
+                    }
+                    if (!empty($update_data)) {
+                        Order::where('id', $order->id)->update($update_data);
+                    }
+                }
+            }
+        }
+        // 已取货-2天未完成
+        $orders = Order::select('id','order_id','status','pay_status','ps','receive_at','created_at')->where("status", 60)->where('take_at', '<', date("Y-m-d H:i:s", time() - 3600 * 24))->orderBy('id')->get();
+        $this->info("取货数量：" . $orders->count());
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if ($order->pay_status === 1 && $order->ps !== 0) {
+                    $this->info("{$order->order_id}|{$order->receive_at}|{$order->created_at}");
+                    $update_data = [];
+                    if ($order->ps == 1) {
+                        $update_data = ['status' => 70, 'mt_status' => 70];
+                    } elseif ($order->ps == 2) {
+                        $update_data = ['status' => 70, 'fn_status' => 70];
+                    } elseif ($order->ps == 3) {
+                        $update_data = ['status' => 70, 'ss_status' => 70];
+                    } elseif ($order->ps == 4) {
+                        $update_data = ['status' => 70, 'mqd_status' => 70];
+                    } elseif ($order->ps == 5) {
+                        $update_data = ['status' => 70, 'dd_status' => 70];
+                    } elseif ($order->ps == 6) {
+                        $update_data = ['status' => 70, 'uu_status' => 70];
+                    } elseif ($order->ps == 7) {
+                        $update_data = ['status' => 70, 'sf_status' => 70];
+                    } elseif ($order->ps == 8) {
+                        $update_data = ['status' => 70, 'zb_status' => 70];
+                    }
+                    if (!empty($update_data)) {
+                        Order::where('id', $order->id)->update($update_data);
+                    }
                 }
             }
         }
@@ -179,6 +240,34 @@ class RunningOrderStatusCheck extends Command
                     "order_id" => $order->id,
                     "des" => "超过2小时无人接单，取消订单"
                 ]);
+                // 顺丰跑腿运力
+                $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                // 写入顺丰取消足迹
+                if ($sf_delivery) {
+                    try {
+                        $sf_delivery->update([
+                            'status' => 99,
+                            'cancel_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $sf_delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ], [
+                                'order_id' => $sf_delivery->order_id,
+                                'wm_id' => $sf_delivery->wm_id,
+                                'delivery_id' => $sf_delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("自有达达-接单回调取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("自有达达-接单回调取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
             }
         }
     }
