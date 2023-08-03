@@ -1823,7 +1823,7 @@ class OrderController extends Controller
                                 // }
 
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -1833,7 +1833,7 @@ class OrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
