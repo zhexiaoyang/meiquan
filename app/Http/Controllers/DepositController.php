@@ -231,7 +231,7 @@ class DepositController extends Controller
 
         // 判断是否授权过了
         if (!$auth) {
-            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat.miniapp_id') . "&secret=18f04fe76c83464cc5a0c662107a78e2&js_code={$code}&grant_type=authorization_code";
+            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat.miniapp_id') . "&secret=" . config('pay.wechat.miniapp_app_secret') . "&js_code={$code}&grant_type=authorization_code";
             $auth_json = file_get_contents($url);
             $auth = json_decode($auth_json, true);
             // Log::info($prefix . "openid不存在，微信未授权，无法使用支付", [$auth]);

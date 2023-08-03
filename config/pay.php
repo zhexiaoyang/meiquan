@@ -35,6 +35,7 @@ return [
 
         // 小程序 APPID
         'miniapp_id' => env('WECHAT_MINIAPP_ID', ''),
+        'miniapp_app_secret' => env('WECHAT_MINIAPP_APP_SECRET', ''),
 
         // APP 引用的 appid
         'appid' => env('WECHAT_APPID', ''),
