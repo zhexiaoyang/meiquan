@@ -6,6 +6,7 @@ use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
 use App\Models\Order;
+use App\Models\OrderDeduction;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
@@ -756,6 +757,7 @@ class OrderController
                     if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
                         try {
                             DB::transaction(function () use ($order, $delivery, $jian_money) {
+                                $jian_money = $jian_money / 100;
                                 if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
                                     // 更改退款信息
                                     OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
@@ -782,6 +784,12 @@ class OrderController
                                             "description" => "取消闪送跑腿订单扣款：" . $order->order_id,
                                             "tid" => $order->id
                                         ]);
+                                        $jian_data = [
+                                            'order_id' => $order->id,
+                                            'money' => $jian_money,
+                                            'ps' => $order->ps
+                                        ];
+                                        OrderDeduction::create($jian_data);
                                     }
                                     // 将配送费返回
                                     DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss - $jian_money);
