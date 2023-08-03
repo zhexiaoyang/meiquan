@@ -154,6 +154,7 @@ return [
         'dd' => 1,
         'uu' => 1,
         'meiquanda' => 1,
+        'zhongbao' => 1,
         // 仓库
         'warehouse' => 0,
         'warehouse_time' => '00:00-00:00',

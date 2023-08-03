@@ -246,11 +246,11 @@ class ShopController extends Controller
                 $tmp['shopping'] = $shop->auth;
                 // 三方ID
                 $tmp['meituan_bind_platform'] = $shop->meituan_bind_platform;
-                $tmp['mtwm'] = $shop->mtwm;
+                $tmp['mtwm'] = $shop->mtwm ?: $shop->waimai_mt;
                 $tmp['mtwm_status'] = (bool) $shop->mtwm;
                 $tmp['mtwm_apply_id'] = $shop->apply_three_id->mtwm ?? '';
                 $tmp['mtwm_apply_status'] = (bool) ($shop->apply_three_id->mtwm ?? '');
-                $tmp['ele'] = $shop->ele;
+                $tmp['ele'] = $shop->ele ?: $shop->waimai_ele;
                 $tmp['ele_status'] = (bool) $shop->ele;
                 $tmp['ele_apply_id'] = $shop->apply_three_id->ele ?? '';
                 $tmp['ele_apply_status'] = (bool) ($shop->apply_three_id->ele ?? '');
@@ -1109,7 +1109,8 @@ class ShopController extends Controller
             'sf' => $shop->shop_id_sf ?? 0,
             'dd' => $shop->shop_id_dd ?? 0,
             'uu' => $shop->shop_id_uu ?? 0,
-            'mqd' => $shop->shop_id_mqd ?? 0
+            'mqd' => $shop->shop_id_mqd ?? 0,
+            'zb' => $shop->shop_id_zb ?? 0
         ];
 
         if (!empty($shop->shippers)) {
