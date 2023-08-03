@@ -152,6 +152,7 @@ class CreateMtOrder implements ShouldQueue
         $dd_switch = $default_settimg['dada'];
         $uu_switch = $default_settimg['uu'];
         $sf_switch = $default_settimg['shunfeng'];
+        $zb_switch = $default_settimg['zhongbao'];
         // 商家发单设置
         $setting = OrderSetting::where("shop_id", $shop->id)->first();
         if ($setting) {
@@ -163,6 +164,7 @@ class CreateMtOrder implements ShouldQueue
             $dd_switch = $setting->dada;
             $uu_switch = $setting->uu;
             $sf_switch = $setting->shunfeng;
+            $zb_switch = $setting->zhongbao ?? 0;
             // 仓库发单
             if ($setting->warehouse && $setting->warehouse_time) {
                 $time_data = explode('-', $setting->warehouse_time);
@@ -175,6 +177,18 @@ class CreateMtOrder implements ShouldQueue
                             $this->warehouse = $setting->warehouse;
                             $shop = Shop::find($setting->warehouse);
                             $this->log("仓库转发 | 仓库ID：{{ $setting->warehouse }}，名称：{{ $shop->shop_name }}，仓库时间：{{ $setting->warehouse_time }}");
+                            $warehouse_setting = OrderSetting::where("shop_id", $setting->warehouse)->first();
+                            if ($warehouse_setting) {
+                                $order_ttl = $warehouse_setting->delay_reset * 60;
+                                $mt_switch = $warehouse_setting->meituan;
+                                $fn_switch = $warehouse_setting->fengniao;
+                                $ss_switch = $warehouse_setting->shansong;
+                                $mqd_switch = $warehouse_setting->meiquanda;
+                                $dd_switch = $warehouse_setting->dada;
+                                $uu_switch = $warehouse_setting->uu;
+                                $sf_switch = $warehouse_setting->shunfeng;
+                                $zb_switch = $warehouse_setting->zhongbao ?? 0;
+                            }
                         }
                     }
                 }
@@ -240,6 +254,9 @@ class CreateMtOrder implements ShouldQueue
             $this->log("未开通众包，停止「美团众包」派单");
         } elseif ($order->platform != 1) {
             $this->log("不是美团订单，停止「美团众包」派单");
+        } elseif (!$zb_switch) {
+            $order->fail_sf = "门店关闭美团众包";
+            $this->log("门店关闭「美团众包」跑腿，停止「美团众包」派单");
         } elseif ($order->shop_id != $shop->id) {
             $this->log("转仓库订单，停止「美团众包」派单");
         } elseif ($order->fail_zb) {
