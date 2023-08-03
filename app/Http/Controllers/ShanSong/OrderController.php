@@ -752,9 +752,10 @@ class OrderController
                         $this->ding_error("聚合闪送取消回调更改取消信息失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
                     }
                     // 操作退款
+                    $jian_money = $request->get('deductAmount', 0);
                     if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
                         try {
-                            DB::transaction(function () use ($order, $delivery) {
+                            DB::transaction(function () use ($order, $delivery, $jian_money) {
                                 if (($order->status == 50 || $order->status == 60) && $order->ps == 3) {
                                     // 更改退款信息
                                     OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
@@ -771,8 +772,19 @@ class OrderController
                                         "description" => "取消闪送跑腿订单：" . $order->order_id,
                                         "tid" => $order->id
                                     ]);
+                                    if ($jian_money > 0) {
+                                        UserMoneyBalance::create([
+                                            "user_id" => $order->user_id,
+                                            "money" => $jian_money,
+                                            "type" => 2,
+                                            "before_money" => ($current_user->money + $order->money),
+                                            "after_money" => ($current_user->money + $order->money - $jian_money),
+                                            "description" => "取消闪送跑腿订单扣款：" . $order->order_id,
+                                            "tid" => $order->id
+                                        ]);
+                                    }
                                     // 将配送费返回
-                                    DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss);
+                                    DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_ss - $jian_money);
                                     $this->ding_error("接口取消闪送订单，将钱返回给用户|{$order->order_id}|");
                                 }
                             });
