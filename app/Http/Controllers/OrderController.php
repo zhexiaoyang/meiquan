@@ -2379,6 +2379,34 @@ class OrderController extends Controller
                         "des" => "用户操作取消【顺丰跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，顺丰成功");
+                    // 顺丰跑腿运力
+                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // 写入顺丰取消足迹
+                    if ($sf_delivery) {
+                        try {
+                            $sf_delivery->update([
+                                'status' => 99,
+                                'cancel_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ], [
+                                    'order_id' => $sf_delivery->order_id,
+                                    'wm_id' => $sf_delivery->wm_id,
+                                    'delivery_id' => $sf_delivery->id,
+                                    'status' => 99,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("聚合闪送取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("聚合闪送取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                 }
             }
             if (in_array($order->zb_status, [20, 30])) {
