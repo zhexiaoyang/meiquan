@@ -71,15 +71,45 @@ class OrderController
             $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
-            if ($status != 60) {
-                if ($order->status == 99) {
-                    Log::info($log_prefix . '订单已是取消状态');
-                    return json_encode($res);
+            if ($order->status == 99) {
+                Log::info($log_prefix . '订单已是取消状态');
+                // 写入足迹
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'status' => 99,
+                            'cancel_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 99,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-取消回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-取消回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
                 }
-                if ($order->status == 70) {
-                    Log::info($log_prefix . '订单已是完成');
-                    return json_encode($res);
-                }
+                return json_encode($res);
+            }
+            if ($order->status == 70) {
+                Log::info($log_prefix . '订单已是完成');
+                return json_encode($res);
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【闪送】发起取消
