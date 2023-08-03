@@ -69,6 +69,7 @@ class DaDaController extends Controller
         if ($order = Order::where('order_id', $order_id)->first()) {
             // 跑腿运力
             $delivery = OrderDelivery::where('three_order_no', $order_id)->where('platform', 5)->where('status', '<=', 70)->orderByDesc('id')->first();
+            $dada_delivery_id = $delivery->id ?? 0;
             // 重复回传状态原因-重新分配骑士:取消订单
             if ($repeat_reason_type == 1) {
                 $dd = app("dada");
@@ -811,37 +812,40 @@ class DaDaController extends Controller
                         return json_encode(['code' => 100]);
                     }
                     // 操作退款
-                    if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
-                        try {
-                            DB::transaction(function () use ($order, $name, $phone, $log_prefix, $cancel_from, $delivery) {
-                                if ($cancel_from === 1 || $cancel_from === 3) {
-                                    if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
-                                        // 更改退款信息
-                                        OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
-                                            ->update([ 'is_refund' => 1, 'refund_at' => date("Y-m-d H:i:s")]);
-                                        // 查询当前用户，做余额日志
-                                        $current_user = DB::table('users')->find($order->user_id);
-                                        // DB::table("user_money_balances")->insert();
-                                        UserMoneyBalance::create([
-                                            "user_id" => $order->user_id,
-                                            "money" => $order->money,
-                                            "type" => 1,
-                                            "before_money" => $current_user->money,
-                                            "after_money" => ($current_user->money + $order->money),
-                                            "description" => "取消达达跑腿订单：" . $order->order_id,
-                                            "tid" => $order->id
-                                        ]);
-                                        // 将配送费返回
-                                        DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
-                                        Log::info($log_prefix . '接口取消订单，将钱返回给用户');
-                                        $this->ding_error("接口取消达达订单，将钱返回给用户|{$order->order_id}|");
+                    if ($dada_delivery_id) {
+                        $delivery = OrderDelivery::find($dada_delivery_id);
+                        if ($delivery->is_payment == 1 && $delivery->is_refund == 0) {
+                            try {
+                                DB::transaction(function () use ($order, $name, $phone, $log_prefix, $cancel_from, $delivery) {
+                                    if ($cancel_from === 1 || $cancel_from === 3) {
+                                        if (($order->status == 50 || $order->status == 60) && $order->ps == 5) {
+                                            // 更改退款信息
+                                            OrderDelivery::where('id', $delivery->id)->where('is_payment', 1)->where('is_refund', 0)
+                                                ->update([ 'is_refund' => 1, 'refund_at' => date("Y-m-d H:i:s")]);
+                                            // 查询当前用户，做余额日志
+                                            $current_user = DB::table('users')->find($order->user_id);
+                                            // DB::table("user_money_balances")->insert();
+                                            UserMoneyBalance::create([
+                                                "user_id" => $order->user_id,
+                                                "money" => $order->money,
+                                                "type" => 1,
+                                                "before_money" => $current_user->money,
+                                                "after_money" => ($current_user->money + $order->money),
+                                                "description" => "取消达达跑腿订单：" . $order->order_id,
+                                                "tid" => $order->id
+                                            ]);
+                                            // 将配送费返回
+                                            DB::table('users')->where('id', $order->user_id)->increment('money', $order->money_dd);
+                                            Log::info($log_prefix . '接口取消订单，将钱返回给用户');
+                                            $this->ding_error("接口取消达达订单，将钱返回给用户|{$order->order_id}|");
+                                        }
+                                    } else {
+                                        Log::info($log_prefix . '接口取消订单，商户主动取消，不退款');
                                     }
-                                } else {
-                                    Log::info($log_prefix . '接口取消订单，商户主动取消，不退款');
-                                }
-                            });
-                        } catch (\Exception $e) {
-                            $this->ding_error("聚合达达，取消回调退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                                });
+                            } catch (\Exception $e) {
+                                $this->ding_error("聚合达达，取消回调退款失败", [$e->getCode(),$e->getMessage(),$e->getLine(),$e->getFile()]);
+                            }
                         }
                     }
                     Log::info($log_prefix . '接口取消订单成功');
