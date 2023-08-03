@@ -105,6 +105,18 @@ class ShanSongOrderController
             // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 20) {
+                $before_time = time();
+                $this->log_info("派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(1);
+                $after_time = time();
+                $this->log_info("派单中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
+                // 派单中
+                // 判断订单状态
+                if ($order->status != 20 && $order->status != 30) {
+                    $this->log_info('待接单回调(待接单)，订单状态不正确，不能操作待接单');
+                    return json_encode($res);
+                }
+                $this->log_info('待接单');
                 if ($delivery) {
                     try {
                         $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
@@ -121,20 +133,18 @@ class ShanSongOrderController
                         $this->ding_error("自有闪送-待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
-                $before_time = time();
-                $this->log_info("派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                $this->log_info("派单中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
-                // 派单中
-                // 判断订单状态
-                if ($order->status != 20 && $order->status != 30) {
-                    $this->log_info('待接单回调(待接单)，订单状态不正确，不能操作待接单');
-                    return json_encode($res);
-                }
-                $this->log_info('待接单');
                 return json_encode($res);
             } elseif ($status == 30) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $this->ding_error("[闪送]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                }
+                $before_time = time();
+                $this->log_info("取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(1);
+                $after_time = time();
+                $this->log_info("取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 写入接单足迹
                 if ($delivery) {
                     try {
@@ -172,16 +182,6 @@ class ShanSongOrderController
                         $this->ding_error("自有闪送-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $this->ding_error("[闪送]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
-                }
-                $before_time = time();
-                $this->log_info("取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                $this->log_info("取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {

@@ -113,22 +113,6 @@ class OrderController
             // 闪送跑腿状态【20：派单中，30：取货中，40：闪送中，50：已完成，60：已取消】
             // 美全订单状态【20：待接单，30：待接单，40：待取货，50：待取货，60：配送中，70：已完成，99：已取消】
             if ($status == 20) {
-                if ($delivery) {
-                    try {
-                        $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
-                        OrderDeliveryTrack::create([
-                            'order_id' => $delivery->order_id,
-                            'wm_id' => $delivery->wm_id,
-                            'delivery_id' => $delivery->id,
-                            'status' => 20,
-                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_WAITING,
-                            'description' => '',
-                        ]);
-                    } catch (\Exception $exception) {
-                        Log::info("聚合闪送-待接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                        $this->ding_error("聚合闪送-待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                    }
-                }
                 $before_time = time();
                 Log::info($log_prefix . "派单中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
                 sleep(1);
@@ -150,10 +134,42 @@ class OrderController
                 // $order->status = 30;
                 // $order->ss_status = 30;
                 // $order->save();
+                if ($delivery) {
+                    try {
+                        $delivery->update(['track' => OrderDeliveryTrack::TRACK_STATUS_WAITING]);
+                        OrderDeliveryTrack::create([
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 20,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_WAITING,
+                            'description' => '',
+                        ]);
+                    } catch (\Exception $exception) {
+                        Log::info("聚合闪送-待接单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("聚合闪送-待接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
                 Log::info($log_prefix . '待接单');
                 return json_encode($res);
 
             } elseif ($status == 30) {
+                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                if (!$jiedan_lock->get()) {
+                    // 获取锁定5秒...
+                    $logs = [
+                        "des" => "【闪送接单】派单后接单了",
+                        "status" => $order->status,
+                        "id" => $order->id,
+                        "order_id" => $order->order_id
+                    ];
+                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                }
+                $before_time = time();
+                Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                sleep(1);
+                $after_time = time();
+                Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 写入接单足迹
                 if ($delivery) {
                     try {
@@ -182,22 +198,6 @@ class OrderController
                         $this->ding_error("聚合闪送-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $logs = [
-                        "des" => "【闪送接单】派单后接单了",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
-                }
-                $before_time = time();
-                Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
