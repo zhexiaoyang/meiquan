@@ -71,13 +71,15 @@ class ShanSongOrderController
             $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $this->log_info("中台订单状态：{$order->status}");
 
-            if ($order->status == 99) {
-                $this->log_info("订单已是取消状态");
-                return json_encode($res);
-            }
-            if ($order->status == 70) {
-                $this->log_info("订单已是完成");
-                return json_encode($res);
+            if ($status != 60) {
+                if ($order->status == 99) {
+                    $this->log_info("订单已是取消状态");
+                    return json_encode($res);
+                }
+                if ($order->status == 70) {
+                    $this->log_info("订单已是完成");
+                    return json_encode($res);
+                }
             }
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是「闪送」发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 3 && $order->ps !== 0) && ($status != 60)) {

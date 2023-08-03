@@ -71,13 +71,15 @@ class OrderController
             $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
 
-            if ($order->status == 99) {
-                Log::info($log_prefix . '订单已是取消状态');
-                return json_encode($res);
-            }
-            if ($order->status == 70) {
-                Log::info($log_prefix . '订单已是完成');
-                return json_encode($res);
+            if ($status != 60) {
+                if ($order->status == 99) {
+                    Log::info($log_prefix . '订单已是取消状态');
+                    return json_encode($res);
+                }
+                if ($order->status == 70) {
+                    Log::info($log_prefix . '订单已是完成');
+                    return json_encode($res);
+                }
             }
 
             // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【闪送】发起取消
