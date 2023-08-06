@@ -190,7 +190,7 @@ class DaDaOrderController
                 $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
                 $dada_app = new DaDaService($config);
                 $result = $dada_app->orderCancel($order->order_id);
-                if ($result['code'] != 0) {
+                if ( ($result['code'] != 0) && (strstr($result['msg'], '已取消') === false) ) {
                     $this->log_info("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-失败", [$result]);
                     $this->ding_error("订单状态不是0，并且订单已经有配送平台了，配送平台不是「达达」发起取消-失败");
                     return ['status' => 'err'];
