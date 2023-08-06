@@ -569,6 +569,7 @@ class OrderController
                         }
                     }
                     // 骑手已取货
+                    $pt_order->ps = 8;
                     $pt_order->status = 60;
                     $pt_order->zb_status = 60;
                     $pt_order->take_at = date("Y-m-d H:i:s");
@@ -630,6 +631,7 @@ class OrderController
                     // 服务费
                     $service_fee = 0.1;
                     // 骑手已送达
+                    $pt_order->ps = 8;
                     $pt_order->status = 70;
                     $pt_order->zb_status = 70;
                     $pt_order->over_at = date("Y-m-d H:i:s");
