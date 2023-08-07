@@ -73,9 +73,15 @@ class OrderController extends Controller
         }
         if (!empty($orders)) {
             foreach ($orders as $order) {
+                // 电话列表
+                $order->receiver_phone_list = [$order->receiver_phone];
+                // 订单商品数量
                 $order->product_num = 0;
+                // 订单商户实收
                 $order->poi_receive = 0;
+                // 收货尾号
                 $order->receiver_phone_end = '';
+                // 订单标题
                 $order->title = $this->setOrderListTitle($status, $order);
                 preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
                 if (!empty($preg_result[0][0])) {
