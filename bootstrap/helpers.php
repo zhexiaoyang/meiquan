@@ -4,7 +4,7 @@ function get_distance_title($lng1, $lat1, $lng2, $lat2): string
 {
     $distance = 0;
     $r = rand(1, 3);
-    // $r = 3;
+    $r = 1;
     if ($r == 1) {
         $url = "https://restapi.amap.com/v3/distance?origins={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=".config('ps.amap.AMAP_APP_KEY1')."&type=1";
         $str = file_get_contents($url);
