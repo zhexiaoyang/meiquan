@@ -53,7 +53,7 @@ class OrderController extends Controller
         } elseif ($status === 70) {
             $query->whereIn('status', [0, 3, 7, 8])->where('remind_num', '>', 0);
         }
-        $orders = $query->orderByDesc('id')->limit(50)->paginate($page_size);
+        $orders = $query->orderByDesc('id')->paginate($page_size);
         // 商品图片
         $images = [];
         if (!empty($orders)) {
