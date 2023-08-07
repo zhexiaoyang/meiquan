@@ -22,7 +22,10 @@ class ShipperLogisticsSyncTimer extends CronJob
 
     public function run()
     {
-        $orders = Order::where('created_at', '>', date("Y-m-d H:i:s", time() - 86400*2))
+        $orders = Order::select('id','ps','order_id','mt_order_id'.'shipper_type_ss','shipper_type_dd','shipper_type_sf',
+            'ss_order_id','warehouse_id','sf_order_id','waimai_mt','waimai_ele','peisong_id','status','sf_order_id', 'type',
+            'courier_name','courier_phone','courier_lng','courier_lat','shop_id')
+            ->where('created_at', '>', date("Y-m-d H:i:s", time() - 86400*2))
             ->whereIn('status', [50, 60])->orderBy('id')->get();
 
         if (!empty($orders)) {
@@ -151,10 +154,41 @@ class ShipperLogisticsSyncTimer extends CronJob
                         \Log::info("同步骑手位置{$order->order_id}|异常|顺丰未返回经纬度", [$shipper_res]);
                         continue;
                     }
+                } else if ($order->ps === 8) {
+                    if ($order->type == 3) {
+                        $shipper_res_zb = $jay->getDeliveryPath($order->order_id, $order->waimai_mt);
+                    }else if ($order->type == 4) {
+                        $shipper_res_zb = $minkang->getDeliveryPath($order->order_id, $order->waimai_mt);
+                    }else if ($order->type == 5) {
+                        $shipper_res_zb = $qinqu->getDeliveryPath($order->order_id, $order->waimai_mt);
+                    }else if ($order->type == 31) {
+                        $shipper_res_zb = $shangou->getDeliveryPath($order->order_id, $order->waimai_mt);
+                    }
+                    if (!empty($shipper_res_zb['data'])) {
+                        $path = array_pop($shipper_res_zb['data']);
+                        $longitude = $path['longitude'];
+                        $latitude = $path['latitude'];
+                    }
                 }
-                if (!$longitude || !$latitude) {
+                $update_data = [];
+                if ($shipper_name) {
+                    $update_data['courier_name'] = $shipper_name;
+                }
+                if ($shipper_phone) {
+                    $update_data['courier_phone'] = $shipper_phone;
+                }
+                if ($longitude) {
+                    $update_data['courier_lng'] = $longitude;
+                }
+                if ($latitude) {
+                    $update_data['courier_lat'] = $latitude;
+                }
+                if ($longitude || $latitude) {
                     \Log::info("同步骑手位置{$order->order_id}|异常|经纬度不存在");
                     continue;
+                }
+                if (!empty($update_data)) {
+                    \DB::table('orders')->where('id', $order->id)->update($update_data);
                 }
                 \Log::info("同步骑手位置{$order->order_id}|经纬度|{$longitude},{$latitude}");
                 if (in_array($order->type, [3,4,5,31])) {
