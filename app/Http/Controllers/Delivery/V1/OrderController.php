@@ -53,7 +53,7 @@ class OrderController extends Controller
         } elseif ($status === 70) {
             $query->whereIn('status', [0, 3, 7, 8])->where('remind_num', '>', 0);
         }
-        $orders = $query->orderByDesc('id')->limit(50)->get();
+        $orders = $query->orderByDesc('id')->limit(50)->paginate($page_size);
         // 商品图片
         $images = [];
         if (!empty($orders)) {
@@ -86,7 +86,7 @@ class OrderController extends Controller
                 }
             }
         }
-        return $this->success($orders);
+        return $this->page($orders);
     }
 
     public function setOrderListTitle($status, $order)
@@ -114,7 +114,17 @@ class OrderController extends Controller
                 return $this->error('订单不存在!');
             }
         }
-        return $this->success();
+        $order->load(['products' => function ($query) {
+            $query->select('order_id', 'food_name', 'spec', 'upc', 'quantity');
+        }, 'deliveries' => function ($query) {
+            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type', 'money', 'updated_at');
+            $query->with(['tracks' => function ($query) {
+                $query->select('id', 'delivery_id', 'status', 'status_des', 'description', 'created_at');
+            }]);
+        }, 'order' => function ($query) {
+            $query->select('id', 'poi_receive','delivery_time', 'estimate_arrival_time', 'status');
+        }]);
+        return $this->success($order);
     }
 
     public function cancel(Request $request)

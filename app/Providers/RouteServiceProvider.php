@@ -85,7 +85,7 @@ class RouteServiceProvider extends ServiceProvider
             ->middleware('api')
             ->namespace($this->namespace)
             ->group(base_path('routes/callback.php'));
-        Route::prefix('delivery')
+        Route::prefix('api/delivery')
             ->middleware('api')
             ->namespace($this->namespace)
             ->group(base_path('routes/delivery.php'));
