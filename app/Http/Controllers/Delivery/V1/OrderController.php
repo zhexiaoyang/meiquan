@@ -159,7 +159,7 @@ class OrderController extends Controller
     {
         if (!$order = Order::select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','courier_lng','courier_lat','money')
+            'courier_name', 'courier_phone','courier_lng','courier_lat','money as shipping_fee')
             ->find(intval($request->get('id', 0)))) {
             return $this->error('订单不存在');
         }
