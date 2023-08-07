@@ -29,6 +29,17 @@ class OrderDelivery extends Model
         '90' => '已取消',
     ];
 
+    static $delivery_platform_map = [
+        1 => '美团跑腿',
+        2 =>  '蜂鸟',
+        3 =>  '闪送',
+        4 =>  '美全达',
+        5 =>  '达达',
+        6 =>  'UU',
+        7 =>  '顺丰',
+        8 =>  '美团众包',
+    ];
+
     // 足迹记录
     public function tracks()
     {

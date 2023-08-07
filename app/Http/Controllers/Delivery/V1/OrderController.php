@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Delivery\V1;
 use App\Http\Controllers\Controller;
 use App\Models\MedicineDepot;
 use App\Models\Order;
+use App\Models\OrderDelivery;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
@@ -20,7 +21,8 @@ class OrderController extends Controller
         $query = Order::with(['products' => function ($query) {
             $query->select('order_id', 'food_name', 'spec', 'upc', 'quantity', 'price');
         }, 'deliveries' => function ($query) {
-            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type', 'money', 'updated_at');
+            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
+                'money', 'updated_at','delivery_name','delivery_phone');
             $query->with(['tracks' => function ($query) {
                 $query->select('id', 'delivery_id', 'status', 'status_des', 'description', 'created_at');
             }]);
@@ -86,6 +88,18 @@ class OrderController extends Controller
                 $order->receiver_phone_end = '';
                 // 订单标题
                 $order->title = $this->setOrderListTitle($status, $order);
+                // 状态描述
+                $order->status_title = '';
+                $order->status_description = '';
+                if (in_array($order->status, [20,50,60,70])) {
+                    $order->status_title = OrderDelivery::$delivery_status_order_list_title_map[$order->status] ?? '其它';
+                    if ($order->status === 20) {
+                        $order->status_description = '下单成功';
+                    } else {
+                        $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
+                        $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                    }
+                }
                 preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
                 if (!empty($preg_result[0][0])) {
                     $order->caution = preg_replace('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, '');
@@ -157,7 +171,8 @@ class OrderController extends Controller
         $order->load(['products' => function ($query) {
             $query->select('order_id', 'food_name', 'spec', 'upc', 'quantity','price');
         }, 'deliveries' => function ($query) {
-            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type', 'money', 'updated_at');
+            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
+                'money', 'updated_at','delivery_name','delivery_phone');
             $query->with(['tracks' => function ($query) {
                 $query->select('id', 'delivery_id', 'status', 'status_des', 'description', 'created_at');
             }]);
@@ -179,6 +194,8 @@ class OrderController extends Controller
         $order->receiver_phone_end = '';
         // 期望送达时间
         $order->delivery_time_text = '';
+        // 状态描述
+        $order->status_des = OrderDelivery::$delivery_status_order_info_title_map[$order->status] ?? '其它';
         // 正则匹配电话尾号，去掉默认备注
         preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
         if (!empty($preg_result[0][0])) {
