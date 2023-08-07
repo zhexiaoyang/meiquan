@@ -167,8 +167,8 @@ class ShipperLogisticsSyncTimer extends CronJob
                     }
                     if (!empty($shipper_res_zb['data'])) {
                         $path = array_pop($shipper_res_zb['data']);
-                        $longitude = $path['longitude'];
-                        $latitude = $path['latitude'];
+                        $longitude = $path['longitude']/1000000;
+                        $latitude = $path['latitude']/1000000;
                     }
                 }
                 $update_data = [];
