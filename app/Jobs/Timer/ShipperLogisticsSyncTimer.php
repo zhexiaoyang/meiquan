@@ -23,7 +23,7 @@ class ShipperLogisticsSyncTimer extends CronJob
     public function run()
     {
         $orders = Order::select('id','ps','order_id','mt_order_id','shipper_type_ss','shipper_type_dd','shipper_type_sf',
-            'ss_order_id','warehouse_id','sf_order_id','waimai_mt','waimai_ele','peisong_id','status','sf_order_id', 'type',
+            'ss_order_id','warehouse_id','sf_order_id','peisong_id','status','sf_order_id', 'type',
             'courier_name','courier_phone','courier_lng','courier_lat','shop_id')
             ->where('created_at', '>', date("Y-m-d H:i:s", time() - 86400*2))
             ->whereIn('status', [50, 60])->orderBy('id')->get();
@@ -42,7 +42,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                     \Log::info("同步骑手位置{$order->order_id}|开始");
                     \Log::info("同步骑手位置{$order->order_id}|异常|订单没有配送平台");
                 }
-                $shop = Shop::find($order->shop_id);
+                $shop = Shop::select('waimai_mt','waimai_ele')->find($order->shop_id);
                 $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
                 $mt_status = $order->status == 50 ? 10 : 20;
                 $shipper_name = '';
