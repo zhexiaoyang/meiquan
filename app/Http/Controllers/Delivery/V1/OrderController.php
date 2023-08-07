@@ -198,7 +198,7 @@ class OrderController extends Controller
         $order->delivery_time_text = '';
         // 状态描述
         $order->status_title = '';
-        if (in_array($order->status, [20,50,60,70,99])) {
+        if (in_array($order->status, [20,50,60,70,75,99])) {
             $order->status_title = OrderDelivery::$delivery_status_order_info_title_map[$order->status] ?? '其它';
         } elseif ($order->status <= 10) {
             $order->status_title = '待配送';
