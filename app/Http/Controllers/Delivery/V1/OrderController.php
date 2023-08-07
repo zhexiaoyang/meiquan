@@ -157,25 +157,25 @@ class OrderController extends Controller
     {
         if ($status === 10) {
             if (!empty($order->order->delivery_time)) {
-                return '<text class="time-text">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达';
+                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达';
             } else {
-                return '<text class="time-text">' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->created_at)) . '</text>下单';
             }
         } elseif ($status === 20 && $order->push_at) {
-            return '<text class="time-text">' . tranTime(strtotime($order->push_at)) . '</text>发单';
+            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
         } elseif ($status === 30 && $order->receive_at) {
-            return '<text class="time-text">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
+            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
         } elseif ($status === 40) {
             if (!empty($order->order->delivery_time)) {
-                return '<text class="time-text">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达' . tranTime3($order->order->delivery_time);
+                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达' . tranTime3($order->order->delivery_time);
             } elseif (!empty($order->order->estimate_arrival_time)) {
-                return '<text class="time-text">' . tranTime2($order->order->estimate_arrival_time) . '</text>送达' . tranTime3($order->order->estimate_arrival_time);
+                return '<text class="time-text" style="color: #5ac725">' . tranTime2($order->order->estimate_arrival_time) . '</text>送达' . tranTime3($order->order->estimate_arrival_time);
             }
         }
         if (!empty($order->order->delivery_time)) {
-            return '<text class="time-text">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
+            return '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
         } else {
-            return '<text class="time-text">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+            return '<text class="time-text" style="color: #5ac725">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
         }
     }
 
