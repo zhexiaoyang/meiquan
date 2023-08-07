@@ -13,30 +13,25 @@ class OrderController extends Controller
 {
     public function statistics(Request $request)
     {
-        $result = [
-            'new' => 0,
-            'pending' => 0,
-            'receiving' => 0,
-            'delivering' => 0,
-            'exceptional' => 0,
-            'refund' => 0,
-            'remind' => 0,
-        ];
-        $query = Order::where('ignore', 0)->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
-        $wm_query = WmOrder::where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
-        // 判断权限
+        $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
+        $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
+        // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')];
+        // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')];
+        // // 判断权限
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
-            $wm_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')];
+            $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')];
         }
-        $orders = $query->get();
-        if (!empty($orders)) {
-            foreach ($orders as $order) {
-                if ($order->status < 10) {
-                    $result['new']++;
-                }
-            }
-        }
+        $result = [
+            'new' => Order::select('id')->where($order_where)->whereIn('status', [0, 3, 7, 8])->count(),
+            'pending' => Order::select('id')->where($order_where)->where('status', 20)->count(),
+            'receiving' => Order::select('id')->where($order_where)->where('status', 50)->count(),
+            'delivering' => Order::select('id')->where($order_where)->where('status', 60)->count(),
+            'exceptional' => Order::select('id')->where($order_where)->whereIn('status', [10, 5])->count(),
+            'refund' => WmOrder::select('id')->where($wm_order_where)->where('status', 30)->count(),
+            'remind' => Order::select('id')->where($order_where)->where('status', '>', 70)->where('remind_num', '>', 0)->count(),
+        ];
+        return $this->success($result);
     }
 
     public function index(Request $request)
@@ -83,7 +78,7 @@ class OrderController extends Controller
                 $query->where('status', 30);
             }]);
         } elseif ($status === 70) {
-            $query->whereIn('status', [0, 3, 7, 8])->where('remind_num', '>', 0);
+            $query->where('status', '<', 70)->where('remind_num', '>', 0);
         }
         $orders = $query->orderByDesc('id')->paginate($page_size);
         // 商品图片

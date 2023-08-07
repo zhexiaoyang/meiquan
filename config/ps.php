@@ -1,6 +1,9 @@
 <?php
 
 return [
+    "amap" => [
+        'AMAP_APP_KEY1' => env('AMAP_KEY1', ""),
+    ],
     // 蜂鸟配送
     "ele" => [
         "app_key" => env("ELE_APP_KEY", ""),

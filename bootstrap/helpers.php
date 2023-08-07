@@ -6,17 +6,17 @@ function get_distance_title($lng1, $lat1, $lng2, $lat2): string
     $r = rand(1, 3);
     // $r = 3;
     if ($r == 1) {
-        $url = "https://restapi.amap.com/v3/distance?origins={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
+        $url = "https://restapi.amap.com/v3/distance?origins={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=".config('ps.amap.AMAP_APP_KEY1')."&type=1";
         $str = file_get_contents($url);
         $data = json_decode($str, true);
         $distance = $data['results'][0]['distance'] ?? 0;
     } else if ($r == 2) {
-        $url = "https://restapi.amap.com/v3/direction/walking?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9";
+        $url = "https://restapi.amap.com/v3/direction/walking?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=".config('ps.amap.AMAP_APP_KEY1');
         $str = file_get_contents($url);
         $data = json_decode($str, true);
         $distance = $data['route']['paths'][0]['distance'] ?? 0;
     } else if ($r == 3) {
-        $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9";
+        $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=".config('ps.amap.AMAP_APP_KEY1');
         $str = file_get_contents($url);
         $data = json_decode($str, true);
         $distance = $data['data']['paths'][0]['distance'] ?? 0;
@@ -455,7 +455,7 @@ function weightMoneyFn($weight) {
 
 function getShopDistance($shop, $lng, $lat)
 {
-    $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
+    $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=".config('ps.amap.AMAP_APP_KEY1')."&type=1";
 
     $str = file_get_contents($url);
 
@@ -468,7 +468,7 @@ function getShopDistance($shop, $lng, $lat)
 
 function getShopDistanceV4($shop, $lng, $lat)
 {
-    $url = "https://restapi.amap.com/v3/direction/walking?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
+    $url = "https://restapi.amap.com/v3/direction/walking?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$lng},{$lat}&key=".config('ps.amap.AMAP_APP_KEY1');
 
     $str = file_get_contents($url);
 
@@ -681,8 +681,7 @@ function getMoney($shop, $receiver_lng, $receiver_lat) {
 
     $start = isset($start_arr[$shop->city_level]) ?? 9;
 
-    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
-    // $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$model->receiver_lng},{$model->receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
+    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=".config('ps.amap.AMAP_APP_KEY1');
 
     $str = file_get_contents($url);
     $data = json_decode($str, true);
@@ -696,8 +695,7 @@ function getMoney($shop, $receiver_lng, $receiver_lat) {
 
 function getJuli($shop, $receiver_lng, $receiver_lat) {
 
-    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9";
-    // $url = "https://restapi.amap.com/v3/distance?origins={$shop->shop_lng},{$shop->shop_lat}&destination={$model->receiver_lng},{$model->receiver_lat}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
+    $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$shop->shop_lng},{$shop->shop_lat}&destination={$receiver_lng},{$receiver_lat}&key=".config('ps.amap.AMAP_APP_KEY1');
 
     $str = file_get_contents($url);
     $data = json_decode($str, true);
