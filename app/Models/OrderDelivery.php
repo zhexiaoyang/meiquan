@@ -13,6 +13,22 @@ class OrderDelivery extends Model
         'user_id','add_money','addfee'
     ];
 
+    static $delivery_status_order_list_title_map = [
+        '20' => '发起配送',
+        '50' => '抢单成功',
+        '60' => '配送中',
+        '70' => '配送完成',
+        '90' => '已取消',
+    ];
+
+    static $delivery_status_order_info_title_map = [
+        '20' => '带抢单',
+        '50' => '抢单成功',
+        '60' => '配送中',
+        '70' => '配送完成',
+        '90' => '已取消',
+    ];
+
     // 足迹记录
     public function tracks()
     {

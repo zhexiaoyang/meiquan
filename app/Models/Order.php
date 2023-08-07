@@ -27,6 +27,22 @@ class Order extends Model
         99 => '已取消'
     ];
 
+    public $status_map = [
+        0 =>'新订单',
+        3 => '[预约]待呼叫',
+        5 => '余额不足',
+        7 => '取消呼叫',
+        8 => '即将呼叫',
+        10 => '暂无运力',
+        20 => '待接单',
+        50 => '待取货',
+        60 => '配送中',
+        70 => '已完成',
+        75 => '已完成',
+        80 => '异常',
+        99 => '已取消',
+    ];
+
     protected $fillable = [
         'wm_poi_name','wm_id','caution',
         'delivery_id','order_id','peisong_id','shop_id','delivery_service_code','receiver_name',
