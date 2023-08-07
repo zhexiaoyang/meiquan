@@ -42,6 +42,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                     \Log::info("同步骑手位置{$order->order_id}|开始");
                     \Log::info("同步骑手位置{$order->order_id}|异常|订单没有配送平台");
                 }
+                $shop = Shop::find($order->shop_id);
                 $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
                 $mt_status = $order->status == 50 ? 10 : 20;
                 $shipper_name = '';
@@ -156,13 +157,13 @@ class ShipperLogisticsSyncTimer extends CronJob
                     }
                 } else if ($order->ps === 8) {
                     if ($order->type == 3) {
-                        $shipper_res_zb = $jay->getDeliveryPath($order->order_id, $order->waimai_mt);
+                        $shipper_res_zb = $jay->getDeliveryPath($order->order_id, $shop->waimai_mt);
                     }else if ($order->type == 4) {
-                        $shipper_res_zb = $minkang->getDeliveryPath($order->order_id, $order->waimai_mt);
+                        $shipper_res_zb = $minkang->getDeliveryPath($order->order_id, $shop->waimai_mt);
                     }else if ($order->type == 5) {
-                        $shipper_res_zb = $qinqu->getDeliveryPath($order->order_id, $order->waimai_mt);
+                        $shipper_res_zb = $qinqu->getDeliveryPath($order->order_id, $shop->waimai_mt);
                     }else if ($order->type == 31) {
-                        $shipper_res_zb = $shangou->getDeliveryPath($order->order_id, $order->waimai_mt);
+                        $shipper_res_zb = $shangou->getDeliveryPath($order->order_id, $shop->waimai_mt);
                     }
                     if (!empty($shipper_res_zb['data'])) {
                         $path = array_pop($shipper_res_zb['data']);
@@ -212,14 +213,10 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $res = $qinqu->logisticsSync($mt_params);
                         \Log::info("同步骑手位置{$order->order_id}|寝趣|结果", [$res]);
                     }else if ($order->type == 31) {
-                        if ($shop = Shop::find($order->shop_id)) {
-                            $mt_params['access_token'] = $shangou->getShopToken($shop->waimai_mt);
-                            $mt_params['app_poi_code'] = $shop->waimai_mt;
-                            $res = $shangou->logisticsSync($mt_params);
-                            \Log::info("同步骑手位置{$order->order_id}|闪购|结果", [$res]);
-                        } else {
-                            \Log::info("同步骑手位置{$order->order_id}|异常|闪购|未找到门店");
-                        }
+                        $mt_params['access_token'] = $shangou->getShopToken($shop->waimai_mt);
+                        $mt_params['app_poi_code'] = $shop->waimai_mt;
+                        $res = $shangou->logisticsSync($mt_params);
+                        \Log::info("同步骑手位置{$order->order_id}|闪购|结果", [$res]);
                     }
                 } else if ($order->type == 21) {
                     $ele_params = [
