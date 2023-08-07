@@ -18,7 +18,7 @@ class OrderDelivery extends Model
         '50' => '抢单成功',
         '60' => '配送中',
         '70' => '配送完成',
-        '90' => '已取消',
+        '99' => '已取消',
     ];
 
     static $delivery_status_order_info_title_map = [
@@ -26,7 +26,7 @@ class OrderDelivery extends Model
         '50' => '抢单成功',
         '60' => '配送中',
         '70' => '配送完成',
-        '90' => '已取消',
+        '99' => '已取消',
     ];
 
     static $delivery_platform_map = [
