@@ -133,25 +133,25 @@ class OrderController extends Controller
     {
         if ($status === 10) {
             if (!empty($order->order->delivery_time)) {
-                return '<text>预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达';
+                return '<text class="time-text">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达';
             } else {
-                return '<text>' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                return '<text class="time-text">' . tranTime(strtotime($order->created_at)) . '</text>下单';
             }
         } elseif ($status === 20 && $order->push_at) {
-            return '<text>' . tranTime(strtotime($order->push_at)) . '</text>发单';
+            return '<text class="time-text">' . tranTime(strtotime($order->push_at)) . '</text>发单';
         } elseif ($status === 30 && $order->receive_at) {
-            return '<text>' . tranTime(strtotime($order->receive_at)) . '</text>接单';
+            return '<text class="time-text">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
         } elseif ($status === 40) {
             if (!empty($order->order->delivery_time)) {
-                return '<text>预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达' . tranTime3($order->order->delivery_time);
+                return '<text class="time-text">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达' . tranTime3($order->order->delivery_time);
             } elseif (!empty($order->order->estimate_arrival_time)) {
-                return '<text>' . tranTime2($order->order->estimate_arrival_time) . '</text>送达' . tranTime3($order->order->estimate_arrival_time);
+                return '<text class="time-text">' . tranTime2($order->order->estimate_arrival_time) . '</text>送达' . tranTime3($order->order->estimate_arrival_time);
             }
         }
         if (!empty($order->order->delivery_time)) {
-            return '<text>预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
+            return '<text class="time-text">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
         } else {
-            return '<text>立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+            return '<text class="time-text">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
         }
     }
 
@@ -178,6 +178,8 @@ class OrderController extends Controller
             }]);
         }, 'order' => function ($query) {
             $query->select('id', 'poi_receive','delivery_time', 'estimate_arrival_time', 'status','original_price','total');
+        }, 'shop' => function ($query) {
+            $query->select('id', 'shop_lng','shop_lat');
         }]);
 
         // 电话列表
@@ -249,6 +251,15 @@ class OrderController extends Controller
             $order->poi_receive = $order->order->poi_receive ?? 0;
             $order->delivery_time = $order->order->delivery_time ?? 0;
             unset($order->order);
+        }
+        // 地图坐标
+        $locations = [];
+        $user_location = [ 'type' => 'user', 'lng' => $order->receiver_lng, 'lat' => $order->receiver_lat ];
+        $shop_location = [ 'type' => 'user', 'lng' => $order->shop->shop_lng, 'lat' => $order->shop->shop_lat ];
+        if ($order->status < 10) {
+            $user_location['title'] = '距离门店' . get_distance_title();
+        } elseif (in_array($order->status, [50, 60])) {
+
         }
 
         return $this->success($order);
