@@ -37,13 +37,13 @@ class ShipperLogisticsSyncTimer extends CronJob
             $shangou = app("meiquan"); // 31
             $canyin = app("mtkf"); // 7
 
+            $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001', 8 => '10032',];
             foreach ($orders as $order) {
                 if ($order->ps == 0) {
                     \Log::info("同步骑手位置{$order->order_id}|开始");
                     \Log::info("同步骑手位置{$order->order_id}|异常|订单没有配送平台");
                 }
                 $shop = Shop::select('waimai_mt','waimai_ele')->find($order->shop_id);
-                $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001',];
                 $mt_status = $order->status == 50 ? 10 : 20;
                 $shipper_name = '';
                 $shipper_phone = '';
