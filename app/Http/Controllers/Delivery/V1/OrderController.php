@@ -159,7 +159,7 @@ class OrderController extends Controller
     {
         if (!$order = Order::select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone')
+            'courier_name', 'courier_phone','courier_lng','courier_lat')
             ->find(intval($request->get('id', 0)))) {
             return $this->error('订单不存在');
         }
@@ -253,14 +253,23 @@ class OrderController extends Controller
             unset($order->order);
         }
         // 地图坐标
-        $locations = [];
-        $user_location = [ 'type' => 'user', 'lng' => $order->receiver_lng, 'lat' => $order->receiver_lat ];
-        $shop_location = [ 'type' => 'user', 'lng' => $order->shop->shop_lng, 'lat' => $order->shop->shop_lat ];
-        if ($order->status < 10) {
-            $user_location['title'] = '距离门店' . get_distance_title();
-        } elseif (in_array($order->status, [50, 60])) {
-
+        $user_location = [ 'type' => 'user', 'lng' => $order->receiver_lng, 'lat' => $order->receiver_lat, 'title' => '' ];
+        $shop_location = [ 'type' => 'shop', 'lng' => $order->shop->shop_lng, 'lat' => $order->shop->shop_lat, 'title' => '' ];
+        $delivery_location = [ 'type' => 'delivery', 'lng' => $order->courier_lng, 'lat' => $order->courier_lat, 'title' => '' ];
+        if ($order->status <= 20) {
+            $user_location['title'] = '距离门店' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->shop->shop_lng, $order->shop->shop_lat);
+            $locations = [$user_location, $shop_location];
+        } elseif ($order->status == 50) {
+            $delivery_location['title'] = '距离门店' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->shop->shop_lng, $order->shop->shop_lat);
+            $locations = [$user_location, $shop_location, $delivery_location];
+        } elseif ($order->status == 60) {
+            $delivery_location['title'] = '距离顾客' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->courier_lng, $order->courier_lat);
+            $locations = [$user_location, $shop_location, $delivery_location];
+        } else {
+            $locations = [$user_location];
         }
+        unset($order->shop);
+        $order->locations = $locations;
 
         return $this->success($order);
     }

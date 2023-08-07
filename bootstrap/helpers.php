@@ -1,5 +1,34 @@
 <?php
 
+function get_distance_title($lng1, $lat1, $lng2, $lat2): string
+{
+    $distance = 0;
+    $r = rand(1, 3);
+    // $r = 3;
+    if ($r == 1) {
+        $url = "https://restapi.amap.com/v3/distance?origins={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9&type=1";
+        $str = file_get_contents($url);
+        $data = json_decode($str, true);
+        $distance = $data['results'][0]['distance'] ?? 0;
+    } else if ($r == 2) {
+        $url = "https://restapi.amap.com/v3/direction/walking?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9";
+        $str = file_get_contents($url);
+        $data = json_decode($str, true);
+        $distance = $data['route']['paths'][0]['distance'] ?? 0;
+    } else if ($r == 3) {
+        $url = "https://restapi.amap.com/v4/direction/bicycling?origin={$lng1},{$lat1}&destination={$lng2},{$lat2}&key=59c3b9c0a69978649edb06bbaccccbe9";
+        $str = file_get_contents($url);
+        $data = json_decode($str, true);
+        $distance = $data['data']['paths'][0]['distance'] ?? 0;
+    }
+    if ($distance > 1000) {
+        $res_text = sprintf("%.1f 公里", $distance / 1000);
+    } else {
+        $res_text = $distance . ' 米';
+    }
+    return $res_text;
+}
+
 // 订单详情中，预约订单，08-07 08:10前送达|立即送达，08-07 08:10下单
 function tranTime4($estimate_arrival_time): string
 {
