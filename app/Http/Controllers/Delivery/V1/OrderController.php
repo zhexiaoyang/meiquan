@@ -6,13 +6,42 @@ use App\Http\Controllers\Controller;
 use App\Models\MedicineDepot;
 use App\Models\Order;
 use App\Models\OrderDelivery;
+use App\Models\WmOrder;
 use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
+    public function statistics(Request $request)
+    {
+        $result = [
+            'new' => 0,
+            'pending' => 0,
+            'receiving' => 0,
+            'delivering' => 0,
+            'exceptional' => 0,
+            'refund' => 0,
+            'remind' => 0,
+        ];
+        $query = Order::where('ignore', 0)->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
+        $wm_query = WmOrder::where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $wm_query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+        $orders = $query->get();
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                if ($order->status < 10) {
+                    $result['new']++;
+                }
+            }
+        }
+    }
+
     public function index(Request $request)
     {
-        // 新订单( 10 new)、待抢单(20 pending)、待取货(30 receiving)、配送中(40 delivering)、配送异常(50 exceptional)、取消/退款(60 cancel)、催单(70 remind)
+        // 新订单( 10 new)、待抢单(20 pending)、待取货(30 receiving)、配送中(40 delivering)、配送异常(50 exceptional)、取消/退款(60 refund)、催单(70 remind)
         $status = (int) $request->get('status', '');
         $page_size = $request->get('page_size', 10);
         if (!in_array($status, [10,20,30,40,50,60,70])) {
@@ -200,8 +229,10 @@ class OrderController extends Controller
         $order->status_title = '';
         if (in_array($order->status, [20,50,60,70,75,99])) {
             $order->status_title = OrderDelivery::$delivery_status_order_info_title_map[$order->status] ?? '其它';
+            $order->status_description = OrderDelivery::$delivery_status_order_info_description_map[$order->status] ?? '';
         } elseif ($order->status <= 10) {
             $order->status_title = '待配送';
+            $order->status_description = '确认订单成功，请尽快安排制作';
         }
         // 正则匹配电话尾号，去掉默认备注
         preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
