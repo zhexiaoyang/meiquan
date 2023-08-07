@@ -1,5 +1,47 @@
 <?php
 
+// 订单详情中，预约订单，08-07 08:10前送达|立即送达，08-07 08:10下单
+function tranTime4($estimate_arrival_time): string
+{
+    if (time() < $estimate_arrival_time) {
+        return '，剩余 ' . intval( ($estimate_arrival_time - time()) / 60 ) . '分钟';
+    } else {
+        return '，已超时 ' . intval( (time() - $estimate_arrival_time) / 60 ) . '分钟';
+    }
+}
+
+// 派送中的订单标题，今日 08:32 前送达，超时 34分钟，后半部分
+function tranTime3($estimate_arrival_time): string
+{
+    if (time() < $estimate_arrival_time) {
+        return '，剩余 ' . intval( ($estimate_arrival_time - time()) / 60 ) . '分钟';
+    } else {
+        return '，已超时 ' . intval( (time() - $estimate_arrival_time) / 60 ) . '分钟';
+    }
+}
+
+// 派送中的订单标题，今日 08:32 前送达，超时 34分钟，前半部分
+function tranTime2($time) {
+    $rtime = date("m-d H:i",$time);
+    $htime = date("H:i", $time);
+
+    // $time = time() - $time;
+
+    if ($time > strtotime(date("Y-m-d", time())) && $time < strtotime(date("Y-m-d", strtotime('+1 day'))))
+    {
+        if(date('Ymd', $time) == date('Ymd'))
+            $str = '今日 '.$htime;
+        else
+            $str = '明日 '.$htime;
+    }
+    else
+    {
+        $str = $rtime;
+    }
+    return $str;
+}
+
+// 正常
 function tranTime($time) {
     $rtime = date("m-d H:i",$time);
     $htime = date("H:i",$time);

@@ -45,6 +45,12 @@ class Order extends Model
         'shipper_type_ss','shipper_type_dd','shipper_type_sf','expected_send_time','pick_type'
     ];
 
+    // 跑腿运力记录
+    public function deliveries()
+    {
+        return $this->hasMany(OrderDelivery::class, "order_id", "id");
+    }
+
     public function shop() {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');
     }

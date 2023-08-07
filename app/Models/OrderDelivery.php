@@ -12,4 +12,10 @@ class OrderDelivery extends Model
         'atshop_at','pickup_at','finished_at','cancel_at','paid_at','refund_at',
         'user_id','add_money','addfee'
     ];
+
+    // 足迹记录
+    public function tracks()
+    {
+        return $this->hasMany(OrderDeliveryTrack::class, "delivery_id", "id");
+    }
 }
