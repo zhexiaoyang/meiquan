@@ -184,7 +184,7 @@ class ShipperLogisticsSyncTimer extends CronJob
                 if ($latitude) {
                     $update_data['courier_lat'] = $latitude;
                 }
-                if ($longitude || $latitude) {
+                if (!$longitude || !$latitude) {
                     \Log::info("同步骑手位置{$order->order_id}|异常|经纬度不存在");
                     continue;
                 }
