@@ -73,6 +73,9 @@ class OrderController extends Controller
         }
         if (!empty($orders)) {
             foreach ($orders as $order) {
+                $order->product_num = 0;
+                $order->poi_receive = 0;
+                $order->receiver_phone_end = '';
                 $order->title = $this->setOrderListTitle($status, $order);
                 preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
                 if (!empty($preg_result[0][0])) {
@@ -83,11 +86,17 @@ class OrderController extends Controller
                 }
                 // 商品信息
                 if (!empty($order->products)) {
+                    $product_num = 0;
                     foreach ($order->products as $product) {
+                        $product_num += $product->quantity;
                         if ($product->upc) {
                             $product->image = $images[$product->upc] ?? '';
                         }
                     }
+                    $order->product_num = $product_num;
+                }
+                // 外卖订单信息
+                if (!empty($order->order)) {
                     $order->poi_receive = $order->order->poi_receive ?? 0;
                     unset($order->order);
                 }
