@@ -263,6 +263,17 @@ class Api extends Request
     // ----------------------------------------------------------
     // --------------------美 团 外 卖 接 口-----------------------
     // ----------------------------------------------------------
+    public function getDeliveryPath($order_id, $app_poi_code)
+    {
+        $params = [
+            'order_id' => $order_id,
+            'app_poi_code' => $app_poi_code,
+        ];
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
+        return $this->request_get('v1/order/getDeliveryPath', $params);
+    }
     /**
      * 获取众包配送取消原因
      */
