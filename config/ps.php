@@ -103,13 +103,13 @@ return [
     "shunfeng" => [
         "app_id" => env("SHUNFENG_APP_ID", ""),
         "app_key" => env("SHUNFENG_APP_KEY", ""),
-        "url" => "https://commit-openic.sf-express.com"
+        "url" => "https://openic.sf-express.com"
     ],
     // 顺丰
     "shunfengservice" => [
         "app_id" => env("SHUNFENG_SERVER_APP_ID", ""),
         "app_key" => env("SHUNFENG_SERVER_APP_KEY", ""),
-        "url" => "https://commit-openic.sf-express.com"
+        "url" => "https://openic.sf-express.com"
     ],
     // Uu跑腿
     "uu" => [

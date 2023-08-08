@@ -11,7 +11,7 @@ class Http
     protected $client;
 
     function post($url, $jsonData) {
-        Log::debug('顺丰请求参数:', [$jsonData]);
+        Log::debug('顺丰请求参数:', [$url, $jsonData]);
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
