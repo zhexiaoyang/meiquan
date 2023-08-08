@@ -71,6 +71,40 @@ class Api extends Request
         return $this->post('addorder.ashx', $data);
     }
 
+    public function addOrderByToken(Order $order, Shop $shop, $token, $money, $total)
+    {
+        $note = $order->note ?: "";
+        $data = [
+            'price_token' => $token,
+            'order_price' => (string) $total,
+            'balance_paymoney' => (string) $money,
+            'receiver' => $order->receiver_name,
+            'receiver_phone' => $order->receiver_phone,
+            'note' => $note,
+            'callback_url' => 'https://psapi.meiquanda.com/api/waimai/uu/order',
+            'push_type' => 0,
+            // 'push_type' => 2,
+            'callme_withtake' => 0,
+            'pubusermobile' => $shop->contact_phone,
+        ];
+
+        if ($order->platform > 0 ) {
+            if ($order->platform < 10) {
+                if ($order->platform === 1 || $order->platform === 2) {
+                    $data['ordersource'] = $order->platform;
+                    $data['shortordernum'] = $order->day_seq;
+                }
+                // $data['ordersource'] = empty($platform[$order->platform]) ? "" : "#{$platform[$order->platform]}#" . $order->day_seq;
+            } elseif ($order->platform === 11) {
+                $data['ordersource'] = 3;
+                $data['shortordernum'] = "取货码" . $order->goods_pickup_info;
+                $data['note'] = "取货码" . $order->goods_pickup_info . ',' . $note;
+            }
+        }
+
+        return $this->post('addorder.ashx', $data);
+    }
+
     public function cancelOrder(Order $order)
     {
         $data = [
