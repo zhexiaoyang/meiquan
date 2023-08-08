@@ -966,7 +966,7 @@ class CreateMtOrder implements ShouldQueue
                         'platform' => 6,
                         'type' => 0,
                         'day_seq' => $order->day_seq,
-                        'money' => ($check_uu['need_paymoney'] ?? 0),
+                        'money' => $order->money_uu,
                         'add_money' => $this->add_money,
                         'original' => ($check_uu['total_money'] ?? 0),
                         'coupon' => ($check_uu['coupon_amount'] ?? 0),
@@ -1058,7 +1058,7 @@ class CreateMtOrder implements ShouldQueue
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
             try {
-                DB::transaction(function () use ($order, $zz_sf, $result_sf) {
+                DB::transaction(function () use ($order, $zz_sf, $result_sf, $money_sf) {
                     $delivery_id = DB::table('order_deliveries')->insertGetId([
                         'user_id' => $order->user_id,
                         'shop_id' => $order->shop_id,
@@ -1070,7 +1070,7 @@ class CreateMtOrder implements ShouldQueue
                         'platform' => 7,
                         'type' => $zz_sf ? 1 : 0,
                         'day_seq' => $order->day_seq,
-                        'money' => ($result_sf['result']['real_pay_money'] ?? 0) / 100,
+                        'money' => $money_sf,
                         'add_money' => $zz_sf ? $this->add_money : 0,
                         'original' => ($result_sf['result']['total_pay_money'] ?? 0) / 100,
                         'coupon' => ($result_sf['result']['coupons_total_fee'] ?? 0) / 100,
@@ -1170,7 +1170,7 @@ class CreateMtOrder implements ShouldQueue
                         'platform' => 5,
                         'type' => $zz_dd ? 1 : 0,
                         'day_seq' => $order->day_seq,
-                        'money' => ($check_dd['result']['fee'] ?? 0),
+                        'money' => $order->money_dd,
                         'add_money' => $zz_dd ? $this->add_money : 0,
                         'original' => ($check_dd['result']['deliverFee'] ?? 0),
                         'coupon' => ($check_dd['result']['couponFee'] ?? 0),
@@ -1502,7 +1502,7 @@ class CreateMtOrder implements ShouldQueue
                         'platform' => 3,
                         'type' => $zz ? 1 : 0,
                         'day_seq' => $order->day_seq,
-                        'money' => ($result_ss['data']['totalFeeAfterSave'] ?? 0) / 100,
+                        'money' => $order->money_ss,
                         'add_money' => $zz ? $this->add_money : 0,
                         'original' => ($result_ss['data']['totalAmount'] ?? 0) / 100,
                         'coupon' => ($result_ss['data']['couponSaveFee'] ?? 0) / 100,
