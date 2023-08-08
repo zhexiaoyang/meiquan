@@ -61,7 +61,7 @@ class OrderController extends Controller
             $status = 10;
         }
         $query = Order::with(['products' => function ($query) {
-            $query->select('order_id', 'food_name', 'spec', 'upc', 'quantity', 'price');
+            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
         }, 'deliveries' => function ($query) {
             $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
                 'money', 'updated_at','delivery_name','delivery_phone');
