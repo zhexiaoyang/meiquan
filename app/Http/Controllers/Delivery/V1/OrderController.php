@@ -338,7 +338,10 @@ class OrderController extends Controller
 
     public function calculate(Request $request)
     {
-        if (!$order = Order::find($request->get("order_id", 0))) {
+        $order = Order::select('id','order_id','shop_id','day_seq','platform','status','wm_poi_name','receiver_name',
+            'receiver_phone','receiver_address','receiver_lng','receiver_lat','created_at','wm_id')
+            ->find($request->get("order_id", 0));
+        if (!$order) {
             return $this->error("订单不存在");
         }
         // 判断权限
@@ -349,6 +352,9 @@ class OrderController extends Controller
         // 获取门店
         if (!$shop = Shop::find($order->shop_id)) {
             return $this->error("门店不存在");
+        }
+        if ($order->wm_id) {
+            $wm_order = WmOrder::select('id', 'delivery_time')->find($order->wm_id);
         }
         $send_shop = $shop;
         // 默认设置
@@ -402,10 +408,26 @@ class OrderController extends Controller
             'status' => 1, // 1 可选，0 不可选
             'tag' => '一对一送'
         ];
-
+        // 查询已经发单的记录
+        $deliveries = $order->deliveries;
+        $send_platform_data = [];
+        if (!empty($deliveries)) {
+            foreach ($deliveries as $delivery) {
+                $send_platform_data[$delivery->platform] = $delivery;
+            }
+        }
         // ---------------------计算发单价格---------------------
         // 闪送价格计算
-        if (!$send_shop->shop_id_ss) {
+        if (isset($send_platform_data[3])) {
+            $result['ss'] = [
+                'platform' => '闪送',
+                'price' => $send_platform_data[3]->money,
+                'distance' => '',
+                'description' => '',
+                'status' => 0, // 1 可选，0 不可选
+                'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[3]->status]
+            ];
+        } elseif (!$send_shop->shop_id_ss) {
             \Log::info('门店未开通闪送');
         } elseif (!$ss_switch) {
             \Log::info('门店关闭闪送发单');
@@ -444,7 +466,16 @@ class OrderController extends Controller
             }
         }
         // 达达价格计算
-        if (!$send_shop->shop_id_dd) {
+        if (isset($send_platform_data[5])) {
+            $result['dd'] = [
+                'platform' => '达达',
+                'price' => $send_platform_data[5]->money,
+                'distance' => '',
+                'description' => '',
+                'status' => 0, // 1 可选，0 不可选
+                'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[5]->status]
+            ];
+        } elseif (!$send_shop->shop_id_dd) {
             \Log::info('门店未开通达达');
         } elseif (!$dd_switch) {
             \Log::info('门店关闭达达发单');
@@ -487,7 +518,16 @@ class OrderController extends Controller
             }
         }
         // 顺丰价格计算
-        if (!$send_shop->shop_id_sf) {
+        if (isset($send_platform_data[7])) {
+            $result['sf'] = [
+                'platform' => '顺丰',
+                'price' => $send_platform_data[7]->money,
+                'distance' => '',
+                'description' => '',
+                'status' => 0, // 1 可选，0 不可选
+                'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[7]->status]
+            ];
+        } elseif (!$send_shop->shop_id_sf) {
             \Log::info('门店未开通顺丰');
         } elseif (!$sf_switch) {
             \Log::info('门店关闭顺丰发单');
@@ -528,7 +568,16 @@ class OrderController extends Controller
             }
         }
         // UU价格计算
-        if (!$send_shop->shop_id_uu) {
+        if (isset($send_platform_data[6])) {
+            $result['uu'] = [
+                'platform' => 'UU',
+                'price' => $send_platform_data[6]->money,
+                'distance' => '',
+                'description' => '',
+                'status' => 0, // 1 可选，0 不可选
+                'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[6]->status]
+            ];
+        } elseif (!$send_shop->shop_id_uu) {
             \Log::info('门店未开通UU');
         } elseif (!$uu_switch) {
             \Log::info('门店关闭UU发单');
@@ -536,30 +585,116 @@ class OrderController extends Controller
             $uu = app("uu");
             $check_uu= $uu->orderCalculate($order, $shop);
             if (isset($check_uu['return_code']) && $check_uu['return_code'] == 'ok' && !empty($check_uu['result'])) {
-                $sf_money = sprintf("%.2f", ($check_uu['result']['real_pay_money'] / 100) + $sf_add_money);
-                $result['sf'] = [
-                    'platform' => '顺丰',
-                    'price' => $sf_money,
-                    'distance' => get_kilometre($check_uu['result']['delivery_distance_meter']),
-                    'description' => !empty($check_uu['result']['coupons_total_fee']) ? '已减' . $check_uu['data']['coupons_total_fee'] . '元' : '',
+                $uu_money = sprintf("%.2f", $check_uu['need_paymoney'] + $add_money);
+                $result['uu'] = [
+                    'platform' => 'UU',
+                    'price' => $uu_money,
+                    'distance' => get_kilometre($check_uu['distance']),
+                    'description' => !empty($check_uu['total_priceoff']) ? '已减' . $check_uu['total_priceoff'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
                     'tag' => ''
                 ];
-                if ($sf_money < $min_money) {
-                    $min_money = $sf_money;
+                if ($uu_money < $min_money) {
+                    $min_money = $uu_money;
                 }
             } else {
-                $result['sf'] = [
-                    'platform' => '顺丰',
+                $result['uu'] = [
+                    'platform' => 'UU',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_uu['msg'] ?? '顺丰校验失败',
+                    'description' => $check_uu['return_msg'] ?? 'UU校验失败',
                     'status' => 0, // 1 可选，0 不可选
                     'tag' => ''
                 ];
-                \Log::info('门店顺丰发单失败', [$check_uu]);
+                \Log::info('门店UU发单失败', [$check_uu]);
+            }
+        }
+        // 众包价格计算
+        if (isset($send_platform_data[8])) {
+            $result['zb'] = [
+                'platform' => '美团众包',
+                'price' => $send_platform_data[8]->money,
+                'distance' => '',
+                'description' => '',
+                'status' => 0, // 1 可选，0 不可选
+                'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[8]->status]
+            ];
+        } elseif (!in_array($shop->meituan_bind_platform, [4, 31])) {
+            $this->log("门店未绑定民康、闪购，停止众包派单");
+        } elseif (!$shop->shop_id_zb) {
+            $this->log("未开通众包，停止「美团众包」派单");
+        } elseif ($order->shop_id != $send_shop->id) {
+            \Log::info('转仓库订单，停止「美团众包」派单');
+        } elseif (!$send_shop->shop_id_zb) {
+            \Log::info('门店未开通美团众包');
+        } elseif (!$uu_switch) {
+            \Log::info('门店关闭美团众包发单');
+        } else {
+            if ($shop->meituan_bind_platform == 4) {
+                $meituan_shop_id = '';
+                $zhongbaoapp = app('minkang');
+            } elseif ($shop->meituan_bind_platform == 31) {
+                $meituan_shop_id = $shop->waimai_mt;
+                $zhongbaoapp = app('meiquan');
+            }
+            $check_zb= $zhongbaoapp->zhongBaoShippingFee($order->order_id, $meituan_shop_id);
+            if (isset($check_zb['data']) && !empty($check_zb['data'])) {
+                $zb_money = sprintf("%.2f", $check_zb['data'][0]['shipping_fee']);
+                $deliveryFeeStr = $check_zb['data'][0]['deliveryFeeStr'] ?? '';
+                $distance = '';
+                if ($deliveryFeeStr) {
+                    $deliveryFeeStr_data = json_decode($deliveryFeeStr, true);
+                    $distance = $deliveryFeeStr_data['distance'] ?? '';
+                }
+                $result['zb'] = [
+                    'platform' => '美团众包',
+                    'price' => $zb_money,
+                    'distance' => $distance ? $distance . '公里' : '',
+                    'description' => '',
+                    'status' => 1, // 1 可选，0 不可选
+                    'tag' => ''
+                ];
+                if ($zb_money < $min_money) {
+                    $min_money = $zb_money;
+                }
+            } else {
+                $result['zb'] = [
+                    'platform' => '美团众包',
+                    'price' => '',
+                    'distance' => '',
+                    'description' => $check_zb['return_msg'] ?? '美团众包校验失败',
+                    'status' => 0, // 1 可选，0 不可选
+                    'tag' => ''
+                ];
+                \Log::info('门店美团众包发单失败', [$check_zb]);
             }
         }
 
+        foreach ($result as $k => $v) {
+            if ($v['price'] == $min_money) {
+                $result[$k]['tag'] = '最便宜';
+            }
+        }
+        if (!empty($wm_order->delivery_time)) {
+            $order_title = '<text>预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
+        } else {
+            $order_title = '<text>立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+        }
+        $res_data = [
+            'id' => $order->id,
+            'order_title' => $order_title,
+            'shop_id' => $order->shop_id,
+            'day_seq' => $order->day_seq,
+            'platform' => $order->platform,
+            'wm_poi_name' => $order->wm_poi_name,
+            'receiver_name' => $order->receiver_name,
+            'receiver_phone' => $order->receiver_phone,
+            'receiver_address' => $order->receiver_address,
+            'receiver_lng' => $order->receiver_lng,
+            'receiver_lat' => $order->receiver_lat,
+            'created_at' => date("Y-m-d H:i:s", strtotime($order->created_at)),
+            'deliveries' => array_values($result)
+        ];
+        return $this->status($res_data);
     }
 }

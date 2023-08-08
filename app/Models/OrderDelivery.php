@@ -23,7 +23,7 @@ class OrderDelivery extends Model
     ];
 
     static $delivery_status_order_info_title_map = [
-        '20' => '带抢单',
+        '20' => '待抢单',
         '50' => '抢单成功',
         '60' => '配送中',
         '70' => '已完成',

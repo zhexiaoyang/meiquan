@@ -1,5 +1,14 @@
 <?php
 
+function get_kilometre ($metre): string
+{
+    if ($metre < 1000) {
+        return $metre . '米';
+    }
+    return sprintf("%.2f 公里", $metre / 1000);
+}
+
+// 获取两个点的距离（1 距离，2 步行，3 骑行）
 function get_distance_title($lng1, $lat1, $lng2, $lat2): string
 {
     $distance = 0;
