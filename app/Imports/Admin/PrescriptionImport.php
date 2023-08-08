@@ -43,7 +43,7 @@ class PrescriptionImport implements ToArray
                     throw new InvalidRequestException("第{$line}行，参数错误");
                 }
                 $platform = $item[0] == '美团' ? 1 : 2;
-                $shop_id = $item[1];
+                $shop_id = trim($item[1]);
                 $_tmp = [
                     'money' => floatval($item[5]),
                     // 'expend' => $this->expend,
