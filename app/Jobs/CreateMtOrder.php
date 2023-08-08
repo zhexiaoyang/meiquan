@@ -970,7 +970,7 @@ class CreateMtOrder implements ShouldQueue
                         'add_money' => $this->add_money,
                         'original' => ($check_uu['total_money'] ?? 0),
                         'coupon' => ($check_uu['coupon_amount'] ?? 0),
-                        'addfee' => ($check_uu['addfee'] ?? 0) / 100,
+                        'addfee' => ($check_uu['addfee'] ?? 0),
                         'distance' => $check_uu['distance'] ?? 0,
                         'weight' => 0,
                         'status' => 20,
