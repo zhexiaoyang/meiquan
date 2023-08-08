@@ -1194,7 +1194,7 @@ class CreateMtOrder implements ShouldQueue
                     ]);
                 });
             } catch (\Exception $exception) {
-                Log::info("顺丰写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                Log::info("达达写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
             }
             $this->log("「达达」更新创建订单状态成功");
             return true;
