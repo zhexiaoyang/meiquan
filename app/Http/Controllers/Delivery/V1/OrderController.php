@@ -398,22 +398,24 @@ class OrderController extends Controller
         // 设置返回参数
         $result = [];
         // 最便宜价格
-        $min_money = 0;
+        $min_money = 100;
         // 返回item格式
-        $item = [
-            'platform' => '闪送',
-            'price' => 7.2,
-            'distance' => '123662米',
-            'description' => '已减2.70元',
-            'status' => 1, // 1 可选，0 不可选
-            'tag' => '一对一送'
-        ];
+        // $item = [
+        //     'platform' => '闪送',
+        //     'price' => 7.2,
+        //     'distance' => '123662米',
+        //     'description' => '已减2.70元',
+        //     'status' => 1, // 1 可选，0 不可选
+        //     'tag' => '一对一送'
+        // ];
         // 查询已经发单的记录
         $deliveries = $order->deliveries;
         $send_platform_data = [];
         if (!empty($deliveries)) {
             foreach ($deliveries as $delivery) {
-                $send_platform_data[$delivery->platform] = $delivery;
+                if ($delivery->status < 99) {
+                    $send_platform_data[$delivery->platform] = $delivery;
+                }
             }
         }
         // ---------------------计算发单价格---------------------
@@ -427,7 +429,7 @@ class OrderController extends Controller
                 'status' => 0, // 1 可选，0 不可选
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[3]->status]
             ];
-        } elseif (!$send_shop->shop_id_ss) {
+        } elseif (!$send_shop->shop_id_ss && !in_array(3, $shipper_platform_data)) {
             \Log::info('门店未开通闪送');
         } elseif (!$ss_switch) {
             \Log::info('门店关闭闪送发单');
@@ -475,7 +477,7 @@ class OrderController extends Controller
                 'status' => 0, // 1 可选，0 不可选
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[5]->status]
             ];
-        } elseif (!$send_shop->shop_id_dd) {
+        } elseif (!$send_shop->shop_id_dd && !in_array(5, $shipper_platform_data)) {
             \Log::info('门店未开通达达');
         } elseif (!$dd_switch) {
             \Log::info('门店关闭达达发单');
@@ -527,7 +529,7 @@ class OrderController extends Controller
                 'status' => 0, // 1 可选，0 不可选
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[7]->status]
             ];
-        } elseif (!$send_shop->shop_id_sf) {
+        } elseif (!$send_shop->shop_id_sf && !in_array(7, $shipper_platform_data)) {
             \Log::info('门店未开通顺丰');
         } elseif (!$sf_switch) {
             \Log::info('门店关闭顺丰发单');
