@@ -15,9 +15,17 @@ class ShopController extends Controller
     {
         $user = $request->user();
         if ($user->account_shop_id) {
-            return $this->success([Shop::select('id', 'shop_name')->find($user->account_shop_id)]);
+            return $this->success([Shop::select('id', 'shop_name', 'wm_shop_name')->find($user->account_shop_id)]);
         }
         $shops = Shop::select('id', 'shop_name')->where('user_id', $user->id)->get();
+
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if (!$shop->wm_shop_name) {
+                    $shop->wm_shop_name = $shop->shop_name;
+                }
+            }
+        }
 
         return $this->success($shops);
     }
