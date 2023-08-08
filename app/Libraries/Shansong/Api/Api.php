@@ -156,6 +156,14 @@ class Api extends Request
 
         return $this->post('/openapi/merchants/v5/orderPlace', $data);
     }
+    public function createOrderByOrderNo($ss_order_id)
+    {
+        $data = [
+            'issOrderNo' => $ss_order_id
+        ];
+
+        return $this->post('/openapi/merchants/v5/orderPlace', $data);
+    }
 
     /**
      * 取消订单
