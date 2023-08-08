@@ -14,6 +14,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("index", "OrderController@index");
             Route::get("info", "OrderController@show");
             Route::get("calculate", "OrderController@calculate");
+            Route::get("send", "OrderController@send");
             Route::post("cancel", "OrderController@cancel");
         });
         // 门店

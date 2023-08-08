@@ -98,7 +98,7 @@ class Api extends Request
             'city_code' => $shop->citycode,
             // 订单信息
             'origin_id' => $order->order_id,
-            'cargo_price' => $order->goods_value,
+            'cargo_price' => $order->goods_value ?: 200,
             'cargo_weight' => 1,
             'callback' => 'https://psapi.meiquanda.com/api/callback/dada/order',
             'is_prepay' => 0,

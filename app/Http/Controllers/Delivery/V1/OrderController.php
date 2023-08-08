@@ -12,6 +12,10 @@ use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 
 class OrderController extends Controller
 {
@@ -167,8 +171,8 @@ class OrderController extends Controller
                 if (!empty($order->order)) {
                     $order->poi_receive = $order->order->poi_receive ?? 0;
                     $order->delivery_time = $order->order->delivery_time ?? 0;
-                    unset($order->order);
                 }
+                unset($order->order);
             }
         }
         return $this->page($orders);
@@ -336,6 +340,10 @@ class OrderController extends Controller
         return $this->success();
     }
 
+    /**
+     * 配送下单-技术配送费
+     * @data 2023/8/8 2:54 下午
+     */
     public function calculate(Request $request)
     {
         $order = Order::select('id','order_id','shop_id','day_seq','platform','status','wm_poi_name','receiver_name',
@@ -345,9 +353,11 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        //
-        //
-        //
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
 
         // 获取门店
         if (!$shop = Shop::find($order->shop_id)) {
@@ -422,11 +432,13 @@ class OrderController extends Controller
         // 闪送价格计算
         if (isset($send_platform_data[3])) {
             $result['ss'] = [
-                'platform' => '闪送',
+                'platform' => 3,
+                'platform_name' => '闪送',
                 'price' => $send_platform_data[3]->money,
                 'distance' => '',
                 'description' => '',
                 'status' => 0, // 1 可选，0 不可选
+                'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[3]->status]
             ];
         } elseif (!$send_shop->shop_id_ss && !in_array(3, $shipper_platform_data)) {
@@ -443,25 +455,29 @@ class OrderController extends Controller
                 $shansong = app("shansong");
                 $ss_add_money = $add_money;
             }
-            $check_ss = $shansong->orderCalculate($shop, $order);
+            $check_ss = $shansong->orderCalculate($send_shop, $order);
             if (isset($check_ss['status']) && $check_ss['status'] == 200 && !empty($check_ss['data'])) {
                 $ss_money = sprintf("%.2f", ($check_ss['data']['totalFeeAfterSave'] / 100) + $ss_add_money);
                 $result['ss'] = [
-                    'platform' => '闪送',
+                    'platform' => 3,
+                    'platform_name' => '闪送',
                     'price' => $ss_money,
                     'distance' => get_kilometre($check_ss['data']['totalDistance']),
                     'description' => !empty($check_ss['data']['couponSaveFee']) ? '已减' . $check_ss['data']['couponSaveFee'] / 100 . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => '一对一送'
                 ];
                 $min_money = $ss_money;
             } else {
                 $result['ss'] = [
-                    'platform' => '闪送',
+                    'platform' => 3,
+                    'platform_name' => '闪送',
                     'price' => '',
                     'distance' => '',
                     'description' => $check_ss['msg'] ?? '闪送校验失败',
                     'status' => 0, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => '一对一送'
                 ];
                 \Log::info('门店闪送发单失败', [$check_ss]);
@@ -470,11 +486,13 @@ class OrderController extends Controller
         // 达达价格计算
         if (isset($send_platform_data[5])) {
             $result['dd'] = [
-                'platform' => '达达',
+                'platform' => 5,
+                'platform_name' => '达达',
                 'price' => $send_platform_data[5]->money,
                 'distance' => '',
                 'description' => '',
                 'status' => 0, // 1 可选，0 不可选
+                'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[5]->status]
             ];
         } elseif (!$send_shop->shop_id_dd && !in_array(5, $shipper_platform_data)) {
@@ -493,15 +511,17 @@ class OrderController extends Controller
                 $dada = app("dada");
                 $dd_add_money = $add_money;
             }
-            $check_dd= $dada->orderCalculate($shop, $order);
+            $check_dd= $dada->orderCalculate($send_shop, $order);
             if (isset($check_dd['code']) && $check_dd['code'] == 0 && !empty($check_dd['result'])) {
                 $dd_money = sprintf("%.2f", $check_dd['result']['fee'] + $dd_add_money);
                 $result['dd'] = [
-                    'platform' => '达达',
+                    'platform' => 5,
+                    'platform_name' => '达达',
                     'price' => $dd_money,
                     'distance' => get_kilometre($check_dd['result']['distance']),
                     'description' => !empty($check_dd['result']['couponFee']) ? '已减' . $check_dd['data']['couponFee'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 if ($dd_money < $min_money) {
@@ -509,11 +529,13 @@ class OrderController extends Controller
                 }
             } else {
                 $result['dd'] = [
-                    'platform' => '达达',
+                    'platform' => 5,
+                    'platform_name' => '达达',
                     'price' => '',
                     'distance' => '',
                     'description' => $check_dd['msg'] ?? '达达校验失败',
                     'status' => 0, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 \Log::info('门店达达发单失败', [$check_dd]);
@@ -522,11 +544,13 @@ class OrderController extends Controller
         // 顺丰价格计算
         if (isset($send_platform_data[7])) {
             $result['sf'] = [
-                'platform' => '顺丰',
+                'platform' => 7,
+                'platform_name' => '顺丰',
                 'price' => $send_platform_data[7]->money,
                 'distance' => '',
                 'description' => '',
                 'status' => 0, // 1 可选，0 不可选
+                'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[7]->status]
             ];
         } elseif (!$send_shop->shop_id_sf && !in_array(7, $shipper_platform_data)) {
@@ -543,15 +567,17 @@ class OrderController extends Controller
                 $shunfeng = app("shunfeng");
                 $sf_add_money = $add_money;
             }
-            $check_sf= $shunfeng->precreateorder($order, $shop);
+            $check_sf= $shunfeng->precreateorder($order, $send_shop);
             if (isset($check_sf['error_code']) && $check_sf['error_code'] == 0 && !empty($check_sf['result'])) {
                 $sf_money = sprintf("%.2f", ($check_sf['result']['real_pay_money'] / 100) + $sf_add_money);
                 $result['sf'] = [
-                    'platform' => '顺丰',
+                    'platform' => 7,
+                    'platform_name' => '顺丰',
                     'price' => $sf_money,
                     'distance' => get_kilometre($check_sf['result']['delivery_distance_meter']),
                     'description' => !empty($check_sf['result']['coupons_total_fee']) ? '已减' . $check_sf['data']['coupons_total_fee'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 if ($sf_money < $min_money) {
@@ -559,11 +585,13 @@ class OrderController extends Controller
                 }
             } else {
                 $result['sf'] = [
-                    'platform' => '顺丰',
+                    'platform' => 7,
+                    'platform_name' => '顺丰',
                     'price' => '',
                     'distance' => '',
                     'description' => $check_sf['msg'] ?? '顺丰校验失败',
                     'status' => 0, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 \Log::info('门店顺丰发单失败', [$check_sf]);
@@ -572,11 +600,13 @@ class OrderController extends Controller
         // UU价格计算
         if (isset($send_platform_data[6])) {
             $result['uu'] = [
-                'platform' => 'UU',
+                'platform' => 6,
+                'platform_name' => 'UU',
                 'price' => $send_platform_data[6]->money,
                 'distance' => '',
                 'description' => '',
                 'status' => 0, // 1 可选，0 不可选
+                'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[6]->status]
             ];
         } elseif (!$send_shop->shop_id_uu) {
@@ -585,15 +615,17 @@ class OrderController extends Controller
             \Log::info('门店关闭UU发单');
         } else {
             $uu = app("uu");
-            $check_uu= $uu->orderCalculate($order, $shop);
-            if (isset($check_uu['return_code']) && $check_uu['return_code'] == 'ok' && !empty($check_uu['result'])) {
+            $check_uu= $uu->orderCalculate($order, $send_shop);
+            if (isset($check_uu['return_code']) && $check_uu['return_code'] == 'ok') {
                 $uu_money = sprintf("%.2f", $check_uu['need_paymoney'] + $add_money);
                 $result['uu'] = [
-                    'platform' => 'UU',
+                    'platform' => 6,
+                    'platform_name' => 'UU',
                     'price' => $uu_money,
                     'distance' => get_kilometre($check_uu['distance']),
                     'description' => !empty($check_uu['total_priceoff']) ? '已减' . $check_uu['total_priceoff'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 if ($uu_money < $min_money) {
@@ -601,11 +633,13 @@ class OrderController extends Controller
                 }
             } else {
                 $result['uu'] = [
-                    'platform' => 'UU',
+                    'platform' => 6,
+                    'platform_name' => 'UU',
                     'price' => '',
                     'distance' => '',
                     'description' => $check_uu['return_msg'] ?? 'UU校验失败',
                     'status' => 0, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 \Log::info('门店UU发单失败', [$check_uu]);
@@ -614,11 +648,13 @@ class OrderController extends Controller
         // 众包价格计算
         if (isset($send_platform_data[8])) {
             $result['zb'] = [
-                'platform' => '美团众包',
+                'platform' => 8,
+                'platform_name' => '美团众包',
                 'price' => $send_platform_data[8]->money,
                 'distance' => '',
                 'description' => '',
                 'status' => 0, // 1 可选，0 不可选
+                'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[8]->status]
             ];
         } elseif (!in_array($shop->meituan_bind_platform, [4, 31])) {
@@ -649,11 +685,13 @@ class OrderController extends Controller
                     $distance = $deliveryFeeStr_data['distance'] ?? '';
                 }
                 $result['zb'] = [
-                    'platform' => '美团众包',
+                    'platform' => 8,
+                    'platform_name' => '美团众包',
                     'price' => $zb_money,
                     'distance' => $distance ? $distance . '公里' : '',
                     'description' => '',
                     'status' => 1, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 if ($zb_money < $min_money) {
@@ -661,11 +699,13 @@ class OrderController extends Controller
                 }
             } else {
                 $result['zb'] = [
-                    'platform' => '美团众包',
+                    'platform' => 8,
+                    'platform_name' => '美团众包',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_zb['return_msg'] ?? '美团众包校验失败',
+                    'description' => $check_zb['msg'] ?? '美团众包校验失败',
                     'status' => 0, // 1 可选，0 不可选
+                    'checked' => 0,
                     'tag' => ''
                 ];
                 \Log::info('门店美团众包发单失败', [$check_zb]);
@@ -675,6 +715,7 @@ class OrderController extends Controller
         foreach ($result as $k => $v) {
             if ($v['price'] == $min_money) {
                 $result[$k]['tag'] = '最便宜';
+                $result[$k]['checked'] = 1;
             }
         }
         if (!empty($wm_order->delivery_time)) {
@@ -697,6 +738,529 @@ class OrderController extends Controller
             'created_at' => date("Y-m-d H:i:s", strtotime($order->created_at)),
             'deliveries' => array_values($result)
         ];
-        return $this->status($res_data);
+        return $this->success($res_data);
+    }
+
+    public function send(Request $request)
+    {
+        if (!$platform = (int) $request->get('platform', 0)) {
+            return $this->error('请选择配送平台');
+        }
+        $order_id = (int) $request->get("order_id", 0);
+        if (!Redis::setnx("reset_order_id_" . $order_id, $order_id)) {
+            return $this->error("刚刚已经发过单了，请稍后再试");
+        }
+        Redis::expire("reset_order_id_" . $order_id, 3);
+        if (!$order = Order::find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 如果订单状态是已接单状态，不发单
+        if ($order->status > 20 && $order->status < 99) {
+            return $this->error("订单已被接单，不能继续派单");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+        // 获取门店
+        if (!$shop = Shop::find($order->shop_id)) {
+            return $this->error("门店不存在");
+        }
+        //
+        // 记录发单操作人
+        Log::info("{配送发单:$order->order_id}|操作人：{$request->user()->id}|平台:{$platform}");
+        // 默认发单门店是订单所属门店
+        $send_shop = $shop;
+        // 默认设置
+        $ss_switch = true;
+        $dd_switch = true;
+        $uu_switch = true;
+        $sf_switch = true;
+        $zb_switch = true;
+        // 店铺发单设置
+        if ($setting = OrderSetting::where("shop_id", $shop->id)->first()) {
+            // 仓库发单
+            if ($setting->warehouse && $setting->warehouse_time && ($setting->warehouse !== $shop->id)) {
+                $time_data = explode('-', $setting->warehouse_time);
+                if (!empty($time_data) && (count($time_data) === 2)) {
+                    if (in_time_status($time_data[0], $time_data[1])) {
+                        $send_shop = Shop::find($setting->warehouse);
+                    }
+                }
+            }
+            if ($shop->id != $send_shop->id) {
+                $setting = OrderSetting::where("shop_id", $setting->warehouse)->first();
+            }
+            $ss_switch = $setting->shansong;
+            $dd_switch = $setting->dada;
+            $uu_switch = $setting->uu;
+            $sf_switch = $setting->shunfeng;
+            $zb_switch = $setting->zhongbao;
+        }
+
+        // 加价金额
+        $add_money = $send_shop->running_add;
+        // 自主运力
+        $shippers = $send_shop->shippers;
+        $shipper_platform_data = [];
+        if (!empty($shippers)) {
+            foreach ($shippers as $shipper) {
+                $shipper_platform_data[] = $shipper->platform;
+            }
+        }
+        // 查询已经发单的记录
+        $deliveries = OrderDelivery::select('id','status')->where('order_id', $order->id)->where('status', '<', 99)->get();
+        $send_platform_data = [];
+        if (!empty($deliveries)) {
+            foreach ($deliveries as $delivery) {
+                if ($delivery->status < 99) {
+                    $send_platform_data[$delivery->platform] = $delivery;
+                }
+            }
+        }
+        // ----------------配送发单----------------
+        // 判断刚刚是否发过配送订单
+        // 判断是否接单了
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
+        if (!$jiedan_lock->get()) {
+            return $this->error('已经操作接单，停止派单');
+        }
+        $jiedan_lock->release();
+        //
+        if ($platform === 3) {
+            // 闪送
+            if (isset($send_platform_data[3])) {
+                return $this->error('闪送已经发过配送单了');
+            } elseif (!$send_shop->shop_id_ss && !in_array(3, $shipper_platform_data)) {
+                return $this->error('门店未开通闪送跑腿');
+            } elseif (!$ss_switch) {
+                return $this->error('门店关闭闪送跑腿');
+            } else {
+                $zy_ss = in_array(3, $shipper_platform_data);
+                if ($zy_ss) {
+                    // 自有闪送
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                    $ss_add_money = 0;
+                } else {
+                    // 聚合闪送
+                    $shansong = app("shansong");
+                    $ss_add_money = $add_money;
+                }
+                $check_ss = $shansong->orderCalculate($send_shop, $order);
+                if (!empty($check_ss['data']['orderNumber'])) {
+                    return $this->error('闪送发单失败' . !empty($check_ss['msg']) ? ':'.$check_ss['msg'] : '');
+                }
+                // 计算配送费返回闪送订单号
+                $ss_order_id = $check_ss['data']['orderNumber'];
+                $result_ss = $shansong->createOrderByOrderNo($ss_order_id);
+                if (isset($result_ss['status']) && $result_ss['status'] == 200 && !empty($result_ss['data'])) {
+                    $ss_money = sprintf("%.2f", ($result_ss['data']['totalFeeAfterSave'] / 100) + $ss_add_money);
+                    // 订单发送成功
+                    $this->log("发送「闪送」订单成功|返回参数", [$result_ss]);
+                    $update_info = [
+                        'money_ss' => $ss_money,
+                        'shipper_type_ss' => $zy_ss ? 1 : 0,
+                        'ss_order_id' => $ss_order_id,
+                        'ss_status' => 20,
+                        'status' => 20,
+                        'push_at' => date("Y-m-d H:i:s")
+                    ];
+                    DB::table('orders')->where('id', $order->id)->update($update_info);
+                    DB::table('order_logs')->insert([
+                        'ps' => 3,
+                        'order_id' => $order->id,
+                        'des' => '「闪送」跑腿发单:' . $ss_order_id,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    try {
+                        DB::transaction(function () use ($order, $zy_ss, $result_ss, $ss_add_money, $ss_money) {
+                            $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                'user_id' => $order->user_id,
+                                'shop_id' => $order->shop_id,
+                                'warehouse_id' => $order->warehouse_id,
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'order_no' => $order->order_id,
+                                'three_order_no' => $result_ss['data']['orderNumber'] ?? '',
+                                'platform' => 3,
+                                'type' => $zy_ss ? 1 : 0,
+                                'day_seq' => $order->day_seq,
+                                'money' => $ss_money,
+                                'add_money' => $zy_ss ? $ss_add_money : 0,
+                                'original' => ($result_ss['data']['totalAmount'] ?? 0) / 100,
+                                'coupon' => ($result_ss['data']['couponSaveFee'] ?? 0) / 100,
+                                'distance' => $result_ss['data']['totalDistance'] ?? 0,
+                                'weight' => $result_ss['data']['totalWeight'] ?? 0,
+                                'status' => 20,
+                                'track' => '待接单',
+                                'send_at' => date("Y-m-d H:i:s"),
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            DB::table('order_delivery_tracks')->insert([
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'delivery_id' => $delivery_id,
+                                'status' => 20,
+                                'status_des' => '下单成功',
+                                'description' => '闪送单号：' . $result_ss['data']['orderNumber'] ?? '',
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                        });
+                    } catch (\Exception $exception) {
+                        Log::info("闪送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    }
+                    return $this->success('闪送发单成功');
+                } else {
+                    return $this->error('闪送发单失败' . !empty($result_ss['msg']) ? ':'.$result_ss['msg'] : '');
+                }
+            }
+        } elseif ($platform === 5) {
+            // 达达
+            if (isset($send_platform_data[5])) {
+                return $this->error('达达已经发过配送单了');
+            } elseif (!$send_shop->shop_id_dd && !in_array(5, $shipper_platform_data)) {
+                return $this->error('门店未开通达达跑腿');
+            } elseif (!$dd_switch) {
+                return $this->error('门店关闭达达跑腿');
+            } else {
+                $zy_dd = in_array(5, $shipper_platform_data);
+                if ($zy_dd) {
+                    // 自有达达
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($send_shop->id);
+                    $dada = new DaDaService($config);
+                    $dd_add_money = 0;
+                } else {
+                    // 聚合达达
+                    $dada = app("dada");
+                    $dd_add_money = $add_money;
+                }
+                $check_dd= $dada->orderCalculate($shop, $order);
+                if (!empty($check_dd['result']['deliveryNo'])) {
+                    return $this->error('达达发单失败' . !empty($check_dd['msg']) ? ':'.$check_dd['msg'] : '');
+                }
+                // 计算配送费返回达达订单号
+                $dada_order_id = $check_dd['result']['deliveryNo'];
+                $result_dd = $dada->createOrder($dada_order_id);
+                if (isset($result_dd['code']) && $result_dd['code'] == 0 && !empty($result_dd['result'])) {
+                    $dd_money = sprintf("%.2f", $check_dd['result']['fee'] + $dd_add_money);
+                    // 订单发送成功
+                    $this->log("发送「达达」订单成功|返回参数", [$result_dd]);
+                    // 写入订单信息
+                    $update_info = [
+                        'money_dd' => $dd_money,
+                        'shipper_type_dd' => $zy_dd ? 1 : 0,
+                        'dd_order_id' => $order->order_id,
+                        'dd_status' => 20,
+                        'status' => 20,
+                        'push_at' => date("Y-m-d H:i:s")
+                    ];
+                    DB::table('orders')->where('id', $order->id)->update($update_info);
+                    DB::table('order_logs')->insert([
+                        'ps' => 5,
+                        'order_id' => $order->id,
+                        'des' => '「达达」跑腿发单',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    try {
+                        DB::transaction(function () use ($order, $zy_dd, $check_dd, $dd_money, $dd_add_money) {
+                            $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                'user_id' => $order->user_id,
+                                'shop_id' => $order->shop_id,
+                                'warehouse_id' => $order->warehouse_id,
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'order_no' => $order->order_id,
+                                'three_order_no' => $order->order_id,
+                                'platform' => 5,
+                                'type' => $zy_dd ? 1 : 0,
+                                'day_seq' => $order->day_seq,
+                                'money' => $dd_money,
+                                'add_money' => $zy_dd ? $dd_add_money : 0,
+                                'original' => ($check_dd['result']['deliverFee'] ?? 0),
+                                'coupon' => ($check_dd['result']['couponFee'] ?? 0),
+                                'distance' => $check_dd['result']['distance'] ?? 0,
+                                'weight' => 0,
+                                'status' => 20,
+                                'track' => '待接单',
+                                'send_at' => date("Y-m-d H:i:s"),
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            DB::table('order_delivery_tracks')->insert([
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'delivery_id' => $delivery_id,
+                                'status' => 20,
+                                'status_des' => '下单成功',
+                                'description' => '达达单号：' . $order->order_id,
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                        });
+                    } catch (\Exception $exception) {
+                        Log::info("达达写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    }
+                    return $this->success('达达发单成功');
+                } else {
+                    return $this->error('达达发单失败' . !empty($result_dd['msg']) ? ':'.$result_dd['msg'] : '');
+                }
+            }
+        } elseif ($platform === 6) {
+            // UU
+            if (isset($send_platform_data[6])) {
+                return $this->error('UU已经发过配送单了');
+            } elseif (!$send_shop->shop_id_uu && !in_array(6, $shipper_platform_data)) {
+                return $this->error('门店未开通UU跑腿');
+            } elseif (!$uu_switch) {
+                return $this->error('门店关闭UU跑腿');
+            } else {
+                $uu = app("uu");
+                $check_uu= $uu->orderCalculate($order, $send_shop);
+                if (!empty($check_uu['price_token'])) {
+                    return $this->error('UU发单失败' . !empty($check_uu['return_msg']) ? ':'.$check_uu['return_msg'] : '');
+                }
+                $uu_total_money = $check_uu['total_money'] ?? 0;
+                $uu_need_paymoney = $check_uu['need_paymoney'] ?? 0;
+                $uu_price_token = $check_uu['price_token'] ?? '';
+                $result_uu = $uu->addOrderByToken($order, $shop, $uu_price_token, $uu_need_paymoney, $uu_total_money);
+                if (isset($result_uu['return_code']) && $result_uu['return_code'] == 'ok') {
+                    $uu_money = sprintf("%.2f", $uu_need_paymoney + $add_money);
+                    // 写入订单信息
+                    $update_info = [
+                        'money_uu' => $uu_money,
+                        'uu_order_id' => $result_uu['ordercode'],
+                        'uu_status' => 20,
+                        'status' => 20,
+                        'push_at' => date("Y-m-d H:i:s")
+                    ];
+                    DB::table('orders')->where('id', $order->id)->update($update_info);
+                    DB::table('order_logs')->insert([
+                        'ps' => 6,
+                        'order_id' => $order->id,
+                        'des' => '「UU」跑腿发单',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    try {
+                        DB::transaction(function () use ($order, $result_uu, $check_uu, $uu_money, $add_money) {
+                            $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                'user_id' => $order->user_id,
+                                'shop_id' => $order->shop_id,
+                                'warehouse_id' => $order->warehouse_id,
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'order_no' => $order->order_id,
+                                'three_order_no' => $result_uu['ordercode'] ?? '',
+                                'platform' => 6,
+                                'type' => 0,
+                                'day_seq' => $order->day_seq,
+                                'money' => ($check_uu['need_paymoney'] ?? 0),
+                                'add_money' => $add_money,
+                                'original' => ($check_uu['total_money'] ?? 0),
+                                'coupon' => ($check_uu['coupon_amount'] ?? 0),
+                                'addfee' => ($check_uu['addfee'] ?? 0),
+                                'distance' => $check_uu['distance'] ?? 0,
+                                'weight' => 0,
+                                'status' => 20,
+                                'track' => '待接单',
+                                'send_at' => date("Y-m-d H:i:s"),
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            DB::table('order_delivery_tracks')->insert([
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'delivery_id' => $delivery_id,
+                                'status' => 20,
+                                'status_des' => '下单成功',
+                                'description' => 'UU单号：' . $result_uu['ordercode'] ?? '',
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                        });
+                    } catch (\Exception $exception) {
+                        Log::info("UU写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    }
+                    return $this->success('UU发单成功');
+                } else {
+                    return $this->error('UU发单失败' . !empty($result_uu['return_msg']) ? ':'.$result_uu['return_msg'] : '');
+                }
+            }
+        } elseif ($platform === 7) {
+            // 顺丰
+            if (isset($send_platform_data[7])) {
+                return $this->error('顺丰已经发过配送单了');
+            } elseif (!$send_shop->shop_id_sf && !in_array(7, $shipper_platform_data)) {
+                return $this->error('门店未开通顺丰跑腿');
+            } elseif (!$sf_switch) {
+                return $this->error('门店关闭顺丰跑腿');
+            } else {
+                $zy_sf = in_array(7, $shipper_platform_data);
+                if ($zy_sf) {
+                    // 自有顺丰
+                    $shunfeng = app("shunfengservice");
+                    $sf_add_money = 0;
+                } else {
+                    // 聚合顺丰
+                    $shunfeng = app("shunfeng");
+                    $sf_add_money = $add_money;
+                }
+                $result_sf = $shunfeng->createOrder($order, $shop);
+                if (isset($result_sf['error_code']) && $result_sf['error_code'] == 0 && !empty($result_sf['result'])) {
+                    $sf_money = sprintf("%.2f", ($result_sf['result']['real_pay_money'] / 100) + $sf_add_money);
+                    $update_info = [
+                        'money_sf' => $sf_money,
+                        'shipper_type_sf' => $zy_sf ? 1 : 0,
+                        'sf_order_id' => $result_sf['result']['sf_order_id'] ?? $order->order_id,
+                        'sf_status' => 20,
+                        'status' => 20,
+                        'push_at' => date("Y-m-d H:i:s")
+                    ];
+                    DB::table('orders')->where('id', $order->id)->update($update_info);
+                    DB::table('order_logs')->insert([
+                        'ps' => 7,
+                        'order_id' => $order->id,
+                        'des' => '「顺丰」跑腿发单',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    try {
+                        DB::transaction(function () use ($order, $zy_sf, $result_sf, $sf_add_money, $sf_money) {
+                            $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                'user_id' => $order->user_id,
+                                'shop_id' => $order->shop_id,
+                                'warehouse_id' => $order->warehouse_id,
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'order_no' => $order->order_id,
+                                'three_order_no' => $result_sf['result']['sf_order_id'] ?? '',
+                                'platform' => 7,
+                                'type' => $zy_sf ? 1 : 0,
+                                'day_seq' => $order->day_seq,
+                                'money' => $sf_money,
+                                'add_money' => $zy_sf ? $sf_add_money : 0,
+                                'original' => ($result_sf['result']['total_pay_money'] ?? 0) / 100,
+                                'coupon' => ($result_sf['result']['coupons_total_fee'] ?? 0) / 100,
+                                'distance' => $result_sf['result']['delivery_distance_meter'] ?? 0,
+                                'weight' => ($result_sf['result']['weight_gram'] ?? 0) / 1000,
+                                'status' => 20,
+                                'track' => '待接单',
+                                'send_at' => date("Y-m-d H:i:s"),
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            DB::table('order_delivery_tracks')->insert([
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'delivery_id' => $delivery_id,
+                                'status' => 20,
+                                'status_des' => '下单成功',
+                                'description' => '顺丰单号：' . $result_sf['result']['sf_order_id'] ?? '',
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                        });
+                    } catch (\Exception $exception) {
+                        Log::info("顺丰写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    }
+                    return $this->success('顺丰发单成功');
+                } else {
+                    return $this->error('顺丰发单失败' . !empty($result_sf['msg']) ? ':'.$result_sf['msg'] : '');
+                }
+            }
+        } elseif ($platform === 8) {
+            // 美团众包
+            if (isset($send_platform_data[8])) {
+                return $this->error('美团众包已经发过配送单了');
+            } elseif (!$send_shop->shop_id_zb) {
+                return $this->error('门店未开通美团众包');
+            } elseif (!in_array($shop->meituan_bind_platform, [4, 31])) {
+                return $this->error('门店未绑定民康、闪购');
+            } elseif ($order->shop_id != $send_shop->id) {
+                return $this->error('仓库发货订单，不支持美团众包派单');
+            } elseif (!$zb_switch) {
+                return $this->error('门店关闭美团众包');
+            } else {
+                if ($shop->meituan_bind_platform == 4) {
+                    $meituan_shop_id = '';
+                    $zhongbaoapp = app('minkang');
+                } elseif ($shop->meituan_bind_platform == 31) {
+                    $meituan_shop_id = $shop->waimai_mt;
+                    $zhongbaoapp = app('meiquan');
+                }
+                $check_zb= $zhongbaoapp->zhongBaoShippingFee($order->order_id, $meituan_shop_id);
+                if (!isset($check_zb['data'][0]['shipping_fee'])) {
+                    return $this->error('众包发单失败');
+                }
+                // 计算配送费返回众包金额
+                $zb_money = $check_zb['data'][0]['shipping_fee'];
+                $result_zb = $zhongbaoapp->zhongBaoDispatch($order->order_id, $zb_money, $meituan_shop_id);
+                if ($result_zb['data'] === 'ok') {
+                    // 写入订单信息
+                    $update_info = [
+                        'zb_status' => 20,
+                        'status' => 20,
+                        'push_at' => date("Y-m-d H:i:s")
+                    ];
+                    DB::table('orders')->where('id', $order->id)->update($update_info);
+                    DB::table('order_logs')->insert([
+                        'ps' => 8,
+                        'order_id' => $order->id,
+                        'des' => '「美团众包」跑腿发单',
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                    ]);
+                    try {
+                        DB::transaction(function () use ($order, $zb_money) {
+                            $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                'user_id' => $order->user_id,
+                                'shop_id' => $order->shop_id,
+                                'warehouse_id' => $order->warehouse_id,
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'order_no' => $order->order_id,
+                                'three_order_no' => $order->order_id,
+                                'platform' => 8,
+                                'type' => 0,
+                                'day_seq' => $order->day_seq,
+                                'money' => $zb_money,
+                                'original' => $zb_money,
+                                'coupon' => 0,
+                                'distance' => 0,
+                                'weight' => 0,
+                                'status' => 20,
+                                'track' => '待接单',
+                                'send_at' => date("Y-m-d H:i:s"),
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                            DB::table('order_delivery_tracks')->insert([
+                                'order_id' => $order->id,
+                                'wm_id' => $order->wm_id,
+                                'delivery_id' => $delivery_id,
+                                'status' => 20,
+                                'status_des' => '下单成功',
+                                'description' => '美团众包单号：' . $order->order_id,
+                                'created_at' => date("Y-m-d H:i:s"),
+                                'updated_at' => date("Y-m-d H:i:s"),
+                            ]);
+                        });
+                    } catch (\Exception $exception) {
+                        Log::info("美团众包写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    }
+                    return $this->success('美团众包发单成功');
+                } else {
+                    return $this->error('美团众包发单失败' . !empty($result_zb['msg']) ? ':'.$result_zb['msg'] : '');
+                }
+            }
+        }
+        return $this->error('平台选择错误');
     }
 }
