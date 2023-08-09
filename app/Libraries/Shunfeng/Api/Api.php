@@ -20,8 +20,12 @@ class Api extends Request
         "330" => 99,
     ];
 
-    public function precreateorder(Order $order, Shop $shop)
+    public function precreateorder(Order $order, Shop $shop, $tip = 0)
     {
+        $tip = (int) $tip * 100;
+        if ($tip < 100) {
+            $tip = 0;
+        }
         // $shop = Shop::query()->find($order->shop_id);
         $time = time();
         $shop_info = [
@@ -42,6 +46,8 @@ class Api extends Request
             "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
             // 是否是预约单	0：非预约单；1：预约单
             "is_appoint" => 0,
+            // 单位分，加小费最低不能少于100分
+            "gratuity_fee" => $tip,
             // "appoint_type"
             // "expect_time"
             "lbs_type" => 2,
@@ -55,8 +61,12 @@ class Api extends Request
         return $this->post('/open/api/external/precreateorder', $data);
     }
 
-    public function createOrder(Order $order, Shop $shop)
+    public function createOrder(Order $order, Shop $shop, $tip = 0)
     {
+        $tip = (int) $tip * 100;
+        if ($tip < 100) {
+            $tip = 0;
+        }
         $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
         // $shop = Shop::query()->find($order->shop_id);
         $time = time();
@@ -77,6 +87,8 @@ class Api extends Request
             'pay_type' => 1,
             'order_time' => strtotime($order->created_at),
             "is_appoint" => 0,
+            // 单位分，加小费最低不能少于100分
+            "gratuity_fee" => $tip,
             "is_insured" => 0,
             "is_person_direct" => 0,
             // "remark" => "",
