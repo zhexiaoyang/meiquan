@@ -335,13 +335,62 @@ class OrderController extends Controller
         return $this->success($order);
     }
 
+    public function ignore(Request $request)
+    {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        $_rand = rand(1, 2);
+        if ($_rand === 1) {
+            return $this->message('忽略成功');
+        } else {
+            return $this->error('忽略失败');
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        return $this->success();
+    }
+
     public function cancel(Request $request)
     {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 如果订单状态是已接单状态，不发单
+        if ($order->status == 99) {
+            return $this->success();
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        $_rand = rand(1, 2);
+        if ($_rand === 1) {
+            return $this->message('取消成功');
+        } else {
+            return $this->error('取消失败');
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
         return $this->success();
     }
 
     /**
-     * 配送下单-技术配送费
+     * 配送下单-计算配送费
      * @data 2023/8/8 2:54 下午
      */
     public function calculate(Request $request)
@@ -366,6 +415,11 @@ class OrderController extends Controller
         if ($order->wm_id) {
             $wm_order = WmOrder::select('id', 'delivery_time')->find($order->wm_id);
         }
+        $tip = $request->get('tip', 0);
+        if (!is_numeric($tip)) {
+            $tip = 0;
+        }
+        $tip = (float) sprintf("%.1f", $tip);
         $send_shop = $shop;
         // 默认设置
         $ss_switch = true;
@@ -437,6 +491,8 @@ class OrderController extends Controller
                 'price' => $send_platform_data[3]->money,
                 'distance' => '',
                 'description' => '',
+                'error_status' => 0,
+                'error_msg' => '',
                 'status' => 0, // 1 可选，0 不可选
                 'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[3]->status]
@@ -455,7 +511,7 @@ class OrderController extends Controller
                 $shansong = app("shansong");
                 $ss_add_money = $add_money;
             }
-            $check_ss = $shansong->orderCalculate($send_shop, $order);
+            $check_ss = $shansong->orderCalculate($send_shop, $order, $tip);
             if (isset($check_ss['status']) && $check_ss['status'] == 200 && !empty($check_ss['data'])) {
                 $ss_money = sprintf("%.2f", ($check_ss['data']['totalFeeAfterSave'] / 100) + $ss_add_money);
                 $result['ss'] = [
@@ -464,6 +520,8 @@ class OrderController extends Controller
                     'price' => $ss_money,
                     'distance' => get_kilometre($check_ss['data']['totalDistance']),
                     'description' => !empty($check_ss['data']['couponSaveFee']) ? '已减' . $check_ss['data']['couponSaveFee'] / 100 . '元' : '',
+                    'error_status' => 0,
+                    'error_msg' => '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => '一对一送'
@@ -475,7 +533,9 @@ class OrderController extends Controller
                     'platform_name' => '闪送',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_ss['msg'] ?? '无法下单',
+                    'description' => '计价失败',
+                    'error_status' => 1,
+                    'error_msg' => $check_ss['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => '一对一送'
@@ -491,6 +551,8 @@ class OrderController extends Controller
                 'price' => $send_platform_data[5]->money,
                 'distance' => '',
                 'description' => '',
+                'error_status' => 0,
+                'error_msg' => '',
                 'status' => 0, // 1 可选，0 不可选
                 'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[5]->status]
@@ -511,15 +573,17 @@ class OrderController extends Controller
                 $dada = app("dada");
                 $dd_add_money = $add_money;
             }
-            $check_dd= $dada->orderCalculate($send_shop, $order);
+            $check_dd= $dada->orderCalculate($send_shop, $order, $tip);
             if (isset($check_dd['code']) && $check_dd['code'] == 0 && !empty($check_dd['result'])) {
-                $dd_money = sprintf("%.2f", $check_dd['result']['fee'] + $dd_add_money);
+                $dd_money = sprintf("%.2f", $check_dd['result']['fee'] + $check_dd['result']['tips'] + $dd_add_money);
                 $result['dd'] = [
                     'platform' => 5,
                     'platform_name' => '达达',
                     'price' => $dd_money,
                     'distance' => get_kilometre($check_dd['result']['distance']),
                     'description' => !empty($check_dd['result']['couponFee']) ? '已减' . $check_dd['result']['couponFee'] . '元' : '',
+                    'error_status' => 0,
+                    'error_msg' => '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -533,7 +597,9 @@ class OrderController extends Controller
                     'platform_name' => '达达',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_dd['msg'] ?? '无法下单',
+                    'description' => '计价失败',
+                    'error_status' => 1,
+                    'error_msg' => $check_dd['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -549,6 +615,8 @@ class OrderController extends Controller
                 'price' => $send_platform_data[7]->money,
                 'distance' => '',
                 'description' => '',
+                'error_status' => 0,
+                'error_msg' => '',
                 'status' => 0, // 1 可选，0 不可选
                 'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[7]->status]
@@ -567,7 +635,7 @@ class OrderController extends Controller
                 $shunfeng = app("shunfeng");
                 $sf_add_money = $add_money;
             }
-            $check_sf= $shunfeng->precreateorder($order, $send_shop);
+            $check_sf= $shunfeng->precreateorder($order, $send_shop, $tip);
             if (isset($check_sf['error_code']) && $check_sf['error_code'] == 0 && !empty($check_sf['result'])) {
                 $sf_money = sprintf("%.2f", ($check_sf['result']['real_pay_money'] / 100) + $sf_add_money);
                 $result['sf'] = [
@@ -576,6 +644,8 @@ class OrderController extends Controller
                     'price' => $sf_money,
                     'distance' => get_kilometre($check_sf['result']['delivery_distance_meter']),
                     'description' => !empty($check_sf['result']['coupons_total_fee']) ? '已减' . $check_sf['result']['coupons_total_fee'] . '元' : '',
+                    'error_status' => 0,
+                    'error_msg' => '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -589,7 +659,9 @@ class OrderController extends Controller
                     'platform_name' => '顺丰',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_sf['msg'] ?? '无法下单',
+                    'description' => '计价失败',
+                    'error_status' => 1,
+                    'error_msg' => $check_sf['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -605,6 +677,8 @@ class OrderController extends Controller
                 'price' => $send_platform_data[6]->money,
                 'distance' => '',
                 'description' => '',
+                'error_status' => 0,
+                'error_msg' => '',
                 'status' => 0, // 1 可选，0 不可选
                 'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[6]->status]
@@ -624,6 +698,8 @@ class OrderController extends Controller
                     'price' => $uu_money,
                     'distance' => get_kilometre($check_uu['distance']),
                     'description' => !empty($check_uu['total_priceoff']) ? '已减' . $check_uu['total_priceoff'] . '元' : '',
+                    'error_status' => 0,
+                    'error_msg' => '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -637,7 +713,9 @@ class OrderController extends Controller
                     'platform_name' => 'UU',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_uu['return_msg'] ?? '无法下单',
+                    'description' => '计价失败',
+                    'error_status' => 1,
+                    'error_msg' => $check_uu['return_msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -653,6 +731,8 @@ class OrderController extends Controller
                 'price' => $send_platform_data[8]->money,
                 'distance' => '',
                 'description' => '',
+                'error_status' => 0,
+                'error_msg' => '',
                 'status' => 0, // 1 可选，0 不可选
                 'checked' => 0,
                 'tag' => OrderDelivery::$delivery_status_order_info_title_map[$send_platform_data[8]->status]
@@ -690,6 +770,8 @@ class OrderController extends Controller
                     'price' => $zb_money,
                     'distance' => $distance ? $distance . '公里' : '',
                     'description' => '',
+                    'error_status' => 0,
+                    'error_msg' => '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -703,7 +785,9 @@ class OrderController extends Controller
                     'platform_name' => '美团众包',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_zb['msg'] ?? '无法下单',
+                    'description' => '计价失败',
+                    'error_status' => 1,
+                    'error_msg' => $check_zb['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -769,7 +853,16 @@ class OrderController extends Controller
         if (!$shop = Shop::find($order->shop_id)) {
             return $this->error("门店不存在");
         }
-        //
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        $_rand = rand(1, 2);
+        if ($_rand === 1) {
+            return $this->message('派单成功');
+        } else {
+            return $this->error('派单失败');
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
         // 记录发单操作人
         Log::info("{配送发单:$order->order_id}|操作人：{$request->user()->id}|平台:{$platform}");
         // 默认发单门店是订单所属门店
