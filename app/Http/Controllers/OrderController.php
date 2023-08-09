@@ -958,6 +958,8 @@ class OrderController extends Controller
                 }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '美团外卖');
                     try {
                         DB::transaction(function () use ($order, $result) {
                             if ($order->shipper_type_ss == 0) {
@@ -1126,6 +1128,8 @@ class OrderController extends Controller
                 }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 5, '美团外卖');
                     try {
                         DB::transaction(function () use ($order) {
                             if ($order->shipper_type_dd == 0) {
@@ -1216,6 +1220,8 @@ class OrderController extends Controller
                 $uu = app("uu");
                 $result = $uu->cancelOrder($order);
                 if ($result['return_code'] == 'ok') {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '美团外卖');
                     try {
                         DB::transaction(function () use ($order) {
                             // 用户余额日志
@@ -1298,6 +1304,8 @@ class OrderController extends Controller
                 }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 7, '美团外卖');
                     try {
                         DB::transaction(function () use ($order, $result) {
                             // 用户余额日志
@@ -1462,6 +1470,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[闪送]订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '美团外卖');
                 }
             }
             if (in_array($order->mqd_status, [20, 30])) {
@@ -1496,6 +1506,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[达达]订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 5, '美团外卖');
                 }
             }
             if (in_array($order->uu_status, [20, 30])) {
@@ -1510,6 +1522,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "[美团外卖]取消[UU]订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '美团外卖');
                 }
             }
             if (in_array($order->sf_status, [20, 30])) {
@@ -1520,34 +1534,36 @@ class OrderController extends Controller
                 }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0) {
-                    // 顺丰跑腿运力
-                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
-                    // 写入顺丰取消足迹
-                    if ($sf_delivery) {
-                        try {
-                            $sf_delivery->update([
-                                'status' => 99,
-                                'cancel_at' => date("Y-m-d H:i:s"),
-                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                            ]);
-                            OrderDeliveryTrack::firstOrCreate(
-                                [
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ], [
-                                    'order_id' => $sf_delivery->order_id,
-                                    'wm_id' => $sf_delivery->wm_id,
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ]
-                            );
-                        } catch (\Exception $exception) {
-                            Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                            $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                        }
-                    }
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 7, '美团外卖');
+                    // // 顺丰跑腿运力
+                    // $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // // 写入顺丰取消足迹
+                    // if ($sf_delivery) {
+                    //     try {
+                    //         $sf_delivery->update([
+                    //             'status' => 99,
+                    //             'cancel_at' => date("Y-m-d H:i:s"),
+                    //             'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //         ]);
+                    //         OrderDeliveryTrack::firstOrCreate(
+                    //             [
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ], [
+                    //                 'order_id' => $sf_delivery->order_id,
+                    //                 'wm_id' => $sf_delivery->wm_id,
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ]
+                    //         );
+                    //     } catch (\Exception $exception) {
+                    //         Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    //         $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    //     }
+                    // }
                     $order->status = 99;
                     $order->sf_status = 99;
                     $order->cancel_at = date("Y-m-d H:i:s");
@@ -1791,6 +1807,8 @@ class OrderController extends Controller
                 }
                 $result = $shansong->cancelOrder($order->ss_order_id);
                 if (($result['status'] == 200) || ($result['msg'] = '订单已经取消')) {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '中台操作');
                     try {
                         DB::transaction(function () use ($order, $result) {
                             if ($order->shipper_type_ss == 0) {
@@ -1958,6 +1976,8 @@ class OrderController extends Controller
                 }
                 $result = $dada->orderCancel($order->order_id);
                 if ($result['code'] == 0) {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 5, '中台操作');
                     try {
                         DB::transaction(function () use ($order) {
                             if ($order->shipper_type_dd == 0) {
@@ -2049,6 +2069,8 @@ class OrderController extends Controller
                 $uu = app("uu");
                 $result = $uu->cancelOrder($order);
                 if ($result['return_code'] == 'ok') {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '中台操作');
                     try {
                         DB::transaction(function () use ($order) {
                             // 用户余额日志
@@ -2132,6 +2154,8 @@ class OrderController extends Controller
                 }
                 $result = $sf->cancelOrder($order);
                 if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 7, '中台操作');
                     try {
                         DB::transaction(function () use ($order, $result) {
                             // 用户余额日志
@@ -2304,6 +2328,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "用户操作取消【闪送跑腿】订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '中台操作');
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，闪送成功");
                 }
             }
@@ -2342,6 +2368,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "用户操作取消【达达跑腿】订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 5, '中台操作');
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，达达成功");
                 }
             }
@@ -2358,6 +2386,8 @@ class OrderController extends Controller
                         "order_id" => $order->id,
                         "des" => "用户操作取消【UU跑腿】订单"
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '中台操作');
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，UU成功");
                 }
             }
@@ -2379,34 +2409,36 @@ class OrderController extends Controller
                         "des" => "用户操作取消【顺丰跑腿】订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，顺丰成功");
-                    // 顺丰跑腿运力
-                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
-                    // 写入顺丰取消足迹
-                    if ($sf_delivery) {
-                        try {
-                            $sf_delivery->update([
-                                'status' => 99,
-                                'cancel_at' => date("Y-m-d H:i:s"),
-                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                            ]);
-                            OrderDeliveryTrack::firstOrCreate(
-                                [
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ], [
-                                    'order_id' => $sf_delivery->order_id,
-                                    'wm_id' => $sf_delivery->wm_id,
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ]
-                            );
-                        } catch (\Exception $exception) {
-                            Log::info("聚合闪送取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                            $this->ding_error("聚合闪送取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                        }
-                    }
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 7, '中台操作');
+                    // // 顺丰跑腿运力
+                    // $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // // 写入顺丰取消足迹
+                    // if ($sf_delivery) {
+                    //     try {
+                    //         $sf_delivery->update([
+                    //             'status' => 99,
+                    //             'cancel_at' => date("Y-m-d H:i:s"),
+                    //             'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //         ]);
+                    //         OrderDeliveryTrack::firstOrCreate(
+                    //             [
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ], [
+                    //                 'order_id' => $sf_delivery->order_id,
+                    //                 'wm_id' => $sf_delivery->wm_id,
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ]
+                    //         );
+                    //     } catch (\Exception $exception) {
+                    //         Log::info("聚合闪送取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    //         $this->ding_error("聚合闪送取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    //     }
+                    // }
                 }
             }
             if (in_array($order->zb_status, [20, 30])) {
