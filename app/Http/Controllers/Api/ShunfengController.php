@@ -302,6 +302,8 @@ class ShunfengController
                         'order_id' => $order->id,
                         'des' => '取消【闪送】跑腿订单',
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '聚合顺丰');
                     Log::info($log_prefix . '取消闪送待接单订单成功');
                 }
                 // 取消美全达订单
@@ -346,6 +348,8 @@ class ShunfengController
                         'order_id' => $order->id,
                         'des' => '取消【达达】跑腿订单',
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 5, '聚合顺丰');
                     Log::info($log_prefix . '取消达达待接单订单成功');
                 }
                 // 取消UU订单
@@ -365,6 +369,8 @@ class ShunfengController
                         'order_id' => $order->id,
                         'des' => '取消【UU跑腿】订单',
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '聚合顺丰');
                     Log::info($log_prefix . '取消UU待接单订单成功');
                 }
                 // 取消众包跑腿
