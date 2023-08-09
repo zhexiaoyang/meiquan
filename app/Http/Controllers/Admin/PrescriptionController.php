@@ -323,6 +323,10 @@ class PrescriptionController extends Controller
      */
     public function again()
     {
+        $prescription_again_lock = Cache::lock("prescription_again_lock", 600);
+        if (!$prescription_again_lock->get()) {
+            return $this->error('刚刚已经处理过了，请等待！');
+        }
         $data = WmPrescription::where('status', 2)->get();
         if (!empty($data)) {
             foreach ($data as $v) {
