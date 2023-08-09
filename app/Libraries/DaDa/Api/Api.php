@@ -87,7 +87,7 @@ class Api extends Request
     /**
      * 订单计算，判断是否可以接单
      */
-    public function orderCalculate(Shop $shop, Order $order)
+    public function orderCalculate(Shop $shop, Order $order, $tip = 0)
     {
         $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
         $data = [
@@ -107,6 +107,8 @@ class Api extends Request
             'receiver_address' => $order->receiver_address,
             'receiver_lng' => $order->receiver_lng,
             'receiver_lat' => $order->receiver_lat,
+            // 小费（单位：元，精确小数点后一位，小费金额不能高于订单金额。）
+            'tips' => $tip,
             // 订单备注
             'order_infonote' => $order->note ?: "",
         ];
