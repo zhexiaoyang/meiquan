@@ -58,7 +58,7 @@ class OrderDelivery extends Model
         return $this->hasMany(OrderDeliveryTrack::class, "delivery_id", "id");
     }
 
-    public static function cancel_log ($order_id, $platform, $action) {
+    public static function cancel_save ($order_id, $platform, $action) {
         // 顺丰跑腿运力
         $delivery = OrderDelivery::where('order_id', $order_id)->where('platform', $platform)->where('status', '<=', 70)->orderByDesc('id')->first();
         // 写入顺丰取消足迹
