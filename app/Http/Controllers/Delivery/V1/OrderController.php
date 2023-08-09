@@ -519,7 +519,7 @@ class OrderController extends Controller
                     'platform_name' => '达达',
                     'price' => $dd_money,
                     'distance' => get_kilometre($check_dd['result']['distance']),
-                    'description' => !empty($check_dd['result']['couponFee']) ? '已减' . $check_dd['data']['couponFee'] . '元' : '',
+                    'description' => !empty($check_dd['result']['couponFee']) ? '已减' . $check_dd['result']['couponFee'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
