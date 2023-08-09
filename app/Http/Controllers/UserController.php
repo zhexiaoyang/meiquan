@@ -32,6 +32,7 @@ class UserController extends Controller
 
         $role = $request->get('role');
         $name = $request->get('name', '');
+        $id = $request->get('id', '');
         $status = $request->get('status');
         $phone = $request->get('phone', '');
         $nickname = $request->get('nickname', '');
@@ -41,6 +42,9 @@ class UserController extends Controller
             ->select("id","name","phone","nickname","money","frozen_money","operate_money","created_at",
                 "is_operate","is_internal","is_chain","chain_name","status");
 
+        if ($id) {
+            $query->where('id', $id);
+        }
         if ($name) {
             $query->where('name', 'like', "%{$name}%");
         }
