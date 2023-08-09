@@ -242,6 +242,8 @@ trait RiderOrderCancel
                 "order_id" => $order->id,
                 "des" => $action_text. "操作取消「美团众包」订单"
             ]);
+            // 跑腿运力取消
+            OrderDelivery::cancel_log($order->id, 8, $action_text);
             Log::info("$log_prefix-取消美团众包成功");
             return [ 'status' => true, 'msg' => '取消美团众包成功', 'mes' => '取消美团众包成功'];
             // \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美团众包成功");
