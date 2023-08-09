@@ -316,6 +316,8 @@ class YaoguiController extends Controller
                     $shansong = app("shansong");
                     $result = $shansong->cancelOrder($order->ss_order_id);
                     if ($result['status'] == 200) {
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 3, '药柜');
                         try {
                             DB::transaction(function () use ($order) {
                                 // 计算扣款
@@ -454,6 +456,8 @@ class YaoguiController extends Controller
                     $dada = app("dada");
                     $result = $dada->orderCancel($order->order_id);
                     if ($result['code'] == 0) {
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 5, '药柜');
                         try {
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
@@ -508,6 +512,8 @@ class YaoguiController extends Controller
                     $uu = app("uu");
                     $result = $uu->cancelOrder($order);
                     if ($result['return_code'] == 'ok') {
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 6, '药柜');
                         try {
                             DB::transaction(function () use ($order) {
                                 // 用户余额日志
@@ -586,34 +592,8 @@ class YaoguiController extends Controller
                     $sf = app("shunfeng");
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] == 0) {
-                        // 顺丰跑腿运力
-                        $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
-                        // 写入顺丰取消足迹
-                        if ($sf_delivery) {
-                            try {
-                                $sf_delivery->update([
-                                    'status' => 99,
-                                    'cancel_at' => date("Y-m-d H:i:s"),
-                                    'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ]);
-                                OrderDeliveryTrack::firstOrCreate(
-                                    [
-                                        'delivery_id' => $sf_delivery->id,
-                                        'status' => 99,
-                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                    ], [
-                                        'order_id' => $sf_delivery->order_id,
-                                        'wm_id' => $sf_delivery->wm_id,
-                                        'delivery_id' => $sf_delivery->id,
-                                        'status' => 99,
-                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                    ]
-                                );
-                            } catch (\Exception $exception) {
-                                Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                                $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                            }
-                        }
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 7, '药柜');
                         try {
                             DB::transaction(function () use ($order, $result) {
                                 // 用户余额日志
@@ -692,42 +672,42 @@ class YaoguiController extends Controller
                 return $this->success();
             } elseif (in_array($order->status, [20, 30])) {
                 // 没有骑手接单，取消订单
-                if (in_array($order->mt_status, [20, 30])) {
-                    $meituan = app("meituan");
-                    $result = $meituan->delete([
-                        'delivery_id' => $order->delivery_id,
-                        'mt_peisong_id' => $order->mt_order_id,
-                        'cancel_reason_id' => 399,
-                        'cancel_reason' => '其他原因',
-                    ]);
-                    if ($result['code'] == 0) {
-                        $order->status = 99;
-                        $order->mt_status = 99;
-                        $order->save();
-                        OrderLog::create([
-                            "order_id" => $order->id,
-                            "des" => "（药柜）取消【美团】跑腿订单"
-                        ]);
-                    }
-                }
-                if (in_array($order->fn_status, [20, 30])) {
-                    $fengniao = app("fengniao");
-                    $result = $fengniao->cancelOrder([
-                        'partner_order_code' => $order->order_id,
-                        'order_cancel_reason_code' => 2,
-                        'order_cancel_code' => 9,
-                        'order_cancel_time' => time() * 1000,
-                    ]);
-                    if ($result['code'] == 200) {
-                        $order->status = 99;
-                        $order->fn_status = 99;
-                        $order->save();
-                        OrderLog::create([
-                            "order_id" => $order->id,
-                            "des" => "（药柜）取消【蜂鸟】跑腿订单"
-                        ]);
-                    }
-                }
+                // if (in_array($order->mt_status, [20, 30])) {
+                //     $meituan = app("meituan");
+                //     $result = $meituan->delete([
+                //         'delivery_id' => $order->delivery_id,
+                //         'mt_peisong_id' => $order->mt_order_id,
+                //         'cancel_reason_id' => 399,
+                //         'cancel_reason' => '其他原因',
+                //     ]);
+                //     if ($result['code'] == 0) {
+                //         $order->status = 99;
+                //         $order->mt_status = 99;
+                //         $order->save();
+                //         OrderLog::create([
+                //             "order_id" => $order->id,
+                //             "des" => "（药柜）取消【美团】跑腿订单"
+                //         ]);
+                //     }
+                // }
+                // if (in_array($order->fn_status, [20, 30])) {
+                //     $fengniao = app("fengniao");
+                //     $result = $fengniao->cancelOrder([
+                //         'partner_order_code' => $order->order_id,
+                //         'order_cancel_reason_code' => 2,
+                //         'order_cancel_code' => 9,
+                //         'order_cancel_time' => time() * 1000,
+                //     ]);
+                //     if ($result['code'] == 200) {
+                //         $order->status = 99;
+                //         $order->fn_status = 99;
+                //         $order->save();
+                //         OrderLog::create([
+                //             "order_id" => $order->id,
+                //             "des" => "（药柜）取消【蜂鸟】跑腿订单"
+                //         ]);
+                //     }
+                // }
                 if (in_array($order->ss_status, [20, 30])) {
                     $shansong = app("shansong");
                     $result = $shansong->cancelOrder($order->ss_order_id);
@@ -739,21 +719,23 @@ class YaoguiController extends Controller
                             "order_id" => $order->id,
                             "des" => "（药柜）取消【闪送】跑腿订单"
                         ]);
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 3, '药柜');
                     }
                 }
-                if (in_array($order->mqd_status, [20, 30])) {
-                    $meiquanda = app("meiquanda");
-                    $result = $meiquanda->repealOrder($order->mqd_order_id);
-                    if ($result['code'] == 100) {
-                        $order->status = 99;
-                        $order->mqd_status = 99;
-                        $order->save();
-                        OrderLog::create([
-                            "order_id" => $order->id,
-                            "des" => "（药柜）取消【美全达】跑腿订单"
-                        ]);
-                    }
-                }
+                // if (in_array($order->mqd_status, [20, 30])) {
+                //     $meiquanda = app("meiquanda");
+                //     $result = $meiquanda->repealOrder($order->mqd_order_id);
+                //     if ($result['code'] == 100) {
+                //         $order->status = 99;
+                //         $order->mqd_status = 99;
+                //         $order->save();
+                //         OrderLog::create([
+                //             "order_id" => $order->id,
+                //             "des" => "（药柜）取消【美全达】跑腿订单"
+                //         ]);
+                //     }
+                // }
                 if (in_array($order->dd_status, [20, 30])) {
                     $dada = app("dada");
                     $result = $dada->orderCancel($order->order_id);
@@ -765,6 +747,8 @@ class YaoguiController extends Controller
                             "order_id" => $order->id,
                             "des" => "（药柜）取消【达达】跑腿订单"
                         ]);
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 5, '药柜');
                     }
                 }
                 if (in_array($order->uu_status, [20, 30])) {
@@ -779,40 +763,14 @@ class YaoguiController extends Controller
                             "order_id" => $order->id,
                             "des" => "（美团外卖）取消【UU】跑腿订单"
                         ]);
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 6, '药柜');
                     }
                 }
                 if (in_array($order->sf_status, [20, 30])) {
                     $sf = app("shunfeng");
                     $result = $sf->cancelOrder($order);
                     if ($result['error_code'] == 0) {
-                        // 顺丰跑腿运力
-                        $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
-                        // 写入顺丰取消足迹
-                        if ($sf_delivery) {
-                            try {
-                                $sf_delivery->update([
-                                    'status' => 99,
-                                    'cancel_at' => date("Y-m-d H:i:s"),
-                                    'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ]);
-                                OrderDeliveryTrack::firstOrCreate(
-                                    [
-                                        'delivery_id' => $sf_delivery->id,
-                                        'status' => 99,
-                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                    ], [
-                                        'order_id' => $sf_delivery->order_id,
-                                        'wm_id' => $sf_delivery->wm_id,
-                                        'delivery_id' => $sf_delivery->id,
-                                        'status' => 99,
-                                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                    ]
-                                );
-                            } catch (\Exception $exception) {
-                                Log::info("饿了么取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                                $this->ding_error("饿了么取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                            }
-                        }
                         $order->status = 99;
                         $order->sf_status = 99;
                         $order->cancel_at = date("Y-m-d H:i:s");
@@ -821,6 +779,8 @@ class YaoguiController extends Controller
                             "order_id" => $order->id,
                             "des" => "（美团外卖）取消【顺丰】跑腿订单"
                         ]);
+                        // 跑腿运力取消
+                        OrderDelivery::cancel_log($order->id, 7, '药柜');
                     }
                 }
                 return $this->success();
