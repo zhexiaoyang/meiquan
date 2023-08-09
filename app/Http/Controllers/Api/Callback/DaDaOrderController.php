@@ -345,6 +345,8 @@ class DaDaOrderController
                         'order_id' => $order->id,
                         'des' => '取消【闪送】跑腿订单',
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 3, '自有达达');
                     $this->log_info('取消闪送待接单订单成功');
                 }
                 // 取消美全达订单
@@ -373,6 +375,8 @@ class DaDaOrderController
                         'order_id' => $order->id,
                         'des' => '取消【UU跑腿】订单',
                     ]);
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 6, '自有达达');
                     $this->log_info('取消UU待接单订单成功');
                 }
                 // 取消顺丰订单
@@ -391,34 +395,36 @@ class DaDaOrderController
                         'order_id' => $order->id,
                         'des' => '取消【顺丰】跑腿订单',
                     ]);
-                    // 顺丰跑腿运力
-                    $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
-                    // 写入顺丰取消足迹
-                    if ($sf_delivery) {
-                        try {
-                            $sf_delivery->update([
-                                'status' => 99,
-                                'cancel_at' => date("Y-m-d H:i:s"),
-                                'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                            ]);
-                            OrderDeliveryTrack::firstOrCreate(
-                                [
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ], [
-                                    'order_id' => $sf_delivery->order_id,
-                                    'wm_id' => $sf_delivery->wm_id,
-                                    'delivery_id' => $sf_delivery->id,
-                                    'status' => 99,
-                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
-                                ]
-                            );
-                        } catch (\Exception $exception) {
-                            Log::info("自有达达-接单回调取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
-                            $this->ding_error("自有达达-接单回调取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
-                        }
-                    }
+                    // 跑腿运力取消
+                    OrderDelivery::cancel_log($order->id, 7, '自有达达');
+                    // // 顺丰跑腿运力
+                    // $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
+                    // // 写入顺丰取消足迹
+                    // if ($sf_delivery) {
+                    //     try {
+                    //         $sf_delivery->update([
+                    //             'status' => 99,
+                    //             'cancel_at' => date("Y-m-d H:i:s"),
+                    //             'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //         ]);
+                    //         OrderDeliveryTrack::firstOrCreate(
+                    //             [
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ], [
+                    //                 'order_id' => $sf_delivery->order_id,
+                    //                 'wm_id' => $sf_delivery->wm_id,
+                    //                 'delivery_id' => $sf_delivery->id,
+                    //                 'status' => 99,
+                    //                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    //             ]
+                    //         );
+                    //     } catch (\Exception $exception) {
+                    //         Log::info("自有达达-接单回调取消顺丰-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    //         $this->ding_error("自有达达-接单回调取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    //     }
+                    // }
                     $this->log_info('取消顺丰待接单订单成功');
                 }
                 // 取消众包跑腿
