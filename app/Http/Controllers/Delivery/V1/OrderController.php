@@ -575,7 +575,7 @@ class OrderController extends Controller
                     'platform_name' => '顺丰',
                     'price' => $sf_money,
                     'distance' => get_kilometre($check_sf['result']['delivery_distance_meter']),
-                    'description' => !empty($check_sf['result']['coupons_total_fee']) ? '已减' . $check_sf['data']['coupons_total_fee'] . '元' : '',
+                    'description' => !empty($check_sf['result']['coupons_total_fee']) ? '已减' . $check_sf['result']['coupons_total_fee'] . '元' : '',
                     'status' => 1, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
