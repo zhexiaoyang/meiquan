@@ -475,7 +475,7 @@ class OrderController extends Controller
                     'platform_name' => '闪送',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_ss['msg'] ?? '闪送校验失败',
+                    'description' => $check_ss['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => '一对一送'
@@ -533,7 +533,7 @@ class OrderController extends Controller
                     'platform_name' => '达达',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_dd['msg'] ?? '达达校验失败',
+                    'description' => $check_dd['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -589,7 +589,7 @@ class OrderController extends Controller
                     'platform_name' => '顺丰',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_sf['msg'] ?? '顺丰校验失败',
+                    'description' => $check_sf['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -637,7 +637,7 @@ class OrderController extends Controller
                     'platform_name' => 'UU',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_uu['return_msg'] ?? 'UU校验失败',
+                    'description' => $check_uu['return_msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -703,7 +703,7 @@ class OrderController extends Controller
                     'platform_name' => '美团众包',
                     'price' => '',
                     'distance' => '',
-                    'description' => $check_zb['msg'] ?? '美团众包校验失败',
+                    'description' => $check_zb['msg'] ?? '无法下单',
                     'status' => 0, // 1 可选，0 不可选
                     'checked' => 0,
                     'tag' => ''
@@ -730,6 +730,7 @@ class OrderController extends Controller
             'day_seq' => $order->day_seq,
             'platform' => $order->platform,
             'wm_poi_name' => $order->wm_poi_name,
+            'delivery_time' => $wm_order->delivery_time ?? 0,
             'receiver_name' => $order->receiver_name,
             'receiver_phone' => $order->receiver_phone,
             'receiver_address' => $order->receiver_address,
