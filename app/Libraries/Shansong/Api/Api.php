@@ -67,7 +67,7 @@ class Api extends Request
     /**
      * 订单计费
      */
-    public function orderCalculate(Shop $shop, Order $order)
+    public function orderCalculate(Shop $shop, Order $order, $tip = 0)
     {
 
         // $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
@@ -98,6 +98,8 @@ class Api extends Request
                 "goodType" => 13,
                 "weight" => 1,
                 "remarks" => $order->note ?? "",
+                // 小费，单位 分
+                "additionFee" => (int) $tip * 100,
                 // "additionFee" => 500,
                 // "insurance" => 200,
                 // "insuranceProId" => "SS_baofei_001",
