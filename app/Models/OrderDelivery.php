@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class OrderDelivery extends Model
 {
@@ -55,5 +56,39 @@ class OrderDelivery extends Model
     public function tracks()
     {
         return $this->hasMany(OrderDeliveryTrack::class, "delivery_id", "id");
+    }
+
+    public static function cancel_log ($order_id, $platform, $action) {
+        // 顺丰跑腿运力
+        $delivery = OrderDelivery::where('order_id', $order_id)->where('platform', $platform)->where('status', '<=', 70)->orderByDesc('id')->first();
+        // 写入顺丰取消足迹
+        if ($delivery) {
+            try {
+                $delivery->update([
+                    'status' => 99,
+                    'cancel_at' => date("Y-m-d H:i:s"),
+                    'track' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                ]);
+                OrderDeliveryTrack::firstOrCreate(
+                    [
+                        'delivery_id' => $delivery->id,
+                        'status' => 99,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    ], [
+                        'order_id' => $delivery->order_id,
+                        'wm_id' => $delivery->wm_id,
+                        'delivery_id' => $delivery->id,
+                        'status' => 99,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_CANCEL,
+                    ]
+                );
+            } catch (\Exception $exception) {
+                Log::info($action . "取消{$platform}跑腿-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                // $this->ding_error("众包取消顺丰-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+            }
+        } else {
+            Log::info($action . "取消{$platform}跑腿-写入新数据出错-未找到配送记录|order_id:{$order_id}");
+            // $this->ding_error("未找到配送记录-众包取消顺丰|{$order->order_id}|" . date("Y-m-d H:i:s"));
+        }
     }
 }
