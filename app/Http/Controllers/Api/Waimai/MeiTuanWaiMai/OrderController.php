@@ -365,7 +365,7 @@ class OrderController
                             'des' => '取消【闪送】跑腿订单',
                         ]);
                         // 跑腿运力取消
-                        OrderDelivery::cancel_log($order->id, 3, '美团众包');
+                        OrderDelivery::cancel_log($pt_order->id, 3, '美团众包');
                         $this->log_info('取消闪送待接单订单成功');
                     }
                     // 取消达达订单
@@ -387,7 +387,7 @@ class OrderController
                             'des' => '取消【达达】跑腿订单',
                         ]);
                         // 跑腿运力取消
-                        OrderDelivery::cancel_log($order->id, 5, '美团众包');
+                        OrderDelivery::cancel_log($pt_order->id, 5, '美团众包');
                         $this->log_info('取消达达待接单订单成功');
                     }
                     // 取消UU订单
@@ -403,7 +403,7 @@ class OrderController
                             'des' => '取消【UU跑腿】订单',
                         ]);
                         // 跑腿运力取消
-                        OrderDelivery::cancel_log($order->id, 6, '美团众包');
+                        OrderDelivery::cancel_log($pt_order->id, 6, '美团众包');
                         $this->log_info('取消UU待接单订单成功');
                     }
                     // 取消顺丰订单
@@ -424,7 +424,7 @@ class OrderController
                             'des' => '取消【顺丰】跑腿订单',
                         ]);
                         // 跑腿运力取消
-                        OrderDelivery::cancel_log($order->id, 7, '美团众包');
+                        OrderDelivery::cancel_log($pt_order->id, 7, '美团众包');
                         // // 顺丰跑腿运力
                         // $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
                         // // 写入顺丰取消足迹
