@@ -264,9 +264,9 @@ class Order extends Model
     {
         if ($status === 10) {
             if ($delivery_time) {
-                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达';
+                return '预约订单，<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '<text/>送达';
             } else {
-                return '立即送达<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                return '立即送达，<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->created_at)) . '</text>下单';
             }
         } elseif ($status === 20 && $order->push_at) {
             return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
