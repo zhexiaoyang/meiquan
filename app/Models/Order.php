@@ -298,7 +298,7 @@ class Order extends Model
 
     public static function setAppSearchOrderTitle($delivery_time, $estimate_arrival_time, $order): string
     {
-        if ($order->status == 70) {
+        if ($order->status == 70 || $order->status == 75) {
             if ($order->over_at) {
                 $title = date("m-d H:i", strtotime($order->over_at)) . '已完成';
             } else {
@@ -308,20 +308,24 @@ class Order extends Model
             $title = '已取消，<text class="time-text" style="color: #5ac725">' . date("m-d H:i", strtotime($order->created_at))  . '</text>下单';
         } else {
             if ($order->status === 20 && $order->push_at) {
-                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
+                $title = '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
             } elseif ($order->status === 50 && $order->receive_at) {
-                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
+                $title = '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
             } elseif ($order->status === 60) {
                 if ($delivery_time) {
-                    return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达' . tranTime3($delivery_time);
-                } elseif ($estimate_arrival_time) {
-                    return '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($delivery_time);
+                    $title = '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达' . tranTime3($delivery_time);
+                } else{
+                    if ($estimate_arrival_time) {
+                        $title = '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($delivery_time);
+                    } else {
+                        $title = '<text class="time-text" style="color: #5ac725">立即送达' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                    }
                 }
             } else {
                 if (!empty($delivery_time)) {
-                    return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达';
+                    $title = '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达';
                 } else {
-                    return '<text class="time-text" style="color: #5ac725">立即送达' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                    $title = '<text class="time-text" style="color: #5ac725">立即送达' . tranTime(strtotime($order->created_at)) . '</text>下单';
                 }
             }
         }
