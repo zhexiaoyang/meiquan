@@ -12,6 +12,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('order')->group(function () {
             Route::get("statistics", "OrderController@statistics");
             Route::get("index", "OrderController@index");
+            Route::get("search", "OrderController@searchList");
             Route::get("info", "OrderController@show");
             Route::get("calculate", "OrderController@calculate");
             Route::post("send", "OrderController@send");

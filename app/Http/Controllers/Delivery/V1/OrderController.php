@@ -54,6 +54,11 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
+    public function search(Request $request)
+    {
+        return $this->success();
+    }
+
     /**
      * 订单列表
      * @data 2023/8/7 10:39 下午
@@ -124,6 +129,7 @@ class OrderController extends Controller
         // 订单来源-结束
         // 排序-开始
         if ($order_by === 'receive_desc') {
+            // $query->leftJoin('wm_orders', 'orders.wm_id', '=', 'wm_orders.id')->orderByDesc('wm_orders.poi_receive');
             $query->with(['order' => function ($query) use ($order_by) {
                 Log::info('123123123');
                 $query->orderByDesc('poi_receive');
@@ -169,7 +175,7 @@ class OrderController extends Controller
                 // 收货尾号
                 $order->receiver_phone_end = '';
                 // 订单标题
-                $order->title = $this->setOrderListTitle($status, $order);
+                $order->title = Order::setAppOrderListTitle($status, $order->order->delivery_time ?? 0, $order->order->estimate_arrival_time ?? 0, $order);
                 // 状态描述
                 $order->status_title = '';
                 $order->status_description = '';
@@ -212,33 +218,115 @@ class OrderController extends Controller
     }
 
     /**
-     * 订单标题方法
+     * 订单列表
      * @data 2023/8/7 10:39 下午
      */
-    public function setOrderListTitle($status, $order)
+    public function searchList(Request $request)
     {
-        if ($status === 10) {
-            if (!empty($order->order->delivery_time)) {
-                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达';
-            } else {
-                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->created_at)) . '</text>下单';
+        $search_key = $request->get('search_key', '');
+        if (empty($search_key)) {
+            return $this->success();
+        }
+        // 10 流水号，20 顾客手机号，30 配送员手机号，40 订单编号
+        $search_type = (int) $request->get('search_type', '');
+        if (!in_array($search_type, [10,20,30,40])) {
+            return $this->error('搜索类型错误');
+        }
+        $page_size = $request->get('page_size', 10);
+        $query = Order::with(['products' => function ($query) {
+            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
+        }, 'deliveries' => function ($query) {
+            $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
+                'money', 'updated_at','delivery_name','delivery_phone');
+            $query->with(['tracks' => function ($query) {
+                $query->select('id', 'delivery_id', 'status', 'status_des', 'description', 'created_at');
+            }]);
+        }, 'order' => function ($query) {
+            $query->select('id', 'poi_receive','delivery_time', 'estimate_arrival_time', 'status');
+        }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
+            'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
+            'courier_name', 'courier_phone');
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+        }
+        if ($search_type === 10) {
+            $query->where('day_seq', $search_key);
+        } elseif ($search_type === 40) {
+            $query->where('order_id', $search_key);
+        }
+        // 查询订单
+        $orders = $query->paginate($page_size);
+        // 商品图片
+        $images = [];
+        if (!empty($orders)) {
+            $upcs = [];
+            foreach ($orders as $order) {
+                if (!empty($order->products)) {
+                    foreach ($order->products as $product) {
+                        if ($product->upc) {
+                            $upcs[] = $product->upc;
+                        }
+                    }
+                }
             }
-        } elseif ($status === 20 && $order->push_at) {
-            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
-        } elseif ($status === 30 && $order->receive_at) {
-            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
-        } elseif ($status === 40) {
-            if (!empty($order->order->delivery_time)) {
-                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($order->order->delivery_time) . '<text/>送达' . tranTime3($order->order->delivery_time);
-            } elseif (!empty($order->order->estimate_arrival_time)) {
-                return '<text class="time-text" style="color: #5ac725">' . tranTime2($order->order->estimate_arrival_time) . '</text>送达' . tranTime3($order->order->estimate_arrival_time);
+            if (!empty($upcs)) {
+                $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
             }
         }
-        if (!empty($order->order->delivery_time)) {
-            return '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
-        } else {
-            return '<text class="time-text" style="color: #5ac725">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                // 电话列表
+                $order->receiver_phone_list = [$order->receiver_phone];
+                // 订单商品数量
+                $order->product_num = 0;
+                // 订单商户实收
+                $order->poi_receive = 0;
+                // 预约单
+                $order->delivery_time = 0;
+                // 收货尾号
+                $order->receiver_phone_end = '';
+                // 订单标题
+                $order->title = Order::setAppSearchOrderTitle($order->order->delivery_time ?? 0, $order->order->estimate_arrival_time ?? 0, $order);
+                // 状态描述
+                $order->status_title = '';
+                $order->status_description = '';
+                if (in_array($order->status, [20,50,60,70])) {
+                    $order->status_title = OrderDelivery::$delivery_status_order_list_title_map[$order->status] ?? '其它';
+                    if ($order->status === 20) {
+                        $order->status_description = '下单成功';
+                    } else {
+                        $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
+                        $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                    }
+                }
+                preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
+                if (!empty($preg_result[0][0])) {
+                    $order->caution = preg_replace('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, '');
+                }
+                if (!empty($preg_result[1][0])) {
+                    $order->receiver_phone_end = $preg_result[1][0];
+                }
+                // 商品信息
+                if (!empty($order->products)) {
+                    $product_num = 0;
+                    foreach ($order->products as $product) {
+                        $product_num += $product->quantity;
+                        if ($product->upc) {
+                            $product->image = $images[$product->upc] ?? '';
+                        }
+                    }
+                    $order->product_num = $product_num;
+                }
+                // 外卖订单信息
+                if (!empty($order->order)) {
+                    $order->poi_receive = $order->order->poi_receive ?? 0;
+                    $order->delivery_time = $order->order->delivery_time ?? 0;
+                }
+                unset($order->order);
+            }
         }
+        return $this->page($orders);
     }
 
     /**
@@ -303,11 +391,7 @@ class OrderController extends Controller
         if (!empty($preg_result[1][0])) {
             $order->receiver_phone_end = $preg_result[1][0];
         }
-        if (!empty($order->order->delivery_time)) {
-            $order->title = '<text>预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
-        } else {
-            $order->title = '<text>立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
-        }
+        $order->title = Order::setAppOrderInfoTitle($order->order->delivery_time ?? 0, $order);
         // 商品图片
         $images = [];
         if (!empty($order->products)) {
@@ -368,6 +452,10 @@ class OrderController extends Controller
         return $this->success($order);
     }
 
+    /**
+     * 忽略订单
+     * @data 2023/8/10 9:19 上午
+     */
     public function ignore(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);
@@ -393,6 +481,10 @@ class OrderController extends Controller
         return $this->success();
     }
 
+    /**
+     * 取消订单
+     * @data 2023/8/10 9:20 上午
+     */
     public function cancel(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);
@@ -836,9 +928,9 @@ class OrderController extends Controller
             }
         }
         if (!empty($wm_order->delivery_time)) {
-            $order_title = '<text>预约订单，' . date("m-d H:i", $order->order->delivery_time) . '<text/>送达';
+            $order_title = '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '</text>送达';
         } else {
-            $order_title = '<text>立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+            $order_title = '<text class="time-text" style="color: #5ac725">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
         }
         $res_data = [
             'id' => $order->id,
@@ -1428,6 +1520,10 @@ class OrderController extends Controller
         return $this->success();
     }
 
+    /**
+     * 打印订单
+     * @data 2023/8/10 9:20 上午
+     */
     public function print_order(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);
@@ -1453,6 +1549,10 @@ class OrderController extends Controller
         return $this->success();
     }
 
+    /**
+     * 订单日志
+     * @data 2023/8/10 9:20 上午
+     */
     public function operate_record(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);

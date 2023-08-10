@@ -255,4 +255,76 @@ class Order extends Model
         }
         return false;
     }
+
+    /**
+     * APP订单列表，标题
+     * @data 2023/8/10 9:32 上午
+     */
+    public static function setAppOrderListTitle($status, $delivery_time, $estimate_arrival_time, $order): string
+    {
+        if ($status === 10) {
+            if ($delivery_time) {
+                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达';
+            } else {
+                return '<text class="time-text" style="color: #5ac725">立即送达' . tranTime(strtotime($order->created_at)) . '</text>下单';
+            }
+        } elseif ($status === 20 && $order->push_at) {
+            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
+        } elseif ($status === 30 && $order->receive_at) {
+            return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
+        } elseif ($status === 40) {
+            if ($delivery_time) {
+                return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达' . tranTime3($delivery_time);
+            } elseif ($estimate_arrival_time) {
+                return '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($delivery_time);
+            }
+        }
+        if ($delivery_time) {
+            return '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $delivery_time) . '<text/>送达';
+        } else {
+            return '<text class="time-text" style="color: #5ac725">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+        }
+    }
+
+    public static function setAppOrderInfoTitle($delivery_time, $order): string
+    {
+        if ($delivery_time) {
+            $title = '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $delivery_time) . '</text>送达';
+        } else {
+            $title = '<text class="time-text" style="color: #5ac725">立即送达，' . date("m-d H:i", strtotime($order->created_at)) . '</text>下单';
+        }
+        return $title;
+    }
+
+    public static function setAppSearchOrderTitle($delivery_time, $estimate_arrival_time, $order): string
+    {
+        if ($order->status == 70) {
+            if ($order->over_at) {
+                $title = date("m-d H:i", strtotime($order->over_at)) . '已完成';
+            } else {
+                $title = '已完成，' . date("m-d H:i", strtotime($order->created_at))  . '下单';
+            }
+        } elseif ($order->status == 99) {
+            $title = '已取消，<text class="time-text" style="color: #5ac725">' . date("m-d H:i", strtotime($order->created_at))  . '</text>下单';
+        } else {
+            if ($order->status === 20 && $order->push_at) {
+                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->push_at)) . '</text>发单';
+            } elseif ($order->status === 50 && $order->receive_at) {
+                return '<text class="time-text" style="color: #5ac725">' . tranTime(strtotime($order->receive_at)) . '</text>接单';
+            } elseif ($order->status === 60) {
+                if ($delivery_time) {
+                    return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达' . tranTime3($delivery_time);
+                } elseif ($estimate_arrival_time) {
+                    return '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($delivery_time);
+                }
+            } else {
+                if (!empty($delivery_time)) {
+                    return '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达';
+                } else {
+                    return '<text class="time-text" style="color: #5ac725">立即送达' . tranTime(strtotime($order->created_at)) . '</text>下单';
+                }
+            }
+        }
+        return $title;
+    }
 }
