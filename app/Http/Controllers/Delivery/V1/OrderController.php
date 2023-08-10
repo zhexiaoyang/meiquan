@@ -3,14 +3,17 @@
 namespace App\Http\Controllers\Delivery\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\MedicineDepot;
 use App\Models\Order;
 use App\Models\OrderDelivery;
+use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\WmOrder;
+use App\Models\WmPrinter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -61,6 +64,8 @@ class OrderController extends Controller
         $status = (int) $request->get('status', '');
         $page_size = $request->get('page_size', 10);
         $shop_id = $request->get('shop_id', '');
+        $source = (int) $request->get('source', 0);
+        $order_by = $request->get('order', 0);
         if (!in_array($status, [10,20,30,40,50,60,70])) {
             $status = 10;
         }
@@ -105,7 +110,35 @@ class OrderController extends Controller
         } elseif ($status === 70) {
             $query->where('status', '<', 70)->where('remind_num', '>', 0);
         }
-        $orders = $query->orderByDesc('id')->paginate($page_size);
+        // 订单来源-开始
+        if ($source === 1) {
+            // 美团
+            $query->where('platform', 1);
+        } elseif ($source === 2) {
+            // 饿了么
+            $query->where('platform', 2);
+        } elseif ($source === 10) {
+            // 其它 （0 手动创建， 11 药柜）
+            $query->whereIn('platform', [0, 11]);
+        }
+        // 订单来源-结束
+        // 排序-开始
+        if ($order_by === 'receive_desc') {
+            $query->with(['order' => function ($query) use ($order_by) {
+                Log::info('123123123');
+                $query->orderByDesc('poi_receive');
+            }]);
+        } elseif ($order_by === 'receive_asc') {
+            $query->with(['order' => function ($query) use ($order_by) {
+                $query->orderBy('poi_receive');
+            }]);
+        } elseif ($order_by === 'create_asc') {
+            $query->orderBy('id');
+        } else {
+            $query->orderByDesc('id');
+        }
+        // 排序-结束
+        $orders = $query->paginate($page_size);
         // 商品图片
         $images = [];
         if (!empty($orders)) {
@@ -826,6 +859,10 @@ class OrderController extends Controller
         return $this->success($res_data);
     }
 
+    /**
+     * 派单
+     * @data 2023/8/9 5:26 下午
+     */
     public function send(Request $request)
     {
         if (!$platform = (int) $request->get('platform', 0)) {
@@ -1356,5 +1393,91 @@ class OrderController extends Controller
             }
         }
         return $this->error('平台选择错误');
+    }
+
+    /**
+     * 添加小费
+     * @data 2023/8/9 5:29 下午
+     */
+    public function add_tip(Request $request)
+    {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+        // 如果订单状态是已接单状态，不发单
+        if ($order->status !== 20) {
+            return $this->error("当前订单状态不能加小费");
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        $_rand = rand(1, 2);
+        if ($_rand === 1) {
+            return $this->message('添加小费成功');
+        } else {
+            return $this->error('添加小费失败');
+        }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        return $this->success();
+    }
+
+    public function print_order(Request $request)
+    {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+        if (!$wm_order = WmOrder::find($order->wm_id)) {
+            return $this->error("该订单不是外卖订单，不能打印小票");
+        }
+
+        if (!$print = WmPrinter::where('shop_id', $wm_order->shop_id)->first()) {
+            return $this->error("该订单门店没有绑定打印机");
+        }
+
+        dispatch(new PrintWaiMaiOrder($order->id, $print));
+
+        return $this->success();
+    }
+
+    public function operate_record(Request $request)
+    {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::select('id', 'shop_id')->find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id'))) {
+                return $this->error('订单不存在!');
+            }
+        }
+
+        $res = [];
+        $logs = OrderLog::where('order_id', $order->id)->get();
+        if (!empty($logs)) {
+            foreach ($logs as $log) {
+                $res[] = [
+                    'description' => $log->des,
+                    'user' => $log->name ? $log->name . '<br>' . $log->phone : '',
+                    'created_at' => substr($log->created_at, 5, 11),
+                ];
+            }
+        }
+
+        return $this->success($res);
     }
 }

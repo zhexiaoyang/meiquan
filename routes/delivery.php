@@ -16,7 +16,12 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("calculate", "OrderController@calculate");
             Route::post("send", "OrderController@send");
             Route::post("cancel", "OrderController@cancel");
+            // 忽略订单
             Route::post("ignore", "OrderController@ignore");
+            // 加小费
+            Route::post("add_tip", "OrderController@add_tip");
+            Route::get("print_order", "OrderController@print_order");
+            Route::get("operate_record", "OrderController@operate_record");
         });
         // 门店
         Route::prefix('shop')->group(function () {
