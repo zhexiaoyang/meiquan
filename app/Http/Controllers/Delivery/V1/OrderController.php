@@ -326,7 +326,7 @@ class OrderController extends Controller
                     $order->delivery_time = $order->order->delivery_time ?? 0;
                 }
                 if (!$order->wm_poi_name) {
-                    $order->wm_poi_name = $order->shop->name ?? '';
+                    $order->wm_poi_name = $order->shop->shop_name ?? '';
                 }
                 unset($order->order);
                 unset($order->shop);
