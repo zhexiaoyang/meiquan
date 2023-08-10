@@ -213,14 +213,18 @@ class OrderController extends Controller
                     $order->poi_receive = $order->order->poi_receive ?? 0;
                     $order->delivery_time = $order->order->delivery_time ?? 0;
                 }
+                if (!$order->wm_poi_name) {
+                    $order->wm_poi_name = $order->shop->shop_name ?? '';
+                }
                 unset($order->order);
+                unset($order->shop);
             }
         }
         return $this->page($orders);
     }
 
     /**
-     * 订单列表
+     * 搜索订单列表
      * @data 2023/8/7 10:39 下午
      */
     public function searchList(Request $request)
@@ -245,6 +249,8 @@ class OrderController extends Controller
             }]);
         }, 'order' => function ($query) {
             $query->select('id', 'poi_receive','delivery_time', 'estimate_arrival_time', 'status');
+        }, 'shop' => function ($query) {
+            $query->select('id', 'shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
             'courier_name', 'courier_phone');
