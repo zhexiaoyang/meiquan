@@ -72,6 +72,7 @@ class Api extends Request
 
         // $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
         // $jwd2 = gd2bd($order->receiver_lng, $order->receiver_lat);
+        $caution = preg_replace('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, '');
         $data = [
             "cityName" => $shop->city,
             "lbsType" => 1,
@@ -97,7 +98,7 @@ class Api extends Request
                 "toMobile" => str_replace('_', '#', $order->receiver_phone),
                 "goodType" => 13,
                 "weight" => 1,
-                "remarks" => $order->note ?? "",
+                "remarks" => $caution . !empty($order->note) ? '，'.$order->note : '',
                 // 小费，单位 分
                 "additionFee" => (int) $tip * 100,
                 // "additionFee" => 500,
