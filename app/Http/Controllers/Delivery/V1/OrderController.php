@@ -219,7 +219,7 @@ class OrderController extends Controller
      */
     public function search_list(Request $request)
     {
-        // 10 今日，20 本周，30 本月，40 上月，80 指定日期
+        // 10 今日，20 昨日，30 本周，40 本月，50 上月，80 指定日期
         $date_type = (int) $request->get('date_type', '');
         // 10 流水号，20 顾客手机号，30 配送员手机号，40 订单编号
         $search_type = (int) $request->get('search_type', '');
@@ -258,22 +258,25 @@ class OrderController extends Controller
         $start_date = '';
         $end_date = '';
         if ($date_type) {
-            if (!in_array($date_type, [10, 20, 30, 40, 80])) {
+            if (!in_array($date_type, [10, 20, 30, 40, 50, 80])) {
                 return $this->error('日期类型错误');
             }
             if ($date_type === 10) {
                 $start_date = date("Y-m-d");
                 $end_date = date("Y-m-d");
             } elseif ($date_type === 20) {
+                $start_date = date('Y-m-d', strtotime('-1 day'));
+                $end_date = date('Y-m-d', strtotime('-1 day'));
+            } elseif ($date_type === 30) {
                 $start_date = date('Y-m-d', strtotime('this week Monday'));
                 $end_date = date('Y-m-d', strtotime('this week Sunday'));
-            } elseif ($date_type === 30) {
+            } elseif ($date_type === 40) {
                 $start_date = date("Y-m-01");
                 $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
-            } elseif ($date_type === 30) {
+            } elseif ($date_type === 40) {
                 $start_date = date("Y-m-01");
                 $end_date = date("Y-m-t");
-            } elseif ($date_type === 40) {
+            } elseif ($date_type === 50) {
                 $start_date = date("Y-m-01", strtotime('-1 month'));
                 $end_date = date("Y-m-t", strtotime('-1 month'));
             } elseif ($date_type === 80) {
