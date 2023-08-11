@@ -238,9 +238,10 @@ class OrderController extends Controller
         if (empty($search_type) && empty($date_type)) {
             return $this->success();
         }
+        $user_shop_ids = $request->user()->shops()->pluck('id')->toArray();
         // 门店判断
         if ($shop_id) {
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
+            if (!in_array($shop_id, $user_shop_ids)) {
                 return $this->error('门店不存在');
             }
         }
@@ -360,6 +361,11 @@ class OrderController extends Controller
                 // 其它 （0 手动创建， 11 药柜）
                 $query->whereIn('platform', [0, 11]);
             }
+        }
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            $query->whereIn('shop_id', $user_shop_ids);
         }
         // 查询订单
         $orders = $query->orderByDesc('id')->paginate($page_size);
