@@ -17,13 +17,28 @@ class ShopController extends Controller
         if ($user->account_shop_id) {
             return $this->success([Shop::select('id', 'shop_name', 'wm_shop_name')->find($user->account_shop_id)]);
         }
-        $shops = Shop::select('id', 'shop_name')->where('user_id', $user->id)->get();
+        $shops = Shop::select('id', 'shop_name', 'running_select as checked')->where('user_id', $user->id)->get();
 
         if (!empty($shops)) {
+            // 默认选择门店ID
+            $select_id = 0;
             foreach ($shops as $shop) {
                 if (!$shop->wm_shop_name) {
                     $shop->wm_shop_name = $shop->shop_name;
                 }
+                if ($shop->checked) {
+                    if ($select_id) {
+                        // 已经有默认值了
+                        $shop->checked = 0;
+                    } else {
+                        // 设置默认选择门店ID
+                        $select_id = $shop->id;
+                    }
+                }
+            }
+            if (!$select_id) {
+                // 没有门店选择，默认第一个选中
+                $shops[0]->checked = 1;
             }
         }
 

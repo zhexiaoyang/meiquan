@@ -473,10 +473,11 @@ class OrderController extends Controller
     {
         $shop_id = $request->get('shop_id', 0);
 
-        if (!$shop = Shop::find($shop_id)) {
+        if (!$shop = Shop::select('id', 'user_id', 'running_select')->find($shop_id)) {
             return $this->error('门店不存在');
         }
-        if (!in_array($shop->id, $request->user()->shops()->pluck('id')->toArray())) {
+        $user = $request->user();
+        if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
             return $this->error('门店不存在');
         }
         $create_order_shop_lock = Cache::lock("create_order_shop_lock" . $shop_id, 5);
@@ -525,15 +526,23 @@ class OrderController extends Controller
             return $this->error('收货人门牌号不能为空');
         }
         $order_data['receiver_address'] = $receiver_address . '，' .$house_number;
-        // ------
+        // ------caution
+        $caution = $request->get('caution', '');
+        if (strlen($caution) > 100) {
+            return $this->error('备注不能超过100字');
+        }
+        $order_data['caution'] = $caution;
         $order_data['status'] = 0;
 
         $order = Order::create($order_data);
         OrderLog::create([
             "order_id" => $order->id,
             "des" => "手动创建跑腿订单",
-            "user_id" => $request->user()->id
+            "user_id" => $user->id
         ]);
+        Shop::where(['user_id' => $shop->user_id])->update(['running_select' => 0]);
+        $shop->running_select = 1;
+        $shop->save();
         return $this->success(['id' => $order->id]);
     }
 
