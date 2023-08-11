@@ -17,7 +17,7 @@ class ShopController extends Controller
         if ($user->account_shop_id) {
             return $this->success([Shop::select('id', 'shop_name', 'wm_shop_name')->find($user->account_shop_id)]);
         }
-        $shops = Shop::select('id', 'shop_name', 'running_select as checked')->where('user_id', $user->id)->get();
+        $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address')->where('user_id', $user->id)->get();
 
         if (!empty($shops)) {
             // 默认选择门店ID
