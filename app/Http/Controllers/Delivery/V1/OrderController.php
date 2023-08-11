@@ -225,7 +225,7 @@ class OrderController extends Controller
         $search_type = (int) $request->get('search_type', '');
         // 搜索关键字、搜索日期
         $search_key = $request->get('search_key', '');
-        $date_string = $request->get('date', '');
+        $date_range = $request->get('date_range', '');
         $shop_id = $request->get('shop_id', 0);
 
         // 没有搜索关键字、搜索日期类型，返回空
@@ -270,10 +270,10 @@ class OrderController extends Controller
                 $start_date = date("Y-m-01", strtotime('-1 month'));
                 $end_date = date("Y-m-t", strtotime('-1 month'));
             } elseif ($date_type === 80) {
-                if (!$date_string) {
+                if (!$date_range) {
                     return $this->error('日期范围不能为空');
                 }
-                $date_arr = explode(',', $date_string);
+                $date_arr = explode(',', $date_range);
                 if (count($date_arr) !== 2) {
                     return $this->error('日期格式不正确');
                 }
