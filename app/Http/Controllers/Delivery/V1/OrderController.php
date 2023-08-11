@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Delivery\V1;
 
 use App\Handlers\AddressRecognitionHandler;
 use App\Http\Controllers\Controller;
-use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
@@ -56,11 +55,6 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
-    public function search(Request $request)
-    {
-        return $this->success();
-    }
-
     /**
      * 订单列表
      * @data 2023/8/7 10:39 下午
@@ -90,7 +84,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone')
+            'courier_name', 'courier_phone','poi_receive')
             ->where('ignore', 0)
             ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
         // 判断权限
@@ -133,15 +127,9 @@ class OrderController extends Controller
         // 订单来源-结束
         // 排序-开始
         if ($order_by === 'receive_desc') {
-            // $query->leftJoin('wm_orders', 'orders.wm_id', '=', 'wm_orders.id')->orderByDesc('wm_orders.poi_receive');
-            $query->with(['order' => function ($query) use ($order_by) {
-                Log::info('123123123');
-                $query->orderByDesc('poi_receive');
-            }]);
+            $query->orderByDesc('poi_receive');
         } elseif ($order_by === 'receive_asc') {
-            $query->with(['order' => function ($query) use ($order_by) {
-                $query->orderBy('poi_receive');
-            }]);
+            $query->orderBy('poi_receive');
         } elseif ($order_by === 'create_asc') {
             $query->orderBy('id');
         } else {
@@ -229,17 +217,80 @@ class OrderController extends Controller
      * 搜索订单列表
      * @data 2023/8/7 10:39 下午
      */
-    public function searchList(Request $request)
+    public function search_list(Request $request)
     {
-        $search_key = $request->get('search_key', '');
-        if (empty($search_key)) {
-            return $this->success();
-        }
+        // 10 今日，20 本周，30 本月，40 上月，80 指定日期
+        $date_type = (int) $request->get('date_type', '');
         // 10 流水号，20 顾客手机号，30 配送员手机号，40 订单编号
         $search_type = (int) $request->get('search_type', '');
-        if (!in_array($search_type, [10,20,30,40])) {
-            return $this->error('搜索类型错误');
+        // 搜索关键字、搜索日期
+        $search_key = $request->get('search_key', '');
+        $date_string = $request->get('date', '');
+        $shop_id = $request->get('shop_id', 0);
+
+        // 没有搜索关键字、搜索日期类型，返回空
+        if (empty($search_type) && empty($date_type)) {
+            return $this->success();
         }
+        // 门店判断
+        if ($shop_id) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
+                return $this->error('门店不存在');
+            }
+        }
+        // 关键字搜索判断
+        if ($search_type) {
+            if (!in_array($search_type, [10,20,30,40])) {
+                return $this->error('搜索类型错误');
+            }
+            if (!$search_key) {
+                return $this->error('搜索关键字不能为空');
+            }
+        }
+        // 日期搜索判断
+        $start_date = '';
+        $end_date = '';
+        if ($date_type) {
+            if (!in_array($date_type, [10, 20, 30, 40, 80])) {
+                return $this->error('日期类型错误');
+            }
+            if ($date_type === 10) {
+                $start_date = date("Y-m-d");
+                $end_date = date("Y-m-d");
+            } elseif ($date_type === 20) {
+                $start_date = date('Y-m-d', strtotime('this week Monday'));
+                $end_date = date('Y-m-d', strtotime('this week Sunday'));
+            } elseif ($date_type === 30) {
+                $start_date = date("Y-m-01");
+                $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
+            } elseif ($date_type === 30) {
+                $start_date = date("Y-m-01");
+                $end_date = date("Y-m-t");
+            } elseif ($date_type === 40) {
+                $start_date = date("Y-m-01", strtotime('-1 month'));
+                $end_date = date("Y-m-t", strtotime('-1 month'));
+            } elseif ($date_type === 80) {
+                if (!$date_string) {
+                    return $this->error('日期范围不能为空');
+                }
+                $date_arr = explode(',', $date_string);
+                if (count($date_arr) !== 2) {
+                    return $this->error('日期格式不正确');
+                }
+                $start_date = $date_arr[0];
+                $end_date = $date_arr[1];
+                if ($start_date !== date("Y-m-d", strtotime($start_date))) {
+                    return $this->error('日期格式不正确');
+                }
+                if ($end_date !== date("Y-m-d", strtotime($end_date))) {
+                    return $this->error('日期格式不正确');
+                }
+                if ((strtotime($end_date) - strtotime($start_date)) / 86400 > 31) {
+                    return $this->error('时间范围不能超过31天');
+                }
+            }
+        }
+
         $page_size = $request->get('page_size', 10);
         $query = Order::with(['products' => function ($query) {
             $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
@@ -265,8 +316,12 @@ class OrderController extends Controller
         } elseif ($search_type === 40) {
             $query->where('order_id', $search_key);
         }
+        if ($start_date && $end_date) {
+            $query->where('created_at', '>', $start_date)
+                ->where('created_at', '<', date("Y-m-d", strtotime($end_date) + 86400));
+        }
         // 查询订单
-        $orders = $query->paginate($page_size);
+        $orders = $query->orderByDesc('id')->paginate($page_size);
         // 商品图片
         $images = [];
         if (!empty($orders)) {

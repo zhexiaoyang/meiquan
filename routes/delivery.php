@@ -15,7 +15,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 订单列表
             Route::get("index", "OrderController@index");
             // 订单搜索
-            Route::get("search", "OrderController@searchList");
+            Route::get("search", "OrderController@search_list");
             // 订单详情
             Route::get("info", "OrderController@show");
             // 计算订单
