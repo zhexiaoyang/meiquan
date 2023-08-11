@@ -227,6 +227,12 @@ class OrderController extends Controller
         $search_key = $request->get('search_key', '');
         $date_range = $request->get('date_range', '');
         $shop_id = $request->get('shop_id', 0);
+        // 订单类型（0 全部，10 已完成，20 即时单，30 预约单，40 未配送，50 已取消）
+        $order_type = (int) $request->get('order_type', 0);
+        // 订单标签（0 全部，10 配送超时， 20 顾客自提， 30 忽略配送）
+        $order_tag = (int) $request->get('order_tag', 0);
+        // 订单来源（0 全部，1 美团外卖，2 饿了么，10 其它）
+        $order_source = (int) $request->get('order_source', 0);
 
         // 没有搜索关键字、搜索日期类型，返回空
         if (empty($search_type) && empty($date_type)) {
@@ -319,6 +325,41 @@ class OrderController extends Controller
         if ($start_date && $end_date) {
             $query->where('created_at', '>', $start_date)
                 ->where('created_at', '<', date("Y-m-d", strtotime($end_date) + 86400));
+        }
+        if ($order_type) {
+            // 订单类型（0 全部，10 已完成，20 即时单，30 预约单，40 未配送，50 已取消）
+            if ($order_type === 10) {
+                $query->whereIn('status', [70, 75]);
+            } elseif ($order_type === 20) {
+                $query->where('expected_delivery_time', 0);
+            } elseif ($order_type === 30) {
+                $query->where('expected_delivery_time', '>', 0);
+            } elseif ($order_type === 40) {
+                $query->where('status', '<', 10);
+            } elseif ($order_type === 50) {
+                $query->where('status', 99);
+            }
+        }
+        if ($order_tag) {
+            // 订单标签（0 全部，10 配送超时， 20 顾客自提， 30 忽略配送）
+            if ($order_tag === 20) {
+                $query->where('pick_type', 1);
+                // } elseif ($order_tag === 10) {
+                //     $query->where('expected_delivery_time', 0);
+            } elseif ($order_tag === 30) {
+                $query->where('ignore', 1);
+            }
+        }
+        if ($order_source) {
+            // 订单来源（0 全部，1 美团外卖，2 饿了么，10 其它）
+            if ($order_source === 1) {
+                $query->where('platform', 1);
+            } elseif ($order_source === 2) {
+                $query->where('platform', 2);
+            } elseif ($order_source === 10) {
+                // 其它 （0 手动创建， 11 药柜）
+                $query->whereIn('platform', [0, 11]);
+            }
         }
         // 查询订单
         $orders = $query->orderByDesc('id')->paginate($page_size);
