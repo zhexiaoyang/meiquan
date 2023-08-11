@@ -347,6 +347,8 @@ class OrderConfirmController
                     'status' => 0,
                     'order_type' => 0,
                     "pick_type" => $pick_type,
+                    "estimate_arrival_time" => $data['estimate_arrival_time'] ?? 0,
+                    "poi_receive" => $poi_receive_detail_yuan['poiReceive'] ?? 0,
                 ];
                 // 判断是否预约单
                 if ($delivery_time > 0) {

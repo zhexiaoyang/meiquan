@@ -1322,7 +1322,9 @@ class EleOrderController extends Controller
                     // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
                     'type' => 21,
                     'status' => 0,
-                    'order_type' => 0
+                    'order_type' => 0,
+                    "estimate_arrival_time" => $order['order']['latest_send_time'] ?? 0,
+                    "poi_receive" => $order['order']['shop_fee'] / 100,
                 ];
                 // 判断是否预约单
                 if ($delivery_time > 0) {

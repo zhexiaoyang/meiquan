@@ -326,7 +326,9 @@ class OrderConfirmController
                 // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
                 'type' => 7,
                 'status' => 0,
-                'order_type' => $delivery_time ? 1 : 0
+                'order_type' => $delivery_time ? 1 : 0,
+                "estimate_arrival_time" => $data['estimate_arrival_time'] ?? 0,
+                "poi_receive" => $poi_receive_detail['wmPoiReceiveCent'] / 100,
             ];
             // 判断是否预约单
             if ($delivery_time > 0) {
