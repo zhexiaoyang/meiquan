@@ -1,6 +1,12 @@
 <?php
 
 return [
+    // 百度KEY
+    "baidu" => [
+        'client_id' => env('BAIDU_AI_ID', ""),
+        'client_secret' => env('BAIDU_AI_SECRET', ""),
+    ],
+    // 高德KEY
     "amap" => [
         'AMAP_APP_KEY1' => env('AMAP_KEY1', ""),
     ],

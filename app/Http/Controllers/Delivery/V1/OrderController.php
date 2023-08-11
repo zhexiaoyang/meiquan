@@ -1688,16 +1688,16 @@ class OrderController extends Controller
         if (empty($preg_result[0])) {
             return $this->error('识别信息不完整，请完善地址信息');
         }
-        if (!$shop_id = $request->get('shop_id', 0)) {
-            return $this->error('请选择发货门店');
-        }
-        if (!$shop = Shop::select('id', 'user_id', 'running_select')->find($shop_id)) {
-            return $this->error('门店不存在');
-        }
-        $user = $request->user();
-        if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
-            return $this->error('门店不存在');
-        }
+        // if (!$shop_id = $request->get('shop_id', 0)) {
+        //     return $this->error('请选择发货门店');
+        // }
+        // if (!$shop = Shop::select('id', 'user_id', 'running_select')->find($shop_id)) {
+        //     return $this->error('门店不存在');
+        // }
+        // $user = $request->user();
+        // if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
+        //     return $this->error('门店不存在');
+        // }
         $address_res = app(AddressRecognitionHandler::class)->run($text);
         $address_data = json_decode($address_res, true);
         if (empty($address_data['phonenum'])) {
@@ -1716,7 +1716,7 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
-    public function map(Request $request)
+    public function map_search(Request $request)
     {
         if (!$address = $request->get('address')) {
             return $this->error('请输入收货人信息');
@@ -1731,5 +1731,25 @@ class OrderController extends Controller
         if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
             return $this->error('门店不存在');
         }
+
+        $data = amap_address_search($address, $shop->city, $shop->shop_lng, $shop->shop_lat);
+
+        $result = [];
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                if (!empty($v['location'])) {
+                    $location = explode(',', $v['location']);
+                    $result[] = [
+                        'district' => $v['district'] . ',' .$v['address'],
+                        'address' => $v['address'],
+                        'lng' => $location[0],
+                        'lat' => $location[1],
+                        'name' => $v['name'],
+                    ];
+                }
+            }
+        }
+
+        return $this->success($result);
     }
 }

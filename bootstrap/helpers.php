@@ -1,5 +1,13 @@
 <?php
 
+function amap_address_search ($key, $city, $lng, $lat) {
+    $url = "https://restapi.amap.com/v3/assistant/inputtips?key=".config('ps.amap.AMAP_APP_KEY1')."&keywords={$key}&type=&location={$lng},{$lat}&city={$city}&datatype=all";
+    $str = file_get_contents($url);
+    $data = json_decode($str, true);
+    return $data['tips'] ?? [];
+}
+
+// 将米转换成公里文字
 function get_kilometre ($metre): string
 {
     if ($metre < 1000) {
