@@ -1707,10 +1707,10 @@ class OrderController extends Controller
             'name' => $address_data['person'],
             'phone' => $address_data['phonenum'],
             'address' => $address_data['detail'],
-            'province' => $address_data['province'],
-            'city' => $address_data['city'],
-            'county' => $address_data['county'],
-            'city_code' => $address_data['city_code'],
+            // 'province' => $address_data['province'],
+            // 'city' => $address_data['city'],
+            // 'county' => $address_data['county'],
+            // 'city_code' => $address_data['city_code'],
         ];
 
         return $this->success($result);
@@ -1740,8 +1740,8 @@ class OrderController extends Controller
                 if (!empty($v['location'])) {
                     $location = explode(',', $v['location']);
                     $result[] = [
-                        'district' => $v['district'] . ',' .$v['address'],
-                        'address' => $v['address'],
+                        'address' => $v['district'] . ',' .$v['address'],
+                        // 'address' => $v['address'],
                         'lng' => $location[0],
                         'lat' => $location[1],
                         'name' => $v['name'],
