@@ -1036,7 +1036,7 @@ class OrderController extends Controller
             'shop_id' => $order->shop_id,
             'day_seq' => $order->day_seq,
             'platform' => $order->platform,
-            'wm_poi_name' => $order->wm_poi_name,
+            'wm_poi_name' => $order->wm_poi_name ?: $shop->shop_name,
             'delivery_time' => $wm_order->delivery_time ?? 0,
             'receiver_name' => $order->receiver_name,
             'receiver_phone' => $order->receiver_phone,
@@ -1679,6 +1679,10 @@ class OrderController extends Controller
         return $this->success($res);
     }
 
+    /**
+     * 地址解析
+     * @data 2023/8/11 3:29 下午
+     */
     public function address_recognition(Request $request)
     {
         if (!$text = $request->get('text')) {
@@ -1716,6 +1720,10 @@ class OrderController extends Controller
         return $this->success($result);
     }
 
+    /**
+     * 地址搜索
+     * @data 2023/8/11 3:29 下午
+     */
     public function map_search(Request $request)
     {
         if (!$address = $request->get('address')) {
