@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Delivery\V1;
 
+use App\Handlers\AddressRecognitionHandler;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
@@ -370,7 +371,7 @@ class OrderController extends Controller
         }, 'order' => function ($query) {
             $query->select('id', 'poi_receive','delivery_time', 'estimate_arrival_time', 'status','original_price','total');
         }, 'shop' => function ($query) {
-            $query->select('id', 'shop_lng','shop_lat');
+            $query->select('id', 'shop_lng','shop_lat','shop_name');
         }]);
 
         // 电话列表
@@ -459,6 +460,9 @@ class OrderController extends Controller
         } else {
             $locations = [$user_location];
         }
+        if (!$order->wm_poi_name) {
+            $order->wm_poi_name = $order->shop->shop_name ?? '';
+        }
         unset($order->shop);
         $order->locations = $locations;
 
@@ -543,7 +547,7 @@ class OrderController extends Controller
         Shop::where(['user_id' => $shop->user_id])->update(['running_select' => 0]);
         $shop->running_select = 1;
         $shop->save();
-        return $this->success(['id' => $order->id]);
+        return $this->success(['id' => $order->id, 'order_id' => $order->order_id]);
     }
 
     /**
@@ -1673,5 +1677,59 @@ class OrderController extends Controller
         }
 
         return $this->success($res);
+    }
+
+    public function address_recognition(Request $request)
+    {
+        if (!$text = $request->get('text')) {
+            return $this->error('请输入收货人信息');
+        }
+        preg_match_all('/\d{11}/', $text, $preg_result);
+        if (empty($preg_result[0])) {
+            return $this->error('识别信息不完整，请完善地址信息');
+        }
+        if (!$shop_id = $request->get('shop_id', 0)) {
+            return $this->error('请选择发货门店');
+        }
+        if (!$shop = Shop::select('id', 'user_id', 'running_select')->find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        $user = $request->user();
+        if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
+            return $this->error('门店不存在');
+        }
+        $address_res = app(AddressRecognitionHandler::class)->run($text);
+        $address_data = json_decode($address_res, true);
+        if (empty($address_data['phonenum'])) {
+            return $this->error('识别信息不完整，请完善地址信息');
+        }
+        $result = [
+            'name' => $address_data['person'],
+            'phone' => $address_data['phonenum'],
+            'address' => $address_data['detail'],
+            'province' => $address_data['province'],
+            'city' => $address_data['city'],
+            'county' => $address_data['county'],
+            'city_code' => $address_data['city_code'],
+        ];
+
+        return $this->success($result);
+    }
+
+    public function map(Request $request)
+    {
+        if (!$address = $request->get('address')) {
+            return $this->error('请输入收货人信息');
+        }
+        if (!$shop_id = $request->get('shop_id', 0)) {
+            return $this->error('请选择发货门店');
+        }
+        if (!$shop = Shop::select('id', 'user_id', 'running_select')->find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+        $user = $request->user();
+        if (!in_array($shop->id, $user->shops()->pluck('id')->toArray())) {
+            return $this->error('门店不存在');
+        }
     }
 }

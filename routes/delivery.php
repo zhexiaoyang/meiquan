@@ -32,6 +32,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("print_order", "OrderController@print_order");
             // 订单操作日志
             Route::get("operate_record", "OrderController@operate_record");
+            // 手动下单-地址识别
+            Route::post("address_recognition", "OrderController@address_recognition");
             // 手动下单
             Route::post("create", "OrderController@store");
         });
