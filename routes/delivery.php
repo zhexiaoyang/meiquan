@@ -43,5 +43,11 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('shop')->group(function () {
             Route::get("index", "ShopController@index");
         });
+        // 数据分析
+        Route::prefix('analysis')->group(function () {
+            Route::get("business", "AnalysisController@business");
+            Route::get("history", "AnalysisController@history");
+            Route::get("shop", "AnalysisController@shop");
+        });
     });
 });
