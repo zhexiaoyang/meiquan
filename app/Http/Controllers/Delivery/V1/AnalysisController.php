@@ -114,7 +114,7 @@ class AnalysisController extends Controller
             if ($user->hasRole('city_manager')) {
                 $query->whereIn('shop_id', $user->shops()->pluck('id'));
             } else {
-                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+                // $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
             }
         }
 
@@ -275,7 +275,7 @@ class AnalysisController extends Controller
             if ($user->hasRole('city_manager')) {
                 $query->whereIn('shop_id', $user->shops()->pluck('id'));
             } else {
-                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+                // $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
             }
         }
         $data_arr = $query->get();
@@ -383,7 +383,7 @@ class AnalysisController extends Controller
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
-                $query->whereIn('shop_id', $user_shop_ids);
+                // $query->whereIn('shop_id', $user_shop_ids);
             }
             $orders = $query->get();
             $result = [];
