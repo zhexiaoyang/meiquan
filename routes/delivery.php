@@ -48,6 +48,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("business", "AnalysisController@business");
             Route::get("history", "AnalysisController@history");
             Route::get("shop", "AnalysisController@shop");
+            Route::get("delivery", "AnalysisController@delivery");
         });
     });
 });

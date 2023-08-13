@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Delivery\V1;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\Shop;
 use App\Models\WmAnalysis;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AnalysisController extends Controller
 {
@@ -315,6 +317,10 @@ class AnalysisController extends Controller
         return $this->success($res);
     }
 
+    /**
+     * 门店统计
+     * @data 2023/8/13 3:09 下午
+     */
     public function shop(Request $request)
     {
         $shop_id = (int) $request->get('shop_id', 0);
@@ -373,7 +379,7 @@ class AnalysisController extends Controller
         $user_shop_ids = $user_shops->pluck('id')->toArray();
         if ($date_type === 10) {
             // 今日数据
-            $query = WmOrder::select('id', 'shop_id', 'poi_receive', 'original_price')->where('status', '<=', 18);
+            $query = WmOrder::select('id', 'shop_id', 'poi_receive', 'original_price')->where('status', '<=', 18)->where('created_at','>',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
@@ -461,6 +467,109 @@ class AnalysisController extends Controller
                     $tmp['unit_price'] = $unit_price;
                     $result[] = $tmp;
                 }
+            }
+        }
+        return $this->success($result);
+    }
+
+    public function delivery(Request $request)
+    {
+
+        $shop_id = (int) $request->get('shop_id', 0);
+        // 10 今日，20 昨日，30 近七天，40 本月，80 自定义
+        $date_type = (int) $request->get('date_type', 0);
+        if (!in_array($date_type, [10, 20, 30, 40, 80])) {
+            return $this->error('日期类型不正确');
+        }
+        $date_range = $request->get('date_range', '');
+        // 日期搜索判断
+        $start_date = '';
+        $end_date = '';
+        if ($date_type === 10) {
+            $start_date = date("Y-m-d");
+            $end_date = date("Y-m-d");
+        } elseif ($date_type === 20) {
+            $start_date = date('Y-m-d', strtotime('-1 day'));
+            $end_date = date('Y-m-d', strtotime('-1 day'));
+        } elseif ($date_type === 30) {
+            $start_date = date('Y-m-d', strtotime('-7 day'));
+            $end_date = date('Y-m-d', strtotime('-1 day'));
+        } elseif ($date_type === 40) {
+            $start_date = date("Y-m-01");
+            $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
+        } elseif ($date_type === 40) {
+            $start_date = date("Y-m-01");
+            $end_date = date("Y-m-t");
+        } elseif ($date_type === 80) {
+            if (!$date_range) {
+                return $this->error('日期范围不能为空');
+            }
+            $date_arr = explode(',', $date_range);
+            if (count($date_arr) !== 2) {
+                return $this->error('日期格式不正确');
+            }
+            $start_date = $date_arr[0];
+            $end_date = $date_arr[1];
+            if ($start_date !== date("Y-m-d", strtotime($start_date))) {
+                return $this->error('日期格式不正确');
+            }
+            if ($end_date !== date("Y-m-d", strtotime($end_date))) {
+                return $this->error('日期格式不正确');
+            }
+            if ((strtotime($end_date) - strtotime($start_date)) / 86400 > 31) {
+                return $this->error('时间范围不能超过31天');
+            }
+        }
+        // $user_shop_id_map = $user_shops->pluck('id')->toArray();
+        // 门店判断
+        if ($shop_id) {
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->where('user_id', $request->user()->id)->get();
+            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->get();
+        } else {
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
+        }
+        if (empty($user_shops)) {
+            return $this->success();
+        }
+        $user_shop_ids = $user_shops->pluck('id')->toArray();
+        // 查询数据
+        $query = Order::select('ps', DB::raw("sum(money) as total_money"), DB::raw("count(1) as deliver_count"))
+            ->where('status', '=', 70)->where('ps', '>', 0);
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            // $query->whereIn('shop_id', $user_shop_ids);
+        }
+        $query->where('created_at', '>', $start_date)->where('created_at', '<', date("Y-m-d", strtotime($end_date) + 86400));
+        $orders = $query->groupBY('ps')->get();
+        $result = [
+            'total_money' => 0,
+            'deliver_count' => 0,
+            'unit_price' => 0,
+            'tip' => 0,
+            'deliveries' => []
+        ];
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                $result['total_money'] += $order->total_money;
+                $result['deliver_count'] += $order->deliver_count;
+                $tmp = [
+                    'platform' => $order->ps,
+                    'platform_text' => config('ps.delivery_map')[$order->ps],
+                    'total_money' => $order->total_money,
+                    'deliver_count' => $order->deliver_count,
+                    'unit_price' => (float) sprintf("%.2f", $order->total_money / $order->deliver_count),
+                    'tip' => 0,
+                ];
+                $result['deliveries'][] = $tmp;
+            }
+        }
+        if ($result['deliver_count'] > 0) {
+            $result['unit_price'] = (float) sprintf("%.2f", $result['total_money'] / $result['deliver_count']);
+        }
+        if (!empty($result['deliveries'])) {
+            foreach ($result['deliveries'] as $key => $delivery) {
+                $result['deliveries'][$key]['proportion'] = ceil(($delivery['deliver_count'] / $result['deliver_count'] * 100));
             }
         }
         return $this->success($result);
