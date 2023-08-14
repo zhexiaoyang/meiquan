@@ -286,7 +286,7 @@ class SyncStockWanXiangToMiddle extends Command
                             $l = strlen($upc);
                             if ($l >= 7 && $l <= 19) {
                                 $_depot = MedicineDepot::create([
-                                    'name' => $v['name'] ?? '',
+                                    'name' => $name,
                                     'upc' => $upc
                                 ]);
                                 \DB::table('wm_depot_medicine_category')->insert(['medicine_id' => $_depot->id, 'category_id' => 215]);
