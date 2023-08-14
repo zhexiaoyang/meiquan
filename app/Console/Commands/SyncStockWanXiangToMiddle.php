@@ -193,7 +193,7 @@ class SyncStockWanXiangToMiddle extends Command
             Log::info("门店「{$name}}:同步库存-开始......");
             try {
                 $data = DB::connection('wanxiang_haidian')
-                    ->select("SELECT 药品ID as id,名称 as name,规格 as spec,saleprice,进价 as cost,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[药品ID],[库存]");
+                    ->select("SELECT 药品ID as id,名称 as name,规格 as spec,saleprice,进价 as cost,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL");
             } catch (\Exception $exception) {
                 $data = [];
                 $this->info("门店「{$name}}:」数据查询报错......");
