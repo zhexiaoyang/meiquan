@@ -472,6 +472,10 @@ class AnalysisController extends Controller
         return $this->success($result);
     }
 
+    /**
+     * 配送
+     * @data 2023/8/13 4:51 下午
+     */
     public function delivery(Request $request)
     {
 
@@ -573,5 +577,136 @@ class AnalysisController extends Controller
             }
         }
         return $this->success($result);
+    }
+
+    /**
+     * 渠道
+     * @data 2023/8/13 9:06 下午
+     */
+    public function channel(Request $request)
+    {
+        $shop_id = (int) $request->get('shop_id', 0);
+        // 20 昨日，30 近七天，40 本月，80 自定义
+        $date_type = (int) $request->get('date_type', 0);
+        if (!in_array($date_type, [20, 30, 40, 80])) {
+            return $this->error('日期类型不正确');
+        }
+        $date_range = $request->get('date_range', '');
+        // 日期搜索判断
+        $start_date = '';
+        $end_date = '';
+        if ($date_type === 20) {
+            $start_date = date('Y-m-d', strtotime('-1 day'));
+            $end_date = date('Y-m-d', strtotime('-1 day'));
+        } elseif ($date_type === 30) {
+            $start_date = date('Y-m-d', strtotime('-7 day'));
+            $end_date = date('Y-m-d', strtotime('-1 day'));
+        } elseif ($date_type === 40) {
+            $start_date = date("Y-m-01");
+            $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
+        } elseif ($date_type === 40) {
+            $start_date = date("Y-m-01");
+            $end_date = date("Y-m-t");
+        } elseif ($date_type === 80) {
+            if (!$date_range) {
+                return $this->error('日期范围不能为空');
+            }
+            $date_arr = explode(',', $date_range);
+            if (count($date_arr) !== 2) {
+                return $this->error('日期格式不正确');
+            }
+            $start_date = $date_arr[0];
+            $end_date = $date_arr[1];
+            if ($start_date !== date("Y-m-d", strtotime($start_date))) {
+                return $this->error('日期格式不正确');
+            }
+            if ($end_date !== date("Y-m-d", strtotime($end_date))) {
+                return $this->error('日期格式不正确');
+            }
+            if ((strtotime($end_date) - strtotime($start_date)) / 86400 > 31) {
+                return $this->error('时间范围不能超过31天');
+            }
+        }
+        // 门店判断
+        if ($shop_id) {
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->where('user_id', $request->user()->id)->get();
+            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->get();
+        } else {
+            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->whereIn('id', [6446,5359,6367])->get();
+        }
+        if (empty($user_shops)) {
+            return $this->success();
+        }
+        $shop_name_map = [];
+        foreach ($user_shops as $user_shop) {
+            $shop_name_map[$user_shop->id] = $user_shop->wm_shop_name ?: $user_shop->shop_name;
+        }
+        $user_shop_ids = $user_shops->pluck('id')->toArray();
+        // 查询数据
+        $query = WmAnalysis::where('platform', '>', 0);
+        if ($shop_id) {
+            $query->where('shop_id', $shop_id);
+        } else {
+            $query->whereIn('shop_id', $user_shop_ids);
+        }
+        $query->where('date', '>=', $start_date)->where('date', '<=', $end_date);
+        $data = $query->get();
+        $result = [];
+        $total_order_number = 0;
+        if (!empty($data)) {
+            foreach ($data as $v) {
+                $total_order_number += $v->order_effective_number;
+                if (isset($result[$v->platform])) {
+                    $result[$v->platform]['order_receipts'] += $v->order_receipts;
+                    $result[$v->platform]['order_effective_number'] += $v->order_effective_number;
+                    if (isset($result[$v->platform]['shops'][$v->shop_id])) {
+                        $result[$v->platform]['shops'][$v->shop_id]['order_receipts'] = (float) sprintf("%.2f", $v->order_receipts + $result[$v->platform]['shops'][$v->shop_id]['order_receipts']);
+                        $result[$v->platform]['shops'][$v->shop_id]['order_effective_number'] = (float) sprintf("%.2f", $v->order_effective_number + $result[$v->platform]['shops'][$v->shop_id]['order_effective_number']);
+                        $result[$v->platform]['shops'][$v->shop_id]['sales_volume'] = (float) sprintf("%.2f", $v->sales_volume + $result[$v->platform]['shops'][$v->shop_id]['sales_volume']);
+                        $result[$v->platform]['shops'][$v->shop_id]['service_fee'] = (float) sprintf("%.2f", $v->service_fee + $result[$v->platform]['shops'][$v->shop_id]['service_fee']);
+                    } else {
+                        $result[$v->platform]['shops'][$v->shop_id] = [
+                            'shop_id' => $v->shop_id,
+                            'shop_name' => $shop_name_map[$v->shop_id],
+                            'order_receipts' => (float) $v->order_receipts,
+                            'order_effective_number' => $v->order_effective_number,
+                            'sales_volume' => (float) $v->sales_volume,
+                            'service_fee' => (float) $v->service_fee,
+                        ];
+                    }
+                } else {
+                    $result[$v->platform] = [
+                        'platform' => $v->platform,
+                        'platform_text' => config('ps.takeout_map')[$v->platform],
+                        'order_receipts' => $v->order_receipts,
+                        'order_effective_number' => $v->order_effective_number,
+                        'unit_price' => 0,
+                        'proportion' => 0,
+                        'shops' => [
+                            [
+                                'shop_id' => $v->shop_id,
+                                'shop_name' => $shop_name_map[$v->shop_id],
+                                'order_receipts' => (float) $v->order_receipts,
+                                'order_effective_number' => $v->order_effective_number,
+                                'sales_volume' => (float) $v->sales_volume,
+                                'service_fee' => (float) $v->service_fee,
+                            ]
+                        ],
+                    ];
+                }
+            }
+        }
+        if (!empty($result)) {
+            foreach ($result as $k => $v) {
+                $result[$k]['proportion'] = ceil($v['order_effective_number'] / $total_order_number * 100);
+                $result[$k]['order_receipts'] = (float) sprintf("%.2f", $v['order_receipts']);
+                $result[$k]['unit_price'] = (float) sprintf("%.2f", $v['order_receipts'] / $v['order_effective_number']);
+                if (!empty($v['shops'])) {
+                    $result[$k]['shops'] = array_values($v['shops']);
+                }
+            }
+        }
+        return $this->success(array_values($result));
     }
 }
