@@ -576,6 +576,7 @@ class AnalysisController extends Controller
                 $result['deliveries'][$key]['proportion'] = ceil(($delivery['deliver_count'] / $result['deliver_count'] * 100));
             }
         }
+        $result['total_money'] = (float) sprintf("%.2f", $result['total_money']);
         return $this->success($result);
     }
 
