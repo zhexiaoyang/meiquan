@@ -186,29 +186,30 @@ class SyncStockWanXiangToMiddle extends Command
             ],
         ];
         foreach ($shops as $shop) {
-            $name = $shop['name'];
+            $shop_name = $shop['name'];
             $shop_id = $shop['shopid'];
             $mqid = $shop['mqid'];
-            $this->info("门店「{$name}}:同步库存-开始......");
-            Log::info("门店「{$name}}:同步库存-开始......");
+            $this->info("门店「{$shop_name}}:同步库存-开始......");
+            Log::info("门店「{$shop_name}}:同步库存-开始......");
             try {
                 $data = DB::connection('wanxiang_haidian')
                     ->select("SELECT 药品ID as id,名称 as name,规格 as spec,saleprice,进价 as cost,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL");
             } catch (\Exception $exception) {
                 $data = [];
-                $this->info("门店「{$name}}:」数据查询报错......");
-                Log::info("门店「{$name}}:」数据查询报错......");
+                $this->info("门店「{$shop_name}}:」数据查询报错......");
+                Log::info("门店「{$shop_name}}:」数据查询报错......");
             }
             if (!empty($data)) {
-                $this->info("门店「{$name}}:」数据总数：".count($data));
+                $this->info("门店「{$shop_name}}:」数据总数：".count($data));
                 foreach ($data as $v) {
                     $upc = $v->upc;
                     $name = $v->name;
                     $price = $v->saleprice;
                     $cost = $v->cost;
                     $stock = $v->stock;
+                    $this->info("门店「{$shop_name}}:{$name}|{$upc}|---开始");
                     if (!Medicine::select('id')->where('shop_id', $mqid)->where('upc', $upc)) {
-                        $this->info("门店「{$name}}:」数药品不存在|{$name}|{$upc}");
+                        $this->info("门店「{$shop_name}}:」数药品不存在|{$name}|{$upc}");
                         if ($depot = MedicineDepot::where('upc', $upc)->first()) {
                             $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
                             if (!empty($depot_category_ids)) {
@@ -324,8 +325,8 @@ class SyncStockWanXiangToMiddle extends Command
                     }
                 }
             }
-            $this->info("门店「{$name}}:」同步库存-结束......");
-            Log::info("门店「{$name}}:」同步库存-结束......");
+            $this->info("门店「{$shop_name}}:」同步库存-结束......");
+            Log::info("门店「{$shop_name}}:」同步库存-结束......");
         }
         $this->info('------------万祥同步库存结束------------');
     }
