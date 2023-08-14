@@ -200,6 +200,7 @@ class SyncStockWanXiangToMiddle extends Command
                 Log::info("门店「{$name}}:」数据查询报错......");
             }
             if (!empty($data)) {
+                $this->info("门店「{$name}}:」数据总数：".count($data));
                 foreach ($data as $v) {
                     $upc = $v->upc;
                     $name = $v->name;
