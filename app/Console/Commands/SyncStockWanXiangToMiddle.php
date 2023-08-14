@@ -208,6 +208,7 @@ class SyncStockWanXiangToMiddle extends Command
                     $cost = $v->cost;
                     $stock = $v->stock;
                     if (!Medicine::select('id')->where('shop_id', $mqid)->where('upc', $upc)) {
+                        $this->info("门店「{$name}}:」数药品不存在|{$name}|{$upc}");
                         if ($depot = MedicineDepot::where('upc', $upc)->first()) {
                             $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
                             if (!empty($depot_category_ids)) {
