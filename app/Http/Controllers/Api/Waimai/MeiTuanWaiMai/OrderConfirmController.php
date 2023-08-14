@@ -435,15 +435,15 @@ class OrderConfirmController
                     }
                 }
                 // 中心仓库存
-                if (OrderSetting::where('warehouse', $shop->id)->first()) {
-                    dispatch(new WarehouseStockSync($shop->id, $products));
-                } else {
-                    if ($setting && $setting->warehouse > 0) {
-                        if (WmProduct::where('shop_id', $setting->warehouse)->first()) {
-                            dispatch(new WarehouseStockSync($setting->warehouse, $products));
-                        }
-                    }
-                }
+                // if (OrderSetting::where('warehouse', $shop->id)->first()) {
+                //     dispatch(new WarehouseStockSync($shop->id, $products));
+                // } else {
+                //     if ($setting && $setting->warehouse > 0) {
+                //         if (WmProduct::where('shop_id', $setting->warehouse)->first()) {
+                //             dispatch(new WarehouseStockSync($setting->warehouse, $products));
+                //         }
+                //     }
+                // }
                 return $order_wm;
             });
             if ($order_wm->is_prescription) {
