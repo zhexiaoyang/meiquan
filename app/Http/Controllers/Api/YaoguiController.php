@@ -479,7 +479,7 @@ class YaoguiController extends Controller
                                 \Log::info("[跑腿订单-药柜取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                                 OrderLog::create([
                                     "order_id" => $order->id,
-                                    "des" => "（药柜）取消【达达】跑腿订单"
+                                    "des" => "（药柜）取消[达达]跑腿订单"
                                 ]);
                             });
                         } catch (\Exception $e) {
@@ -745,7 +745,7 @@ class YaoguiController extends Controller
                         $order->save();
                         OrderLog::create([
                             "order_id" => $order->id,
-                            "des" => "（药柜）取消【达达】跑腿订单"
+                            "des" => "（药柜）取消[达达]跑腿订单"
                         ]);
                         // 跑腿运力取消
                         OrderDelivery::cancel_log($order->id, 5, '药柜');

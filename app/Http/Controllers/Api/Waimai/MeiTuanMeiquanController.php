@@ -632,7 +632,7 @@ class MeiTuanMeiquanController extends Controller
                                     \Log::info("[外卖-美团服务商接口取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户");
                                     OrderLog::create([
                                         "order_id" => $order->id,
-                                        "des" => "（美团）取消【达达】跑腿订单"
+                                        "des" => "（美团）取消[达达]跑腿订单"
                                     ]);
                                 });
                             } catch (\Exception $e) {
@@ -895,7 +895,7 @@ class MeiTuanMeiquanController extends Controller
                         $order->save();
                         OrderLog::create([
                             "order_id" => $order->id,
-                            "des" => "（美团）取消【达达】跑腿订单"
+                            "des" => "（美团）取消[达达]跑腿订单"
                         ]);
                     }
                 }

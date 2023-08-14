@@ -940,7 +940,7 @@ class EleOrderController extends Controller
                         $order->save();
                         OrderLog::create([
                             "order_id" => $order->id,
-                            "des" => "（饿了么）取消【达达】跑腿订单"
+                            "des" => "（饿了么）取消[达达]跑腿订单"
                         ]);
                     } else {
                         $this->ding_error("取消达达订单失败");
