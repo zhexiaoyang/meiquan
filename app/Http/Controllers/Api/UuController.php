@@ -369,7 +369,7 @@ class UuController extends Controller
                     OrderLog::create([
                         'ps' => 5,
                         'order_id' => $order->id,
-                        'des' => '取消【达达】跑腿订单',
+                        'des' => '取消[达达]跑腿订单',
                     ]);
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 5, 'UU回调');

@@ -198,11 +198,11 @@ class DaDaController extends Controller
                 return json_encode($res);
             }
 
-            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是【达达】发起取消
+            // 如果状态不是 0 ，并且订单已经有配送平台了，配送平台不是[达达]发起取消
             if (($order->status > 30) && ($order->status < 70) && ($order->ps !== 5) && ($status != 5)) {
-                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始');
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是[达达]发起取消-开始');
                 // $logs = [
-                //     "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-开始",
+                //     "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是[达达]发起取消-开始",
                 //     "id" => $order->id,
                 //     "order_id" => $order->order_id
                 // ];
@@ -210,9 +210,9 @@ class DaDaController extends Controller
                 $dd = app("dada");
                 $result = $dd->orderCancel($order->order_id);
                 if ( ($result['code'] != 0) && (strstr($result['msg'], '已取消') === false) ) {
-                    Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-失败');
+                    Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是[达达]发起取消-失败');
                     // $logs = [
-                    //     "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-失败",
+                    //     "des" => "【达达订单回调】订单状态不是0，并且订单已经有配送平台了，配送平台不是[达达]发起取消-失败",
                     //     "id" => $order->id,
                     //     "order_id" => $order->order_id
                     // ];
@@ -223,11 +223,11 @@ class DaDaController extends Controller
                 OrderLog::create([
                     'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "取消【达达】跑腿订单",
+                    "des" => "取消[达达]跑腿订单",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
-                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是【达达】发起取消-成功');
+                Log::info($log_prefix . '订单状态不是0，并且订单已经有配送平台了，配送平台不是[达达]发起取消-成功');
                 return json_encode($res);
             }
 
@@ -306,7 +306,7 @@ class DaDaController extends Controller
                     //     "id" => $order->id,
                     //     "order_id" => $order->order_id
                     // ];
-                    // $dingding->sendMarkdownMsgArray("【ERROR】【达达】不能操作接单", $logs);
+                    // $dingding->sendMarkdownMsgArray("【ERROR】[达达]不能操作接单", $logs);
                     return json_encode($res);
                 }
                 // 设置锁，防止其他平台接单
@@ -559,7 +559,7 @@ class DaDaController extends Controller
                         OrderLog::create([
                             'ps' => 5,
                             "order_id" => $order->id,
-                            "des" => "【达达】跑腿，待取货",
+                            "des" => "[达达]跑腿，待取货",
                             'name' => $name,
                             'phone' => $phone,
                         ]);
@@ -677,7 +677,7 @@ class DaDaController extends Controller
                 OrderLog::create([
                     'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "【达达】跑腿，配送中",
+                    "des" => "[达达]跑腿，配送中",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
@@ -737,7 +737,7 @@ class DaDaController extends Controller
                 OrderLog::create([
                     'ps' => 5,
                     "order_id" => $order->id,
-                    "des" => "【达达】跑腿，已送达",
+                    "des" => "[达达]跑腿，已送达",
                     'name' => $name,
                     'phone' => $phone,
                 ]);
@@ -793,7 +793,7 @@ class DaDaController extends Controller
                             OrderLog::create([
                                 'ps' => 5,
                                 'order_id' => $order->id,
-                                'des' => '【达达】跑腿，发起取消配送',
+                                'des' => '[达达]跑腿，发起取消配送',
                             ]);
                             if (in_array(in_array($order->zb_status, [0,1,3,7,80,99]) && $order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
                                 if ($cancel_from === 1 || $cancel_from === 3) {
