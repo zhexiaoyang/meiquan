@@ -207,8 +207,11 @@ class SyncStockWanXiangToMiddle extends Command
                     $price = $v->saleprice;
                     $cost = $v->cost;
                     $stock = $v->stock;
+                    if (!$name || !$upc) {
+                        continue;
+                    }
                     $this->info("门店「{$shop_name}}:{$name}|{$upc}|---开始");
-                    if (!Medicine::select('id')->where('shop_id', $mqid)->where('upc', $upc)) {
+                    if (!Medicine::select('id')->where('shop_id', $mqid)->where('upc', $upc)->first()) {
                         $this->info("门店「{$shop_name}}:」数药品不存在|{$name}|{$upc}");
                         if ($depot = MedicineDepot::where('upc', $upc)->first()) {
                             $depot_category_ids = \DB::table('wm_depot_medicine_category')->where('medicine_id', $depot->id)->get()->pluck('category_id');
