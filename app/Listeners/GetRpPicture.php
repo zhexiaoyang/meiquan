@@ -4,11 +4,13 @@ namespace App\Listeners;
 
 use App\Events\OrderCreate;
 use App\Models\WmOrder;
+use App\Traits\NoticeTool2;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 
 class GetRpPicture implements ShouldQueue
 {
+    use NoticeTool2;
     /**
      * Create the event listener.
      *
@@ -64,12 +66,20 @@ class GetRpPicture implements ShouldQueue
         if ($picture_url && $name) {
             $oss = app('oss');
             $dir = config('aliyun.rp_dir').date('Ym/d/');
-            $res = $oss->putObject(config('aliyun.bucket'), $dir.$name, file_get_contents($picture_url));
-            if (!empty($res['info'])) {
-                $url = 'https://img.meiquanda.com/' . $dir . $name;
-                WmOrder::where('id', $order->id)->update([
-                    'rp_picture' => $url
-                ]);
+            try {
+                $content = file_get_contents($picture_url);
+            } catch (\Exception $exception) {
+                \Log::info('处方获取图片内容出错', [$order->id, $order->order_id,$picture_url,$exception->getFile(),$exception->getLine(),$exception->getMessage()]);
+                $this->ding_error("处方获取图片内容出错|{$order->id}|{$order->order_id}|{$picture_url}");
+            }
+            if (isset($content)) {
+                $res = $oss->putObject(config('aliyun.bucket'), $dir.$name, $content);
+                if (!empty($res['info'])) {
+                    $url = 'https://img.meiquanda.com/' . $dir . $name;
+                    WmOrder::where('id', $order->id)->update([
+                        'rp_picture' => $url
+                    ]);
+                }
             }
         } else {
             // TODO2, 暂未获取到处方信息
