@@ -25,7 +25,8 @@ class PaymentController extends Controller
         $deposit = new Deposit([
             'pay_method' => 11,
             'type' => 1,
-            'amount' => $amount,
+            // 'amount' => $amount,
+            'amount' => 0.1,
         ]);
         $deposit->user()->associate($user);
         // 写入数据库
