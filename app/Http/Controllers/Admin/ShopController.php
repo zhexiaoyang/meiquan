@@ -430,12 +430,22 @@ class ShopController extends Controller
             $mk = app('minkang');
             $mk_shops = $mk->getShops($params);
             if (!empty($mk_shops['data'])) {
+                $mt_shop_name = $mk_shops[0]['name'] ?? '';
+                if ($mt_shop_name) {
+                    $shop->wm_shop_name = $mt_shop_name;
+                    $shop->mt_shop_name = $mt_shop_name;
+                }
                 $shop->waimai_mt = $mtwm;
                 $shop->meituan_bind_platform = 4;
             }
             $mq = app('meiquan');
             $mq_shops = $mq->getShops($params);
             if (!empty($mq_shops['data'])) {
+                $mt_shop_name = $mq_shops[0]['name'] ?? '';
+                if ($mt_shop_name) {
+                    $shop->wm_shop_name = $mt_shop_name;
+                    $shop->mt_shop_name = $mt_shop_name;
+                }
                 $shop->waimai_mt = $mtwm;
                 $shop->meituan_bind_platform = 31;
             }
@@ -454,6 +464,11 @@ class ShopController extends Controller
             $e = app('ele');
             $data = $e->shopInfo($ele);
             if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                $ele_shop_name = $data['body']['data']['name'] ?? '';
+                if (!$shop->wm_shop_name) {
+                    $shop->wm_shop_name = $ele_shop_name;
+                }
+                $shop->ele_shop_name = $ele_shop_name;
                 $shop->waimai_ele = $ele;
             }
         }

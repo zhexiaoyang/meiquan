@@ -861,6 +861,11 @@ class ShopController extends Controller
             $mk = app('minkang');
             $mk_shops = $mk->getShops($params);
             if (!$status && !empty($mk_shops['data'])) {
+                $mt_shop_name = $mk_shops[0]['name'] ?? '';
+                if ($mt_shop_name) {
+                    $shop->wm_shop_name = $mt_shop_name;
+                    $shop->mt_shop_name = $mt_shop_name;
+                }
                 $shop->waimai_mt = $mtwm;
                 $shop->meituan_bind_platform = 4;
                 $shop->save();
@@ -869,19 +874,24 @@ class ShopController extends Controller
             $mq = app('meiquan');
             $mq_shops = $mq->getShops($params);
             if (!$status && !empty($mq_shops['data'])) {
+                $mt_shop_name = $mq_shops[0]['name'] ?? '';
+                if ($mt_shop_name) {
+                    $shop->wm_shop_name = $mt_shop_name;
+                    $shop->mt_shop_name = $mt_shop_name;
+                }
                 $shop->waimai_mt = $mtwm;
                 $shop->meituan_bind_platform = 31;
                 $shop->save();
                 return $this->success();
             }
-            $qq = app('qinqu');
-            $qq_shops = $qq->getShops($params);
-            if (!$status && !empty($qq_shops['data'])) {
-                $shop->waimai_mt = $mtwm;
-                $shop->meituan_bind_platform = 5;
-                $shop->save();
-                return $this->success();
-            }
+            // $qq = app('qinqu');
+            // $qq_shops = $qq->getShops($params);
+            // if (!$status && !empty($qq_shops['data'])) {
+            //     $shop->waimai_mt = $mtwm;
+            //     $shop->meituan_bind_platform = 5;
+            //     $shop->save();
+            //     return $this->success();
+            // }
             return $this->error('该门店没有授权,请参考说明授权');
         }
 
@@ -892,6 +902,11 @@ class ShopController extends Controller
             $e = app('ele');
             $data = $e->shopInfo($ele);
             if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                $ele_shop_name = $data['body']['data']['name'] ?? '';
+                if (!$shop->wm_shop_name) {
+                    $shop->wm_shop_name = $ele_shop_name;
+                }
+                $shop->ele_shop_name = $ele_shop_name;
                 $shop->waimai_ele = $ele;
                 $shop->save();
                 return $this->success();
