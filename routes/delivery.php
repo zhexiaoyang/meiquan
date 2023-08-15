@@ -45,11 +45,25 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         });
         // 数据分析
         Route::prefix('analysis')->group(function () {
+            // 概况
             Route::get("business", "AnalysisController@business");
+            // 折线图
             Route::get("history", "AnalysisController@history");
+            // 门店
             Route::get("shop", "AnalysisController@shop");
+            // 运力
             Route::get("delivery", "AnalysisController@delivery");
+            // 渠道
             Route::get("channel", "AnalysisController@channel");
+        });
+        // 数据分析
+        Route::prefix('medicine')->group(function () {
+            // 门店列表
+            Route::get("shops", "MedicineController@shops");
+            // 药品列表
+            Route::get("index", "MedicineController@index");
+            // 药品列表-统计
+            Route::get("statistics", "MedicineController@statistics");
         });
     });
 });
