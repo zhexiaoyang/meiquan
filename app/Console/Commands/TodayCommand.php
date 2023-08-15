@@ -51,10 +51,10 @@ class TodayCommand extends Command
                 if ($shop->waimai_mt && !$shop->mt_shop_name) {
                     if ($shop->meituan_bind_platform == 4) {
                         $mt_res = $minkang->getShops(['app_poi_codes' => $shop->waimai_mt]);
-                        $mt_shop_name = $mk_shops[0]['name'] ?? '';
+                        $mt_shop_name = $mt_res[0]['name'] ?? '';
                     } elseif ($shop->meituan_bind_platform == 31) {
                         $mt_res = $meiquan->getShops(['app_poi_codes' => $shop->waimai_mt]);
-                        $mt_shop_name = $mk_shops[0]['name'] ?? '';
+                        $mt_shop_name = $mt_res[0]['name'] ?? '';
                     } elseif ($shop->meituan_bind_platform == 25) {
                         $mt_res = $cabyin->ng_shop_info($shop->id);
                         $mt_shop_name = $mt_res['data']['name'] ?? '';
