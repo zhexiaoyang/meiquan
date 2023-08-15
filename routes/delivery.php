@@ -64,8 +64,10 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("index", "MedicineController@index");
             // 药品列表-统计
             Route::get("statistics", "MedicineController@statistics");
-            // 更新药品
-            Route::post("update", "MedicineController@update");
+            // 更新药品-价格
+            Route::post("update_price", "MedicineController@update_price");
+            // 更新药品-库存
+            Route::post("update_stock", "MedicineController@update_stock");
         });
     });
 });

@@ -59,7 +59,7 @@ class MedicineController extends Controller
             [ 'user_id' => $user->id, 'shop_id' => $shop_id ]
         );
 
-        $query = Medicine::select('id','shop_id','name','cover','price','down_price','guidance_price','spec','stock',
+        $query = Medicine::select('id','shop_id','name','upc','cover','price','down_price','guidance_price','spec','stock',
             'mt_status','ele_status','online_mt','online_ele','mt_error','ele_error')
             ->where('shop_id', $shop_id);
         if ($search_key = $request->get('search_key')) {
@@ -136,7 +136,7 @@ class MedicineController extends Controller
         return $this->success($result);
     }
 
-    public function update(Request $request)
+    public function update_price(Request $request)
     {
         if (!$id = $request->get('id')) {
             return $this->error('药品ID不能为空');
@@ -166,7 +166,7 @@ class MedicineController extends Controller
         $medicine->update($update_data);
         // 更新线上价格
         if ($online_update && $price > 0) {
-            $shop = Shop::find($medicine->shop_id);
+            $shop = null;
             if ($medicine->mt_status == 1 && $price > 0) {
                 $shop = Shop::find($medicine->shop_id);
                 $meituan = null;
@@ -198,11 +198,217 @@ class MedicineController extends Controller
                 $params = [
                     'shop_id' => $shop->waimai_ele,
                     'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
-                    'sale_price' => (int) ($medicine->price * 100),
+                    'sale_price' => (int) ($price * 100),
                     // 'left_num' => $medicine->stock,
                 ];
                 $ele->skuUpdate($params);
             }
+        }
+
+        return $this->success();
+    }
+
+    public function update_online_status(Request $request)
+    {
+        // 美团和饿了么全是上架状态，执行下架。有一个是下架状态，都执行上架操作
+
+        if (!$id = $request->get('id')) {
+            return $this->error('药品ID不能为空');
+        }
+        if (!$medicine = Medicine::find($id)) {
+            return $this->error('药品不存在');
+        }
+        $user = $request->user();
+        if (!in_array($medicine->shop_id, $user->shops()->pluck('id')->toArray())) {
+            return $this->error('药品不存在!');
+        }
+
+        // 更新数组
+        $update_data = [];
+        $update_status_mt = false;
+        $update_status_ele = false;
+        if ($medicine->online_mt && $medicine->online_ele) {
+            $update_status_mt = true;
+            $update_status_ele = true;
+            $update_data = [
+                'online_mt' => 0,
+                'online_ele' => 0,
+            ];
+        } else {
+            if (!$medicine->online_mt) {
+                $update_status_mt = true;
+                $update_data['online_mt'] = 1;
+            }
+            if (!$medicine->online_ele) {
+                $update_status_ele = true;
+                $update_data['online_ele'] = 1;
+            }
+        }
+        if (empty($update_data)) {
+            return $this->success();
+        }
+        $medicine->update($update_data);
+        // 更新上下架
+        $shop = null;
+        if ($update_status_mt && $medicine->mt_status == 1) {
+            $shop = Shop::find($medicine->shop_id);
+            $meituan = null;
+            if ($shop->meituan_bind_platform === 4) {
+                $meituan = app('minkang');
+            } elseif ($shop->meituan_bind_platform === 31) {
+                $meituan = app('meiquan');
+            }
+            if ($meituan !== null) {
+                $params = [
+                    'app_poi_code' => $shop->waimai_mt,
+                    'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
+                    'is_sold_out' => $update_data['online_mt'] == 1 ? 0 : 1
+                ];
+                if ($shop->meituan_bind_platform == 31) {
+                    $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+                }
+                $meituan->medicineUpdate($params);
+            }
+        }
+        if ($update_status_ele && $medicine->ele_status == 1) {
+            if (!$shop) {
+                $shop = Shop::find($medicine->shop_id);
+            }
+            $ele = app('ele');
+            $params = [
+                'shop_id' => $shop->waimai_ele,
+                'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
+                'status' => $update_data['online_ele'],
+                // 'sale_price' => (int) ($medicine->price * 100),
+                // 'left_num' => $medicine->stock,
+            ];
+            $ele->skuUpdate($params);
+        }
+
+        return $this->success();
+    }
+
+    public function update_stock(Request $request)
+    {
+        if (!$id = $request->get('id')) {
+            return $this->error('药品ID不能为空');
+        }
+        if (!$stock = (int) $request->get('stock')) {
+            return $this->error('库存不能为空');
+        }
+        if ($stock <= 0) {
+            return $this->error('库存不能小于等于0');
+        }
+        if (!$medicine = Medicine::find($id)) {
+            return $this->error('药品不存在');
+        }
+        $user = $request->user();
+        if (!in_array($medicine->shop_id, $user->shops()->pluck('id')->toArray())) {
+            return $this->error('药品不存在!');
+        }
+        $update_data = [
+            'stock' => $stock,
+        ];
+        $medicine->update($update_data);
+        // 更新线上价格
+        $shop = null;
+        if ($medicine->mt_status == 1) {
+            $shop = Shop::find($medicine->shop_id);
+            $meituan = null;
+            if ($shop->meituan_bind_platform === 4) {
+                $meituan = app('minkang');
+            } elseif ($shop->meituan_bind_platform === 31) {
+                $meituan = app('meiquan');
+            }
+            if ($meituan !== null) {
+                $params = [
+                    'app_poi_code' => $shop->waimai_mt,
+                    'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
+                    'stock' => $stock,
+                ];
+                if ($shop->meituan_bind_platform == 31) {
+                    $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+                }
+                $meituan->medicineUpdate($params);
+                // $res = $meituan->medicineUpdate($params);
+                // \Log::info('aaa美团', [$res]);
+            }
+        }
+        if ($medicine->ele_status == 1) {
+            if (!$shop) {
+                $shop = Shop::find($medicine->shop_id);
+            }
+            $ele = app('ele');
+            $params = [
+                'shop_id' => $shop->waimai_ele,
+                'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
+                // 'sale_price' => (int) ($medicine->price * 100),
+                'left_num' => $stock,
+            ];
+            $ele->skuUpdate($params);
+        }
+
+        return $this->success();
+    }
+
+    public function update_sync(Request $request)
+    {
+        if (!$id = $request->get('id')) {
+            return $this->error('药品ID不能为空');
+        }
+        if (!$stock = (int) $request->get('stock')) {
+            return $this->error('库存不能为空');
+        }
+        if ($stock <= 0) {
+            return $this->error('库存不能小于等于0');
+        }
+        if (!$medicine = Medicine::find($id)) {
+            return $this->error('药品不存在');
+        }
+        $user = $request->user();
+        if (!in_array($medicine->shop_id, $user->shops()->pluck('id')->toArray())) {
+            return $this->error('药品不存在!');
+        }
+        $update_data = [
+            'stock' => $stock,
+        ];
+        $medicine->update($update_data);
+        // 更新线上价格
+        $shop = null;
+        if ($medicine->mt_status == 1) {
+            $shop = Shop::find($medicine->shop_id);
+            $meituan = null;
+            if ($shop->meituan_bind_platform === 4) {
+                $meituan = app('minkang');
+            } elseif ($shop->meituan_bind_platform === 31) {
+                $meituan = app('meiquan');
+            }
+            if ($meituan !== null) {
+                $params = [
+                    'app_poi_code' => $shop->waimai_mt,
+                    'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
+                    'stock' => $stock,
+                ];
+                if ($shop->meituan_bind_platform == 31) {
+                    $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+                }
+                $meituan->medicineUpdate($params);
+                // $res = $meituan->medicineUpdate($params);
+                // \Log::info('aaa美团', [$res]);
+            }
+        }
+        if ($medicine->ele_status == 1) {
+            if (!$shop) {
+                $shop = Shop::find($medicine->shop_id);
+            }
+            $ele = app('ele');
+            $params = [
+                'shop_id' => $shop->waimai_ele,
+                'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
+                // 'sale_price' => (int) ($medicine->price * 100),
+                'left_num' => $stock,
+            ];
+            $ele->skuUpdate($params);
         }
 
         return $this->success();
