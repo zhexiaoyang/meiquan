@@ -13,7 +13,7 @@ class MedicineController extends Controller
     public function shops(Request $request)
     {
         $user = $request->user();
-        $shops = Shop::select('id', 'shop_name')->where('second_category', 200001)->where('user_id', $user->id)->get();
+        $shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('second_category', 200001)->where('user_id', $user->id)->get();
         // 选择门店ID
         $select_shop_id = 0;
         if ($select_shops = MedicineSelectShop::where('user_id', $request->user()->id)->first()) {
@@ -32,6 +32,11 @@ class MedicineController extends Controller
                 foreach ($shops as $k => $shop) {
                     $shop->checked = $k == 0 ? 1 : 0;
                 }
+            }
+        }
+        foreach ($shops as $shop) {
+            if (!$shop->wm_shop_name) {
+                $shop->wm_shop_name = $shop->shop_name;
             }
         }
         return $this->success($shops);
@@ -159,8 +164,47 @@ class MedicineController extends Controller
             'guidance_price' => $guidance_price,
         ];
         $medicine->update($update_data);
+        // 更新线上价格
         if ($online_update && $price > 0) {
             $shop = Shop::find($medicine->shop_id);
+            if ($medicine->mt_status == 1 && $price > 0) {
+                $shop = Shop::find($medicine->shop_id);
+                $meituan = null;
+                if ($shop->meituan_bind_platform === 4) {
+                    $meituan = app('minkang');
+                } elseif ($shop->meituan_bind_platform === 31) {
+                    $meituan = app('meiquan');
+                }
+                if ($meituan !== null) {
+                    $params = [
+                        'app_poi_code' => $shop->waimai_mt,
+                        'app_medicine_code' => $medicine->store_id ?: $medicine->upc,
+                        'price' => $price,
+                        // 'stock' => $stock,
+                    ];
+                    if ($shop->meituan_bind_platform == 31) {
+                        $params['access_token'] = $meituan->getShopToken($shop->waimai_mt);
+                    }
+                    $meituan->medicineUpdate($params);
+                    // $res = $meituan->medicineUpdate($params);
+                    // \Log::info('aaa美团', [$res]);
+                }
+            }
+            if ($medicine->ele_status == 1 && $price > 0) {
+                if (!$shop) {
+                    $shop = Shop::find($medicine->shop_id);
+                }
+                $ele = app('ele');
+                $params = [
+                    'shop_id' => $shop->waimai_ele,
+                    'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
+                    'sale_price' => (int) ($medicine->price * 100),
+                    // 'left_num' => $medicine->stock,
+                ];
+                $ele->skuUpdate($params);
+            }
         }
+
+        return $this->success();
     }
 }
