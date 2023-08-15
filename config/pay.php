@@ -5,8 +5,10 @@ return [
         // 支付宝分配的 APPID
         'app_id' => env('ALI_APP_ID', ''),
 
-        // 支付宝异步通知地址
+        // 支付宝异步通知地址-中台
         'notify_url' => env('ALI_NOTIFY_URL', ''),
+        // 支付宝异步通知地址-中台
+        'app_notify_url' => env('ALI_APP_NOTIFY_URL', ''),
 
         // 支付成功后同步通知地址
         'return_url' => '',

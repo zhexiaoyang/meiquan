@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
  * 订单接口
  */
 Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->group(function() {
+    // 支付宝APP支付回调
+    Route::post("pay/notify/alipay", "PaymentController@alipay_notify");
     // 需要登录
     Route::middleware("multiauth:api")->group(function () {
         // 订单
@@ -41,7 +43,11 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         });
         // 门店
         Route::prefix('shop')->group(function () {
+            // 顶部门店列表
             Route::get("index", "ShopController@index");
+            Route::get("category", "ShopController@category");
+            // 线上店铺
+            Route::get("takeout", "ShopController@takeout");
         });
         // 数据分析
         Route::prefix('analysis')->group(function () {
@@ -70,6 +76,10 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("update_stock", "MedicineController@update_stock");
             // 更新药品-同步
             Route::post("update_sync", "MedicineController@update_sync");
+        });
+        // 数据分析
+        Route::prefix('pay')->group(function () {
+            Route::post("alipay", "PaymentController@app_alipay");
         });
     });
 });
