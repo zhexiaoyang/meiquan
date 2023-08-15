@@ -19,6 +19,7 @@ class ShopBindController
         $info = json_decode(urldecode($request->get('poi_info')), true);
         $type = $request->get('op_type');
         $mt_shop_id = $info['appPoiCode'];
+        $mt_shop_name = $info['poiName'];
         if (!empty($request->all())) {
             $this->log_info('全部参数', $request->all());
         }
@@ -38,6 +39,8 @@ class ShopBindController
                         return json_encode(['data' => 'ok']);
                     } else {
                         $shop->waimai_mt = $mt_shop_id;
+                        $shop->wm_shop_nam = $mt_shop_name;
+                        $shop->mt_shop_nam = $mt_shop_name;
                         $shop->meituan_bind_platform = 4;
                         $shop->bind_date = date("Y-m-d H:i:s");
                         $shop->save();

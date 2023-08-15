@@ -146,6 +146,7 @@ class EleOrderController extends Controller
         $this->prefix = str_replace('###', "门店绑定", $this->prefix_title);
         foreach ($shops as $shop) {
             $ele_id = $shop['shop_id'];
+            $shop_name = $shop['name'];
             // 查询门店个数
             $shops = Shop::where("ele", $ele_id)->get();
             if ($shop = $shops->first()) {
@@ -159,6 +160,10 @@ class EleOrderController extends Controller
                     return $this->res("order.status.success");
                 } else {
                     $shop->waimai_ele = $ele_id;
+                    $shop->ele_shop_name = $shop_name;
+                    if (!$shop->wm_shop_name) {
+                        $shop->wm_shop_name = $shop_name;
+                    }
                     $shop->bind_ele_date = date("Y-m-d H:i:s");
                     $shop->save();
                     $this->log_info("饿了么绑定门店|门店ID:{$shop->id}|饿了么门店ID:{$ele_id}，绑定成功");
