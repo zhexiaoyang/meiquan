@@ -378,7 +378,11 @@ class Api extends Request
 
     public function poiOffline($shop_id)
     {
-        return $this->request_post('v1/poi/offline', ['app_poi_code' => $shop_id]);
+        $params = ['app_poi_code' => $shop_id];
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($shop_id);
+        }
+        return $this->request_post('v1/poi/offline', $params);
     }
 
     public function poiOnline($shop_id)
