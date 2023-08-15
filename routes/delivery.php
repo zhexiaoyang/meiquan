@@ -68,6 +68,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("update_price", "MedicineController@update_price");
             // 更新药品-库存
             Route::post("update_stock", "MedicineController@update_stock");
+            Route::post("update_sync", "MedicineController@update_sync");
         });
     });
 });
