@@ -16,16 +16,22 @@ class ShopController extends Controller
         $user = $request->user();
         if ($user->account_shop_id) {
             $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address',
-                'contact_name','contact_phone')->where('id', $user->account_shop_id)->get();
+                'contact_name','contact_phone','second_category as category')->where('id', $user->account_shop_id)->get();
         } else {
             $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address',
-                'contact_name','contact_phone')->where('user_id', $user->id)->get();
+                'contact_name','contact_phone','second_category as category')->where('user_id', $user->id)->get();
         }
 
         if (!empty($shops)) {
             // 默认选择门店ID
             $select_id = 0;
             foreach ($shops as $shop) {
+                if (isset(config('ps.shop_category_map')[$shop->category])) {
+                    $shop->category_text = config('ps.shop_category_map')[$shop->category];
+                } else {
+                    $shop->category = 210001;
+                    $shop->category_text = '其它';
+                }
                 if (!$shop->wm_shop_name) {
                     $shop->wm_shop_name = $shop->shop_name;
                 }
@@ -89,7 +95,13 @@ class ShopController extends Controller
                 if (!$shop->wm_shop_name) {
                     $shop->wm_shop_name = $shop->shop_name;
                 }
-                $shop->category_text = config('ps.shop_category_map')[$shop->category] ?? '其它';
+                // $shop->category_text = config('ps.shop_category_map')[$shop->category] ?? '其它';
+                if (isset(config('ps.shop_category_map')[$shop->category])) {
+                    $shop->category_text = config('ps.shop_category_map')[$shop->category];
+                } else {
+                    $shop->category = 210001;
+                    $shop->category_text = '其它';
+                }
                 if ($type == 1 || $type == 2) {
                     if ($shop->bind_type == 4) {
                         $shop->type = 1;
@@ -258,5 +270,10 @@ class ShopController extends Controller
             ];
         }
         return $this->success($result);
+    }
+
+    public function store(Request $request)
+    {
+        return $this->success();
     }
 }
