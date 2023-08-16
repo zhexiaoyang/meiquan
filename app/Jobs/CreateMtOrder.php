@@ -255,7 +255,7 @@ class CreateMtOrder implements ShouldQueue
         } elseif ($order->platform != 1) {
             $this->log("不是美团订单，停止「美团众包」派单");
         } elseif (!$zb_switch) {
-            $order->fail_sf = "门店关闭美团众包";
+            $order->fail_zb = "门店关闭美团众包";
             $this->log("门店关闭「美团众包」跑腿，停止「美团众包」派单");
         } elseif ($order->shop_id != $shop->id) {
             $this->log("转仓库订单，停止「美团众包」派单");
