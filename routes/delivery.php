@@ -10,6 +10,11 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
     Route::post("pay/notify/alipay", "PaymentController@alipay_notify");
     // 需要登录
     Route::middleware("multiauth:api")->group(function () {
+
+        Route::prefix('account')->group(function () {
+            Route::get("user", "AccountController@user_info");
+            Route::get("money_balance", "AccountController@money_balance");
+        });
         // 订单
         Route::prefix('order')->group(function () {
             // 订单数量统计
