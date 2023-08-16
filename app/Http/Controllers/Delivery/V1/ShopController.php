@@ -167,4 +167,45 @@ class ShopController extends Controller
         }
         return $this->success($shops);
     }
+
+    public function takeout_statistics(Request $request)
+    {
+        $sg = 0;
+        $wm = 0;
+        $ele = 0;
+        $user = $request->user();
+        $shops = Shop::select('waimai_mt', 'waimai_ele','meituan_bind_platform')->where('user_id', $user->id)->get();
+        if (!empty($shops)) {
+            foreach ($shops as $shop) {
+                if ($shop->waimai_mt) {
+                    if ($shop->meituan_bind_platform == 25) {
+                        $wm++;
+                    } else {
+                        $sg++;
+                    }
+                }
+                if ($shop->waimai_ele) {
+                    $ele++;
+                }
+            }
+        }
+        $result = [
+            [
+                'type' => 1,
+                'name' => '美团闪购',
+                'count' => $sg
+            ],
+            [
+                'type' => 2,
+                'name' => '美团外卖',
+                'count' => $wm
+            ],
+            [
+                'type' => 5,
+                'name' => '饿了么',
+                'count' => $ele
+            ],
+        ];
+        return $this->success($result);
+    }
 }

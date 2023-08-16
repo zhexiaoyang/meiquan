@@ -54,6 +54,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("category", "ShopController@category");
             // 线上店铺
             Route::get("takeout", "ShopController@takeout");
+            // 线上店铺-统计
+            Route::get("takeout_statistics", "ShopController@takeout_statistics");
         });
         // 数据分析
         Route::prefix('analysis')->group(function () {
