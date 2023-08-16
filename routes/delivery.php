@@ -12,9 +12,13 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
     Route::middleware("multiauth:api")->group(function () {
 
         Route::prefix('account')->group(function () {
+            // 用户信息
             Route::get("user", "AccountController@user_info");
+            // 余额记录
             Route::get("money_balance", "AccountController@money_balance");
+            // 余额充值-获取支付订单
             Route::post("pay", "PaymentController@pay");
+            // 支付方式
             Route::get("pay_method", "PaymentController@pay_method");
         });
         // 订单
@@ -52,6 +56,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('shop')->group(function () {
             // 顶部门店列表
             Route::get("index", "ShopController@index");
+            // 门店分类
             Route::get("category", "ShopController@category");
             // 线上店铺
             Route::get("takeout", "ShopController@takeout");
