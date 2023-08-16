@@ -15,6 +15,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("user", "AccountController@user_info");
             Route::get("money_balance", "AccountController@money_balance");
             Route::post("pay", "PaymentController@pay");
+            Route::get("pay_method", "PaymentController@pay_method");
         });
         // 订单
         Route::prefix('order')->group(function () {

@@ -13,6 +13,23 @@ use Yansongda\Pay\Pay;
 
 class PaymentController extends Controller
 {
+    /**
+     * 支付方式
+     * @data 2023/8/16 9:51 上午
+     */
+    public function pay_method()
+    {
+        $result = [
+            ['method' => 1, 'text' => '支付宝', 'checked' => 1],
+            ['method' => 2, 'text' => '微信', 'checked' => 0],
+        ];
+        return $this->success($result);
+    }
+
+    /**
+     * 获取支付-订单信息
+     * @data 2023/8/16 9:52 上午
+     */
     public function pay(Request $request)
     {
         $user  = $request->user();
@@ -52,6 +69,10 @@ class PaymentController extends Controller
         return $this->success(['order_info' => $order_info]);
     }
 
+    /**
+     * 支付宝-支付回调
+     * @data 2023/8/16 9:52 上午
+     */
     public function alipay_notify(Request $request)
     {
         \Log::info("支付宝支付回调全部参数", $request->all());

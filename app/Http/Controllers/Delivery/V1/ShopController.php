@@ -168,6 +168,10 @@ class ShopController extends Controller
         return $this->success($shops);
     }
 
+    /**
+     * 线上店铺-统计
+     * @data 2023/8/16 9:46 上午
+     */
     public function takeout_statistics(Request $request)
     {
         $sg = 0;
