@@ -274,6 +274,136 @@ class ShopController extends Controller
 
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required|string|max:25|min:4',
+            'user_name' => 'required|string|max:15|min:2',
+            'user_phone' => 'required|digits:11',
+            'address' => 'required|string|max:100|min:4',
+            'address_detail' => 'required|string|max:100|min:4',
+            'category' => 'required|string|size:6',
+            'longitude' => 'required',
+            'latitude' => 'required',
+        ],[
+            'name.required' => '门店名称不能为空',
+            'name.max' => '门店名称不能大于25个字',
+            'name.min' => '门店名称不能小于4个字',
+            'user_name.required' => '联系人不能为空',
+            'user_name.max' => '联系人不能大于15个字',
+            'user_name.min' => '联系人不能小于2个字',
+            'user_phone.required' => '联系电话不能为空',
+            'user_phone.digits' => '联系电话格式错误',
+            'address.required' => '门店地址不能为空',
+            'address.max' => '门店地址不能大于100个字',
+            'address.min' => '门店地址不能小于4个字',
+            'address_detail.required' => '门店详细地址不能为空',
+            'address_detail.max' => '门店详细地址不能大于100个字',
+            'address_detail.min' => '门店详细地址不能小于4个字',
+            'category.required' => '分类不能为空',
+            'category.size' => '分类错误',
+            'longitude.required' => '经度不能为空',
+            'latitude.required' => '纬度不能为空',
+        ]);
+        $longitude = $request->get('longitude');
+        $latitude = $request->get('latitude');
+        $user = $request->user();
+        $data = [
+            'user_id' => $user->id,
+            'own_id' => $user->id,
+            'shop_name' => $request->get('name'),
+            'category' => substr($request->get('category'), 0, 3),
+            'second_category' => $request->get('category'),
+            'contact_name' => $request->get('user_name'),
+            'contact_phone' => $request->get('user_phone'),
+            'shop_address' => $request->get('address_detail') . ',' . $request->get('address'),
+            'shop_lng' => $longitude,
+            'shop_lat' => $latitude,
+            'status' => 40,
+        ];
+        $url="http://restapi.amap.com/v3/geocode/regeo?output=json&location=".$longitude.",".$latitude."&key=".config('ps.amap.AMAP_APP_KEY1');
+        if($result=file_get_contents($url)) {
+            $result = json_decode($result, true);
+            if (!empty($result['status']) && $result['status'] == 1) {
+                $data['province'] = $result['regeocode']['addressComponent']['province'] ?? '';
+                $data['district'] = $result['regeocode']['addressComponent']['district'] ?? '';
+                $data['city'] = $result['regeocode']['addressComponent']['city'] ?: $result['regeocode']['addressComponent']['province'];
+                $city_code = $result['regeocode']['addressComponent']['citycode'] ?? '';
+                if ($city_code == '1433') {
+                    $city_code = '0433';
+                }
+                if ($city_code == '1558') {
+                    $city_code = '0558';
+                }
+                $data['citycode'] = $city_code;
+                $data['area'] = $result['regeocode']['addressComponent']['district'] ?: '';
+            }
+        }
+        // return $data;
+        $shop = Shop::create($data);
+        $user->shops()->attach($shop->id);
+        return $this->success(['id' => $shop->id]);
+    }
+
+    public function update(Request $request)
+    {
+        if (!$id = (int) $request->get('id')) {
+            return $this->error('门店ID错误');
+        }
+        $where = [['id', '=', $id],['user_id', '=', $request->user()->id]];
+        if (!$shop = Shop::where($where)->first()) {
+            return $this->error('门店不存在');
+        }
+
+        $request->validate([
+            'name' => 'required|string|max:25|min:4',
+            'user_name' => 'required|string|max:15|min:2',
+            'user_phone' => 'required|digits:11',
+            'address' => 'required|string|max:100|min:4',
+            'address_detail' => 'required|string|max:100|min:4',
+            'category' => 'required|string|size:6',
+            'longitude' => 'required',
+            'latitude' => 'required',
+        ],[
+            'name.required' => '门店名称不能为空',
+            'name.max' => '门店名称不能大于25个字',
+            'name.min' => '门店名称不能小于4个字',
+            'user_name.required' => '联系人不能为空',
+            'user_name.max' => '联系人不能大于15个字',
+            'user_name.min' => '联系人不能小于2个字',
+            'user_phone.required' => '联系电话不能为空',
+            'user_phone.digits' => '联系电话格式错误',
+            'address.required' => '门店地址不能为空',
+            'address.max' => '门店地址不能大于100个字',
+            'address.min' => '门店地址不能小于4个字',
+            'address_detail.required' => '门店详细地址不能为空',
+            'address_detail.max' => '门店详细地址不能大于100个字',
+            'address_detail.min' => '门店详细地址不能小于4个字',
+            'category.required' => '分类不能为空',
+            'category.size' => '分类错误',
+            'longitude.required' => '经度不能为空',
+            'latitude.required' => '纬度不能为空',
+        ]);
+        $longitude = $request->get('longitude');
+        $latitude = $request->get('latitude');
+        $user = $request->user();
+        $data = [
+            'user_id' => $user->id,
+            'own_id' => $user->id,
+            'shop_name' => $request->get('name'),
+            'category' => substr($request->get('category'), 0, 3),
+            'second_category' => $request->get('category'),
+            'contact_name' => $request->get('user_name'),
+            'contact_phone' => $request->get('user_phone'),
+            // 'shop_address' => $request->get('address_detail') . ',' . $request->get('address'),
+            // 'shop_lng' => $longitude,
+            // 'shop_lat' => $latitude,
+            'status' => 40,
+        ];
+        if ($latitude != $shop->shop_lat && $longitude != $shop->shop_lng && $shop->shop_name != $request->get('address')) {
+            $data['shop_lng'] = $longitude;
+            $data['shop_lat'] = $latitude;
+            $data['shop_address'] = $request->get('address_detail') . ',' . $request->get('address');
+        }
+        Shop::where('id', $shop->id)->update($data);
         return $this->success();
     }
 }

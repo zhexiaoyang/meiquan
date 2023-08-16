@@ -64,6 +64,10 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("takeout_statistics", "ShopController@takeout_statistics");
             // 绑定门店
             Route::get("bind_shop", "ShopController@bind_shop");
+            // 创建门店
+            Route::post("create", "ShopController@store");
+            // 更新门店
+            Route::post("update", "ShopController@update");
         });
         // 数据分析
         Route::prefix('analysis')->group(function () {
