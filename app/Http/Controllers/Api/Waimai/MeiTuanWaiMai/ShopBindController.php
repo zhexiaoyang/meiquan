@@ -39,8 +39,8 @@ class ShopBindController
                         return json_encode(['data' => 'ok']);
                     } else {
                         $shop->waimai_mt = $mt_shop_id;
-                        $shop->wm_shop_nam = $mt_shop_name;
-                        $shop->mt_shop_nam = $mt_shop_name;
+                        $shop->wm_shop_name = $mt_shop_name;
+                        $shop->mt_shop_name = $mt_shop_name;
                         $shop->meituan_bind_platform = 4;
                         $shop->bind_date = date("Y-m-d H:i:s");
                         $shop->save();

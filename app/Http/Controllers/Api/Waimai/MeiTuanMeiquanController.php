@@ -84,8 +84,8 @@ class MeiTuanMeiquanController extends Controller
                     } else {
                         $shop->waimai_mt = $shop_id;
                         $shop->meituan_bind_platform = 31;
-                        $shop->wm_shop_nam = $mt_shop_name;
-                        $shop->mt_shop_nam = $mt_shop_name;
+                        $shop->wm_shop_name = $mt_shop_name;
+                        $shop->mt_shop_name = $mt_shop_name;
                         $shop->bind_date = date("Y-m-d H:i:s");
                         $shop->save();
                         $this->log_info("绑定成功");
