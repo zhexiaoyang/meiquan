@@ -6,6 +6,7 @@ use App\Libraries\DingTalk\DingTalkRobotNotice;
 use Exception;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
 use Laravel\Passport\Exceptions\OAuthServerException;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 
@@ -20,7 +21,8 @@ class Handler extends ExceptionHandler
         NoPermissionException::class,
         InvalidRequestException::class,
         OAuthServerException::class,
-        AuthenticationException::class
+        AuthenticationException::class,
+        ValidationException::class,
     ];
 
     /**
