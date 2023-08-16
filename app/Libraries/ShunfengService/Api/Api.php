@@ -201,13 +201,13 @@ class Api extends Request
         return $this->post('/open/api/external/riderlatestposition', $data);
     }
 
-    public function h5()
+    public function h5($order_id, $shop_id)
     {
         $data = [
-            'order_id' => '16026532192333',
-            'order_type' => 2,
-            "shop_id" => "test_001",
-            "shop_type" => 2,
+            'order_id' => $order_id,
+            'order_type' => 1,
+            "shop_id" => $shop_id,
+            "shop_type" => 1,
         ];
         return $this->post('/open/api/external/riderviewv2', $data);
     }
