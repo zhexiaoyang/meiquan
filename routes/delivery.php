@@ -14,6 +14,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('account')->group(function () {
             Route::get("user", "AccountController@user_info");
             Route::get("money_balance", "AccountController@money_balance");
+            Route::post("pay", "PaymentController@pay");
         });
         // 订单
         Route::prefix('order')->group(function () {
@@ -81,10 +82,6 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("update_stock", "MedicineController@update_stock");
             // 更新药品-同步
             Route::post("update_sync", "MedicineController@update_sync");
-        });
-        // 数据分析
-        Route::prefix('pay')->group(function () {
-            Route::post("alipay", "PaymentController@app_alipay");
         });
     });
 });

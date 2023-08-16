@@ -13,10 +13,14 @@ use Yansongda\Pay\Pay;
 
 class PaymentController extends Controller
 {
-    public function app_alipay(Request $request)
+    public function pay(Request $request)
     {
         $user  = $request->user();
-        $amount = $request->get("amount", 0);
+        $amount = (int) $request->get("amount", 0);
+        $method = (int) $request->get("method", 0);
+        if (!in_array($method, [1,2])) {
+            return $this->error("支付方式不正确");
+        }
 
         if ($amount < 1) {
             return $this->error("金额不正确");
@@ -38,9 +42,13 @@ class PaymentController extends Controller
             'subject' => '美全跑腿费充值',
         ];
 
-        $config = config("pay.alipay");
-        $config['notify_url'] = $config['app_notify_url'];
-        $order_info = Pay::alipay($config)->app($order)->getContent();
+        if ($method === 1) {
+            $config = config("pay.alipay");
+            $config['notify_url'] = $config['app_notify_url'];
+            $order_info = Pay::alipay($config)->app($order)->getContent();
+        } else {
+            $order_info = "";
+        }
         return $this->success(['order_info' => $order_info]);
     }
 
