@@ -114,7 +114,7 @@ class AnalysisController extends Controller
             if ($user->hasRole('city_manager')) {
                 $query->whereIn('shop_id', $user->shops()->pluck('id'));
             } else {
-                // $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
             }
         }
 
@@ -275,7 +275,7 @@ class AnalysisController extends Controller
             if ($user->hasRole('city_manager')) {
                 $query->whereIn('shop_id', $user->shops()->pluck('id'));
             } else {
-                // $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
+                $query->whereIn('shop_id', Shop::where('user_id', $user->id)->get()->pluck('id'));
             }
         }
         $data_arr = $query->get();
@@ -380,7 +380,7 @@ class AnalysisController extends Controller
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
-                // $query->whereIn('shop_id', $user_shop_ids);
+                $query->whereIn('shop_id', $user_shop_ids);
             }
             $orders = $query->get();
             $result = [];
@@ -539,7 +539,7 @@ class AnalysisController extends Controller
         if ($shop_id) {
             $query->where('shop_id', $shop_id);
         } else {
-            // $query->whereIn('shop_id', $user_shop_ids);
+            $query->whereIn('shop_id', $user_shop_ids);
         }
         $query->where('created_at', '>', $start_date)->where('created_at', '<', date("Y-m-d", strtotime($end_date) + 86400));
         $orders = $query->groupBY('ps')->get();
@@ -630,8 +630,8 @@ class AnalysisController extends Controller
             $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->where('user_id', $request->user()->id)->get();
             // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->get();
         } else {
-            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
-            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->whereIn('id', [6446,5359,6367])->get();
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
+            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->whereIn('id', [6446,5359,6367])->get();
         }
         if (empty($user_shops)) {
             return $this->success();
