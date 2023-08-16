@@ -341,9 +341,6 @@ class AnalysisController extends Controller
             $end_date = date('Y-m-d', strtotime('-1 day'));
         } elseif ($date_type === 40) {
             $start_date = date("Y-m-01");
-            $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
-        } elseif ($date_type === 40) {
-            $start_date = date("Y-m-01");
             $end_date = date("Y-m-t");
         } elseif ($date_type === 80) {
             if (!$date_range) {
@@ -498,9 +495,9 @@ class AnalysisController extends Controller
         } elseif ($date_type === 30) {
             $start_date = date('Y-m-d', strtotime('-7 day'));
             $end_date = date('Y-m-d', strtotime('-1 day'));
-        } elseif ($date_type === 40) {
-            $start_date = date("Y-m-01");
-            $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
+        // } elseif ($date_type === 40) {
+        //     $start_date = date("Y-m-01");
+        //     $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
         } elseif ($date_type === 40) {
             $start_date = date("Y-m-01");
             $end_date = date("Y-m-t");
@@ -602,9 +599,9 @@ class AnalysisController extends Controller
         } elseif ($date_type === 30) {
             $start_date = date('Y-m-d', strtotime('-7 day'));
             $end_date = date('Y-m-d', strtotime('-1 day'));
-        } elseif ($date_type === 40) {
-            $start_date = date("Y-m-01");
-            $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
+        // } elseif ($date_type === 40) {
+        //     $start_date = date("Y-m-01");
+        //     $end_date = date("Y-m-d", strtotime("$start_date +1 month -1 day"));
         } elseif ($date_type === 40) {
             $start_date = date("Y-m-01");
             $end_date = date("Y-m-t");
