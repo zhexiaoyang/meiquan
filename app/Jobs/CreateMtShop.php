@@ -34,24 +34,24 @@ class CreateMtShop implements ShouldQueue
      */
     public function handle()
     {
-        if (!$this->shop->shop_id) {
-            $meituan = app("meituan");
-            $result = $meituan->shopCreate($this->shop);
-            if (isset($result['code']) && $result['code'] == 0) {
-                if ($this->shop->status < 10) {
-                    $this->shop->save();
-                }
-            }
-        }
-
-        if (!$this->shop->shop_id_fn) {
-            $fengniao = app("fengniao");
-            $result = $fengniao->createShop($this->shop);
-            if (isset($result['code']) && $result['code'] == 200) {
-                if ($this->shop->status < 10) {
-                }
-            }
-        }
+        // if (!$this->shop->shop_id) {
+        //     $meituan = app("meituan");
+        //     $result = $meituan->shopCreate($this->shop);
+        //     if (isset($result['code']) && $result['code'] == 0) {
+        //         if ($this->shop->status < 10) {
+        //             $this->shop->save();
+        //         }
+        //     }
+        // }
+        //
+        // if (!$this->shop->shop_id_fn) {
+        //     $fengniao = app("fengniao");
+        //     $result = $fengniao->createShop($this->shop);
+        //     if (isset($result['code']) && $result['code'] == 200) {
+        //         if ($this->shop->status < 10) {
+        //         }
+        //     }
+        // }
 
         if (!$this->shop->shop_id_ss) {
             $shansong = app("shansong");
