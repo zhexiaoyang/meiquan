@@ -66,7 +66,7 @@ class PaymentController extends Controller
             $config['notify_url'] = $config['app_notify_url'];
             $order_info = Pay::alipay($config)->app($order)->getContent();
             $result = ['order_info' => $order_info];
-        } else {
+        } elseif ($method === 2) {
             $result = [
                 'appid' => '',
                 'noncestr' => '',
