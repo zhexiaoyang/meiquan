@@ -67,6 +67,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
         }
         // 判断处方扣款金额是否正确，设置扣款金额
         $performanceServiceFee2 = $this->performanceServiceFee2;
+        $this->log("订单获取performanceServiceFee2金额:{$performanceServiceFee2}");
         if ($order->platform == 1) {
             $money = $shop->prescription_cost;
             if (!is_null($performanceServiceFee2)) {
@@ -75,6 +76,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                     // 美全+代审方 0.8 元
                     // 处方金额错误
                     if ((float) $shop->prescription_cost == 0.2) {
+                        $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
                         DB::table('shops')->where('id', $shop->id)->update([
                             'prescription_cost' => 0.8,
                             'prescription_channel' => 1,
@@ -97,6 +99,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                     $money = 0.2;
                     // 处方金额错误
                     if ((float) $shop->prescription_cost == 0.8) {
+                        $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
                         DB::table('shops')->where('id', $shop->id)->update([
                             'prescription_cost' => 0.2,
                             'prescription_channel' => 2,
@@ -121,6 +124,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
         }
         // 开始扣款
         DB::transaction(function () use ($shop, $order, $money) {
+            $this->log("扣款用户门店:门店ID：{$shop->user_id}，门店用户ID：{$shop->user_id}");
             // 扣款用户
             $current_user = DB::table('users')->find($shop->user_id);
             $prescription_data = [
