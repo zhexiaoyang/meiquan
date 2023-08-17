@@ -18,7 +18,7 @@ class OrderSettingController extends Controller
         if (!$shop = Shop::find($shop_id)) {
             return $this->error("门店不存在");
         }
-        if ($setting = OrderSetting::query()->where("shop_id", $shop_id)->first()) {
+        if ($setting = OrderSetting::where("shop_id", $shop_id)->first()) {
             $setting->tool = $shop->tool;
         } else {
             $setting = config("ps.shop_setting");
@@ -29,11 +29,11 @@ class OrderSettingController extends Controller
 
     public function store(Request $request)
     {
-        if (!$shop = Shop::query()->where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
+        if (!$shop = Shop::where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
             return $this->error('门店不存在');
         }
 
-        if (!$setting = OrderSetting::query()->where("shop_id", intval($request->get("id")))->first()) {
+        if (!$setting = OrderSetting::where("shop_id", intval($request->get("id")))->first()) {
             $setting = new OrderSetting;
         }
 
@@ -97,7 +97,7 @@ class OrderSettingController extends Controller
      */
     public function reset(Request $request)
     {
-        if (!$shop = Shop::query()->where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
+        if (!$shop = Shop::where(['own_id' => Auth::id(), 'id' => intval($request->get("id"))])->first()) {
             return $this->error('门店不存在');
         }
         OrderSetting::where("shop_id", intval($request->get("id")))->delete();
