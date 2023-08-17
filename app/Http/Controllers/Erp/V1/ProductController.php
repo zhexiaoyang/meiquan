@@ -113,6 +113,11 @@ class ProductController extends Controller
 
         $res = $meituan->medicineStock($params);
 
+        if (!isset($res['data'])) {
+            \Log::info("ERP美团返回错误", [$params, $res]);
+            return $this->success();
+        }
+
         if ($res['data'] != 'ok') {
             return $this->error($res['error']['msg'] ?? "", 3004);
         }
