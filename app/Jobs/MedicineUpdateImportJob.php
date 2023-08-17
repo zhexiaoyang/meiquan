@@ -62,6 +62,11 @@ class MedicineUpdateImportJob implements ShouldQueue
         $medicine_data = $this->medicine;
         $update_store_id_status = false;
         $msg = '';
+        if (isset($medicine_data['guidance_price'])) {
+            if ($medicine_data['guidance_price'] <= 0) {
+                return $this->checkEnd2($medicine_data, MedicineSyncLogItem::UPDATE_ERROR);
+            }
+        }
         if (!$medicine = Medicine::where('shop_id', $shop_id)->where('upc', $medicine_data['upc'])->first()) {
             return $this->checkEnd2($medicine_data, MedicineSyncLogItem::MEDICINE_NO_FOND);
         }
