@@ -54,14 +54,17 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
                 if (!is_numeric($item['线上销售价格'])) {
                     throw new InvalidRequestException("第{$line}行线上销售价格格式不正确", 422);
                 }
-                if ($item['线上销售价格'] == 0) {
-                    throw new InvalidRequestException("第{$line}行线上销售价格不能为0", 422);
+                if ($item['线上销售价格'] <= 0) {
+                    throw new InvalidRequestException("第{$line}行线上销售价格不能小于等于0", 422);
                 }
                 $update_status = true;
             }
             if (trim($item['线下销售价格']) !== '') {
                 if (!is_numeric($item['线下销售价格'])) {
                     throw new InvalidRequestException("第{$line}行线下销售价格格式不正确", 422);
+                }
+                if ($item['线下销售价格'] < 0) {
+                    throw new InvalidRequestException("第{$line}行线下销售价格不能小于0", 422);
                 }
                 $update_status = true;
             }
@@ -77,6 +80,9 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (trim($item['成本价格']) !== '') {
                 if (!is_numeric($item['成本价格'])) {
                     throw new InvalidRequestException("第{$line}行成本价格格式不正确", 422);
+                }
+                if ($item['成本价格'] < 0) {
+                    throw new InvalidRequestException("第{$line}行成本价不能小于0", 422);
                 }
                 $update_status = true;
             }
