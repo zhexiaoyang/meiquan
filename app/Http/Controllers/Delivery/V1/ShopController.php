@@ -281,7 +281,7 @@ class ShopController extends Controller
             'user_phone' => 'required|digits:11',
             'address' => 'required|string|max:100|min:4',
             'address_detail' => 'required|string|max:100|min:4',
-            'category' => 'required|string|size:6',
+            'category' => 'required|size:6',
             'longitude' => 'required',
             'latitude' => 'required',
         ],[
