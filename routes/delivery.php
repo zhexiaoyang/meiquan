@@ -82,7 +82,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 渠道
             Route::get("channel", "AnalysisController@channel");
         });
-        // 数据分析
+        // 药品管理
         Route::prefix('medicine')->group(function () {
             // 门店列表
             Route::get("shops", "MedicineController@shops");
@@ -96,6 +96,15 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("update_stock", "MedicineController@update_stock");
             // 更新药品-同步
             Route::post("update_sync", "MedicineController@update_sync");
+        });
+        // 配送平台
+        Route::prefix('delivery')->group(function () {
+            // 平台列表
+            Route::get("index", "DeliveryController@index");
+            // 开通运力
+            Route::post("activate", "DeliveryController@activate");
+            // 更改运力状态
+            Route::post("update_status", "DeliveryController@update_status");
         });
     });
 });
