@@ -13,6 +13,7 @@ use Yansongda\Pay\Pay;
 
 class PaymentController extends Controller
 {
+    // use No
     /**
      * 支付方式
      * @data 2023/8/16 9:51 上午
@@ -59,14 +60,24 @@ class PaymentController extends Controller
             'subject' => '美全跑腿费充值',
         ];
 
+        $result = [];
         if ($method === 1) {
             $config = config("pay.alipay");
             $config['notify_url'] = $config['app_notify_url'];
             $order_info = Pay::alipay($config)->app($order)->getContent();
+            $result = ['order_info' => $order_info];
         } else {
-            $order_info = "";
+            $result = [
+                'appid' => '',
+                'noncestr' => '',
+                'package' => '',
+                'partnerid' => '',
+                'prepayid' => '',
+                'timestamp' => '',
+                'sign' => '',
+            ];
         }
-        return $this->success(['order_info' => $order_info]);
+        return $this->success($result);
     }
 
     /**
@@ -122,9 +133,9 @@ class PaymentController extends Controller
             return true;
         });
 
-        if ($status) {
-            return $this->alipay();
+        if (!$status) {
+            \Log::info("支付宝充值回调充值失败");
         }
-        return '';
+        return $this->alipay();
     }
 }
