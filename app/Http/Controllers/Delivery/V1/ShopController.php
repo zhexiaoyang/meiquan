@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Delivery\V1;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\CreateMtShop;
 use App\Models\Shop;
 use Illuminate\Http\Request;
 
@@ -359,7 +360,7 @@ class ShopController extends Controller
             'user_phone' => 'required|digits:11',
             'address' => 'required|string|max:100|min:4',
             'address_detail' => 'required|string|max:100|min:4',
-            'category' => 'required|string|size:6',
+            'category' => 'required|size:6',
             'longitude' => 'required',
             'latitude' => 'required',
         ],[
@@ -404,6 +405,7 @@ class ShopController extends Controller
             $data['shop_address'] = $request->get('address_detail') . ',' . $request->get('address');
         }
         Shop::where('id', $shop->id)->update($data);
+        // dispatch(new CreateMtShop($shop));
         return $this->success();
     }
 }
