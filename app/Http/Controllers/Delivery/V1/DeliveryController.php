@@ -48,26 +48,26 @@ class DeliveryController extends Controller
             foreach ($shippers as $shipper) {
                 $bound[$shipper->platform] = [
                     'platform' => $shipper->platform,
-                    'status' => !in_array($shipper->platform, $off_arr),
+                    'status' => !in_array($shipper->platform, $off_arr) ? 1 : 2,
                     'platform_text' => config('ps.delivery_map')[$shipper->platform],
                     'type' => 2, 'platform_id' => $shipper->three_id
                 ];
             }
         }
         if ($shop->shop_id_ss) {
-            $bound[3] = ['platform' => 3, 'platform_text' => config('ps.delivery_map')[3], 'status' => !in_array(3, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_ss];
+            $bound[3] = ['platform' => 3, 'platform_text' => config('ps.delivery_map')[3], 'status' => !in_array(3, $off_arr) ? 1 : 2, 'type' => 1, 'platform_id' => $shop->shop_id_ss];
         }
         if ($shop->shop_id_dd) {
-            $bound[5] = ['platform' => 5, 'platform_text' => config('ps.delivery_map')[5], 'status' => !in_array(5, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_dd];
+            $bound[5] = ['platform' => 5, 'platform_text' => config('ps.delivery_map')[5], 'status' => !in_array(5, $off_arr) ? 1 : 2, 'type' => 1, 'platform_id' => $shop->shop_id_dd];
         }
         if ($shop->shop_id_uu) {
-            $bound[6] = ['platform' => 6, 'platform_text' => config('ps.delivery_map')[6], 'status' => !in_array(6, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_uu];
+            $bound[6] = ['platform' => 6, 'platform_text' => config('ps.delivery_map')[6], 'status' => !in_array(6, $off_arr) ? 1 : 2, 'type' => 1, 'platform_id' => $shop->shop_id_uu];
         }
         if ($shop->shop_id_sf) {
-            $bound[7] = ['platform' => 7, 'platform_text' => config('ps.delivery_map')[7], 'status' => !in_array(7, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_sf];
+            $bound[7] = ['platform' => 7, 'platform_text' => config('ps.delivery_map')[7], 'status' => !in_array(7, $off_arr) ? 1 : 2, 'type' => 1, 'platform_id' => $shop->shop_id_sf];
         }
         if ($shop->shop_id_zb) {
-            $bound[8] = ['platform' => 8, 'platform_text' => config('ps.delivery_map')[8], 'status' => !in_array(8, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_zb];
+            $bound[8] = ['platform' => 8, 'platform_text' => config('ps.delivery_map')[8], 'status' => !in_array(8, $off_arr) ? 1 : 2, 'type' => 1, 'platform_id' => $shop->shop_id_zb];
         }
 
         if (!isset($bound[3])) {
@@ -78,7 +78,7 @@ class DeliveryController extends Controller
                     [
                         'type' => 1,
                         'type_text' => '聚合送',
-                        'button_text' => '了解开通',
+                        'button_text' => '了解并开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
                         'description' => '点击开始授权，开通后需在美全达充值即可发的，无需额外支付发单服务费'
@@ -99,7 +99,7 @@ class DeliveryController extends Controller
                 [
                     'type' => 1,
                     'type_text' => '聚合送',
-                    'button_text' => '了解开通',
+                    'button_text' => '了解并开通',
                     'url' => '',
                     'title' => '聚合送平台配送账号',
                     'description' => '点击开始授权，开通后需在美全达充值即可发的，无需额外支付发单服务费'
@@ -132,7 +132,7 @@ class DeliveryController extends Controller
                     [
                         'type' => 1,
                         'type_text' => '聚合送',
-                        'button_text' => '了解开通',
+                        'button_text' => '了解并开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
                         'description' => '点击开始授权，开通后需在美全达充值即可发的，无需额外支付发单服务费'
@@ -148,7 +148,7 @@ class DeliveryController extends Controller
                     [
                         'type' => 1,
                         'type_text' => '聚合送',
-                        'button_text' => '了解开通',
+                        'button_text' => '了解并开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
                         'description' => '点击开始授权，开通后需在美全达充值即可发的，无需额外支付发单服务费'
