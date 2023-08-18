@@ -249,7 +249,7 @@ class Api extends Request
         return $this->post('/openapi/developer/v5/getUserAccount', []);
     }
 
-    public function getH5Recharge($token, $three_id)
+    public function getH5Recharge($token, $three_id): string
     {
         $time = time();
         $seed = $this->secret . 'accessToken' . $token . 'clientId' . $this->client_id. 'shopId' . $three_id. 'timestamp' . $time;
