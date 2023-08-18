@@ -162,9 +162,15 @@ class Api extends Request
         return $this->post('/api/order/confirm/goods', $data);
     }
 
-    public function getUserAccount()
+    public function getUserAccount($category = 1, $shop_id = 0)
     {
-        return $this->post('/api/balance/query', ['category' => 1]);
+        $params = [
+            'category' => $category
+        ];
+        if ($shop_id) {
+            $params['shop_no'] = $shop_id;
+        }
+        return $this->post('/api/balance/query', $params);
     }
 
     /**
