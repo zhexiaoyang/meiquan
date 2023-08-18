@@ -245,7 +245,16 @@ class Api extends Request
 
     public function getUserAccount($token)
     {
-        return $this->post('/openapi/developer/v5/getUserAccount', ['access_token' => $token]);
+        $this->access_token = $token;
+        return $this->post('/openapi/developer/v5/getUserAccount', []);
+    }
+
+    public function getH5Recharge($token, $three_id)
+    {
+        $time = time();
+        $seed = $this->secret . 'accessToken' . $token . 'clientId' . $this->client_id. 'shopId' . $three_id. 'timestamp' . $time;
+        $sign = strtoupper(md5($seed));
+        return "https://open.ishansong.com/h5Recharge?clientId={$this->client_id}&shopId={$three_id}&timestamp={$time}&sign={$sign}&accessToken={$token}";
     }
 
 
