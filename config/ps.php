@@ -46,14 +46,14 @@ return [
         "shop_id" => env("SS_SHOP_ID", ""),
         "client_id" => env("SS_CLIENT_ID", ""),
         "secret" => env("SS_SECRET", ""),
-        "url" => "http://open.ishansong.com"
+        "url" => "https://open.ishansong.com"
         // "url" => "http://open.s.bingex.com"
     ],
     // 闪送
     "shansongservice" => [
         "client_id" => env("SS_S_CLIENT_ID", ""),
         "secret" => env("SS_S_SECRET", ""),
-        "url" => "http://open.ishansong.com"
+        "url" => "https://open.ishansong.com"
         // "url" => "http://open.s.bingex.com"
     ],
     // 美团外卖-药及特
