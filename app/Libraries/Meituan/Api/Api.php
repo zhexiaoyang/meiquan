@@ -895,6 +895,7 @@ class Api extends Request
                 $access_token = $res['access_token'];
                 $refresh_token = $res['refresh_token'];
                 Cache::put($key, $access_token, $res['expires_in'] - 100);
+                Cache::put($key_ref, $refresh_token);
                 Cache::forever($key_ref, $refresh_token);
                 if ($token_res) {
                     MeituanShangouToken::where('shop_id', $shop_id)->update([
