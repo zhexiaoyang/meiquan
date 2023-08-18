@@ -170,15 +170,6 @@ class Api extends Request
         return $this->post('/open/api/external/notifyproductready', $data);
     }
 
-    public function getshopaccountbalance()
-    {
-        $data = [
-            "shop_id" => "432",
-            "shop_type" => 2,
-        ];
-        return $this->post('/open/api/external/getshopaccountbalance', $data);
-    }
-
     public function orderStatus()
     {
         $data = [
@@ -221,5 +212,23 @@ class Api extends Request
             "shop_type" => $shop_type,
         ];
         return $this->post('/open/api/external/listorderfeed', $data);
+    }
+
+    public function getShopAccountBalance($shop_id, $type = 1)
+    {
+        $data = [
+            "shop_id" => $shop_id,
+            "shop_type" => $type,
+        ];
+        return $this->post('/open/api/external/getshopaccountbalance', $data);
+    }
+
+    public function getShopInfo($shop_id, $type = 1)
+    {
+        $data = [
+            "shop_id" => $shop_id,
+            "shop_type" => $type,
+        ];
+        return $this->post('/open/api/external/getshopinfo', $data);
     }
 }
