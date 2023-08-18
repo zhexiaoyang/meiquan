@@ -243,10 +243,10 @@ class Api extends Request
         return $this->post('/openapi/developer/v5/confirmGoodsReturn', $data);
     }
 
-    // public function getUserAccount()
-    // {
-    //     return $this->post('/openapi/developer/v5/getUserAccount', []);
-    // }
+    public function getUserAccount($token)
+    {
+        return $this->post('/openapi/developer/v5/getUserAccount', ['access_token' => $token]);
+    }
 
 
     public function get_token($shop_id)

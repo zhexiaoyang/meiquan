@@ -36,9 +36,12 @@ class Request
         $params = [
             'clientId' => $this->client_id,
             'timestamp' => time(),
-            'data' => json_encode($data, JSON_UNESCAPED_UNICODE)
         ];
-
+        if (isset($data['access_token'])) {
+            $params['accessToken'] = $data['access_token'];
+            unset($data['access_token']);
+        }
+        $params['data'] = json_encode($data, JSON_UNESCAPED_UNICODE);
         if ($this->access_token) {
             $params['accessToken'] = $this->access_token;
         }
