@@ -78,7 +78,7 @@ class AccountController extends Controller
         $where = [
             ['created_at', '>=', $start_date],
             ['created_at', '<', date("Y-m-d", strtotime($end_date) + 86400)],
-            // ['user_id', '=', $user->id],
+            ['user_id', '=', $user->id],
             ['type', '=', $money_type],
         ];
 
