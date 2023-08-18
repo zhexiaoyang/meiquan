@@ -251,15 +251,15 @@ class ShopController extends Controller
                 'name' => '美团闪购',
                 'title' => '绑定美团闪购店铺，自动同步订单到美全达',
                 'url' => 'https://open-shangou.meituan.com/erp/login?code=TXYHxuB%2FLfDchwlTIXhL09oW6NV%2FUACqFYqkPvQ5Au043ywld5WQ68G3pO%2BijyRvvQxYQDnUbEIgoUC37o18H3UKSPlIxR2RNzEYXSrauE0%3D&auth_type=oauth&company_name=%E5%90%89%E6%9E%97%E7%9C%81%E7%BE%8E%E5%85%A8%E7%A7%91%E6%8A%80%E6%9C%89%E9%99%90%E8%B4%A3%E4%BB%BB%E5%85%AC%E5%8F%B8=#!/login',
-                'text' => '<ul><li>1.使用美团外卖账号进行授权</li><li>2.当前授权适用于美团外卖零售品类商户</li><li>3.支持美全达和其他系统同时使用</li><li>4.支持图片实时更新及查看预定人信息</li></ul>'
+                'text' => '<view><view>1.使用美团外卖账号进行授权</view><view>2.当前授权适用于美团外卖零售品类商户</view><view>3.支持美全达和其他系统同时使用</view><view>4.支持图片实时更新及查看预定人信息</view></view>'
             ];
         } elseif ($type == 2) {
             $result = [
                 'type' => 2,
                 'name' => '美团外卖',
                 'title' => '餐饮授权暂不支持手机端绑定，请电脑端登录操作',
-                'url' => 'https://nr.ele.me/eleme_nr_bfe_retail/api_bind_shop#/bindShop?source=C6668C55DC7792FA783B2EEE6D423415FB0F3075D4721105516FC21012833B61&fromSys=2',
-                'text' => '<ul><li>1.使用美团外卖账号进行授权</li><li>2.当前授权适用于美团外卖零售品类商户</li><li>3.支持美全达和其他系统同时使用</li><li>4.支持图片实时更新及查看预定人信息</li></ul>'
+                'url' => '',
+                'text' => '<view><view>1.使用美团外卖账号进行授权</view><view>2.当前授权适用于美团外卖零售品类商户</view><view>3.支持美全达和其他系统同时使用</view><view>4.支持图片实时更新及查看预定人信息</view></view>'
             ];
         } elseif ($type == 5) {
             $result = [
@@ -267,7 +267,7 @@ class ShopController extends Controller
                 'name' => '饿了么',
                 'title' => '绑定饿了么店铺，自动同步订单到美全达',
                 'url' => 'https://nr.ele.me/eleme_nr_bfe_retail/api_bind_shop#/bindShop?source=C6668C55DC7792FA783B2EEE6D423415FB0F3075D4721105516FC21012833B61&fromSys=2',
-                'text' => '<ul><li>1.使用美团外卖账号进行授权</li><li>2.当前授权适用于美团外卖零售品类商户</li><li>3.支持美全达和其他系统同时使用</li><li>4.支持图片实时更新及查看预定人信息</li></ul>'
+                'text' => '<view><view>1.使用美团外卖账号进行授权</view><view>2.当前授权适用于美团外卖零售品类商户</view><view>3.支持美全达和其他系统同时使用</view><view>4.支持图片实时更新及查看预定人信息</view></view>'
             ];
         }
         return $this->success($result);
