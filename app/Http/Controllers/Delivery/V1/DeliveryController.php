@@ -48,26 +48,26 @@ class DeliveryController extends Controller
             foreach ($shippers as $shipper) {
                 $bound[$shipper->platform] = [
                     'platform' => $shipper->platform,
-                    'status' => (int) !in_array($shipper->platform, $off_arr),
+                    'status' => !in_array($shipper->platform, $off_arr),
                     'platform_text' => config('ps.delivery_map')[$shipper->platform],
                     'type' => 2, 'platform_id' => $shipper->three_id
                 ];
             }
         }
         if ($shop->shop_id_ss) {
-            $bound[3] = ['platform' => 3, 'platform_text' => config('ps.delivery_map')[3], 'status' => (int) !in_array(3, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_ss];
+            $bound[3] = ['platform' => 3, 'platform_text' => config('ps.delivery_map')[3], 'status' => !in_array(3, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_ss];
         }
         if ($shop->shop_id_dd) {
-            $bound[5] = ['platform' => 5, 'platform_text' => config('ps.delivery_map')[5], 'status' => (int) !in_array(5, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_dd];
+            $bound[5] = ['platform' => 5, 'platform_text' => config('ps.delivery_map')[5], 'status' => !in_array(5, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_dd];
         }
         if ($shop->shop_id_uu) {
-            $bound[6] = ['platform' => 6, 'platform_text' => config('ps.delivery_map')[6], 'status' => (int) !in_array(6, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_uu];
+            $bound[6] = ['platform' => 6, 'platform_text' => config('ps.delivery_map')[6], 'status' => !in_array(6, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_uu];
         }
         if ($shop->shop_id_sf) {
-            $bound[7] = ['platform' => 7, 'platform_text' => config('ps.delivery_map')[7], 'status' => (int) !in_array(7, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_sf];
+            $bound[7] = ['platform' => 7, 'platform_text' => config('ps.delivery_map')[7], 'status' => !in_array(7, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_sf];
         }
         if ($shop->shop_id_zb) {
-            $bound[8] = ['platform' => 8, 'platform_text' => config('ps.delivery_map')[8], 'status' => (int) !in_array(8, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_zb];
+            $bound[8] = ['platform' => 8, 'platform_text' => config('ps.delivery_map')[8], 'status' => !in_array(8, $off_arr), 'type' => 1, 'platform_id' => $shop->shop_id_zb];
         }
 
         if (!isset($bound[3])) {
