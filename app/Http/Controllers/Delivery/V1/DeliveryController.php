@@ -77,6 +77,7 @@ class DeliveryController extends Controller
                 'channel' => [
                     [
                         'type' => 1,
+                        'type_text' => '聚合送',
                         'button_text' => '了解开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
@@ -84,6 +85,7 @@ class DeliveryController extends Controller
                     ],
                     [
                         'type' => 2,
+                        'type_text' => '自有运力',
                         'button_text' => '开始授权',
                         'url' => "https://open.ishansong.com/auth?response_type=code&client_id=ssM486SGDiFhoNiA6&state=mq&scope=shop_open_api&thirdStoreId={$shop_id}&redirect_uri=https://psapi.meiquanda.com/api/callback/shansong/auth",
                         'title' => '已有闪送账号',
@@ -96,6 +98,7 @@ class DeliveryController extends Controller
             $dada_channel = [
                 [
                     'type' => 1,
+                    'type_text' => '聚合送',
                     'button_text' => '了解开通',
                     'url' => '',
                     'title' => '聚合送平台配送账号',
@@ -108,6 +111,7 @@ class DeliveryController extends Controller
             if ($ticket) {
                 $dada_channel[] = [
                     'type' => 2,
+                    'type_text' => '自有运力',
                     'button_text' => '开始授权',
                     'url' => $dada->get_url($shop->id, $ticket),
                     'title' => '已有达达账号',
@@ -127,6 +131,7 @@ class DeliveryController extends Controller
                 'channel' => [
                     [
                         'type' => 1,
+                        'type_text' => '聚合送',
                         'button_text' => '了解开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
@@ -142,6 +147,7 @@ class DeliveryController extends Controller
                 'channel' => [
                     [
                         'type' => 1,
+                        'type_text' => '聚合送',
                         'button_text' => '了解开通',
                         'url' => '',
                         'title' => '聚合送平台配送账号',
@@ -149,6 +155,7 @@ class DeliveryController extends Controller
                     ],
                     [
                         'type' => 2,
+                        'type_text' => '自有运力',
                         'button_text' => '开始授权',
                         'url' => "https://openic.sf-express.com/artascope/cx/receipt/getpage/product/artascope/page/storeBinding?dev_id=1633621660&out_shop_id={$shop_id}&type=1",
                         'title' => '已有顺丰账号',
