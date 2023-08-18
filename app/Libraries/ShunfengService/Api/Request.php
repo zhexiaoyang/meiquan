@@ -6,7 +6,7 @@ class Request
 {
 
     private $http;
-    private $app_id;
+    protected $app_id;
     private $app_key;
     private $url;
 

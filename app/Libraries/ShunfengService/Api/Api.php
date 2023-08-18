@@ -231,4 +231,9 @@ class Api extends Request
         ];
         return $this->post('/open/api/external/getshopinfo', $data);
     }
+
+    public function getH5Recharge($shop_id, $type = 1): string
+    {
+        return "https://openic.sf-express.com/artascope/cx/receipt/getpage/product/artascope/page/storeTopUp?dev_id={$this->app_id}&shop_id={$shop_id}&shop_type={$type}";
+    }
 }
