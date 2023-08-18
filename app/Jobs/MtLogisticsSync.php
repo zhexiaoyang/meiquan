@@ -87,6 +87,7 @@ class MtLogisticsSync implements ShouldQueue
                         'three_order_no' => $this->order->peisong_id,
                         'courier_name' => $this->order->courier_name,
                         'courier_phone' => $this->order->courier_phone,
+                        'order_date' => $this->order->created_at,
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
@@ -132,6 +133,7 @@ class MtLogisticsSync implements ShouldQueue
                         'three_order_no' => $this->order->peisong_id,
                         'courier_name' => $this->order->courier_name,
                         'courier_phone' => $this->order->courier_phone,
+                        'order_date' => $this->order->created_at,
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
@@ -161,6 +163,7 @@ class MtLogisticsSync implements ShouldQueue
                         'three_order_no' => $this->order->peisong_id,
                         'courier_name' => $this->order->courier_name,
                         'courier_phone' => $this->order->courier_phone,
+                        'order_date' => $this->order->created_at,
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
@@ -226,6 +229,7 @@ class MtLogisticsSync implements ShouldQueue
                         'three_order_no' => $this->order->peisong_id,
                         'courier_name' => $this->order->courier_name,
                         'courier_phone' => $this->order->courier_phone,
+                        'order_date' => $this->order->created_at,
                         'longitude' => $this->order->courier_lng,
                         'latitude' => $this->order->courier_lat,
                     ]);
@@ -282,6 +286,7 @@ class MtLogisticsSync implements ShouldQueue
                         'three_order_no' => $this->order->peisong_id,
                         'courier_name' => $this->order->courier_name,
                         'courier_phone' => $this->order->courier_phone,
+                        'order_date' => $this->order->created_at,
                         'longitude' => $this->order->courier_lng,
                         'latitude' => $this->order->courier_lat,
                     ]);
@@ -333,6 +338,7 @@ class MtLogisticsSync implements ShouldQueue
                     'three_order_no' => $this->order->peisong_id,
                     'courier_name' => $this->order->courier_name,
                     'courier_phone' => $this->order->courier_phone,
+                    'order_date' => $this->order->created_at,
                     'longitude' => $this->order->courier_lng,
                     'latitude' => $this->order->courier_lat,
                 ]);
