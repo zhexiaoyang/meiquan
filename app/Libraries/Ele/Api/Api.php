@@ -177,7 +177,7 @@ class Api extends Request
         $data = [
             'distributor_id' => 201,
             'order_id' => $params['order_id'],
-            'state' => 21,
+            'selfStatus' => $params['status'],
             'knight' => [
                 'id' => 1,
                 'name' => $params['name'],

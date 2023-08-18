@@ -166,9 +166,13 @@ class ShipperLogisticsSyncTimer extends CronJob
                         $shipper_res_zb = $shangou->getDeliveryPath($order->order_id, $shop->waimai_mt);
                     }
                     if (!empty($shipper_res_zb['data'])) {
-                        $path = array_pop($shipper_res_zb['data']);
-                        $longitude = $path['longitude']/1000000;
-                        $latitude = $path['latitude']/1000000;
+                        if (is_array($shipper_res_zb['data'])) {
+                            $path = array_pop($shipper_res_zb['data']);
+                            $longitude = $path['longitude']/1000000;
+                            $latitude = $path['latitude']/1000000;
+                        } else {
+                            \Log::info("同步骑手位置{$order->order_id}|异常|众包返回经纬度", [$shipper_res_zb]);
+                        }
                     }
                 }
                 $update_data = [];
