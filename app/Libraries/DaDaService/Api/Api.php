@@ -162,7 +162,7 @@ class Api extends Request
         return $this->post('/api/order/confirm/goods', $data);
     }
 
-    public function getUserAccount($category = 1, $shop_id = 0)
+    public function getUserAccount($shop_id = 0, $category = 1)
     {
         $params = [
             'category' => $category
@@ -184,11 +184,16 @@ class Api extends Request
 
     /**
      * 门店信息
-     * @param $order_id
      * @data 2022/5/26 11:53 下午
      */
     public function getShopInfo($shop_id)
     {
         return $this->post('/api/shop/detail', ['origin_shop_id' => $shop_id]);
+    }
+
+
+    public function getH5Recharge($shop_id, $amount = 1, $category = 'H5')
+    {
+        return $this->post('/api/recharge', ['shop_no' => $shop_id, 'amount' => $amount, 'category' => $category]);
     }
 }
