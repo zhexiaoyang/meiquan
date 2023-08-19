@@ -93,7 +93,7 @@ class MedicineController extends Controller
                         "storeCode" => $v['custom_sku_id'],
                         "upc" => $v['upc'],
                         "spec" => '',
-                        "price" => $v['sale_price'],
+                        "price" => $v['sale_price'] / 100,
                         "stock" => $v['left_num'],
                         "categoryCode" => '',
                         "categoryName" => '',
