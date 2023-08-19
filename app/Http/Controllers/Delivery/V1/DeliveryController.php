@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Delivery\V1;
 
 use App\Http\Controllers\Controller;
 use App\Libraries\DaDaService\DaDaService;
+use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\OrderSetting;
 use App\Models\Shop;
+use App\Models\ShopShipper;
 use Illuminate\Http\Request;
 
 class DeliveryController extends Controller
@@ -323,5 +325,139 @@ class DeliveryController extends Controller
         }
         $setting->save();
         return $this->success();
+    }
+
+    /**
+     * 三方配送充值
+     * @data 2023/8/18 9:38 下午
+     */
+    public function three_account(Request $request)
+    {
+        $shop_id = (int) $request->get('shop_id');
+        $platform = (int) $request->get('platform');
+        $user = $request->user();
+        $shop_query = Shop::select('id', 'shop_name')->where('user_id', $user->id);
+        if ($shop_id) {
+            $shop_query->where('id', $shop_id);
+        }
+        $shops = $shop_query->get();
+        $shop_id_map = $shops->pluck('shop_name', 'id')->toArray();
+        $shop_ids = $shops->pluck('id')->toArray();
+        $shipper_query = ShopShipper::whereIn('shop_id', $shop_ids);
+        if ($platform) {
+            $shipper_query->where('platform', $platform);
+        }
+        $shippers = $shipper_query->get();
+
+        $shipper_result = [];
+        if (!empty($shippers)) {
+            // $shipper_result = [];
+            foreach ($shippers as $shipper) {
+                if (!in_array($shipper->platform, [3,5,7])) {
+                    continue;
+                }
+                if (isset($shipper_result[$shipper->three_id])) {
+                    $shipper_result[$shipper->three_id]['shops'][] = [
+                        'shop_id' => $shipper->shop_id,
+                        'shop_name' => $shop_id_map[$shipper->shop_id],
+                    ];
+                }
+                $level_url = '';
+                $level_point = '';
+                $level_desc = '';
+                $money = 0;
+                $recharge_url = '';
+                if ($shipper->platform == 3) {
+                    $shansong = new ShanSongService(config('ps.shansongservice'));
+                    $shansong_res = $shansong->getUserAccount($shipper->access_token);
+                    if (isset($shansong_res['data']['balance'])) {
+                        $money = $shansong_res['data']['balance'] / 100;
+                    } else {
+                        $money = '查询失败';
+                    }
+                    $recharge_url = $shansong->getH5Recharge($shipper->access_token, $shipper->three_id);
+                } elseif ($shipper->platform == 5) {
+                    $config = config('ps.dada');
+                    $config['source_id'] = $shipper->source_id;
+                    $dada = new DaDaService($config);
+                    $dada_res = $dada->getUserAccount($shipper->three_id);
+                    // $recharge_url = $dada->getH5Recharge($shipper->access_token, $shipper->three_id);
+                    $recharge_url = '';
+                    if (isset($dada_res['result']['deliverBalance'])) {
+                        $money = $dada_res['result']['deliverBalance'];
+                    } else {
+                        $money = '查询失败';
+                    }
+                } elseif ($shipper->platform == 7) {
+                    $sf = app('shunfengservice');
+                    $balance_res = $sf->getShopAccountBalance($shipper->three_id);
+                    if (isset($balance_res['result']['balance'])) {
+                        $money = $balance_res['result']['balance'] / 100;
+                    } else {
+                        $money = '查询失败';
+                    }
+                    $shop_info_res = $sf->getShopInfo($shipper->three_id);
+                    if (isset($shop_info_res['result']['level_info']) && is_array($shop_info_res['result']['level_info'])) {
+                        $level_url = $shop_info_res['result']['level_info']['level_info_h5'];
+                        $level_point = $shop_info_res['result']['level_info']['level_points'];
+                        $level_desc = $shop_info_res['result']['level_info']['level_desc'];
+                    }
+                    $recharge_url = $sf->getH5Recharge($shipper->three_id);
+                }
+                $shipper_result[$shipper->three_id] = [
+                    'level_url' => $level_url,
+                    'level_point' => $level_point,
+                    'level_desc' => $level_desc,
+                    'three_id' => $shipper->three_id,
+                    'money' => $money,
+                    'recharge_url' => $recharge_url,
+                    'shops' => [
+                        [
+                            'shop_id' => $shipper->shop_id,
+                            'shop_name' => $shop_id_map[$shipper->shop_id],
+                        ]
+                    ],
+                ];
+            }
+        }
+        $result = array_values($shipper_result);
+        return $this->success($result);
+    }
+
+    /**
+     * 三方配送所有门店
+     * @data 2023/8/18 9:39 下午
+     */
+    public function three_shop(Request $request)
+    {
+        $user = $request->user();
+        $shops = [];
+        $shop_ids = ShopShipper::where('user_id', $user->id)->groupBy('shop_id')->pluck('shop_id')->toArray();
+        if (!empty($shop_ids)) {
+            $shops = Shop::select('id', 'shop_name')->whereIn('id', $shop_ids)->where('user_id', $user->id)->get();
+        }
+        return $this->success($shops);
+    }
+
+    /**
+     * 三方配送所有平台
+     * @data 2023/8/18 9:39 下午
+     */
+    public function three_platform(Request $request)
+    {
+        $user = $request->user();
+        $platforms = [];
+        $shippers = ShopShipper::where('user_id', $user->id)->groupBy('platform')->pluck('platform')->toArray();
+        if (!empty($shippers)) {
+            foreach ($shippers as $shipper) {
+                if (isset(config('ps.delivery_map')[$shipper])) {
+                    $platforms[] = [
+                        'platform' => $shipper,
+                        'platform_text' => config('ps.delivery_map')[$shipper],
+                    ];
+                }
+            }
+        }
+        return $this->success($platforms);
     }
 }

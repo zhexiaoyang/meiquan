@@ -105,6 +105,12 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("activate", "DeliveryController@activate");
             // 更改运力状态
             Route::post("update_status", "DeliveryController@update_status");
+            // 三方运力充值
+            Route::get("three_account", "DeliveryController@three_account");
+            // 有三方运力的门店
+            Route::get("three_shop", "DeliveryController@three_shop");
+            // 有三方运力的平台
+            Route::get("three_platform", "DeliveryController@three_platform");
         });
     });
 });
