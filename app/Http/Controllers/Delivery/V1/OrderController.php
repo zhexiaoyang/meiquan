@@ -686,6 +686,7 @@ class OrderController extends Controller
             $order->ignore = 1;
             $order->save();
         }
+        WmOrder::where('id', $order->wm_id)->update('ignore', 1);
         return $this->success();
     }
 
