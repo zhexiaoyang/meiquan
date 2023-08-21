@@ -91,9 +91,10 @@ class MtLogisticsSync implements ShouldQueue
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
-                    // if (!$this->order->post_back) {
-                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                    // }
+                    if (!$this->order->post_back) {
+                        DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                        DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                    }
                 }
                 \Log::info('美团外卖民康同步配送信息结束|骑手接单', compact("params", "result"));
             }elseif ($this->order->status == 60) {
@@ -140,10 +141,10 @@ class MtLogisticsSync implements ShouldQueue
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
-                    // if (!$this->order->post_back) {
-                    //     DB::table('wm_orders')->where('id', $this->order->id)->update(['post_back' => 1]);
-                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                    // }
+                    if (!$this->order->post_back) {
+                        DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                        DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                    }
                 }
                 \Log::info('美团外卖民康同步配送信息结束|骑手取货', compact("params", "result"));
             }elseif ($this->order->status == 70) {
@@ -174,10 +175,10 @@ class MtLogisticsSync implements ShouldQueue
                         'longitude' => $latitude,
                         'latitude' => $longitude,
                     ]);
-                    // if (!$this->order->post_back) {
-                    //     DB::table('wm_orders')->where('id', $this->order->id)->update(['post_back' => 1]);
-                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                    // }
+                    if (!$this->order->post_back) {
+                        DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                        DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                    }
                 }
                 \Log::info('美团外卖民康同步配送信息结束|骑手送达', compact("params", "result"));
             }
@@ -244,10 +245,10 @@ class MtLogisticsSync implements ShouldQueue
                         'longitude' => $this->order->courier_lng,
                         'latitude' => $this->order->courier_lat,
                     ]);
-                    // if (!$this->order->post_back) {
-                    //     DB::table('wm_orders')->where('id', $this->order->id)->update(['post_back' => 1]);
-                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                    // }
+                    if (!$this->order->post_back) {
+                        DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                        DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                    }
                 }
             }
             if (in_array($this->order->status, [40, 50, 60])) {
@@ -305,10 +306,10 @@ class MtLogisticsSync implements ShouldQueue
                         'longitude' => $this->order->courier_lng,
                         'latitude' => $this->order->courier_lat,
                     ]);
-                    // if (!$this->order->post_back) {
-                    //     DB::table('wm_orders')->where('id', $this->order->id)->update(['post_back' => 1]);
-                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                    // }
+                    if (!$this->order->post_back) {
+                        DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                        DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                    }
                 }
             }
         } elseif ($this->order->type == 7) {
@@ -361,10 +362,10 @@ class MtLogisticsSync implements ShouldQueue
                     'longitude' => $this->order->courier_lng,
                     'latitude' => $this->order->courier_lat,
                 ]);
-                // if (!$this->order->post_back) {
-                //     DB::table('wm_orders')->where('id', $this->order->id)->update(['post_back' => 1]);
-                DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
-                // }
+                if (!$this->order->post_back) {
+                    DB::table('orders')->where('id', $this->order->id)->update(['post_back' => 1]);
+                    DB::table('wm_orders')->where('id', $this->order->wm_id)->update(['post_back' => 1]);
+                }
             }
         }
 

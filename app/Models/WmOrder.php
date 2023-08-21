@@ -17,9 +17,20 @@ class WmOrder extends Model
         'is_pre_sale_order','is_prescription','send_at','finish_at','shipper_phone','is_vip','running_fee','prescription_fee',
         'cancel_reason','cancel_at','refund_fee','refund_status','vip_cost','user_id','print_number','rp_picture',
         'running_service_type','running_service_fee','operate_service_rate','operate_service_fee',
-        'refund_platform_charge_fee','refund_settle_amount','refund_operate_service_fee'
+        'refund_platform_charge_fee','refund_settle_amount','refund_operate_service_fee','post_back','ignore'
     ];
 
+    // 跑腿运力记录
+    public function deliveries()
+    {
+        return $this->hasMany(OrderDelivery::class, "wm_id", "id");
+    }
+    // 商品列表
+    public function products()
+    {
+        return $this->hasMany(WmOrderItem::class, "order_id");
+    }
+    // 商品列表
     public function items()
     {
         return $this->hasMany(WmOrderItem::class, 'order_id');
@@ -34,7 +45,7 @@ class WmOrder extends Model
     {
         return $this->hasMany(WmOrderReceive::class, 'order_id');
     }
-
+    // 门店
     public function shop()
     {
         return $this->belongsTo(Shop::class, 'shop_id', 'id');

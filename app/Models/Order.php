@@ -58,7 +58,7 @@ class Order extends Model
         'zb_status','money_zb','fail_zb','money_zb','service_fee',
         'courier_lng', 'courier_lat','pay_status','pay_at','refund_at','add_money','manager_money',
         'receive_at','take_at','over_at','cancel_at','push_at','created_at','updated_at',
-        'shipper_type_ss','shipper_type_dd','shipper_type_sf','expected_send_time','pick_type'
+        'shipper_type_ss','shipper_type_dd','shipper_type_sf','expected_send_time','pick_type','post_back','ignore'
     ];
 
     // 跑腿运力记录
