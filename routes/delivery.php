@@ -111,6 +111,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("three_shop", "DeliveryController@three_shop");
             // 有三方运力的平台
             Route::get("three_platform", "DeliveryController@three_platform");
+            // 获取达达充值链接
+            Route::get("get_dada_url", "DeliveryController@get_dada_url");
         });
     });
 });
