@@ -360,6 +360,7 @@ class DeliveryController extends Controller
                     $shipper_result[$shipper->three_id]['shops'][] = [
                         'shop_id' => $shipper->shop_id,
                         'shop_name' => $shop_id_map[$shipper->shop_id],
+                        'selected' => 0,
                     ];
                     continue;
                 }
@@ -419,6 +420,7 @@ class DeliveryController extends Controller
                         [
                             'shop_id' => $shipper->shop_id,
                             'shop_name' => $shop_id_map[$shipper->shop_id],
+                            'selected' => 1,
                         ]
                     ],
                 ];
@@ -463,5 +465,33 @@ class DeliveryController extends Controller
             }
         }
         return $this->success($platforms);
+    }
+
+    public function get_dada_url(Request $request)
+    {
+        if (!$shop_id = (int) $request->get('shop_id')) {
+            return $this->error('门店不存在');
+        }
+        $amount =  (int) $request->get('amount');
+        if ($amount < 1) {
+            return $this->error('充值金额不能小于1元');
+        }
+        $user = $request->user();
+        if (!$shop = Shop::select('id')->where('user_id', $user->id)->find($shop_id)) {
+            return $this->error('门店不存在!');
+        }
+        if (!$shipper = ShopShipper::where('shop_id', $shop->id)->where('platform', 5)->first()) {
+            return $this->error('未开通达达自有运力');
+        }
+        $config = config('ps.dada');
+        $config['source_id'] = $shipper->source_id;
+        $dada = new DaDaService($config);
+        $recharge_url = $dada->getH5Recharge($shipper->three_id, $amount);
+        if (!empty($recharge_url['result'])) {
+            $url = $recharge_url['result'];
+        } else {
+            return $this->error($recharge_url['msg'] ?? '请稍后再试');
+        }
+        return $this->success(['url' => $url]);
     }
 }
