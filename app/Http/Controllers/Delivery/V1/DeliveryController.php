@@ -361,6 +361,7 @@ class DeliveryController extends Controller
                         'shop_id' => $shipper->shop_id,
                         'shop_name' => $shop_id_map[$shipper->shop_id],
                     ];
+                    continue;
                 }
                 $level_url = '';
                 $level_point = '';
