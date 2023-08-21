@@ -410,6 +410,7 @@ class DeliveryController extends Controller
                     'level_desc' => $level_desc,
                     'three_id' => $shipper->three_id,
                     'money' => $money,
+                    'week_money' => 0,
                     'recharge_url' => $recharge_url,
                     'shops' => [
                         [
