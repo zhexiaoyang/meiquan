@@ -40,7 +40,7 @@ class TodayCommand extends Command
     public function handle()
     {
         // 获取处方图片
-        $orders = WmOrder::select('id', 'order_id', 'from_type')->where('is_prescription', 1)->where('rp_picture', '')->where('created_at', '>', date("Y-m-d", time()-86400))->get();
+        $orders = WmOrder::select('id', 'order_id', 'from_type')->where('is_prescription', 1)->where('rp_picture', '')->where('created_at', '>', date("Y-m-d", time()-86400 * 2))->get();
         $this->info("今天任务-处方单数量：" . $orders->count());
         if (!empty($orders)) {
             foreach ($orders as $order) {
@@ -102,7 +102,7 @@ class TodayCommand extends Command
         // 获取外卖门店名称
         $shops = Shop::where('user_id', '>', 0)->where(function($query) {
             $query->where('waimai_mt', '<>', '')->orWhere('waimai_ele', '<>', '');
-        })->get();
+        })->where('mt_shop_name', '')->get();
         $this->info("今天任务-外卖门店名称数量：" . $shops->count());
         if (!empty($shops)) {
             $minkang = app('minkang');
