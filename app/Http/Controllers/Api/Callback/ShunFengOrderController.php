@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Callback;
 
+use App\Events\OrderCancel;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
@@ -811,6 +812,7 @@ class ShunFengOrderController extends Controller
                         'order_id' => $order->id,
                         'des' => '「顺丰」跑腿骑手撤单，重新派单',
                     ]);
+                    event(new OrderCancel($order->id));
                 } else {
                     Log::info('顺丰跑腿回调-骑手撤单-取消顺丰跑腿订单失败');
                 }

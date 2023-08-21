@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Callback;
 
+use App\Events\OrderCancel;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
@@ -721,6 +722,7 @@ class DaDaOrderController
                                     'status' => 99,
                                     'dd_status' => 99
                                 ];
+                                event(new OrderCancel($order->id));
                             }
                             Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
