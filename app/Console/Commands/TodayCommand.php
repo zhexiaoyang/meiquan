@@ -39,7 +39,9 @@ class TodayCommand extends Command
      */
     public function handle()
     {
+        // 获取处方图片
         $orders = WmOrder::select('id', 'order_id', 'from_type')->where('is_prescription', 1)->where('rp_picture', '')->where('created_at', '>', date("Y-m-d", time()-86400))->get();
+        $this->info("今天任务-处方单数量：" . $orders->count());
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $name = '';
@@ -97,51 +99,53 @@ class TodayCommand extends Command
                 }
             }
         }
-        // $shops = Shop::where('user_id', '>', 0)->where(function($query) {
-        //     $query->where('waimai_mt', '<>', '')->orWhere('waimai_ele', '<>', '');
-        // })->get();
-        // if (!empty($shops)) {
-        //     $minkang = app('minkang');
-        //     $meiquan = app('meiquan');
-        //     $cabyin = app("mtkf");
-        //     $ele = app("ele");
-        //     foreach ($shops as $shop) {
-        //         $mt_shop_name = '';
-        //         if ($shop->waimai_mt && !$shop->mt_shop_name) {
-        //             if ($shop->meituan_bind_platform == 4) {
-        //                 $mt_res = $minkang->getShops(['app_poi_codes' => $shop->waimai_mt]);
-        //                 // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
-        //             } elseif ($shop->meituan_bind_platform == 31) {
-        //                 $mt_res = $meiquan->getShops(['app_poi_codes' => $shop->waimai_mt]);
-        //                 // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
-        //             } elseif ($shop->meituan_bind_platform == 25) {
-        //                 $mt_res = $cabyin->ng_shop_info($shop->id);
-        //                 // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
-        //             };
-        //             $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
-        //         }
-        //         $ele_shop_name = '';
-        //         if ($shop->waimai_ele && !$shop->ele_shop_name) {
-        //             $data = $ele->shopInfo($shop->waimai_ele);
-        //             if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
-        //                 $ele_shop_name = $data['body']['data']['name'] ?? '';
-        //             }
-        //         }
-        //         $update_data = [];
-        //         if ($mt_shop_name) {
-        //             $update_data['wm_shop_name'] = $mt_shop_name;
-        //             $update_data['mt_shop_name'] = $mt_shop_name;
-        //         }
-        //         if ($ele_shop_name) {
-        //             $update_data['ele_shop_name'] = $ele_shop_name;
-        //             if (!isset($update_data['wm_shop_name']) && !$shop->wm_shop_name) {
-        //                 $update_data['wm_shop_name'] = $ele_shop_name;
-        //             }
-        //         }
-        //         if (!empty($update_data)) {
-        //             Shop::where('id', $shop->id)->update($update_data);
-        //         }
-        //     }
-        // }
+        // 获取外卖门店名称
+        $shops = Shop::where('user_id', '>', 0)->where(function($query) {
+            $query->where('waimai_mt', '<>', '')->orWhere('waimai_ele', '<>', '');
+        })->get();
+        $this->info("今天任务-外卖门店名称数量：" . $shops->count());
+        if (!empty($shops)) {
+            $minkang = app('minkang');
+            $meiquan = app('meiquan');
+            $cabyin = app("mtkf");
+            $ele = app("ele");
+            foreach ($shops as $shop) {
+                $mt_shop_name = '';
+                if ($shop->waimai_mt && !$shop->mt_shop_name) {
+                    if ($shop->meituan_bind_platform == 4) {
+                        $mt_res = $minkang->getShops(['app_poi_codes' => $shop->waimai_mt]);
+                        // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
+                    } elseif ($shop->meituan_bind_platform == 31) {
+                        $mt_res = $meiquan->getShops(['app_poi_codes' => $shop->waimai_mt]);
+                        // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
+                    } elseif ($shop->meituan_bind_platform == 25) {
+                        $mt_res = $cabyin->ng_shop_info($shop->id);
+                        // $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
+                    };
+                    $mt_shop_name = $mt_res['data'][0]['name'] ?? '';
+                }
+                $ele_shop_name = '';
+                if ($shop->waimai_ele && !$shop->ele_shop_name) {
+                    $data = $ele->shopInfo($shop->waimai_ele);
+                    if (isset($data['body']['errno']) && $data['body']['errno'] === 0) {
+                        $ele_shop_name = $data['body']['data']['name'] ?? '';
+                    }
+                }
+                $update_data = [];
+                if ($mt_shop_name) {
+                    $update_data['wm_shop_name'] = $mt_shop_name;
+                    $update_data['mt_shop_name'] = $mt_shop_name;
+                }
+                if ($ele_shop_name) {
+                    $update_data['ele_shop_name'] = $ele_shop_name;
+                    if (!isset($update_data['wm_shop_name']) && !$shop->wm_shop_name) {
+                        $update_data['wm_shop_name'] = $ele_shop_name;
+                    }
+                }
+                if (!empty($update_data)) {
+                    Shop::where('id', $shop->id)->update($update_data);
+                }
+            }
+        }
     }
 }
