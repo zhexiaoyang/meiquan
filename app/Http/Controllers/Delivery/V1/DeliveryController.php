@@ -405,6 +405,8 @@ class DeliveryController extends Controller
                     $recharge_url = $sf->getH5Recharge($shipper->three_id);
                 }
                 $shipper_result[$shipper->three_id] = [
+                    'platform' => $shipper->platform,
+                    'platform_text' => config('ps.delivery_map')[$shipper->platform],
                     'level_url' => $level_url,
                     'level_point' => $level_point,
                     'level_desc' => $level_desc,
