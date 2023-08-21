@@ -31,8 +31,9 @@ class PostBackController extends Controller
                     'name' => $shop->wm_shop_name ?: $shop->shop_name,
                     'bind_type' => $shop->meituan_bind_platform,
                     'bind_text' => config('ps.meituan_bind_platform')[$shop->meituan_bind_platform],
-                    'today_num' => 0,
-                    'yesterday_num' => 0,
+                    'is_ok' => 0,
+                    'today' => 0,
+                    'yesterday' => 0,
                 ];
             }
         }
@@ -111,10 +112,9 @@ class PostBackController extends Controller
         $orders = $query->paginate($page_size);
         if (!empty($orders)) {
             foreach ($orders as $order) {
+                $order->status = $order->running->status;
                 // 预约单
                 $order->delivery_time = 0;
-                // 收货尾号
-                $order->receiver_phone_end = '';
                 // 订单标题
                 $order->title = Order::setAppSearchOrderTitle($order->delivery_time ?? 0, $order->estimate_arrival_time ?? 0, $order->running);
                 // 状态描述
@@ -133,6 +133,7 @@ class PostBackController extends Controller
                 if (!empty($preg_result[0][0])) {
                     $order->caution = preg_replace('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, '');
                 }
+                unset($order->running);
             }
         }
         return $this->page($orders);
