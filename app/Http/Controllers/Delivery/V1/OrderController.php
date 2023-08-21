@@ -41,8 +41,14 @@ class OrderController extends Controller
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // // 判断权限
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
-            $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
+            $order_where[] = [function ($query) use ($request) {
+                $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
+            }];
+            $wm_order_where[] = [function ($query) use ($request) {
+                $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
+            }];
+            // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
+            // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         }
         if ($shop_id) {
             $order_where[] = ['shop_id', '=', $shop_id];
