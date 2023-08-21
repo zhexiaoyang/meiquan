@@ -114,5 +114,14 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 获取达达充值链接
             Route::get("get_dada_url", "DeliveryController@get_dada_url");
         });
+        // 自配回传
+        Route::prefix('postback')->group(function () {
+            // 回传门店列表
+            Route::get("shop", "PostBackController@shops");
+            // 订单统计
+            Route::get("order_statistics", "PostBackController@order_statistics");
+            // 订单列表
+            Route::get("order", "PostBackController@orders");
+        });
     });
 });
