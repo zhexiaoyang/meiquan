@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Delivery\V1;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -23,7 +24,7 @@ class ShopController extends Controller
                 'contact_name','contact_phone','second_category as category')->where('user_id', $user->id)->get();
         }
 
-        if (!empty($shops)) {
+        if (!$shops->isEmpty()) {
             // 默认选择门店ID
             $select_id = 0;
             foreach ($shops as $shop) {
@@ -91,7 +92,7 @@ class ShopController extends Controller
         $meiquan = null;
         $canyin = null;
         $ele = null;
-        if (!empty($shops)) {
+        if (!$shops->isEmpty()) {
             foreach ($shops as $shop) {
                 if (!$shop->wm_shop_name) {
                     $shop->wm_shop_name = $shop->shop_name;
@@ -201,7 +202,7 @@ class ShopController extends Controller
         $ele = 0;
         $user = $request->user();
         $shops = Shop::select('waimai_mt', 'waimai_ele','meituan_bind_platform')->where('user_id', $user->id)->get();
-        if (!empty($shops)) {
+        if (!$shops->isEmpty()) {
             foreach ($shops as $shop) {
                 if ($shop->waimai_mt) {
                     if ($shop->meituan_bind_platform == 25) {
