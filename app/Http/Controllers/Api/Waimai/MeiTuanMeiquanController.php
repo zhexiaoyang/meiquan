@@ -46,15 +46,18 @@ class MeiTuanMeiquanController extends Controller
                 $key = 'mtwm:shop:auth:' . $shop_id;
                 $key_ref = 'mtwm:shop:auth:ref:' . $shop_id;
                 $res = $meituan->waimaiAuthorize($shop_id);
+                $expires_in = $res['expires_in'];
                 if (!empty($res['access_token'])) {
                     $access_token = $res['access_token'];
                     $refresh_token = $res['refresh_token'];
-                    Cache::put($key, $access_token, $res['expires_in'] - 100);
+                    Cache::put($key, $access_token, $expires_in - 100);
                     Cache::forever($key_ref, $refresh_token);
                     MeituanShangouToken::create([
                         'shop_id' => $shop_id,
                         'access_token' => $access_token,
                         'refresh_token' => $refresh_token,
+                        'expires_at' => date("Y-m-d H:i:s", time() + $expires_in),
+                        'expires_in' => $expires_in,
                     ]);
                 }
                 $this->log_info('绑定成功');

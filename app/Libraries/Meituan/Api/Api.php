@@ -894,19 +894,24 @@ class Api extends Request
             if (!empty($res['access_token'])) {
                 $access_token = $res['access_token'];
                 $refresh_token = $res['refresh_token'];
-                Cache::put($key, $access_token, $res['expires_in'] - 100);
+                $expires_in = $res['expires_in'];
+                Cache::put($key, $access_token, $expires_in - 100);
                 Cache::put($key_ref, $refresh_token);
                 Cache::forever($key_ref, $refresh_token);
                 if ($token_res) {
                     MeituanShangouToken::where('shop_id', $shop_id)->update([
                         'access_token' => $res['access_token'],
                         'refresh_token' => $res['refresh_token'],
+                        'expires_at' => date("Y-m-d H:i:s", time() + $expires_in),
+                        'expires_in' => $expires_in,
                     ]);
                 } else {
                     MeituanShangouToken::create([
                         'shop_id' => $shop_id,
                         'access_token' => $res['access_token'],
                         'refresh_token' => $res['refresh_token'],
+                        'expires_at' => date("Y-m-d H:i:s", time() + $expires_in),
+                        'expires_in' => $expires_in,
                     ]);
                 }
                 $this->ding_exception("重新获取Token成功，shop_id:{$shop_id}");
