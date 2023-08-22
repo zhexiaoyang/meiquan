@@ -39,7 +39,7 @@ class CheckMeiTuanShanGouTokens extends Command
      */
     public function handle()
     {
-        $tokens = MeituanShangouToken::where('id', '>', 277)->get();
+        $tokens = MeituanShangouToken::get();
         if (!empty($tokens)) {
             $meituan = app('meiquan');
             foreach ($tokens as $token) {
