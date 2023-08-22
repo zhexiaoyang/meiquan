@@ -65,7 +65,7 @@ class CheckMeiTuanShanGouTokens extends Command
                 } else {
                     $this->info('---失败');
                 }
-                sleep(5);
+                // sleep(5);
             }
         }
     }
