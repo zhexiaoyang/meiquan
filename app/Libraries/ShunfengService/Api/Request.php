@@ -35,7 +35,7 @@ class Request
             'version' => 17
         ], $data);
 
-        $post_json = json_encode($post_data);
+        $post_json = json_encode($post_data, JSON_UNESCAPED_UNICODE);
         $signChar = $post_json."&{$this->app_id}&{$this->app_key}";
         $sign     =  base64_encode(MD5($signChar));
 
