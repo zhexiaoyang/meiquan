@@ -370,12 +370,218 @@ class TakeoutProductController extends Controller
 
     /**
      * 商品迁移
-     * @param Request $request
-     * @return mixed
-     * @author zhangzhen
      * @data 2022/7/8 11:04 下午
      */
-    public function transfer(Request $request)
+    public function transfer(Request $request) {
+        // 判断门店是否存在
+        if (!$master_shop_id = $request->get('shop_id')) {
+            return $this->error('请选择主门店');
+        }
+        if (!$master_shop = Shop::find($master_shop_id)) {
+            return $this->error('主门店不存在');
+        }
+        // 获取权限和用户
+        $has_permission = $request->user()->hasPermissionTo('currency_shop_all');
+        $user_id = $request->user()->id;
+        // 判断是否可以操作此门店
+        if (!$has_permission) {
+            if ($master_shop->own_id != $request->user()->id) {
+                return $this->error('主门店不存在');
+            }
+        }
+        if (!$master_mtid = $master_shop->waimai_mt) {
+            return $this->error('主门店未绑定美团');
+        }
+        $select_shops = $request->get('select_ids');
+        $follow_shop_id = $select_shops[0];
+        if (!$follow_shop = Shop::find($follow_shop_id)) {
+            return $this->error('从门店不存在');
+        }
+        if (!$follow_mtid = $follow_shop->waimai_mt) {
+            return $this->error('从门店未绑定美团');
+        }
+        // ------------------------------------------------------
+        // --------------------- 同步商品开始 ---------------------
+        // ------------------------------------------------------
+        $logs = WmProductLog::create([
+            'from_shop' => $master_shop->id,
+            'from_shop_name' => $master_shop->shop_name,
+            'go_shop' => $follow_shop->id,
+            'go_shop_name' => $follow_shop->shop_name,
+            'user_id' => $user_id,
+            'success' => 0,
+            'error' => 0,
+            'fail' => 0,
+        ]);
+        $mt = app('meiquan');
+        $access_token = $mt->getShopToken($follow_mtid);
+        // --------------------- 同步分类 ---------------------
+        $categories = $mt->retailCatList(['app_poi_code' => $master_mtid, 'access_token' => $mt->getShopToken($master_mtid)]);
+        if (!empty($categories['data'])) {
+            foreach ($categories['data'] as $category) {
+                $params = [
+                    'app_poi_code' => $follow_mtid,
+                    'category_name' => $category['name'],
+                    'sequence' => $category['sequence'],
+                    'access_token' => $access_token,
+                ];
+                $res = $mt->retailCatUpdate($params);
+                if ($res['data'] == 'ok') {
+                    if (!empty($category['children'])) {
+                        foreach ($category['children'] as $child) {
+                            $params = [
+                                'app_poi_code' => $follow_mtid,
+                                'category_name_origin' => $category['name'],
+                                'category_name' => $category['name'],
+                                'secondary_category_name' => $child['name'],
+                                'sequence' => $child['sequence'],
+                                'access_token' => $access_token,
+                            ];
+                            $res = $mt->retailCatUpdate($params);
+                            if ($res['data'] != 'ok') {
+                                $error_msg = $res['error']['msg'] ?? '失败';
+                                \Log::info("二级分类失败：" .$child['name']. "|一级分类：".$category['name']."|失败信息：{$error_msg}");
+                                WmProductLogItem::insert([
+                                    'log_id' => $logs->id,
+                                    'name' => '二级分类失败',
+                                    'type' => 1,
+                                    'description' => "二级分类失败：" .$child['name']. "|一级分类：".$category['name']."|失败信息：{$error_msg}"
+                                ]);
+                            }
+                        }
+                    }
+                } else {
+                    $error_msg = $res['error']['msg'] ?? '失败';
+                    \Log::info("一级分类失败：" .$category['name']. "|失败信息：{$error_msg}");
+                    WmProductLogItem::insert([
+                        'log_id' => $logs->id,
+                        'name' => '一级分类失败',
+                        'type' => 1,
+                        'description' => "一级分类失败：" .$category['name']. "|失败信息：{$error_msg}"
+                    ]);
+                }
+            }
+        }
+        // --------------------- 同步商品 ---------------------
+        $weight_meu = ["克(g)" => 1, "千克(kg)" => 2, "毫升(ml)" => 3, "升(L)" => 4, "磅" => 5, "斤" => 6, "两" => 7];
+        // 36，37
+        $limit = 200;
+        for ($i = 0; $i < 2000; $i++) {
+            $products = $mt->retailList(['app_poi_code' => $master_mtid, 'access_token' => $mt->getShopToken($master_mtid),'offset' => $i * $limit, 'limit' => $limit]);
+            if (!empty($products['data'])) {
+                foreach ($products['data'] as $product) {
+                    $name = $product['name'] ?? '';
+                    try {
+                        WmProductLog::where('id', $logs->id)->increment('total');
+                        // 判断商家商品ID
+                        $app_food_code = $product['app_food_code'];
+                        if (!$app_food_code) {
+                            // $this->ding_error("错误商品ID为空：{$i}，名称：" . $product['name']);
+                            $app_food_code = uniqid();
+                        }
+                        // 判断SKU
+                        $skus = json_decode(urldecode($product['skus']), true);
+                        if (!empty($skus)) {
+                            foreach ($skus as $k => $v) {
+                                unset($skus[$k]['weight']);
+                                if (!$v['sku_id']) {
+                                    $sku_id = $app_food_code;
+                                    if ($k) {
+                                        $sku_id = $sku_id . $k;
+                                    }
+                                    $skus[$k]['sku_id'] = $sku_id;
+                                    $skus[$k]['stock'] = $v['stock'] ?: 0;
+                                    // $skus[$k]['weight_for_unit'] = $weight_meu[$v['weight_unit']];
+                                    $skus[$k]['weight_for_unit'] = (float) $v['weight_for_unit'];
+                                }
+                            }
+                        }
+                        $params = [
+                            'app_poi_code' => $follow_mtid,
+                            'access_token' => $access_token,
+                            'app_food_code' => $app_food_code,
+                            'name' => $product['name'],
+                            'description' => $product['description'] ?? '',
+                            'standard_upc' => $product['standard_upc'] ?? '',
+                            'skus' => json_encode($skus, JSON_UNESCAPED_UNICODE),
+                            'price' => $product['price'],
+                            'min_order_count' => $product['min_order_count'],
+                            'unit' => $product['unit'],
+                            'box_num' => $product['box_num'],
+                            'box_price' => $product['box_price'],
+                            'category_name' => isset($product['secondary_category_name']) ? $product['secondary_category_name'] : $product['category_name'],
+                            'is_sold_out' => $product['is_sold_out'],
+                            'picture' => $product['picture'],
+                            'sequence' => $product['sequence'],
+                            'tag_id' => $product['tag_id'],
+                            'picture_contents' => $product['picture_contents'],
+                            'is_specialty' => $product['is_specialty'],
+                            // 'video_id' => $product['video_id'],
+                            // 'common_attr_value' => json_encode($common_attr_values, JSON_UNESCAPED_UNICODE),
+                            'is_show_upc_pic_contents' => $product['is_show_upc_pic_contents'] ?? 1,
+                            // 'limit_sale_info' => $product['limit_sale_info'] ?? '',
+                            // 'sale_type' => $product['sale_type'],
+                        ];
+                        if (isset($product['limit_sale_info']) && !empty($product['limit_sale_info'])) {
+                            $params['limit_sale_info'] = $product['limit_sale_info'];
+                        }
+                        if (isset($product['video_id']) && !empty($product['video_id'])) {
+                            $params['video_id'] = $product['video_id'];
+                        }
+                        if (isset($product['common_attr_value']) && !empty($product['common_attr_value'])) {
+                            $common_attr_values = json_decode(urldecode($product['common_attr_value']), true);
+                            if (!empty($common_attr_values)) {
+                                foreach ($common_attr_values as $k => $common_attr_value) {
+                                    if (!empty($common_attr_value['valueList'])) {
+                                        $common_attr_values[$k]['valueList'] = $common_attr_value['valueList'][0];
+                                        unset($common_attr_values[$k]['valueListSize']);
+                                        unset($common_attr_values[$k]['valueListIterator']);
+                                        unset($common_attr_values[$k]['setValue']);
+                                        unset($common_attr_values[$k]['setValueId']);
+                                    }
+                                }
+                            }
+                            $params['common_attr_value'] = json_encode($common_attr_values, JSON_UNESCAPED_UNICODE);
+                        }
+                        foreach ($params as $k => $param) {
+                            if (!$param || $param == 'null') {
+                                unset($params[$k]);
+                            }
+                        }
+                        $res = $mt->retailInitData($params);
+                        // $name = $params['name'];
+                        if ($res['data'] != 'ok') {
+                            $error_msg = $res['error_list'][0]['msg'] ?? json_encode($res, JSON_UNESCAPED_UNICODE);
+                            \Log::info("商品名称：{$name}|失败信息：{$error_msg}");
+                            WmProductLog::where('id', $logs->id)->increment('fail');
+                            WmProductLogItem::insert([
+                                'log_id' => $logs->id,
+                                'name' => $name,
+                                'type' => 2,
+                                'description' => $error_msg
+                            ]);
+                        } else {
+                            WmProductLog::where('id', $logs->id)->increment('success');
+                        }
+                    } catch (\Exception $exception) {
+                        \Log::info("----------错误了|||商品名称：{$name}|失败信息：{$error_msg}");
+                        WmProductLog::where('id', $logs->id)->increment('fail');
+                        WmProductLogItem::insert([
+                            'log_id' => $logs->id,
+                            'name' => $name,
+                            'type' => 2,
+                            'description' => '失败'
+                        ]);
+                    }
+                }
+            } else {
+                WmProductLogItem::where('log_id', $logs->id)->update(['status' => 1]);
+                break;
+            }
+        }
+        return $this->success();
+    }
+    public function transfer2(Request $request)
     {
         \Log::info("迁移商品开始");
         // 判断门店是否存在
