@@ -575,7 +575,7 @@ class TakeoutProductController extends Controller
                     }
                 }
             } else {
-                WmProductLogItem::where('log_id', $logs->id)->update(['status' => 1]);
+                WmProductLog::where('id', $logs->id)->update(['status' => 1]);
                 break;
             }
         }
