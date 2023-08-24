@@ -133,4 +133,19 @@ class Api extends Request
 
         return $this->post('getorderdetail.ashx', $data);
     }
+
+    /**
+     * 添加小费
+     * @author zhangzhen
+     * @data 2023/8/24 2:27 下午
+     */
+    public function add_tip($order_code, $order_no, $tip)
+    {
+        $data = [
+            'order_code' => $order_code,
+            'order_id' => $order_no,
+            'onlinefee' => $tip
+        ];
+        return $this->post('payonlinefee.ashx', $data);
+    }
 }

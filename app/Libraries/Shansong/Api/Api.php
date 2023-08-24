@@ -225,6 +225,11 @@ class Api extends Request
         return $this->post('/openapi/merchants/v5/getUserAccount', []);
     }
 
+    /**
+     * 加小费
+     * @author zhangzhen
+     * @data 2023/8/24 11:02 上午
+     */
     public function add_tip($three_no, $tip)
     {
         $data = [

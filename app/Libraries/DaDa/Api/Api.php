@@ -193,4 +193,19 @@ class Api extends Request
         ];
         return $this->post('/api/message/confirm', ['messageType' => 1, 'messageBody' => json_encode($data)]);
     }
+
+    /**
+     *
+     * @author zhangzhen
+     * @data 2023/8/24 11:03 上午
+     */
+    public function add_tip($order__no, $tip)
+    {
+        // 每次添加的小费将覆盖前一次的小费金额，再次通过该接口添加小费的金额需大于前一次。
+        $data = [
+            'order_id' => $order__no,
+            'tips' => $tip
+        ];
+        return $this->post('/api/order/addTip', $data);
+    }
 }
