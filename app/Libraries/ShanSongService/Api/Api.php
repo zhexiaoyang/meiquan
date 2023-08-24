@@ -298,4 +298,13 @@ class Api extends Request
 
         return $access_token;
     }
+
+    public function add_tip($three_no, $tip)
+    {
+        $data = [
+            'issOrderNo' => $three_no,
+            'additionAmount' => $tip * 100
+        ];
+        return $this->post('/openapi/developer/v5/addition', $data);
+    }
 }

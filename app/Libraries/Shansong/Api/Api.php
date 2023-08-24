@@ -224,4 +224,13 @@ class Api extends Request
     {
         return $this->post('/openapi/merchants/v5/getUserAccount', []);
     }
+
+    public function add_tip($three_no, $tip)
+    {
+        $data = [
+            'issOrderNo' => $three_no,
+            'additionAmount' => $tip * 100
+        ];
+        return $this->post('/openapi/developer/v5/addition', $data);
+    }
 }

@@ -975,6 +975,11 @@ class Api extends Request
         return $this->request_post('v1/retail/sku/save', $params);
     }
 
+    public function retail_multipoi_create($params)
+    {
+        return $this->request_post('v1/retail/multipoi/create', $params);
+    }
+
     // ------------------------------------------------------------------------------------------------
     // ---------------------------------------- 美团众包配送 开始 ----------------------------------------
     // ------------------------------------------------------------------------------------------------
