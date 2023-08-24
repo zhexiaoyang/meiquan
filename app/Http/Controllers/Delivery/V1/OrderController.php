@@ -2556,9 +2556,27 @@ class OrderController extends Controller
     /**
      * 添加小费
      * @data 2023/8/9 5:29 下午
+     * 1. 闪送不支持小数，将数值向下取整，添加小费
      */
     public function add_tip(Request $request)
     {
+        // 判断小费金额
+        $tip = (float) $request->get('tip');
+        if (!is_numeric($tip)) {
+            return $this->error("小费金额格式不正确");
+        }
+        if (!is_int($tip)) {
+            $tip = (floor($tip * 10) / 10);
+        }
+        if ($tip <= 0) {
+            return $this->error("小费金额不能小于等于0");
+        }
+        // 判断平台
+        $platform = (int) $request->get('platform');
+        if (!in_array($platform, [0,3,5,6,7,8])) {
+            return $this->error("平台不正确");
+        }
+        // 判断订单
         $order_id = (int) $request->get("order_id", 0);
         if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
@@ -2575,16 +2593,112 @@ class OrderController extends Controller
         }
         // ---------------------------------------------------------------------------------------------------------
         // ---------------------------------------------------------------------------------------------------------
-        $_rand = rand(1, 2);
-        if ($_rand === 1) {
-            return $this->message('添加小费成功');
-        } else {
-            return $this->error('添加小费失败');
+        // $_rand = rand(1, 2);
+        // if ($_rand === 1) {
+        //     return $this->message('添加小费成功');
+        // } else {
+        //     return $this->error('添加小费失败');
+        // }
+        // ---------------------------------------------------------------------------------------------------------
+        // ---------------------------------------------------------------------------------------------------------
+        $deliveries = OrderDelivery::where('order_id', $order->id)->where('status', 20)->get();
+        if ($deliveries->isEmpty()) {
+            return $this->error("没有平台可以加小费");
         }
-        // ---------------------------------------------------------------------------------------------------------
-        // ---------------------------------------------------------------------------------------------------------
-        // $deliveries =
-        return $this->message('添加小费成功');
+        $message_data = [];
+        foreach ($deliveries as $delivery) {
+            // 闪送加小费
+            if (floor($tip) >= 1) {
+                $ss_tip = floor($tip);
+                if ($delivery->platform === 3 && ($platform === 3 || $platform === 0)) {
+                    if ($delivery->type == 1) {
+                        // 自有闪送
+                        $shansong = new ShanSongService(config('ps.shansongservice'));
+                    } else {
+                        // 聚合闪送
+                        $shansong = app("shansong");
+                    }
+                    $ss_res = $shansong->add_tip($delivery->three_order_no, $ss_tip);
+                    if (isset($ss_res['status']) && $ss_res['status'] == 200) {
+                        Order::where('id', $order->id)->increment('money_ss', $ss_tip);
+                        OrderDelivery::where('id', $delivery->id)->increment('money', $ss_tip);
+                        OrderDelivery::where('id', $delivery->id)->increment('tip', $ss_tip);
+                        $message_data[] = "闪送加{$ss_tip}元小费成功";
+                    } else {
+                        $message_data[] = "闪送失败:" . $ss_res['msg'] ?? '系统错误';
+                    }
+                }
+            } else {
+                $message_data[] = "闪送失败:小费金额不能低于1元";
+            }
+            // 达达加小费
+            if ($delivery->platform === 5 && ($platform === 5 || $platform === 0)) {
+                if ($delivery->type == 1) {
+                    // 自有达达
+                    $config = config('ps.dada');
+                    $config['source_id'] = get_dada_source_by_shop($order->warehouse_id ?: $order->shop_id);
+                    $dada = new DaDaService($config);
+                } else {
+                    // 聚合达达
+                    $dada = app("dada");
+                }
+                $dd_res = $dada->add_tip($delivery->order_no, $delivery->tip + $tip);
+                if (isset($dd_res['code']) && $dd_res['code'] == 0) {
+                    Order::where('id', $order->id)->increment('money_dd', $tip);
+                    OrderDelivery::where('id', $delivery->id)->increment('money', $tip);
+                    OrderDelivery::where('id', $delivery->id)->increment('tip', $tip);
+                    $message_data[] = "达达加{$tip}元小费成功";
+                } else {
+                    $message_data[] = "达达失败:" . $dd_res['msg'] ?? '系统错误';
+                }
+            }
+            // UU加小费
+            if (floor($tip) >= 1) {
+                $uu_tip = floor($tip);
+                if ($delivery->platform === 6 && ($platform === 6 || $platform === 0)) {
+                    $dada = app("uu");
+                    $uu_res = $dada->add_tip($delivery->three_order_no, $delivery->order_no, $uu_tip);
+                    if (isset($uu_res['return_code']) && $uu_res['return_code'] == 'ok') {
+                        Order::where('id', $order->id)->increment('money_uu', $uu_tip);
+                        OrderDelivery::where('id', $delivery->id)->increment('money', $uu_tip);
+                        OrderDelivery::where('id', $delivery->id)->increment('tip', $uu_tip);
+                        $message_data[] = "UU加{$uu_tip}元小费成功";
+                    } else {
+                        $message_data[] = "UU失败:" . $uu_res['return_msg'] ?? '系统错误';
+                    }
+                }
+            }
+            // 顺丰加小费
+            if ($delivery->platform === 7 && ($platform === 7 || $platform === 0)) {
+                if ($delivery->type == 1) {
+                    // 自有顺丰
+                    $shunfeng = app("shunfengservice");
+                } else {
+                    // 聚合顺丰
+                    $shunfeng = app("shunfeng");
+                }
+                $shop_id = $order->warehouse_id ?: $order->shop_id;
+                if ($delivery->type == 0) {
+                    $shop = Shop::select('id', 'citycode')->find($shop_id);
+                    $shop_id = intval($shop->citycode);
+                }
+                $sf_res = $shunfeng->add_tip($tip, $delivery->order_no, $shop_id);
+                if (isset($sf_res['error_code']) && $sf_res['error_code'] == 0) {
+                    Order::where('id', $order->id)->increment('money_sf', $tip);
+                    OrderDelivery::where('id', $delivery->id)->increment('money', $tip);
+                    OrderDelivery::where('id', $delivery->id)->increment('tip', $tip);
+                    $message_data[] = "顺丰加{$tip}元小费成功";
+                } else {
+                    $message_data[] = "顺丰失败:" . $sf_res['error_msg'] ?? '系统错误';
+                }
+            }
+        }
+        if (count($message_data) > 1) {
+            $res_message = implode(',', $message_data);
+        } else {
+            $res_message = $message_data[0] ?? '添加失败';
+        }
+        return $this->message($res_message);
     }
 
     /**

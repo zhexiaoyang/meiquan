@@ -236,4 +236,21 @@ class Api extends Request
     {
         return "https://openic.sf-express.com/artascope/cx/receipt/getpage/product/artascope/page/storeTopUp?dev_id={$this->app_id}&shop_id={$shop_id}&shop_type={$type}";
     }
+
+    /**
+     * 添加小费
+     * @author zhangzhen
+     * @data 2023/8/24 2:27 下午
+     */
+    public function add_tip($tip, $order_id, $shop_id, $order_type = 2, $shop_type = 2)
+    {
+        $data = [
+            'gratuity_fee' => $tip * 100,
+            'order_id' => $order_id,
+            'order_type' => $order_type,
+            "shop_id" => (string) $shop_id,
+            "shop_type" => $shop_type,
+        ];
+        return $this->post('/open/api/external/riderviewv2', $data);
+    }
 }
