@@ -372,11 +372,11 @@ class OrderConfirmController
                         dispatch(new PushDeliveryOrder($order_pt->id, ($order_pt->expected_delivery_time - time() - $qu)));
                         $this->log_info("-预约单派单成功，{$qu}秒后发单");
                     } else {
-                        $order_pt->send_at = date("Y-m-d H:i:s");
-                        $order_pt->status = 8;
-                        $order_pt->save();
                         $delay = $setting->delay_send ?? 0;
                         $delay = $delay > 60 ? $delay : config("ps.order_delay_ttl");
+                        $order_pt->send_at = date("Y-m-d H:i:s", time() + $delay);
+                        $order_pt->status = 8;
+                        $order_pt->save();
                         dispatch(new CreateMtOrder($order_pt, $delay));
                         $this->log_info("-派单成功，{$delay}秒后发单");
                     }

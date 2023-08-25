@@ -138,12 +138,13 @@ class OrderController extends Controller
                 $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
                 $number = 0;
                 if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
-                    if ($setting = OrderSetting::where("shop_id", $order->shop_id)->first()) {
-                        $ttl = $setting->delay_send;
-                    } else {
-                        $ttl = config("ps.shop_setting.delay_send");
-                    }
-                    $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
+                    // if ($setting = OrderSetting::where("shop_id", $order->shop_id)->first()) {
+                    //     $ttl = $setting->delay_send;
+                    // } else {
+                    //     $ttl = config("ps.shop_setting.delay_send");
+                    // }
+                    // $number = $second - time() + $ttl > 0 ? $second - time() + $ttl : 0;
+                    $number = $second - time() > 0 ? $second - time() : 0;
                 }
                 if ($order->status == 8 && $number == 0 ) {
                     $order->status = 0;
