@@ -93,10 +93,10 @@ class OrderController extends Controller
             if (is_numeric($status)) {
                 $query->where('status', $status);
             } else {
-                // $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
-                // $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
-                // $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
-                // $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+                // $dai = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+                // $jin = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+                // $wan = Order::where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+                // $qu = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
                 if ($status === 'dai') {
                     $query->whereIn("status", [0,3,5,7,8,10]);
                 } elseif ($status === 'jin') {
@@ -138,7 +138,7 @@ class OrderController extends Controller
                 $order->delivery = $order->expected_delivery_time > 0 ? date("m-d H:i", $order->expected_delivery_time) : "";
                 $number = 0;
                 if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
-                    if ($setting = OrderSetting::query()->where("shop_id", $order->shop_id)->first()) {
+                    if ($setting = OrderSetting::where("shop_id", $order->shop_id)->first()) {
                         $ttl = $setting->delay_send;
                     } else {
                         $ttl = config("ps.shop_setting.delay_send");
@@ -172,8 +172,8 @@ class OrderController extends Controller
 
         \Log::info("[跑腿订单-手动创建订单]-[门店ID: {$shop_id}]]");
 
-        if (!$shop = Shop::query()->find($shop_id)) {
-            $shop = Shop::query()->where('shop_id', $shop_id)->first();
+        if (!$shop = Shop::find($shop_id)) {
+            $shop = Shop::where('shop_id', $shop_id)->first();
         }
         if (!$shop) {
             return $this->error('门店不存在');
@@ -260,7 +260,7 @@ class OrderController extends Controller
 
         \Log::info("[跑腿订单-重新发送]-[订单ID: {$order_id}]-[订单号: {$order->order_id}]");
 
-        // if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
+        // if (!$shop = Shop::where(['status' => 40, 'id' => $order->shop_id])->first()) {
         //     return $this->error("该门店不能发单");
         // }
 
@@ -377,7 +377,7 @@ class OrderController extends Controller
      */
     public function send( Order $order)
     {
-        if (!$shop = Shop::query()->where(['status' => 40, 'id' => $order->shop_id])->first()) {
+        if (!$shop = Shop::where(['status' => 40, 'id' => $order->shop_id])->first()) {
             return $this->error("该门店不能发单");
         }
 
@@ -740,7 +740,7 @@ class OrderController extends Controller
     public function cancel(Request $request)
     {
         $order_id = $request->get('order_id', 0);
-        $order = Order::query()->where('order_id', $order_id)->first();
+        $order = Order::where('order_id', $order_id)->first();
         \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order_id}]-开始");
 
         if (!$order) {
@@ -790,7 +790,7 @@ class OrderController extends Controller
                             }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -800,7 +800,7 @@ class OrderController extends Controller
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -883,7 +883,7 @@ class OrderController extends Controller
                             \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-扣款：{$jian_money}");
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -893,7 +893,7 @@ class OrderController extends Controller
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -993,7 +993,7 @@ class OrderController extends Controller
                                 // }
 
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -1004,7 +1004,7 @@ class OrderController extends Controller
                                 ]);
 
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -1071,7 +1071,7 @@ class OrderController extends Controller
                         DB::transaction(function () use ($order) {
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -1147,7 +1147,7 @@ class OrderController extends Controller
                                 }
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -1157,7 +1157,7 @@ class OrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -1233,7 +1233,7 @@ class OrderController extends Controller
                             }
                             // 当前用户
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -1242,7 +1242,7 @@ class OrderController extends Controller
                                 "description" => "[美团外卖]取消[UU]订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $jian_money,
                                 "type" => 2,
@@ -1316,7 +1316,7 @@ class OrderController extends Controller
                                 \Log::info("[跑腿订单-美团外卖接口取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
                                 // 当前用户
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -1326,7 +1326,7 @@ class OrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -1639,7 +1639,7 @@ class OrderController extends Controller
                             }
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -1649,7 +1649,7 @@ class OrderController extends Controller
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -1732,7 +1732,7 @@ class OrderController extends Controller
                             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-扣款：{$jian_money}");
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -1742,7 +1742,7 @@ class OrderController extends Controller
                                 "tid" => $order->id
                             ]);
                             if ($jian_money > 0) {
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $jian_money,
                                     "type" => 2,
@@ -1920,7 +1920,7 @@ class OrderController extends Controller
                         DB::transaction(function () use ($order) {
                             // 用户余额日志
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -1996,7 +1996,7 @@ class OrderController extends Controller
                                 }
                                 // 用户余额日志
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -2006,7 +2006,7 @@ class OrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -2084,7 +2084,7 @@ class OrderController extends Controller
                             }
                             // 当前用户
                             $current_user = DB::table('users')->find($order->user_id);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $order->money,
                                 "type" => 1,
@@ -2093,7 +2093,7 @@ class OrderController extends Controller
                                 "description" => "用户操作取消UU跑腿订单：" . $order->order_id,
                                 "tid" => $order->id
                             ]);
-                            UserMoneyBalance::query()->create([
+                            UserMoneyBalance::create([
                                 "user_id" => $order->user_id,
                                 "money" => $jian_money,
                                 "type" => 2,
@@ -2169,7 +2169,7 @@ class OrderController extends Controller
                                 \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-扣款金额：{$jian_money}");
                                 // 当前用户
                                 $current_user = DB::table('users')->find($order->user_id);
-                                UserMoneyBalance::query()->create([
+                                UserMoneyBalance::create([
                                     "user_id" => $order->user_id,
                                     "money" => $order->money,
                                     "type" => 1,
@@ -2179,7 +2179,7 @@ class OrderController extends Controller
                                     "tid" => $order->id
                                 ]);
                                 if ($jian_money > 0) {
-                                    UserMoneyBalance::query()->create([
+                                    UserMoneyBalance::create([
                                         "user_id" => $order->user_id,
                                         "money" => $jian_money,
                                         "type" => 2,
@@ -2593,7 +2593,7 @@ class OrderController extends Controller
      */
     public function returned(Request $request)
     {
-        if (!$order = Order::query()->find( $request->get('order_id', 0))) {
+        if (!$order = Order::find( $request->get('order_id', 0))) {
             return $this->error("订单不存在");
         }
         $error = '失败';
@@ -2963,10 +2963,10 @@ class OrderController extends Controller
         // 判断可以查询的药店
         // if ($request->user()->hasRole('super_man')) {
         if ($request->user()->hasPermissionTo('currency_shop_all')) {
-            $dai = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
-            $jin = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
-            $wan = Order::query()->where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
-            $qu = Order::query()->where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
+            $dai = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
+            $jin = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [20,30,40,50,60])->count();
+            $wan = Order::where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
+            $qu = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
             // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
         } else {
             $dai = Order::whereIn('shop_id', $request->user()->shops()->pluck('id'))->where('created_at', '>', date("Y-m-d"))->whereIn("status", [0,3,5,7,8,10])->count();
