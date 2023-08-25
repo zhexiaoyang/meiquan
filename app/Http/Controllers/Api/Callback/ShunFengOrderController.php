@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Callback;
 
 use App\Events\OrderCancel;
+use App\Events\OrderComplete;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
@@ -593,6 +594,7 @@ class ShunFengOrderController extends Controller
             ]);
             $this->log_info('配送完成，更改信息成功');
             dispatch(new MtLogisticsSync($order));
+            event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at))));
             // 查找扣款用户，为了记录余额日志
             $current_user = DB::table('users')->find($order->user_id);
             // 减去用户配送费

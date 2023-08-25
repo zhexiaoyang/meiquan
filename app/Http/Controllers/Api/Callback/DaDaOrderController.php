@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Callback;
 
 use App\Events\OrderCancel;
+use App\Events\OrderComplete;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
@@ -675,6 +676,7 @@ class DaDaOrderController
                     "tid" => $order->id
                 ]);
                 $this->log_info('配送完成，扣款成功');
+                event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at))));
                 return json_encode($res);
             } elseif ($status == 5) {
                 // 写入足迹

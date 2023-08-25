@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\OrderCancel;
+use App\Events\OrderComplete;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
@@ -743,6 +744,7 @@ class DaDaController extends Controller
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
+                event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at))));
                 return json_encode($res);
             } elseif ($status == 5) {
                 // 写入足迹

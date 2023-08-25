@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\ShanSong;
 
+use App\Events\OrderComplete;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\MtLogisticsSync;
 use App\Libraries\DaDaService\DaDaService;
@@ -641,6 +642,7 @@ class OrderController
                     'phone' => $phone,
                 ]);
                 dispatch(new MtLogisticsSync($order));
+                event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at))));
                 return json_encode($res);
             } elseif ($status == 60) {
                 // 写入足迹
