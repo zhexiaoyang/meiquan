@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
+use App\Events\OrderComplete;
 use App\Jobs\MtLogisticsSync;
 use App\Jobs\PrescriptionFeeDeductionJob;
 use App\Jobs\VipOrderSettlement;
@@ -680,6 +681,7 @@ class OrderController
                     ]);
                     $this->log_info('配送完成，扣款成功');
                     WmOrder::where('id', $order->id)->update(['running_fee' => $pt_order->money, 'running_service_fee' => $service_fee]);
+                    event(new OrderComplete($pt_order->shop_id, date("Y-m-d", strtotime($pt_order->created_at))));
                 } elseif ($status === 100) {
                     // 写入足迹
                     if ($delivery) {
