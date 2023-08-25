@@ -185,6 +185,14 @@ class SyncStockWanXiangToMiddle extends Command
                 'mqid' => 6190,
             ],
             [
+                'name' => '万祥大药房(公园道店)',
+                'shopid' => '0021',
+                'mtid' => '17624811',
+                'eleid' => '1151186753',
+                'bind' => 31,
+                'mqid' => 6430,
+            ],
+            [
                 'name' => '万祥大药房（天润城店）',
                 'shopid' => '0022',
                 'mtid' => '18158326',
