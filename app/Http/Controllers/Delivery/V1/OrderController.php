@@ -95,7 +95,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','poi_receive')
+            'courier_name', 'courier_phone','poi_receive','send_at')
             ->where('ignore', 0)
             ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
         // 判断权限
