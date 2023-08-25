@@ -167,6 +167,14 @@ class OrderController extends Controller
         }
         if (!empty($orders)) {
             foreach ($orders as $order) {
+                $number = 0;
+                if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
+                    $number = $second - time() > 0 ? $second - time() : 0;
+                }
+                if ($order->status == 8 && $number == 0 ) {
+                    $order->status = 0;
+                }
+                $order->number = $number;
                 // 电话列表
                 $order->receiver_phone_list = [$order->receiver_phone];
                 // 订单商品数量
