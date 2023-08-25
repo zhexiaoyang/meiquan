@@ -14,14 +14,16 @@ class OrderComplete
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
+    public $shop_id;
+
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(int $shop_id)
     {
-        //
+        $this->shop_id = $shop_id;
     }
 
     /**
