@@ -222,7 +222,7 @@ class MtLogisticsSync implements ShouldQueue
             // 同步饿了么订单状态
             \Log::info("[同步配送信息-饿了么]-[订单号:{$this->order->order_id}]-开始");
             $ele = app("ele");
-            $ele_status = [20 => 2, 50 => 30, 60 => 20, 70 => 30];
+            $ele_status = [20 => 2, 50 => 3, 60 => 20, 70 => 30];
             if (isset($ele_status[$this->order->status])) {
                 $params = [
                     "order_id" =>  $this->order->order_id,
