@@ -213,11 +213,15 @@ class SyncStockWanXiang extends Command
                 foreach ($data as $items) {
                     $stock_data = [];
                     $stock_data_ele = [];
+                    $upc_data = [];
                     // $log_off = false;
                     foreach ($items as $item) {
                         // if ($item->id == '00723' && $mt_id = '16297828') {
                         //     $log_off = true;
                         // }
+                        if (in_array($item->upc, $upc_data)) {
+                            continue;
+                        }
                         $stock = (int) $item->stock;
                         $stock = $stock >= 0 ? $stock : 0;
                         $stock_data[] = [
@@ -227,6 +231,7 @@ class SyncStockWanXiang extends Command
                         if (in_array($item->upc, $upcs)) {
                             $stock_data_ele[] = $item->upc . ':' . $stock;
                         }
+                        $upc_data[] = $item->upc;
                     }
 
                     $params['app_poi_code'] = $mt_id;
