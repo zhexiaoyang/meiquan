@@ -188,6 +188,18 @@ class SyncStockWanXiang extends Command
             $minkang = app("minkang");
             $meiquan = app("meiquan");
             $ele = app("ele");
+            // 获取饿了么商品信息
+            $upcs = [];
+            for ($i = 1; $i <= 100; $i++) {
+                $res = $ele->getSkuList($ele_id, $i, 100);
+                if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+                    foreach ($res['body']['data']['list'] as $v) {
+                        $upcs[] = $v['upc'];
+                    }
+                } else {
+                    break;
+                }
+            }
             try {
                 $data = DB::connection('wanxiang_haidian')
                     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[药品ID],[库存]");
@@ -212,7 +224,9 @@ class SyncStockWanXiang extends Command
                             'app_medicine_code' => $item->id,
                             'stock' => $stock,
                         ];
-                        $stock_data_ele[] = $item->upc . ':' . $stock;
+                        if (in_array($item->upc, $upcs)) {
+                            $stock_data_ele[] = $item->upc . ':' . $stock;
+                        }
                     }
 
                     $params['app_poi_code'] = $mt_id;
@@ -230,12 +244,16 @@ class SyncStockWanXiang extends Command
                         // }
                     }
 
-                    $ele_params['shop_id'] = $ele_id;
-                    $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
-                    // $ele->skuStockUpdate($ele_params);
-                    $eleres = $ele->skuStockUpdate($ele_params);
-                    Log::info("万祥日志饿了么门店「{$name}}:{$mt_id}」同步库存-请求参数", $stock_data_ele);
-                    Log::info("万祥日志饿了么门店「{$name}}:{$mt_id}」同步库存-结果", [$eleres]);
+                    if (!empty($stock_data_ele)) {
+                        $ele_params['shop_id'] = $ele_id;
+                        $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
+                        // $ele->skuStockUpdate($ele_params);
+                        $eleres = $ele->skuStockUpdate($ele_params);
+                        Log::info("万祥日志饿了么门店「{$name}}:{$mt_id}」同步库存-请求参数", $stock_data_ele);
+                        Log::info("万祥日志饿了么门店「{$name}}:{$mt_id}」同步库存-结果", [$eleres]);
+                    } else {
+                        Log::info("万祥日志饿了么门店「{$name}}:{$mt_id}」同步库存-未同步");
+                    }
                 }
             }
             $this->info("门店「{$name}}:{$mt_id}」同步库存-结束......");
