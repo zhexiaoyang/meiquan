@@ -553,7 +553,7 @@ class OrderController extends Controller
             $this->log_info("订单号：{$order_id}|订单不存在");
         }
         if ($order_pt = Order::where('order_id', $order_id)->first()) {
-            if ($order_pt->status == 0) {
+            if ($order_pt->status < 20) {
                 $order_pt->status = 75;
                 $order_pt->over_at = date("Y-m-d H:i:s");
                 $order_pt->save();
