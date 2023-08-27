@@ -21,6 +21,7 @@ class PostBackController extends Controller
         $not_ok = 0;
         $shops = Shop::select('id', 'shop_name', 'wm_shop_name', 'meituan_bind_platform','waimai_mt')
             ->where('waimai_mt', '<>', '')->where('user_id', $user->id)->get();
+            // ->where('waimai_mt', '<>', '')->where('id', 6122)->get();
         if ($shops->isNotEmpty()) {
             $shop_ids = $shops->pluck('id')->toArray();
             $toady_postback = ShopPostback::where('date', date("Y-m-d"))->whereIn('shop_id',$shop_ids)->pluck('rate', 'shop_id');
@@ -68,7 +69,7 @@ class PostBackController extends Controller
         if (!Shop::where('user_id', $user->id)->find($shop_id)) {
             return $this->error('门店不存在!');
         }
-        $shop_id = 2597;
+        // $shop_id = 6122;
         $result = [
             'wait' => WmOrder::select('id')->where('shop_id', $shop_id)->where('created_at', '>=', date("Y-m-d"))->where('ignore', 0)->where('post_back', 0)->count(),
             'uploading' => 0,
@@ -86,9 +87,6 @@ class PostBackController extends Controller
         if (!in_array($type, [1,2,3,4])) {
             return $this->error('类型错误');
         }
-        if ($type == 2) {
-            return $this->success();
-        }
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('门店不存在');
         }
@@ -96,7 +94,7 @@ class PostBackController extends Controller
         if (!Shop::where('user_id', $user->id)->find($shop_id)) {
             return $this->error('门店不存在!');
         }
-        $shop_id = 2597;
+        // $shop_id = 6122;
         $page_size = $request->get('page_size', 10);
 
         $query = WmOrder::with(['deliveries' => function ($query) {
@@ -116,6 +114,7 @@ class PostBackController extends Controller
         if ($type === 1) {
             $query->where('ignore', 0)->where('post_back', 0);
         } elseif ($type === 2) {
+            $query->where('post_back', 111);
         } elseif ($type === 3) {
             $query->where('ignore', 1);
         } elseif ($type === 4) {
@@ -123,7 +122,7 @@ class PostBackController extends Controller
         }
 
         $orders = $query->paginate($page_size);
-        if (!empty($orders)) {
+        if ($orders->isNotEmpty()) {
             foreach ($orders as $order) {
                 $order->status = $order->running->status;
                 // 预约单
