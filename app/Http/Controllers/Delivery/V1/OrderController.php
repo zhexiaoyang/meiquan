@@ -475,7 +475,7 @@ class OrderController extends Controller
     {
         if (!$order = Order::select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','courier_lng','courier_lat','money as shipping_fee')
+            'courier_name', 'courier_phone','courier_lng','courier_lat','money as shipping_fee','send_at')
             ->find(intval($request->get('id', 0)))) {
             return $this->error('订单不存在');
         }
@@ -498,6 +498,14 @@ class OrderController extends Controller
             $query->select('id', 'shop_lng','shop_lat','shop_name');
         }]);
 
+        // 倒计时
+        $number = 0;
+        if (!empty($order->send_at) && ($second = strtotime($order->send_at)) > 0) {
+            $number = $second - time() > 0 ? $second - time() : 0;
+        }
+        if ($order->status == 8 && $number == 0 ) {
+            $order->status = 0;
+        }
         // 电话列表
         $order->receiver_phone_list = [$order->receiver_phone];
         // 订单商品数量
