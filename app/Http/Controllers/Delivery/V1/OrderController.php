@@ -506,6 +506,7 @@ class OrderController extends Controller
         if ($order->status == 8 && $number == 0 ) {
             $order->status = 0;
         }
+        $order->number = $number;
         // 电话列表
         $order->receiver_phone_list = [$order->receiver_phone];
         // 订单商品数量
