@@ -104,7 +104,7 @@ class PostBackController extends Controller
                 $query->select('id', 'delivery_id', 'status', 'status_des', 'description', 'created_at');
             }]);
         }, 'running' => function ($query) {
-            $query->select('id', 'wm_id','courier_name', 'courier_phone','status','platform as logistic_type');
+            $query->select('id', 'wm_id','courier_name', 'courier_phone','status','platform as logistic_type','push_at','receive_at','take_at','over_at','cancel_at','created_at');
         }])->select('id','order_id','shop_id','wm_shop_name as wm_poi_name','recipient_name as receiver_name','recipient_phone as receiver_phone','recipient_address as receiver_address',
             'caution','day_seq','platform','status','created_at','delivery_time', 'estimate_arrival_time')
             ->where('shop_id', $shop_id)
@@ -124,6 +124,7 @@ class PostBackController extends Controller
         $orders = $query->paginate($page_size);
         if ($orders->isNotEmpty()) {
             foreach ($orders as $order) {
+                $order->id = $order->running->id;
                 $order->status = $order->running->status;
                 // 预约单
                 $order->delivery_time = 0;
