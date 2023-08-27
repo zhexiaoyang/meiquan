@@ -106,7 +106,8 @@ function tranTime($time) {
     elseif ($time < 60 * 60 * 24)
     {
         $h = floor($time/(60*60));
-        $str = $h.'小时前 '.$htime;
+        // $str = $h.'小时前 '.$htime;
+        $str = $h.'小时前';
     }
     elseif ($time < 60 * 60 * 24 * 3)
     {
