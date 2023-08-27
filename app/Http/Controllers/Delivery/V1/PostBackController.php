@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\Shop;
+use App\Models\ShopPostback;
 use App\Models\WmOrder;
 use Illuminate\Http\Request;
 
@@ -20,20 +21,32 @@ class PostBackController extends Controller
         $not_ok = 0;
         $shops = Shop::select('id', 'shop_name', 'wm_shop_name', 'meituan_bind_platform','waimai_mt')
             ->where('waimai_mt', '<>', '')->where('user_id', $user->id)->get();
-
-        if (!empty($shops)) {
+        if ($shops->isNotEmpty()) {
+            $shop_ids = $shops->pluck('id')->toArray();
+            $toady_postback = ShopPostback::where('date', date("Y-m-d"))->whereIn('shop_id',$shop_ids)->pluck('rate', 'shop_id');
+            $yesterday_postback = ShopPostback::where('date', date("Y-m-d", time() - 86400))->whereIn('shop_id',$shop_ids)->pluck('rate', 'shop_id');
             foreach ($shops as $shop) {
+                $is_ok = 0;
+                $yesterday_is_ok = 0;
                 $all++;
-                $ok++;
-                // $not_ok++;
+                if (isset($toady_postback[$shop->id]) && $toady_postback[$shop->id] > 90) {
+                    $ok++;
+                    $is_ok = 1;
+                } else {
+                    $not_ok++;
+                }
+                if (isset($yesterday_postback[$shop->id]) && $yesterday_postback[$shop->id] > 90) {
+                    $yesterday_is_ok = 1;
+                }
                 $list[] = [
                     'id' => $shop->id,
                     'name' => $shop->wm_shop_name ?: $shop->shop_name,
                     'bind_type' => $shop->meituan_bind_platform,
                     'bind_text' => config('ps.meituan_bind_platform')[$shop->meituan_bind_platform],
-                    'is_ok' => 0,
-                    'today' => 0,
-                    'yesterday' => 0,
+                    'is_ok' => $is_ok,
+                    'yesterday_is_ok' => $yesterday_is_ok,
+                    'today' => $toady_postback[$shop->id] ?? 0,
+                    'yesterday' => $yesterday_postback[$shop->id] ?? 0,
                 ];
             }
         }
