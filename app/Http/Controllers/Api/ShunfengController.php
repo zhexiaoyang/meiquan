@@ -927,8 +927,8 @@ class ShunfengController
                     $order->fail_uu = '';
 
                     $order->sf_status = 0;
-                    // $order->fail_sf = '骑手撤单，重新发送不选择';
-                    $order->fail_sf = '';
+                    $order->fail_sf = '骑手撤单，重新发送不选择';
+                    // $order->fail_sf = '';
 
                     $order->zb_status = 0;
                     $order->fail_zb = '';
