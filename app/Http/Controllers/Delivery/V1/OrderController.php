@@ -386,8 +386,8 @@ class OrderController extends Controller
         }
         if ($shop_id) {
             $query->where('shop_id', $shop_id);
-        } else {
-            $query->whereIn('shop_id', $user_shop_ids);
+        // } else {
+        //     $query->whereIn('shop_id', $user_shop_ids);
         }
         // 查询订单
         $orders = $query->orderByDesc('id')->paginate($page_size);
