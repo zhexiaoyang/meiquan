@@ -182,6 +182,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop_auth", "ContractController@shopAuth");
             // 门店签署合同
             Route::get("shop_sign", "ContractController@shopSign");
+            // 门店签署合同-删除合同
+            Route::post("invalid", "ContractController@invalid");
             // 用户可签署合同
             Route::get("shops", "ContractController@shops");
         });

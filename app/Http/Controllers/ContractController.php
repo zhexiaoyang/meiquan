@@ -103,11 +103,15 @@ class ContractController extends Controller
             foreach ($shops as $shop) {
                 $data = $contracts;
                 foreach ($data as $k => $v) {
+                    $data[$k]['cid'] = 0;
                     $data[$k]['status'] = 0;
+                    $data[$k]['three_id'] = '';
                     if (!empty($shop->contract)) {
                         foreach ($shop->contract as $item) {
                             if ($v['id'] === $item->contract_id) {
+                                $data[$k]['cid'] = $item->id;
                                 $data[$k]['status'] = $item->status;
+                                $data[$k]['three_id'] = $item->three_contract_id;
                             }
                         }
                     }
@@ -118,6 +122,24 @@ class ContractController extends Controller
         }
 
         return $this->page($shops);
+    }
+
+    public function invalid(Request $request)
+    {
+        if (!$id = intval($request->get('id'))) {
+            return $this->error('参数错误');
+        }
+        if (!$order = ContractOrder::find($id)) {
+            return $this->success();
+        }
+        if ($order->status === 0) {
+            $config = config('qiyuesuo');
+            $q = new QiYue($config);
+            $res = $q->invalid($order->three_contract_id);
+            \Log::info("删除合同", [$id, $res]);
+            $order->three_contract_id = '';
+            $order->save();
+        }
     }
 
     /**
