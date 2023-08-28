@@ -134,6 +134,14 @@ class MedicineController extends Controller
                 $query->where('name', $search_key);
             }
         }
+        // platform(0 全部，1 美团，2 饿了么)
+        if ($platform = (int) $request->get('platform')) {
+            if ($platform === 1) {
+                $query->where('mt_status', 1);
+            } elseif ($platform === 2) {
+                $query->where('ele_status', 1);
+            }
+        }
 
         $medicines = $query->get();
 
