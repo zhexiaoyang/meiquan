@@ -73,7 +73,34 @@ class ProductController extends Controller
         }
         // \Log::info("ERPV2全部参数门店ID{$shop->id}", $request->all());
 
-
+        $ele = app('ele');
+        // 饿了么所有商品
+        $upcs = [];
+        if ($shop_id_ele) {
+            if (count($data) > 20) {
+                foreach ($data as $v) {
+                    if (isset($v['upc'])) {
+                        $res = $ele->getSkuList($shop_id_ele, 1, 1, $v['upc']);
+                        if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+                            foreach ($res['body']['data']['list'] as $_v) {
+                                $upcs[] = $_v['upc'];
+                            }
+                        }
+                    }
+                }
+            } else {
+                for ($i = 1; $i <= 100; $i++) {
+                    $res = $ele->getSkuList($shop_id_ele, $i, 100);
+                    if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+                        foreach ($res['body']['data']['list'] as $v) {
+                            $upcs[] = $v['upc'];
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
         // 组合参数
         $mt_binds = [
             'app_poi_code' => $shop_id_mt,
@@ -113,7 +140,6 @@ class ProductController extends Controller
             $mt_binds['access_token'] = $meituan->getShopToken($shop_id_mt);
             $mt_stocks['access_token'] = $meituan->getShopToken($shop_id_mt);
         }
-        $ele = app('ele');
 
         // \Log::info("V2ERP全部参数", $request->all());
 
@@ -129,7 +155,7 @@ class ProductController extends Controller
         }
         if ($shop_id_ele) {
             $ele_res = $ele->skuStockUpdate($ele_stocks);
-            // \Log::info("V2ERP饿了么库存返回", [$ele_res]);
+            \Log::info("V2ERP饿了么库存返回", [$ele_res]);
         }
 
         foreach ($data as $v) {
