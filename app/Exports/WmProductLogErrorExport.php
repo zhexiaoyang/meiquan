@@ -40,7 +40,7 @@ class WmProductLogErrorExport implements WithStrictNullComparison, Responsable, 
     {
         $type = [1 => '上传成功,有异常', 5 => '上传失败'];
         return [
-            $type[$log->type],
+            $type[$log->type] ?? '',
             $log->name,
             $log->description,
         ];
