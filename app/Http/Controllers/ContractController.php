@@ -140,6 +140,7 @@ class ContractController extends Controller
             $order->three_contract_id = '';
             $order->save();
         }
+        return $this->success();
     }
 
     /**
