@@ -118,9 +118,9 @@ class OrderController extends Controller
             $query->whereIn('status', [10, 5]);
         } elseif ($status === 60) {
             // $query->where('status', 20);
-            $query->with(['order' => function ($query) {
+            $query->whereHas('order', function ($query) {
                 $query->where('status', 30);
-            }]);
+            });
         } elseif ($status === 70) {
             $query->where('status', '<', 70)->where('remind_num', '>', 0);
         }
