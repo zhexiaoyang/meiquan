@@ -8,6 +8,13 @@ use App\Models\User;
 
 class Api extends Request
 {
+    public function invalid($contract_id)
+    {
+        $data = [
+            'contractId' => $contract_id,
+        ];
+        return $this->post('/v2/contract/invalid', $data);
+    }
     /**
      * 连锁店企业认证
      * @param User $user
