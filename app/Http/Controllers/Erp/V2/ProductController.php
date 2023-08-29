@@ -126,7 +126,10 @@ class ProductController extends Controller
                     'app_medicine_code' => empty($v['id']) ? $v['upc'] : $v['id'],
                     'stock' => (int) $stock,
                 ];
-                $stock_data_ele[] =  $v['upc'] . ':' . (int) $stock;
+
+                if (in_array($v['upc'], $upcs)) {
+                    $stock_data_ele[] =  $v['upc'] . ':' . (int) $stock;
+                }
             }
         }
         // 饿了么同步库存参数
@@ -153,7 +156,7 @@ class ProductController extends Controller
             // \Log::info("V2ERP美团绑定返回", [$mt_binds_res]);
             // \Log::info("V2ERP美团库存返回", [$mt_stocks_res]);
         }
-        if ($shop_id_ele) {
+        if ($shop_id_ele && !empty($stock_data_ele)) {
             $ele_res = $ele->skuStockUpdate($ele_stocks);
             \Log::info("V2ERP饿了么库存返回", [$ele_res]);
         }
