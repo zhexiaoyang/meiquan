@@ -175,7 +175,9 @@ class ProductController extends Controller
                 if ($medicine = Medicine::where('upc', $upc)->where('shop_id', $shop->id)->first()) {
                     $medicine->stock = $v['stock'];
                     $medicine->down_price = $price;
-                    $medicine->guidance_price = $cost;
+                    if ($cost) {
+                        $medicine->guidance_price = $cost;
+                    }
                     if (!empty($v['id'])) {
                         $medicine->store_id = $v['id'];
                     }
@@ -247,9 +249,12 @@ class ProductController extends Controller
                             'price' => 0,
                             'down_price' => $price,
                             'stock' => $stock,
-                            'guidance_price' => $cost,
+                            // 'guidance_price' => $cost,
                             'depot_id' => $depot->id,
                         ];
+                        if ($cost) {
+                            $medicine_arr['guidance_price'] = $cost;
+                        }
                     } else {
                         $l = strlen($upc);
                         if ($l >= 7 && $l <= 19) {
@@ -280,9 +285,12 @@ class ProductController extends Controller
                                 'price' => 0,
                                 'down_price' => $price,
                                 'stock' => $stock,
-                                'guidance_price' => $cost,
+                                // 'guidance_price' => $cost,
                                 'depot_id' => $_depot->id,
                             ];
+                            if ($cost) {
+                                $medicine_arr['guidance_price'] = $cost;
+                            }
                         }
                     }
                     if (isset($medicine_arr)) {
