@@ -85,7 +85,12 @@ class OrderController extends Controller
         // 判断可以查询的药店
         // if (!$request->user()->hasRole('super_man')) {
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
+            $user_shop_ids = $request->user()->shops()->pluck('id');
+            if (count($user_shop_ids) === 1) {
+                $query->where('shop_id', $user_shop_ids[0]);
+            } else {
+                $query->whereIn('shop_id', $user_shop_ids);
+            }
         }
 
         // 状态查询
