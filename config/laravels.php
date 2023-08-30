@@ -75,7 +75,7 @@ return [
     'swoole'                   => [
         'daemonize'          => env('LARAVELS_DAEMONIZE', false),
         'dispatch_mode'      => 2,
-        'reactor_num'        => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 4 : 4,
+        'reactor_num'        => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 3 : 4,
         // 'worker_num'         => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 4 : 12,
         'worker_num'         => 220,
         'task_worker_num'    => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 100 : 10,
