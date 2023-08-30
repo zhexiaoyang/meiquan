@@ -263,6 +263,7 @@ class SyncStockWanXiang extends Command
             }
             $this->info("门店「{$name}}:{$mt_id}」同步库存-结束......");
             Log::info("门店「{$name}}:{$mt_id}」同步库存-结束......");
+            unset($upcs);
         }
         $this->info('------------万祥同步库存结束------------');
 
