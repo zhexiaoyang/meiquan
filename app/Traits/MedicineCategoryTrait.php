@@ -122,8 +122,10 @@ trait MedicineCategoryTrait
                         'sort' => 1000,
                     ]);
             }
-            \Log::info('aaaaaaa2', [$category]);
-            \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $category->id]);
+            if (!\DB::table('wm_medicine_category')->where(['medicine_id' => $medicine->id, 'category_id' => $category->id])->first()) {
+                \DB::table('wm_medicine_category')->insert(['medicine_id' => $medicine->id, 'category_id' => $category->id]);
+                \Log::info("药品分类统一管理：品库中没有药品，创建暂未分类-写入数据");
+            }
             \Log::info("药品分类统一管理：品库中没有药品，创建暂未分类-成功");
         }
         if (!$mt && $ele) {
