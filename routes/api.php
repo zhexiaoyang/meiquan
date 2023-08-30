@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/ttt', function () {
+    return response()->json(['a' => rand(), 'b' => rand()]);
+});
+
 Route::middleware(["force-json"])->group(function() {
     // ************** 待删除 开始 **************
     Route::get("user/contract", function () {
