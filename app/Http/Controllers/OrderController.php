@@ -98,13 +98,14 @@ class OrderController extends Controller
                 // $wan = Order::where('over_at', '>', date("Y-m-d"))->where("status", 70)->count();
                 // $qu = Order::where('created_at', '>', date("Y-m-d"))->whereIn("status", [80,99])->count();
                 if ($status === 'dai') {
-                    $query->whereIn("status", [0,3,5,7,8,10]);
+                    $query->whereIn("status", [0,3,5,7,8,10])->where('created_at', '>', date("Y-m-d", strtotime('-2 day')));
+                    // $query->whereIn("status", [0,3,5,7,8,10]);
                 } elseif ($status === 'jin') {
-                    $query->whereIn("status", [20,30,40,50,60]);
+                    $query->whereIn("status", [20,30,40,50,60])->where('created_at', '>', date("Y-m-d", strtotime('-2 day')));
                 } elseif ($status === 'wan') {
                     $query->where("status", 70);
                 } elseif ($status === 'qu') {
-                    $query->whereIn("status", [80,99]);
+                    $query->whereIn("status", [80,99])->where('created_at', '>', date("Y-m-d", strtotime('-2 day')));
                 }
             }
         }
@@ -114,7 +115,7 @@ class OrderController extends Controller
         //     $query->select(DB::raw("sum(quantity) as products_sum"));
         // }])->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
 
-        $orders = $query->where('status', '>', -3)->orderBy('id', 'desc')->paginate($page_size);
+        $orders = $query->orderBy('id', 'desc')->paginate($page_size);
 
         if (!empty($orders)) {
             foreach ($orders as $order) {
