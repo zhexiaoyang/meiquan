@@ -286,7 +286,7 @@ class MedicineController extends Controller
                     'sale_price' => (int) ($price * 100),
                     'left_num' => $stock,
                     'category_name' => $category_create_result['ele'],
-                    'is_sold_out' => $status == 1 ? 1 : 0,
+                    'status' => $status == 1 ? 1 : 0,
                     'base_rec_enable' => true,
                     'photo_rec_enable' => true,
                     'summary_rec_enable' => true,
