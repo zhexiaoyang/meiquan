@@ -14,6 +14,10 @@ class MedicineController extends Controller
 {
     use MedicineCategoryTrait;
 
+    /**
+     * 获取美团、饿了么店内商品列表
+     * @data 2023/8/31 2:20 下午
+     */
     public function index(Request $request)
     {
         $shopId = $request->get('shopId');
@@ -111,6 +115,10 @@ class MedicineController extends Controller
         return $this->success($result);
     }
 
+    /**
+     * 添加商品到中台并同步到美团、饿了么
+     * @data 2023/8/31 2:20 下午
+     */
     public function add(Request $request)
     {
         $mt_id = $request->get('shopIdMeiTuan');
@@ -386,14 +394,17 @@ class MedicineController extends Controller
         if (!$medicine = Medicine::where('shop_id', $shop->id)->where('store_id', $store_code)->first()) {
             return $this->error('商品不存在，请先添加商品');
         }
-        $medicine->update([
+        $update_data = [
             'price' => $price,
             'stock' => $stock,
             'online_mt' => $status == 1 ? 1 : 0,
             'online_ele' => $status == 1 ? 1 : 0,
-            'sequence' => $sequence,
-            'guidance_price' => $cost
-        ]);
+            'sequence' => $sequence
+        ];
+        if ($cost) {
+            $update_data['guidance_price'] = $cost;
+        }
+        $medicine->update($update_data);
 
         if ($mt_id) {
             if ($shop = Shop::select('id', 'meituan_bind_platform', 'waimai_mt')->where('waimai_mt', $mt_id)->first()) {
