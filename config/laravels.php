@@ -77,7 +77,7 @@ return [
         'dispatch_mode'      => 2,
         'reactor_num'        => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 3 : 4,
         // 'worker_num'         => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 3 : 12,
-        'worker_num'         => 88,
+        'worker_num'         => 66,
         'task_worker_num'    => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 5 : 10,
         'task_ipc_mode'      => 1,
         // 'task_max_request'   => 8000,
