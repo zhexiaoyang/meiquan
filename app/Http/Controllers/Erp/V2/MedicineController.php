@@ -275,7 +275,7 @@ class MedicineController extends Controller
         }
         if ($ele_id) {
             if (empty($category_create_result['ele'])) {
-                $mtMsg = '饿了么未新增：创建分类失败';
+                $eleMsg = '饿了么未新增：创建分类失败';
             } else {
                 $ele = app('ele');
                 $params_ele = [
@@ -285,7 +285,7 @@ class MedicineController extends Controller
                     'custom_sku_id' => $store_code,
                     'sale_price' => (int) ($price * 100),
                     'left_num' => $stock,
-                    'category_name' => $category_create_result['ele'],
+                    'category_list' => $category_create_result['ele'],
                     'status' => $status == 1 ? 1 : 0,
                     'base_rec_enable' => true,
                     'photo_rec_enable' => true,

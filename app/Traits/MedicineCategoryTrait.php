@@ -128,7 +128,7 @@ trait MedicineCategoryTrait
             }
             \Log::info("药品分类统一管理：品库中没有药品，创建暂未分类-成功");
         }
-        if (!$mt && $ele) {
+        if (!$mt && !$ele) {
             return true;
         }
         // 需要同步美团或者饿了么的
@@ -224,7 +224,7 @@ trait MedicineCategoryTrait
                         ];
                         $res = $ele_app->add_category($cat_params);
                         if (isset($res['body']['data']['category_id'])) {
-                            \Log::info('药品分类统一管理-查找该药品所有末级分类，未同步饿了么-同步成功');
+                            \Log::info('药品分类统一管理-查找该药品所有末级分类，未同步饿了么-同步成功', [$res]);
                             $result['ele'][] = ['category_name' => $category->name];
                             $update['ele_id'] = $res['body']['data']['category_id'];
                         }
@@ -270,10 +270,10 @@ trait MedicineCategoryTrait
                             $result['mt'][] = $category->name;
                             $update['mt_id'] = $category->id;
                         }
-                        if (!empty($update)) {
-                            MedicineCategory::where('id', $category->id)->update($update);
-                        }
                     }
+                }
+                if (!empty($update)) {
+                    MedicineCategory::where('id', $category->id)->update($update);
                 }
             }
         }
