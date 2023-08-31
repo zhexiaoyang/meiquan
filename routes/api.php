@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 
 Route::get('/ttt', function () {
-    return response()->json(['a' => rand(), 'b' => rand()]);
+    return response()->json(['a' => 'order', 'b' => 'shop']);
 });
 
 Route::middleware(["force-json"])->group(function() {
