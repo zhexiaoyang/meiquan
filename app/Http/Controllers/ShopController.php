@@ -250,7 +250,7 @@ class ShopController extends Controller
                 $tmp['mtwm_status'] = (bool) $shop->mtwm;
                 $tmp['mtwm_apply_id'] = $shop->apply_three_id->mtwm ?? '';
                 $tmp['mtwm_apply_status'] = (bool) ($shop->apply_three_id->mtwm ?? '');
-                $tmp['ele'] = $shop->ele ?: $shop->waimai_ele;
+                $tmp['ele'] = $shop->waimai_ele ?: $shop->ele;
                 $tmp['ele_status'] = (bool) $shop->ele;
                 $tmp['ele_apply_id'] = $shop->apply_three_id->ele ?? '';
                 $tmp['ele_apply_status'] = (bool) ($shop->apply_three_id->ele ?? '');
