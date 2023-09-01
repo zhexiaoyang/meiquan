@@ -140,8 +140,8 @@ class OrderConfirmController
                 "wm_order_id_view" => $data['wm_order_id_view'],
                 // 订单平台（1 美团外卖，2 饿了么，3京东到家，4美全达）
                 "platform" => 1,
-                // 订单来源（1 民康，2 美全美团服务商，3 美全饿了么服务商，4 寝趣，5 美团开放平台餐饮）
-                "from_type" => 5,
+                // 订单来源（0 => '手动', 1 => '药及特', 2 => '毛绒熊', 3 => '洁爱眼', 4 => '民康', 5 => '寝趣', 31 => '闪购', 35 =>'餐饮'）
+                "from_type" => 35,
                 "app_poi_code" => $mt_shop_id,
                 "wm_shop_name" => $data['wm_poi_name'],
                 "recipient_name" => $data2['recipientName'] ?? ($data['recipient_name'] ?? '无名客人'),
@@ -323,8 +323,8 @@ class OrderConfirmController
                 'goods_weight' => 3,
                 "day_seq" => $data['day_seq'],
                 'platform' => 1,
-                // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
-                'type' => 7,
+                // 订单来源（3 洁爱眼，4 民康，5 寝趣，31 闪购，35 餐饮）
+                'type' => 35,
                 'status' => 0,
                 'order_type' => $delivery_time ? 1 : 0,
                 "estimate_arrival_time" => $data['estimate_arrival_time'] ?? 0,
