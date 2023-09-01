@@ -65,7 +65,7 @@ class GetTakeoutProductImage implements ShouldQueue
     public function getImage($platform, $type, $shop_id, $food_id, $mt_spu_id)
     {
         if ($platform == 1) {
-            if ($type == 4 || $type == 31) {
+            if ($type === 3 || $type == 4 || $type == 31) {
                 $mt = '';
                 if ($type === 3) {
                     $mt = app('jay');
