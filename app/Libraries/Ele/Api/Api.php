@@ -2,8 +2,6 @@
 
 namespace App\Libraries\Ele\Api;
 
-use App\Models\Order;
-
 class Api extends Request
 {
     public function shopInfo($shop_id)
@@ -209,13 +207,16 @@ class Api extends Request
         return $this->post('order.selfDeliveryLocationSync', $data);
     }
 
-    public function skuList($shop_id, $upc = '')
+    public function skuList($shop_id, $upc = '', $sku_id = '')
     {
         if ($shop_id) {
             $data['shop_id'] = $shop_id;
         }
         if ($upc) {
             $data['upc'] = $upc;
+        }
+        if ($sku_id) {
+            $data['sku_id'] = $sku_id;
         }
         $data['pagesize'] = 100;
 
