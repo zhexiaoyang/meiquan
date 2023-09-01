@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
 use App\Events\OrderCreate;
+use App\Events\OrderCreated;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
@@ -65,7 +66,7 @@ class OrderConfirmController
                 Redis::incr($redis_key);
             }
             $this->log_info("-门店信息,ID:{$shop->id},名称:{$shop->shop_name}");
-            $order_wm = DB::transaction(function () use ($shop, $mt_shop_id, $mt_order_id, $data, $platform) {
+            list($order_wm, $order_pt) = DB::transaction(function () use ($shop, $mt_shop_id, $mt_order_id, $data, $platform) {
                 $products = json_decode(urldecode($data['detail']), true);
                 $poi_receive_detail_yuan = json_decode(urldecode($data['poi_receive_detail_yuan']), true);
                 $extras = json_decode(urldecode($data['extras']), true);
@@ -441,12 +442,13 @@ class OrderConfirmController
                 //         }
                 //     }
                 // }
-                return $order_wm;
+                return [$order_wm, $order_pt];
             });
             if ($order_wm->is_prescription) {
                 event(new OrderCreate($order_wm));
                 // \Log::info("美团处方单获取处方信息{$order_wm->order_id}");
             }
+            event(new OrderCreated($order_pt->id, $order_pt->wm_id));
             if ($shop) {
                 $delivery_time = $data['delivery_time'];
                 if ($delivery_time > 0) {

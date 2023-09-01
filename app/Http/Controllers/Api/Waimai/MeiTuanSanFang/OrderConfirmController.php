@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\Waimai\MeiTuanSanFang;
 
+use App\Events\OrderCreated;
 use App\Jobs\CreateMtOrder;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
@@ -95,7 +96,7 @@ class OrderConfirmController
             Redis::incr($redis_key);
         }
         $this->log_info("-门店信息,ID:{$shop->id},名称:{$shop->shop_name}");
-        DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2, $mt) {
+        $order_pt = DB::transaction(function () use ($shop, $wm_shop_id, $mt_order_id, $data, $data2, $mt) {
             $receive_address_long = $data2['recipientAddress'] ?? '';
             $receive_address_arr = explode("@#", $receive_address_long);
             $receive_address = $receive_address_arr[0];
@@ -419,7 +420,9 @@ class OrderConfirmController
                 }
             }
             // $this->ding_exception('餐饮创建订单成功');
+            return $order_pt;
         });
+        event(new OrderCreated($order_pt->id, $order_pt->wm_id));
         $this->log_info("订单创建完成");
         if ($shop) {
             $delivery_time = $data['delivery_time'];
