@@ -30,8 +30,9 @@ class EventServiceProvider extends ServiceProvider
             // 外卖订单-处方单创建完成
             GetRpPicture::class,
         ],
+        // 跑腿订单、外卖订单创建成功
         OrderCreated::class => [
-            // 跑腿订单、外卖订单创建成功
+            // 获取商品图片
             GetTakeoutProductImage::class,
         ],
         OrderCancel::class => [

@@ -34,14 +34,15 @@ class GetTakeoutProductImage implements ShouldQueue
         if (!$order) {
             return;
         }
-        $products = WmOrderItem::select('id', 'order_id', 'upc', 'app_food_code')->where('order_id', $order_id)->get();
+        $products = WmOrderItem::select('id', 'order_id', 'upc', 'app_food_code', 'mt_spu_id')->where('order_id', $order_id)->get();
         if ($products->isNotEmpty()) {
             foreach ($products as $product) {
                 $app_food_code = $product->app_food_code;
+                $mt_spu_id = $product->mt_spu_id;
                 $image_url = '';
                 $image_from = 2;
                 if ($app_food_code && $app_food_code !== 'default') {
-                    $image_url = $this->getImage($order->platform, $order->from_type, $order->app_poi_code, $app_food_code);
+                    $image_url = $this->getImage($order->platform, $order->from_type, $order->app_poi_code, $app_food_code, $mt_spu_id);
                     if ($image_url) {
                         $image_from = 1;
                     }
@@ -61,7 +62,7 @@ class GetTakeoutProductImage implements ShouldQueue
         }
     }
 
-    public function getImage($platform, $type, $shop_id, $food_id)
+    public function getImage($platform, $type, $shop_id, $food_id, $mt_spu_id)
     {
         if ($platform == 1) {
             if ($type == 4 || $type == 31) {
@@ -86,7 +87,7 @@ class GetTakeoutProductImage implements ShouldQueue
             }
         } elseif ($platform == 2) {
             $ele = app('ele');
-            $product = $ele->skuList($shop_id, '', $food_id);
+            $product = $ele->skuList($shop_id, '', $mt_spu_id);
             if (!empty($product['data']['list'][0]['photos'])) {
                 return $product['data']['list'][0]['photos'][0]['url'] ?? '';
             }
