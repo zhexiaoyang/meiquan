@@ -30,7 +30,7 @@ class GetTakeoutProductImage implements ShouldQueue
     public function handle(OrderCreated $event)
     {
         $order_id = $event->wm_order_id;
-        $order = WmOrder::select('id','')->find($order_id);
+        $order = WmOrder::select('id','platform','from_type','app_poi_code')->find($order_id);
         if (!$order) {
             return;
         }
