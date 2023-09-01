@@ -88,8 +88,8 @@ class GetTakeoutProductImage implements ShouldQueue
         } elseif ($platform == 2) {
             $ele = app('ele');
             $product = $ele->skuList($shop_id, '', $mt_spu_id);
-            if (!empty($product['data']['list'][0]['photos'])) {
-                return $product['data']['list'][0]['photos'][0]['url'] ?? '';
+            if (!empty($product['body']['data']['list'][0]['photos'])) {
+                return $product['body']['data']['list'][0]['photos'][0]['url'] ?? '';
             }
         }
 
