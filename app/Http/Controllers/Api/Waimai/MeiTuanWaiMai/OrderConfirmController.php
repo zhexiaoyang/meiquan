@@ -8,20 +8,17 @@ use App\Jobs\PrintWaiMaiOrder;
 use App\Jobs\PushDeliveryOrder;
 use App\Jobs\SendOrderToErp;
 use App\Jobs\TakeoutMedicineStockSync;
-use App\Jobs\WarehouseStockSync;
 use App\Models\ErpAccessShop;
 use App\Models\Medicine;
 use App\Models\Order;
 use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
-use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderExtra;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
-use App\Models\WmProduct;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
@@ -110,7 +107,7 @@ class OrderConfirmController
                     "wm_order_id_view" => $mt_order_id,
                     // 订单平台（1 美团外卖，2 饿了么，3京东到家，4美全达）
                     "platform" => 1,
-                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
+                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，31 闪购，35 餐饮）
                     "from_type" => $platform,
                     "app_poi_code" => $mt_shop_id,
                     "wm_shop_name" => urldecode($data['wm_poi_name'] ?? ''),
@@ -320,7 +317,7 @@ class OrderConfirmController
                 }
                 /********************* 创建跑腿订单数组 *********************/
                 $pick_type = $data['pick_type'] ?? 0;
-                $weight = $data['total_weight'] ?? 0;
+                // $weight = $data['total_weight'] ?? 0;
                 $delivery_time = $data['delivery_time'];
                 // 创建订单数组
                 $order_pt_data = [
@@ -342,7 +339,7 @@ class OrderConfirmController
                     'goods_weight' => 3,
                     "day_seq" => $data['day_seq'],
                     'platform' => 1,
-                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
+                    // 订单来源（3 洁爱眼，4 民康，5 寝趣，31 闪购，35 餐饮）
                     'type' => $platform,
                     'status' => 0,
                     'order_type' => 0,
@@ -448,7 +445,7 @@ class OrderConfirmController
             });
             if ($order_wm->is_prescription) {
                 event(new OrderCreate($order_wm));
-                \Log::info("美团处方单获取处方信息{$order_wm->order_id}");
+                // \Log::info("美团处方单获取处方信息{$order_wm->order_id}");
             }
             if ($shop) {
                 $delivery_time = $data['delivery_time'];
