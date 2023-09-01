@@ -67,7 +67,9 @@ class GetTakeoutProductImage implements ShouldQueue
         if ($platform == 1) {
             if ($type == 4 || $type == 31) {
                 $mt = '';
-                if ($type === 4) {
+                if ($type === 3) {
+                    $mt = app('jay');
+                } elseif ($type === 4) {
                     $mt = app('minkang');
                 } elseif ($type === 31) {
                     $mt = app('meiquan');
