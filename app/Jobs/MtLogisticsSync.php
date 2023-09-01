@@ -312,7 +312,7 @@ class MtLogisticsSync implements ShouldQueue
                     }
                 }
             }
-        } elseif ($this->order->type == 7) {
+        } elseif ($this->order->type == 7 || $this->order->type == 35) {
             // 同步美团餐饮-订单状态
             $order_id = $this->order->order_id;
             \Log::info("美团餐饮同步配送信息{$order_id}-开始");
