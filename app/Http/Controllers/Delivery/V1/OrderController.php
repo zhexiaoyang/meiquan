@@ -82,7 +82,7 @@ class OrderController extends Controller
             $status = 10;
         }
         $query = Order::with(['products' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
+            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price','image');
         }, 'deliveries' => function ($query) {
             $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
                 'money', 'updated_at','delivery_name','delivery_phone');
@@ -149,22 +149,22 @@ class OrderController extends Controller
         // 排序-结束
         $orders = $query->paginate($page_size);
         // 商品图片
-        $images = [];
-        if (!empty($orders)) {
-            $upcs = [];
-            foreach ($orders as $order) {
-                if (!empty($order->products)) {
-                    foreach ($order->products as $product) {
-                        if ($product->upc) {
-                            $upcs[] = $product->upc;
-                        }
-                    }
-                }
-            }
-            if (!empty($upcs)) {
-                $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
-            }
-        }
+        // $images = [];
+        // if (!empty($orders)) {
+        //     $upcs = [];
+        //     foreach ($orders as $order) {
+        //         if (!empty($order->products)) {
+        //             foreach ($order->products as $product) {
+        //                 if ($product->upc) {
+        //                     $upcs[] = $product->upc;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if (!empty($upcs)) {
+        //         $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
+        //     }
+        // }
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $number = 0;
@@ -211,9 +211,9 @@ class OrderController extends Controller
                     $product_num = 0;
                     foreach ($order->products as $product) {
                         $product_num += $product->quantity;
-                        if ($product->upc) {
-                            $product->image = $images[$product->upc] ?? '';
-                        }
+                        // if ($product->upc) {
+                        //     $product->image = $images[$product->upc] ?? '';
+                        // }
                     }
                     $order->product_num = $product_num;
                 }
@@ -339,7 +339,7 @@ class OrderController extends Controller
 
         $page_size = $request->get('page_size', 10);
         $query = Order::with(['products' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
+            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price', 'image');
         }, 'deliveries' => function ($query) {
             $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
                 'money', 'updated_at','delivery_name','delivery_phone');
@@ -409,22 +409,22 @@ class OrderController extends Controller
         // 查询订单
         $orders = $query->orderByDesc('id')->paginate($page_size);
         // 商品图片
-        $images = [];
-        if (!empty($orders)) {
-            $upcs = [];
-            foreach ($orders as $order) {
-                if (!empty($order->products)) {
-                    foreach ($order->products as $product) {
-                        if ($product->upc) {
-                            $upcs[] = $product->upc;
-                        }
-                    }
-                }
-            }
-            if (!empty($upcs)) {
-                $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
-            }
-        }
+        // $images = [];
+        // if (!empty($orders)) {
+        //     $upcs = [];
+        //     foreach ($orders as $order) {
+        //         if (!empty($order->products)) {
+        //             foreach ($order->products as $product) {
+        //                 if ($product->upc) {
+        //                     $upcs[] = $product->upc;
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     if (!empty($upcs)) {
+        //         $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
+        //     }
+        // }
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 // 电话列表
@@ -463,9 +463,9 @@ class OrderController extends Controller
                     $product_num = 0;
                     foreach ($order->products as $product) {
                         $product_num += $product->quantity;
-                        if ($product->upc) {
-                            $product->image = $images[$product->upc] ?? '';
-                        }
+                        // if ($product->upc) {
+                        //     $product->image = $images[$product->upc] ?? '';
+                        // }
                     }
                     $order->product_num = $product_num;
                 }
@@ -502,7 +502,7 @@ class OrderController extends Controller
             }
         }
         $order->load(['products' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price');
+            $query->select('id', 'order_id', 'food_name', 'spec', 'upc', 'quantity','price','image');
         }, 'deliveries' => function ($query) {
             $query->select('id', 'order_id', 'wm_id', 'three_order_no', 'status', 'track', 'platform as logistic_type',
                 'money', 'updated_at','delivery_name','delivery_phone');
@@ -557,25 +557,25 @@ class OrderController extends Controller
         }
         $order->title = Order::setAppOrderInfoTitle($order->order->delivery_time ?? 0, $order);
         // 商品图片
-        $images = [];
-        if (!empty($order->products)) {
-            foreach ($order->products as $product) {
-                if ($product->upc) {
-                    $upcs[] = $product->upc;
-                }
-            }
-        }
-        if (!empty($upcs)) {
-            $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
-        }
+        // $images = [];
+        // if (!empty($order->products)) {
+        //     foreach ($order->products as $product) {
+        //         if ($product->upc) {
+        //             $upcs[] = $product->upc;
+        //         }
+        //     }
+        // }
+        // if (!empty($upcs)) {
+        //     $images = MedicineDepot::whereIn('upc', $upcs)->pluck('cover', 'upc');
+        // }
         // 商品信息
         if (!empty($order->products)) {
             $product_num = 0;
             foreach ($order->products as $product) {
                 $product_num += $product->quantity;
-                if ($product->upc) {
-                    $product->image = $images[$product->upc] ?? '';
-                }
+                // if ($product->upc) {
+                //     $product->image = $images[$product->upc] ?? '';
+                // }
             }
             $order->product_num = $product_num;
         }
