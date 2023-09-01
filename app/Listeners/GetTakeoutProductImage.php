@@ -34,7 +34,7 @@ class GetTakeoutProductImage implements ShouldQueue
         if (!$order) {
             return;
         }
-        $products = WmOrderItem::select('id', 'app_food_code')->where('order_id', $order_id)->get();
+        $products = WmOrderItem::select('id', 'order_id', 'app_food_code')->where('order_id', $order_id)->get();
         if ($products->isNotEmty()) {
             foreach ($products as $product) {
                 $app_food_code = $product->app_food_code;
