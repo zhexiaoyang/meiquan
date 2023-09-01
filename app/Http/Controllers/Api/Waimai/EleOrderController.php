@@ -1112,7 +1112,7 @@ class EleOrderController extends Controller
                     "platform" => 2,
                     // 订单来源（3 洁爱眼，4 民康，5 寝趣，6 闪购，7 餐饮）
                     // "from_type" => $platform,
-                    "app_poi_code" => $order['shop']['baidu_shop_id'],
+                    "app_poi_code" => $order['shop']['id'],
                     "wm_shop_name" => $order['shop']['name'],
                     'recipient_name' => empty($order['user']['name']) ? "无名客人" : $order['user']['name'],
                     'recipient_phone' => str_replace(',', '_', $order['user']['phone']),
