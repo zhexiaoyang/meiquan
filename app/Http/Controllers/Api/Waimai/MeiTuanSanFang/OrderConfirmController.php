@@ -127,11 +127,11 @@ class OrderConfirmController
                 }
             }
             // 创建外卖订单数组
-            if ($mt_order_id[0] == 1) {
-                $mt_shop_id = substr($mt_order_id, 0, 8);
-            } else {
-                $mt_shop_id = substr($mt_order_id, 0, 7);
-            }
+            // if ($mt_order_id[0] == 1) {
+            //     $mt_shop_id = substr($mt_order_id, 0, 8);
+            // } else {
+            //     $mt_shop_id = substr($mt_order_id, 0, 7);
+            // }
             $operate_service_fee = ($shop->commission_mt * $poi_receive_detail['wmPoiReceiveCent'] / 100) / 100;
             $order_wm_data = [
                 'user_id' => $shop->user_id,
@@ -142,7 +142,7 @@ class OrderConfirmController
                 "platform" => 1,
                 // 订单来源（0 => '手动', 1 => '药及特', 2 => '毛绒熊', 3 => '洁爱眼', 4 => '民康', 5 => '寝趣', 31 => '闪购', 35 =>'餐饮'）
                 "from_type" => 35,
-                "app_poi_code" => $mt_shop_id,
+                "app_poi_code" => $wm_shop_id,
                 "wm_shop_name" => $data['wm_poi_name'],
                 "recipient_name" => $data2['recipientName'] ?? ($data['recipient_name'] ?? '无名客人'),
                 "recipient_phone" => $data2['recipientPhone'] ?? ($data['recipient_phone'] ?? ''),
