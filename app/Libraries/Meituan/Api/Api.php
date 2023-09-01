@@ -750,6 +750,17 @@ class Api extends Request
     {
         return $this->request_get('v1/retail/list', $params);
     }
+    public function retail_get($app_poi_code, $app_spu_code)
+    {
+        $params = [
+            'app_poi_code' => $app_poi_code,
+            'app_spu_code' => $app_spu_code,
+        ];
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($params['app_poi_code']);
+        }
+        return $this->request_get('v1/retail/get', $params);
+    }
     public function getSpTagIds(array $params = [])
     {
         return $this->request_get('v1/retail/getSpTagIds', $params);
