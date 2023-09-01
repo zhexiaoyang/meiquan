@@ -5,7 +5,9 @@ namespace App\Providers;
 use App\Events\OrderCancel;
 use App\Events\OrderComplete;
 use App\Events\OrderCreate;
+use App\Events\OrderCreated;
 use App\Listeners\GetRpPicture;
+use App\Listeners\GetTakeoutProductImage;
 use App\Listeners\MeiTuanLogisticsSync;
 use App\Listeners\MeituanPostbackUpdate;
 use Illuminate\Auth\Events\Registered;
@@ -25,8 +27,12 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         OrderCreate::class => [
-            // 跑腿订单、外卖订单创建
+            // 外卖订单-处方单创建完成
             GetRpPicture::class,
+        ],
+        OrderCreated::class => [
+            // 跑腿订单、外卖订单创建成功
+            GetTakeoutProductImage::class,
         ],
         OrderCancel::class => [
             // 跑腿订单取消
