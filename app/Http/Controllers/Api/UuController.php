@@ -533,7 +533,6 @@ class UuController extends Controller
                                 'status_des' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
                                 'delivery_name' => $name,
                                 'delivery_phone' => $phone,
-                                'atshop_at' => date("Y-m-d H:i:s"),
                             ], [
                                 'order_id' => $delivery->order_id,
                                 'wm_id' => $delivery->wm_id,
