@@ -430,19 +430,19 @@ class AnalysisController extends Controller
                     isset($data_shop_id[$datum->shop_id]['order_receipts']) || $data_shop_id[$datum->shop_id]['order_receipts'] = 0;
                     isset($data_shop_id[$datum->shop_id]['order_effective_number']) || $data_shop_id[$datum->shop_id]['order_effective_number'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['order_cancel_number']) || $data_shop_id[$datum->shop_id]['order_cancel_number'] = 0;
-                    // isset($data_shop_id[$datum->shop_id]['product_cost']) || $data_shop_id[$datum->shop_id]['product_cost'] = 0;
+                    isset($data_shop_id[$datum->shop_id]['product_cost']) || $data_shop_id[$datum->shop_id]['product_cost'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['running_money']) || $data_shop_id[$datum->shop_id]['running_money'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['prescription']) || $data_shop_id[$datum->shop_id]['prescription'] = 0;
-                    // isset($data_shop_id[$datum->shop_id]['profit']) || $data_shop_id[$datum->shop_id]['profit'] = 0;
+                    isset($data_shop_id[$datum->shop_id]['profit']) || $data_shop_id[$datum->shop_id]['profit'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['operate_service']) || $data_shop_id[$datum->shop_id]['operate_service'] = 0;
                     $data_shop_id[$datum->shop_id]['sales_volume'] += $datum->sales_volume * 100;
                     $data_shop_id[$datum->shop_id]['order_receipts'] += $datum->order_receipts * 100;
                     $data_shop_id[$datum->shop_id]['order_effective_number'] += $datum->order_effective_number;
                     // $data_shop_id[$datum->shop_id]['order_cancel_number'] += $datum->order_cancel_number;
-                    // $data_shop_id[$datum->shop_id]['product_cost'] += $datum->product_cost * 100;
+                    $data_shop_id[$datum->shop_id]['product_cost'] += $datum->product_cost * 100;
                     // $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
                     // $data_shop_id[$datum->shop_id]['prescription'] += $datum->prescription * 100;
-                    // $data_shop_id[$datum->shop_id]['profit'] += $datum->profit * 100;
+                    $data_shop_id[$datum->shop_id]['profit'] += $datum->profit * 100;
                     // $data_shop_id[$datum->shop_id]['operate_service'] += $datum->operate_service * 100;
                 }
                 foreach ($user_shops as $shop) {
@@ -452,10 +452,10 @@ class AnalysisController extends Controller
                     $tmp['poi_receive'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_receipts'] ?? 0) / 100);
                     $tmp['order_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_effective_number'] ?? 0));
                     // $tmp['order_cancel_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_cancel_number'] ?? 0));
-                    // $tmp['product_cost'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100);
+                    $tmp['product_cost'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100);
                     // $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
                     // $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
-                    // $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
+                    $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
                     // $tmp['operate_service'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100);
                     $unit_price = 0;
                     if ($tmp['order_number'] > 0) {
