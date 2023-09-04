@@ -376,7 +376,8 @@ class AnalysisController extends Controller
         $user_shop_ids = $user_shops->pluck('id')->toArray();
         if ($date_type === 10) {
             // 今日数据
-            $query = WmOrder::select('id', 'shop_id', 'poi_receive', 'original_price')->where('status', '<=', 18)->where('created_at','>',date('Y-m-d'));
+            $query = WmOrder::select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee')
+                ->where('status', '<=', 18)->where('created_at','>',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
@@ -391,10 +392,14 @@ class AnalysisController extends Controller
                         $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                         $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
                         $result_tmp[$order->shop_id]['order_number']++;
+                        $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                        $result_tmp[$order->shop_id]['product_cost'] += $order->vip_cost;
                     } else {
                         $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
                         $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
                         $result_tmp[$order->shop_id]['order_number'] = 1;
+                        $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                        $result_tmp[$order->shop_id]['product_cost'] = $order->vip_cost;
                     }
                 }
                 foreach ($user_shops as $v) {
@@ -405,8 +410,10 @@ class AnalysisController extends Controller
                             'shop_name' => $v->wm_shop_name ?: $v->shop_name,
                             'poi_receive' => (float) sprintf("%.2f", $tmp['poi_receive']),
                             'original_price' => (float) sprintf("%.2f", $tmp['original_price']),
-                            'order_number' => (float) sprintf("%.2f", $tmp['order_number']),
-                            'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_number'])
+                            'order_number' => $tmp['order_number'],
+                            'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_number']),
+                            'product_cost' => (float) sprintf("%.2f", $tmp['product_cost']),
+                            'profit' => (float) sprintf("%.2f", $tmp['profit']),
                         ];
                     } else {
                         $result[] = [
@@ -414,7 +421,9 @@ class AnalysisController extends Controller
                             'poi_receive' => 0,
                             'original_price' => 0,
                             'order_number' => 0,
-                            'unit_price' => 0
+                            'unit_price' => 0,
+                            'product_cost' => 0,
+                            'profit' => 0
                         ];
                     }
                 }
