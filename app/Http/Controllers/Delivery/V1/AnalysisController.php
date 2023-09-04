@@ -257,7 +257,7 @@ class AnalysisController extends Controller
             $day++;
             array_push($date_arr, date("Y-m-d", strtotime($sdate) + 86400 * $day));
         }
-        $query = WmAnalysis::where('date', '>=', $sdate)->where('date', '<=', $edate);
+        $query = WmAnalysis::where('date', '>=', $sdate)->where('date', '<=', $edate)->where('platform', 0);
 
         $user = $request->user();
         if ($shop_id = (int) $request->get('shop_id')) {
