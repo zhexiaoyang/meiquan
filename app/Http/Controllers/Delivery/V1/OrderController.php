@@ -127,8 +127,8 @@ class OrderController extends Controller
             $query->where('status', '<', 70)->where('remind_num', '>', 0);
         } elseif ($status === 80) {
             $query->whereHas('order', function ($query) {
-                $query->where('status', 18);
-            })->where('created_at', '>', date('Y-m-d'));;
+                $query->where('status', 18)->where('finish_at', '>', date('Y-m-d'));
+            });;
         }
         // 订单来源-开始
         if ($source === 1) {
