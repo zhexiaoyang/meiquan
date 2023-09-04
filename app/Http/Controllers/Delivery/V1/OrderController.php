@@ -63,7 +63,7 @@ class OrderController extends Controller
             'exceptional' => Order::select('id')->where($order_where)->whereIn('status', [10, 5])->count(),
             'refund' => WmOrder::select('id')->where($wm_order_where)->where('status', 30)->count(),
             'remind' => Order::select('id')->where($order_where)->where('status', '>', 70)->where('remind_num', '>', 0)->count(),
-            'finish' => Order::select('id')->where($finish_order_where)->count(),
+            'finish' => WmOrder::select('id')->where($finish_order_where)->count(),
         ];
         return $this->success($result);
     }
