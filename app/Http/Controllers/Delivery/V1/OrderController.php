@@ -36,7 +36,7 @@ class OrderController extends Controller
         $shop_id = $request->get('shop_id', '');
         $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
         $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
-        $finish_order_where = [['over_at', '>', date('Y-m-d')], ['status', 'in', [70, 75]]];
+        $finish_order_where = [['over_at', '>', date('Y-m-d')], ['status', '>=', 70], ['status', '<=', 75]];
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // // 判断权限
