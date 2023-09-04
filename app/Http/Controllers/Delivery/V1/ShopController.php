@@ -16,13 +16,18 @@ class ShopController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if ($user->account_shop_id) {
-            $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address',
-                'contact_name','contact_phone','second_category as category')->where('id', $user->account_shop_id)->get();
-        } else {
-            $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address',
-                'contact_name','contact_phone','second_category as category')->where('user_id', $user->id)->get();
+        $name = $request->get('name', '');
+        $where = [];
+        if ($name) {
+            $where = [['shop_name', 'like', "%{$name}%"]];
         }
+        if ($user->account_shop_id) {
+            $where[] = ['id', '=', $user->account_shop_id];
+        } else {
+            $where[] = ['user_id', '=', $user->id];
+        }
+        $shops = Shop::select('id', 'shop_name', 'running_select as checked','shop_lng','shop_lat','shop_address',
+            'contact_name','contact_phone','second_category as category')->where($where)->get();
 
         if (!$shops->isEmpty()) {
             // 默认选择门店ID
