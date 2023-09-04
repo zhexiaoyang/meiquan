@@ -36,6 +36,7 @@ class OrderController extends Controller
         $shop_id = $request->get('shop_id', '');
         $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
         $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
+        $finish_order_where = [['finish_at', '>', date('Y-m-d')], ['status', '=', '18']];
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // // 判断权限
@@ -52,6 +53,7 @@ class OrderController extends Controller
         if ($shop_id) {
             $order_where[] = ['shop_id', '=', $shop_id];
             $wm_order_where[] = ['shop_id', '=', $shop_id];
+            $finish_order_where[] = ['shop_id', '=', $shop_id];
         }
         $result = [
             'new' => Order::select('id')->where($order_where)->whereIn('status', [0, 3, 7, 8])->count(),
@@ -61,6 +63,7 @@ class OrderController extends Controller
             'exceptional' => Order::select('id')->where($order_where)->whereIn('status', [10, 5])->count(),
             'refund' => WmOrder::select('id')->where($wm_order_where)->where('status', 30)->count(),
             'remind' => Order::select('id')->where($order_where)->where('status', '>', 70)->where('remind_num', '>', 0)->count(),
+            'finish' => Order::select('id')->where($finish_order_where)->count(),
         ];
         return $this->success($result);
     }
@@ -77,7 +80,7 @@ class OrderController extends Controller
         $shop_id = $request->get('shop_id', '');
         $source = (int) $request->get('source', 0);
         $order_by = $request->get('order', 0);
-        if (!in_array($status, [10,20,30,40,50,60,70])) {
+        if (!in_array($status, [10,20,30,40,50,60,70,80])) {
             $status = 10;
         }
         $query = Order::with(['products' => function ($query) {
@@ -122,6 +125,10 @@ class OrderController extends Controller
             })->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day')));;
         } elseif ($status === 70) {
             $query->where('status', '<', 70)->where('remind_num', '>', 0);
+        } elseif ($status === 80) {
+            $query->whereHas('order', function ($query) {
+                $query->where('status', 18);
+            })->where('created_at', '>', date('Y-m-d'));;
         }
         // 订单来源-开始
         if ($source === 1) {
