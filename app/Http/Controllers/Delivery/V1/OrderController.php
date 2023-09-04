@@ -7,7 +7,6 @@ use App\Http\Controllers\Controller;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
-use App\Models\MedicineDepot;
 use App\Models\Order;
 use App\Models\OrderDeduction;
 use App\Models\OrderDelivery;
@@ -36,7 +35,7 @@ class OrderController extends Controller
     {
         $shop_id = $request->get('shop_id', '');
         $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
-        $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
+        $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // // 判断权限
@@ -120,7 +119,7 @@ class OrderController extends Controller
             // $query->where('status', 20);
             $query->whereHas('order', function ($query) {
                 $query->where('status', 30);
-            });
+            })->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day')));;
         } elseif ($status === 70) {
             $query->where('status', '<', 70)->where('remind_num', '>', 0);
         }
