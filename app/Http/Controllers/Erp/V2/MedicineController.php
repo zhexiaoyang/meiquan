@@ -121,6 +121,7 @@ class MedicineController extends Controller
      */
     public function add(Request $request)
     {
+        \Log::info("ERP2添加商品全部参数", $request->all());
         $mt_id = $request->get('shopIdMeiTuan');
         $ele_id = $request->get('shopIdEle');
         if (!$mt_id && !$ele_id) {
@@ -326,6 +327,7 @@ class MedicineController extends Controller
 
     public function update(Request $request)
     {
+        \Log::info("ERP2修改商品全部参数", $request->all());
         $mt_id = $request->get('shopIdMeiTuan');
         $ele_id = $request->get('shopIdEle');
         if (!$mt_id && !$ele_id) {
