@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class BannerController extends Controller
 {
+    /**
+     * 列表
+     */
     public function index(Request $request)
     {
         $page_size = $request->get("page_size", 10);
@@ -21,6 +24,9 @@ class BannerController extends Controller
         return $this->page($banners);
     }
 
+    /**
+     * 添加
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -35,6 +41,9 @@ class BannerController extends Controller
         return $this->success();
     }
 
+    /**
+     * 删除
+     */
     public function destroy(Banner $banner)
     {
         $banner->delete();
@@ -42,11 +51,17 @@ class BannerController extends Controller
         return $this->success();
     }
 
+    /**
+     * 详情
+     */
     public function show(Banner $banner)
     {
         return $this->success($banner);
     }
 
+    /**
+     * 更新
+     */
     public function update(Request $request, Banner $banner)
     {
         $request->validate([
