@@ -7,10 +7,8 @@ use App\Imports\MedicineImport;
 use App\Imports\MedicineUpdateImport;
 use App\Jobs\MedicineBatchUpdateGpmJob;
 use App\Jobs\MedicineSyncEleItemJob;
-use App\Jobs\MedicineSyncJob;
 use App\Jobs\MedicineSyncMeiTuanItemJob;
 use App\Jobs\MedicineUpdateImportJob;
-use App\Models\ErpAccessShop;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
 use App\Models\MedicineDepot;
@@ -25,6 +23,9 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class MedicineController extends Controller
 {
+    /**
+     * 门店列表
+     */
     public function shops(Request $request)
     {
         $query = Shop::select('id', 'shop_name', 'erp_status')->where('second_category', 200001)->where('user_id', '>', 0)->where('status', '>=', 0);
@@ -47,6 +48,9 @@ class MedicineController extends Controller
         return $this->success($shops);
     }
 
+    /**
+     * 同步日志
+     */
     public function sync_log(Request $request)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -67,6 +71,9 @@ class MedicineController extends Controller
         return $this->success($logs);
     }
 
+    /**
+     * 药品列表
+     */
     public function product(Request $request)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -178,6 +185,9 @@ class MedicineController extends Controller
         return $this->page($data, [],'data');
     }
 
+    /**
+     * 新增导入
+     */
     public function import(Request $request, MedicineImport $import)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -188,6 +198,9 @@ class MedicineController extends Controller
         return $this->success();
     }
 
+    /**
+     * 更新导入
+     */
     public function updateImport(Request $request, MedicineUpdateImport $import)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -198,6 +211,9 @@ class MedicineController extends Controller
         return $this->success();
     }
 
+    /**
+     * 同步到外卖平台
+     */
     public function sync(Request $request)
     {
         $product_ids = $request->get('product_id', []);
