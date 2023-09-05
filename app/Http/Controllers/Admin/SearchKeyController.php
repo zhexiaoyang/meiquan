@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class SearchKeyController extends Controller
 {
+    /**
+     * 列表
+     */
     public function index(Request $request)
     {
         $page_size = $request->get("page_size", 10);
@@ -21,6 +24,9 @@ class SearchKeyController extends Controller
         return $this->page($data);
     }
 
+    /**
+     * 新增
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -34,6 +40,9 @@ class SearchKeyController extends Controller
         return $this->success();
     }
 
+    /**
+     * 删除
+     */
     public function destroy(SearchKey $searchKey)
     {
         $searchKey->delete();
@@ -41,11 +50,17 @@ class SearchKeyController extends Controller
         return $this->success();
     }
 
+    /**
+     * 详情
+     */
     public function show(SearchKey $searchKey)
     {
         return $this->success($searchKey);
     }
 
+    /**
+     * 更新
+     */
     public function update(Request $request, SearchKey $searchKey)
     {
         $request->validate([
