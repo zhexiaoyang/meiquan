@@ -123,5 +123,12 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 订单列表
             Route::get("order", "PostBackController@orders");
         });
+        // 发单设置
+        Route::prefix('setting/delivery')->group(function () {
+            // 获取设置信息
+            Route::get("info", "DeliverySettingController@show");
+            // 保存设置
+            Route::post("save", "DeliverySettingController@store");
+        });
     });
 });
