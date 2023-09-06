@@ -674,6 +674,14 @@ class Api extends Request
     {
         return $this->request_post('v1/medicine/stock', $params);
     }
+
+    /**
+     * 批量同步价格
+     * @param array $params
+     * @return array|mixed
+     * @author zhangzhen
+     * @data 2023/9/6 11:47 上午
+     */
     public function medicinePrice(array $params)
     {
         return $this->request_post('v1/medicine/price', $params);
