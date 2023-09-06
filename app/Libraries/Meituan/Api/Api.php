@@ -674,6 +674,10 @@ class Api extends Request
     {
         return $this->request_post('v1/medicine/stock', $params);
     }
+    public function medicinePrice(array $params)
+    {
+        return $this->request_post('v1/medicine/price', $params);
+    }
 
     /**
      * 同步商家编码
