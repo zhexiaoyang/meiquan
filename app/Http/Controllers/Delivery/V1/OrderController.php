@@ -47,6 +47,9 @@ class OrderController extends Controller
             $wm_order_where[] = [function ($query) use ($request) {
                 $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
             }];
+            $finish_order_where[] = [function ($query) use ($request) {
+                $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
+            }];
             // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
             // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         }
