@@ -714,7 +714,7 @@ class OrderController extends Controller
     public function ignore(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);
-        if (!$order = Order::find($order_id)) {
+        if (!$order = Order::select('id', 'shop_id', 'ignore', 'wm_id')->find($order_id)) {
             return $this->error("订单不存在");
         }
         // 判断权限
@@ -723,7 +723,7 @@ class OrderController extends Controller
                 return $this->error('订单不存在!');
             }
         }
-        if ($order->ignore = 0) {
+        if ($order->ignore == 0) {
             $order->ignore = 1;
             $order->save();
         }
