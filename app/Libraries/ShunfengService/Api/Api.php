@@ -61,6 +61,47 @@ class Api extends Request
         return $this->post('/open/api/external/precreateorder', $data);
     }
 
+    public function precreateorderByInfo($receiver_lng, $receiver_lat, $receiver_address, Shop $shop, $tip = 0)
+    {
+        $tip = (int) $tip * 100;
+        if ($tip < 100) {
+            $tip = 0;
+        }
+        // $shop = Shop::query()->find($order->shop_id);
+        $time = time();
+        $shop_info = [
+            "shop_name" => $shop->shop_name,
+            "shop_phone" => $shop->contact_phone,
+            "shop_address" => $shop->shop_address . ',' . $shop->shop_name,
+            "shop_lng" => $shop->shop_lng,
+            "shop_lat" => $shop->shop_lat,
+        ];
+        $data = [
+            "shop_id" => (string) intval($shop->id),
+            "shop_type" => 2,
+            "user_lng" => $receiver_lng,
+            "user_lat" => $receiver_lat,
+            "user_address" => $receiver_address,
+            "city_name" => $shop->city,
+            "weight" => 1000,
+            "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
+            // 是否是预约单	0：非预约单；1：预约单
+            "is_appoint" => 0,
+            // 单位分，加小费最低不能少于100分
+            "gratuity_fee" => $tip,
+            // "appoint_type"
+            // "expect_time"
+            "lbs_type" => 2,
+            "pay_type" => 1,
+            "is_insured" => 0,
+            "is_person_direct" => 0,
+            "return_flag" => 511,
+            "push_time" => $time,
+            "shop" => $shop_info
+        ];
+        return $this->post('/open/api/external/precreateorder', $data);
+    }
+
     public function createOrder($order, Shop $shop, $tip = 0)
     {
         $tip = (int) $tip * 100;
