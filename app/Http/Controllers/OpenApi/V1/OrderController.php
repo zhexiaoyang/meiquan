@@ -159,6 +159,199 @@ class OrderController extends Controller
         }
         return $this->success(['order_id' => $order->order_id]);
     }
+    public function calculate(Request $request)
+    {
+        \Log::info('开发接口订单计算配送费', $request->all());
+        if (!$app_id = $request->get('app_id')) {
+            return $this->error('app_id不能为空', 422);
+        }
+        if (!$shop_id = $request->get('shop_id')) {
+            return $this->error('门店ID不能为空', 422);
+        }
+        if (!$access = ErpAccessKey::where("access_key", $app_id)->first()) {
+            return $this->error("app_id错误", 422);
+        }
+        if (!$access_shop = ErpAccessShop::where(['shop_id' => $shop_id, 'access_id' => $access->id])->first()) {
+            return $this->error('门店不存在', 422);
+        }
+        if (!$shop = Shop::find($shop_id)) {
+            return $this->error('门店不存在', 422);
+        }
+
+        if (!$order_id = $request->get('order_id')) {
+            return $this->error('订单号不能为空', 422);
+        }
+        if (!$customer_name = $request->get('customer_name')) {
+            return $this->error('送达客户名字不能为空', 422);
+        }
+        if (!$customer_tel = $request->get('customer_tel')) {
+            return $this->error('送达客户电话不能为空', 422);
+        }
+        if (!$customer_address = $request->get('customer_address')) {
+            return $this->error('送达客户地址不能为空', 422);
+        }
+        if (!$customer_lng = $request->get('customer_lng')) {
+            return $this->error('送达客户经度不能为空', 422);
+        }
+        if (!$customer_lat = $request->get('customer_lat')) {
+            return $this->error('送达客户纬度不能为空', 422);
+        }
+        $price = $request->get('price', 0);
+        $result = [];
+        // 加价金额
+        $add_money = $shop->running_add;
+        // 自主运力
+        $shippers = $shop->shippers;
+        $shipper_platform_data = [];
+        if (!empty($shippers)) {
+            foreach ($shippers as $shipper) {
+                $shipper_platform_data[] = $shipper->platform;
+            }
+        }
+        if ($shop->shop_id_ss || in_array(3, $shipper_platform_data)) {
+            if (in_array(3, $shipper_platform_data)) {
+                // 自有闪送
+                $shansong = new ShanSongService(config('ps.shansongservice'));
+                $ss_add_money = 0;
+            } else {
+                // 聚合闪送
+                $shansong = app("shansong");
+                $ss_add_money = $add_money;
+            }
+            $check_ss = $shansong->orderCalculateByInfo($order_id, $customer_name, $customer_tel, $customer_address, $customer_lng, $customer_lat, $shop);
+            if (isset($check_ss['status']) && $check_ss['status'] == 200 && !empty($check_ss['data'])) {
+                $ss_money = sprintf("%.2f", ($check_ss['data']['totalFeeAfterSave'] / 100) + $ss_add_money);
+                $result['ss'] = [
+                    // 'platform' => 3,
+                    'platform_name' => '闪送',
+                    'price' => $ss_money,
+                    // 'distance' => get_kilometre($check_ss['data']['totalDistance']),
+                    // 'description' => !empty($check_ss['data']['couponSaveFee']) ? '已减' . $check_ss['data']['couponSaveFee'] / 100 . '元' : '',
+                    // 'error_status' => 0,
+                    'error_msg' => '',
+                    // 'status' => 1, // 1 可选，0 不可选
+                ];
+            } else {
+                $result['ss'] = [
+                    // 'platform' => 3,
+                    'platform_name' => '闪送',
+                    'price' => '',
+                    // 'distance' => '',
+                    // 'description' => '计价失败',
+                    // 'error_status' => 1,
+                    'error_msg' => $check_ss['msg'] ?? '无法下单',
+                    // 'status' => 0, // 1 可选，0 不可选
+                ];
+            }
+        }
+        if ($shop->shop_id_dd || in_array(5, $shipper_platform_data)) {
+            if (in_array(5, $shipper_platform_data)) {
+                // 自有达达
+                $config = config('ps.dada');
+                $config['source_id'] = get_dada_source_by_shop($shop->id);
+                $dada = new DaDaService($config);
+                $dd_add_money = 0;
+            } else {
+                // 聚合达达
+                $dada = app("dada");
+                $dd_add_money = $add_money;
+            }
+            $check_dd= $dada->orderCalculateByInfo($order_id, $customer_name, $customer_tel, $customer_address, $customer_lng, $customer_lat, $shop);
+            if (isset($check_dd['code']) && $check_dd['code'] == 0 && !empty($check_dd['result'])) {
+                $dd_money = sprintf("%.2f", $check_dd['result']['fee'] + $check_dd['result']['tips'] + $dd_add_money);
+                $result['dd'] = [
+                    // 'platform' => 5,
+                    'platform_name' => '达达',
+                    'price' => $dd_money,
+                    // 'distance' => get_kilometre($check_dd['result']['distance']),
+                    // 'description' => !empty($check_dd['result']['couponFee']) ? '已减' . $check_dd['result']['couponFee'] . '元' : '',
+                    // 'error_status' => 0,
+                    'error_msg' => '',
+                    // 'status' => 1, // 1 可选，0 不可选
+                ];
+            } else {
+                $result['dd'] = [
+                    // 'platform' => 5,
+                    'platform_name' => '达达',
+                    'price' => '',
+                    // 'distance' => '',
+                    // 'description' => '计价失败',
+                    // 'error_status' => 1,
+                    'error_msg' => $check_dd['msg'] ?? '无法下单',
+                    // 'status' => 0, // 1 可选，0 不可选
+                ];
+                \Log::info('门店达达发单失败', [$check_dd]);
+            }
+        }
+        if ($shop->shop_id_sf || in_array(7, $shipper_platform_data)) {
+            if (in_array(7, $shipper_platform_data)) {
+                // 自有顺丰
+                $shunfeng = app("shunfengservice");
+                $sf_add_money = 0;
+            } else {
+                // 聚合顺丰
+                $shunfeng = app("shunfeng");
+                $sf_add_money = $add_money;
+            }
+            $check_sf= $shunfeng->precreateorderByInfo($customer_lng, $customer_lat, $customer_address, $shop);
+            if (isset($check_sf['error_code']) && $check_sf['error_code'] == 0 && !empty($check_sf['result'])) {
+                $sf_money = sprintf("%.2f", ($check_sf['result']['real_pay_money'] / 100) + $sf_add_money);
+                $result['sf'] = [
+                    // 'platform' => 7,
+                    'platform_name' => '顺丰',
+                    'price' => $sf_money,
+                    // 'distance' => get_kilometre($check_sf['result']['delivery_distance_meter']),
+                    // 'description' => !empty($check_sf['result']['coupons_total_fee']) ? '已减' . $check_sf['result']['coupons_total_fee'] . '元' : '',
+                    // 'error_status' => 0,
+                    'error_msg' => '',
+                    // 'status' => 1, // 1 可选，0 不可选
+                ];
+            } else {
+                $result['sf'] = [
+                    // 'platform' => 7,
+                    'platform_name' => '顺丰',
+                    'price' => '',
+                    // 'distance' => '',
+                    // 'description' => '计价失败',
+                    // 'error_status' => 1,
+                    'error_msg' => $check_sf['msg'] ?? '无法下单',
+                    // 'status' => 0, // 1 可选，0 不可选
+                ];
+                \Log::info('门店顺丰发单失败', [$check_sf]);
+            }
+        }
+        if ($shop->shop_id_uu) {
+            $uu = app("uu");
+            $check_uu= $uu->orderCalculateByInfo($order_id, $customer_address, $customer_lng, $customer_lat, $shop);
+            if (isset($check_uu['return_code']) && $check_uu['return_code'] == 'ok') {
+                $uu_money = sprintf("%.2f", $check_uu['need_paymoney'] + $add_money);
+                $result['uu'] = [
+                    // 'platform' => 6,
+                    'platform_name' => 'UU',
+                    'price' => $uu_money,
+                    // 'distance' => get_kilometre($check_uu['distance']),
+                    // 'description' => !empty($check_uu['total_priceoff']) ? '已减' . $check_uu['total_priceoff'] . '元' : '',
+                    // 'error_status' => 0,
+                    'error_msg' => '',
+                    // 'status' => 1, // 1 可选，0 不可选
+                ];
+            } else {
+                $result['uu'] = [
+                    // 'platform' => 6,
+                    'platform_name' => 'UU',
+                    'price' => '',
+                    // 'distance' => '',
+                    // 'description' => '计价失败',
+                    // 'error_status' => 1,
+                    'error_msg' => $check_uu['return_msg'] ?? '无法下单',
+                    // 'status' => 0, // 1 可选，0 不可选
+                ];
+                \Log::info('门店UU发单失败', [$check_uu]);
+            }
+        }
+        $result = array_values($result);
+        return $this->success($result);
+    }
 
     /**
      * 外卖订单跑腿订单，详情
@@ -201,6 +394,7 @@ class OrderController extends Controller
             'customer_lng' => $order->longitude,
             'customer_lat' => $order->latitude,
             'price' => $order->total,
+            'shipping_fee' => $order->money,
             'caution' => $order->caution,
             'courier_name' => $order_pt->courier_name,
             'courier_tel' => $order_pt->courier_phone,

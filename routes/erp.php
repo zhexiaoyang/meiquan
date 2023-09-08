@@ -37,6 +37,7 @@ Route::middleware(['force-json'])->prefix("test/erp")->namespace("Erp")->group(f
  * 订单接口
  */
 Route::middleware(['force-json'])->prefix("open/v1")->namespace("OpenApi\V1")->group(function() {
+    Route::post("order/calculate", "OrderController@calculate");
     Route::post("order/create", "OrderController@create");
     Route::post("order/info", "OrderController@info");
     Route::post("order/cancel", "OrderController@cancel");
