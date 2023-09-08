@@ -1541,7 +1541,7 @@ class OrderController extends Controller
                     $sf = app("shunfeng");
                 }
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] == 0) {
+                if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 7, '美团外卖');
                     // // 顺丰跑腿运力
@@ -2411,7 +2411,7 @@ class OrderController extends Controller
                     $sf = app("shunfeng");
                 }
                 $result = $sf->cancelOrder($order);
-                if ($result['error_code'] == 0) {
+                if ($result['error_code'] == 0 || $result['error_msg'] == '订单已取消, 不可以重复取消') {
                     $order->status = 99;
                     $order->sf_status = 99;
                     $order->cancel_at = date("Y-m-d H:i:s");
