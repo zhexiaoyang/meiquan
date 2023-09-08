@@ -222,7 +222,17 @@ class Api extends Request
             'order_type' => $order_type,
             "shop_id" => (string) $shop_id,
             "shop_type" => $shop_type,
+        ];;
+        return $this->post('/open/api/external/addordergratuityfee', $data);
+    }
+    public function get_tip($order_id, $shop_id, $order_type = 2, $shop_type = 2)
+    {
+        $data = [
+            'order_id' => $order_id,
+            'order_type' => $order_type,
+            "shop_id" => (string) $shop_id,
+            "shop_type" => $shop_type,
         ];
-        return $this->post('/open/api/external/riderviewv2', $data);
+        return $this->post('/open/api/external/getordergratuityfee', $data);
     }
 }
