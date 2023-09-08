@@ -128,6 +128,34 @@ class Api extends Request
 
         return $this->post('/api/order/queryDeliverFee', $data);
     }
+    public function orderCalculateByInfo($order_id, $receiver_name, $receiver_phone, $receiver_address, $receiver_lng, $receiver_lat, Shop $shop, $cargo_price = 200, $tip = 0)
+    {
+        $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
+        $data = [
+            // 门店信息
+            'shop_no' => $shop->shop_id_dd,
+            'city_code' => $shop->citycode,
+            // 订单信息
+            'origin_id' => $order_id,
+            'cargo_price' => $cargo_price,
+            'cargo_weight' => 1,
+            'callback' => 'http://psapi.meiquanda.com/api/waimai/dada/order',
+            'is_prepay' => 0,
+            'is_direct_delivery' => 0,
+            // 收货信息
+            'receiver_name' => $receiver_name,
+            'receiver_phone' => $receiver_phone,
+            'receiver_address' => $receiver_address,
+            'receiver_lng' => $receiver_lng,
+            'receiver_lat' => $receiver_lat,
+            // 小费（单位：元，精确小数点后一位，小费金额不能高于订单金额。）
+            'tips' => $tip,
+            // 订单备注
+            'order_infonote' => "",
+        ];
+
+        return $this->post('/api/order/queryDeliverFee', $data);
+    }
 
     /**
      * 创建订单
