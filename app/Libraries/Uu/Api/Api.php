@@ -26,6 +26,25 @@ class Api extends Request
 
         return $this->post('getorderprice.ashx', $data);
     }
+    public function orderCalculateByInfo($order_id, $receiver_address, $receiver_lng, $receiver_lat, Shop $shop)
+    {
+        // $platform = [1 => "美团", 2 => "饿了么", 11 => "药柜"];
+        $jwd1 = gd2bd($shop->shop_lng, $shop->shop_lat);
+        $jwd2 = gd2bd($receiver_lng, $receiver_lat);
+        $data = [
+            'origin_id' => $order_id,
+            'from_address' => $shop->shop_address . ',' . $shop->shop_name,
+            'to_address' => $receiver_address,
+            'city_name' => $shop->city,
+            'send_type' => 0,
+            'to_lat' => $jwd2['lat'],
+            'to_lng' => $jwd2['lng'],
+            "from_lat" => $jwd1['lat'],
+            "from_lng" => $jwd1['lng'],
+        ];
+
+        return $this->post('getorderprice.ashx', $data);
+    }
 
     public function city()
     {
