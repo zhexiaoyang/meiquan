@@ -164,6 +164,39 @@ class Api extends Request
 
         return $this->post('/openapi/developer/v5/orderCalculate', $data);
     }
+    public function orderCalculateByInfo($order_id, $receiver_name, $receiver_phone, $receiver_address, $receiver_lng, $receiver_lat, Shop $shop, $tip = 0)
+    {
+        $data = [
+            "cityName" => $shop->city,
+            "lbsType" => 1,
+            "sender" => [
+                "fromAddress" => $shop->shop_address,
+                "fromAddressDetail" => $shop->shop_name ?? "",
+                "fromSenderName" => $shop->contact_name,
+                "fromMobile" => $shop->contact_phone,
+                "fromLatitude" => $shop->shop_lat,
+                "fromLongitude" => $shop->shop_lng,
+            ],
+            "receiverList" => [[
+                "orderNo" => $order_id,
+                "toAddress" => $receiver_address,
+                "toAddressDetail" => $receiver_address,
+                "toLatitude" => $receiver_lat,
+                "toLongitude" => $receiver_lng,
+                "toReceiverName" => $receiver_name,
+                "toMobile" => str_replace('_', '#', $receiver_phone),
+                "goodType" => 13,
+                "weight" => 1,
+                "remarks" => '',
+                // 小费，单位 分
+                "additionFee" => (int) $tip * 100,
+            ]],
+            "appointType" => 0,
+            "travelWay" => 0,
+        ];
+
+        return $this->post('/openapi/developer/v5/orderCalculate', $data);
+    }
 
     /**
      * 创建订单
