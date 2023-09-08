@@ -1,0 +1,241 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+
+class SyncStockYongQinTangPrice extends Command
+{
+
+    public $url = 'http://cqbe.seaflysoft.com/';
+    public $app_id = 'sFmW6idF';
+    public $app_key = 'pye5cYk6';
+    public $account = '重庆永沁堂大药房';
+
+    public $shops = [
+        [
+            'yid' => 10,
+            'mtid' => '14239678',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '昌平大药房（玉屏路店）'
+        ],
+        [
+            'yid' => 12,
+            'mtid' => '14264178',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '昌平大药房（渝西大道店）'
+        ],
+        [
+            'yid' => 13,
+            'mtid' => '14281885',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '昌平大药房（萱花路店）'
+        ],
+        [
+            'yid' => 21,
+            'mtid' => '18012051',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'name' => '永沁堂药房（泸州街店）'
+        ]
+    ];
+
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'sync-price-yongqintang';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Create a new command instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
+    {
+        $meiquan = app('meiquan');
+        $minkang = app('minkang');
+        foreach ($this->shops as $shop) {
+            $price_data_res = $this->getPrice($shop['yid'] , date("Y-m-d"));
+            if (empty($price_data_res)) {
+                \Log::info("{$shop['name']}-更改价格数量为0");
+                continue;
+            }
+            $data = $price_data_res;
+            $this->info("{$shop['name']}-总数：" . count($data));
+            $data = array_chunk($data, 100);
+            foreach ($data as $items) {
+                $code_data = [];
+                $price_data = [];
+                $upc_data = [];
+                foreach ($items as $item) {
+                    $pid = $item['pcode'];
+                    $price = $item['preprice1'];
+                    if ($price <= 0) {
+                        continue;
+                    }
+                    $product = $this->getProduct($pid);
+                    if (empty($product['barcode'])) {
+                        continue;
+                    }
+                    $name = $product['name'];
+                    $upc = $product['barcode'];
+                    if (in_array($upc, $upc_data)) {
+                        continue;
+                    }
+                    $upc_data[] = $upc;
+                    $cost = $product['recbuyprice'];
+
+                    \Log::info("永沁堂更新价格|{$shop['name']}|商品：{$name}|条码：{$upc}|价格：{$price}|成本：{$cost}");
+
+                    // 商家商品ID
+                    $store_id = $upc;
+                    // 组合数组
+                    $code_data[] = [
+                        'upc' => $upc,
+                        'app_medicine_code_new' => $store_id,
+                    ];
+                    $price_data[] = [
+                        'app_medicine_code' => $store_id,
+                        'price' => (float) $price,
+                    ];
+                }
+                $this->info("{$shop['name']}-第一批总数：" . count($upc_data));
+
+                // 绑定编码
+                $params_code['app_poi_code'] = $shop['mtid'];
+                $params_code['medicine_data'] = json_encode($code_data);
+                $params_price['app_poi_code'] = $shop['mtid'];
+                $params_price['medicine_data'] = json_encode($price_data);
+                $this->info(json_encode($params_price));
+
+                if ($shop['bind_type'] === 4) {
+                    $minkang->medicineCodeUpdate($params_code);
+                    $minkang->medicinePrice($params_price);
+                } else {
+                    $params_code['access_token'] = $meiquan->getShopToken($shop['mtid']);
+                    $params_stock['access_token'] = $meiquan->getShopToken($shop['mtid']);
+                    $meiquan->medicineCodeUpdate($params_code);
+                    $meiquan->medicinePrice($params_stock);
+                }
+            }
+            // break;
+        }
+    }
+
+    /**
+     * 获取商品价格
+     */
+    public function getPrice($yid, $date)
+    {
+        $data = [
+            'appid' => $this->app_id,
+            'accountName' => $this->account,
+            'timeStamp' => (string) (time() * 1000),
+            'yid' => (string) $yid,
+            'page' => '1',
+            'rows' => '10000',
+            'modifyDate' => $date,
+            // 'modifyDate' => '2023-09-05',
+        ];
+        $data['sign'] = $this->encryptData(json_encode($data, JSON_UNESCAPED_UNICODE), $this->app_key);
+        $res = $this->doPost($this->url . 'getprice.api', $data);
+        $res_data = json_decode($res, true);
+        return $res_data['data']['rows'] ?? [];
+    }
+
+    /**
+     * 获取商品详细信息
+     */
+    public function getProduct($name)
+    {
+        $data = [
+            'appid' => $this->app_id,
+            'accountName' => $this->account,
+            'timeStamp' => (string) (time() * 1000),
+            'dim' => $name,
+        ];
+        $data['sign'] = $this->encryptData(json_encode($data, JSON_UNESCAPED_UNICODE), $this->app_key);
+        $res = $this->doPost($this->url . 'getproducts.api', $data);
+        $res_data = json_decode($res, true);
+        return $res_data['data']['rows'][0] ?? [];
+    }
+
+    /**
+     * 根据日期获取修改过库存的商品
+     */
+    public function modifyStock($yid, $date)
+    {
+        $result = [];
+        // 获取库存信息-开始
+        $data = [
+            'appid' => $this->app_id,
+            'accountName' => $this->account,
+            'timeStamp' => (string) (time() * 1000),
+            'yid' => (string) $yid,
+            'page' => '1',
+            'rows' => '10000',
+            'modifydate' => $date,
+        ];
+
+        $data['sign'] = $this->encryptData(json_encode($data, JSON_UNESCAPED_UNICODE), $this->app_key);
+        $res = $this->doPost($this->url . 'getstorehouse.api', $data);
+        $res_data = json_decode($res, true);
+        if (isset($res_data['data'])) {
+            $res_data_data = json_decode($res_data['data'], true);
+            if (!empty($res_data_data)) {
+                $result = $res_data_data;
+            }
+        }
+        // 获取库存信息-结束
+        return $result;
+    }
+
+
+    public function encryptData($input, $key)
+    {
+        $ivlen = openssl_cipher_iv_length('DES-ECB');    // 获取密码iv长度
+        $iv = openssl_random_pseudo_bytes($ivlen);        // 生成一个伪随机字节串
+        $data = openssl_encrypt($input, 'DES-ECB', $key, $options=OPENSSL_RAW_DATA, $iv);    // 加密
+        return bin2hex($data);
+    }
+
+    public static function doPost($url, $param)
+    {
+        $ch = curl_init();
+        $header = ['Content-Type:multipart/form-data']; //设置一个你的浏览器agent的header
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, FALSE);
+        // POST数据
+        curl_setopt($ch, CURLOPT_POST, 1);
+        // 把post的变量加上
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $param);
+        $output = curl_exec($ch);
+        curl_close($ch);
+        return $output;
+    }
+}
