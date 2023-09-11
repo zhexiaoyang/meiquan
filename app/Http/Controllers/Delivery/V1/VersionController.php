@@ -14,7 +14,7 @@ class VersionController extends Controller
         if (!in_array($platform, [1, 2])) {
             return $this->error('平台错误');
         }
-        $version = AppVersion::where('platform', $platform)->where('status', 1)->first();
+        $version = AppVersion::where('platform', $platform)->where('status', 1)->orderByDesc('id')->first();
         return $this->success($version);
     }
 }
