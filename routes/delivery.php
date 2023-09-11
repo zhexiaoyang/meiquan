@@ -130,5 +130,10 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 保存设置
             Route::post("save", "DeliverySettingController@store");
         });
+        // 版本更新
+        Route::prefix('version')->group(function () {
+            // 获取设置信息
+            Route::get("info", "VersionController@show");
+        });
     });
 });
