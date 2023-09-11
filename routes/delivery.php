@@ -8,6 +8,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->group(function() {
     // 支付宝APP支付回调
     Route::post("pay/notify/alipay", "PaymentController@alipay_notify");
+    // 版本更新
+    Route::prefix('version')->group(function () {
+        // 获取设置信息
+        Route::get("info", "VersionController@show");
+    });
     // 需要登录
     Route::middleware("multiauth:api")->group(function () {
 
@@ -129,11 +134,6 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("info", "DeliverySettingController@show");
             // 保存设置
             Route::post("save", "DeliverySettingController@store");
-        });
-        // 版本更新
-        Route::prefix('version')->group(function () {
-            // 获取设置信息
-            Route::get("info", "VersionController@show");
         });
     });
 });
