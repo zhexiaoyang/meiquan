@@ -22,6 +22,7 @@ class PrescriptionImport implements ToArray
     {
         array_shift($array);
         if (!empty($array)) {
+            $order_ids = [];
             $prescriptions = [];
             $balances = [];
             $users = [];
@@ -32,6 +33,12 @@ class PrescriptionImport implements ToArray
                 if (!$item[3]) {
                     continue;
                 }
+                if (in_array($item[3], $order_ids)) {
+                    $import_log['exists']++;
+                    $import_log['text'] .= trim($item[3]) . ',';
+                    continue;
+                }
+                $order_ids[] = $item[3];
                 $import_log['count']++;
                 $line = $key + 2;
                 if (WmPrescription::where('outOrderID', trim($item[3]))->exists()) {
@@ -121,6 +128,7 @@ class PrescriptionImport implements ToArray
             // \Log::info('$balances', $balances);
             // \Log::info('$user_money', $user_money);
             // \Log::info('$import_log', $import_log);
+            unset($order_ids);
             DB::transaction(function () use ($prescriptions, $balances, $user_money, $import_log) {
                 $prescriptions_data = array_chunk($prescriptions, 800);
                 if (!empty($prescriptions_data)) {
