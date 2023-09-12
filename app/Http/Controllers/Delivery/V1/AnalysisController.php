@@ -639,8 +639,8 @@ class AnalysisController extends Controller
             $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->where('user_id', $request->user()->id)->get();
             // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('id', $shop_id)->get();
         } else {
-            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
-            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->whereIn('id', [6446,5359,6367])->get();
+            // $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->where('user_id', $request->user()->id)->get();
+            $user_shops = Shop::select('id', 'shop_name', 'wm_shop_name')->whereIn('id', [3329,5034])->get();
         }
         if (empty($user_shops)) {
             return $this->success();
@@ -691,7 +691,7 @@ class AnalysisController extends Controller
                         'unit_price' => 0,
                         'proportion' => 0,
                         'shops' => [
-                            [
+                            $v->shop_id => [
                                 'shop_id' => $v->shop_id,
                                 'shop_name' => $shop_name_map[$v->shop_id],
                                 'order_receipts' => (float) $v->order_receipts,
