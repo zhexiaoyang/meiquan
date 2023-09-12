@@ -42,6 +42,7 @@ class OrderDelivery extends Model
     ];
 
     static $delivery_platform_map = [
+        0 => '',
         1 => '美团跑腿',
         2 =>  '蜂鸟',
         3 =>  '闪送',
