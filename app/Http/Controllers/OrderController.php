@@ -364,6 +364,7 @@ class OrderController extends Controller
         $order->shipper_type_ss = 0;
         $order->shipper_type_dd = 0;
         $order->shipper_type_sf = 0;
+        $order->ps_type = 0;
         $order->save();
         $order = Order::find($order_id);
 
