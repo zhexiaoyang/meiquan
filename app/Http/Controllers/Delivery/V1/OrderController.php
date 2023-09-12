@@ -527,7 +527,7 @@ class OrderController extends Controller
     {
         if (!$order = Order::select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','courier_lng','courier_lat','money as shipping_fee','send_at')
+            'courier_name', 'courier_phone','courier_lng','courier_lat','money as shipping_fee','send_at','ps_type')
             ->find(intval($request->get('id', 0)))) {
             return $this->error('订单不存在');
         }
@@ -650,6 +650,16 @@ class OrderController extends Controller
         }
         unset($order->shop);
         $order->locations = $locations;
+        // 跑腿配送平台
+        $order->logistic_tag = '';
+        if ($order->ps_type > 0) {
+            if ($order->ps_type == 1) {
+                $order->logistic_tag = '平台配送';
+            } elseif ($order->ps_type == 2) {
+                $order->logistic_tag = '未知配送';
+            }
+        }
+        unset($order->ps_type);
 
         return $this->success($order);
     }
