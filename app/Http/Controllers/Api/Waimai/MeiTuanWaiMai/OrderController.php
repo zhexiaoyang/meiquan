@@ -750,6 +750,15 @@ class OrderController
                     $this->log_info('接口取消订单成功');
                 }
                 $this->log_info("订单号：{$order_id}|跑腿订单-结束");
+            } elseif ($pt_order = Order::where('order_id', $order_id)->where('status', 0)->where('zb_status', 0)->where('status', '<', 70)->first()) {
+                if ($status == 10 && $pt_order->status == 0) {
+                    $pt_order->status = 50;
+                    $pt_order->ps_type = 1;
+                    $pt_order->save();
+                } elseif ($status == 20 && $pt_order->ps_type == 1) {
+                    $pt_order->status = 60;
+                    $pt_order->save();
+                }
             } else {
                 $this->log_info("订单号：{$order_id}|非跑腿订单");
             }
