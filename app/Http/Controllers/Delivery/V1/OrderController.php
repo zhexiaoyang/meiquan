@@ -202,7 +202,7 @@ class OrderController extends Controller
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
                     } else {
-                        if ($order->ps_type = 2) {
+                        if ($order->ps_type == 2) {
                             $order->status_description = "[未知运力]";
                         } else {
                             $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
@@ -363,7 +363,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone');
+            'courier_name', 'courier_phone','ps_type');
         // 判断权限
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
@@ -458,7 +458,7 @@ class OrderController extends Controller
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
                     } else {
-                        if ($order->ps_type = 2) {
+                        if ($order->ps_type == 2) {
                             $order->status_description = "[未知运力]";
                         } else {
                             $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
