@@ -203,7 +203,7 @@ class OrderController extends Controller
                         $order->status_description = '下单成功';
                     } else {
                         if ($order->ps_type == 2) {
-                            $order->status_description = "[未知运力]";
+                            $order->status_description = "[未知配送]";
                         } else {
                             $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
                             $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
@@ -255,6 +255,16 @@ class OrderController extends Controller
                 }
                 $order->locations = $locations;
                 unset($order->shop);
+                // 跑腿配送平台
+                $order->logistic_tag = '';
+                if ($order->ps_type > 0) {
+                    if ($order->ps_type == 1) {
+                        $order->logistic_tag = '平台配送';
+                    } elseif ($order->ps_type == 2) {
+                        $order->logistic_tag = '未知配送';
+                    }
+                }
+                unset($order->ps_type);
             }
         }
         return $this->page($orders);
@@ -459,7 +469,7 @@ class OrderController extends Controller
                         $order->status_description = '下单成功';
                     } else {
                         if ($order->ps_type == 2) {
-                            $order->status_description = "[未知运力]";
+                            $order->status_description = "[未知配送]";
                         } else {
                             $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
                             $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
@@ -492,6 +502,16 @@ class OrderController extends Controller
                 if (!$order->wm_poi_name) {
                     $order->wm_poi_name = $order->shop->shop_name ?? '';
                 }
+                // 跑腿配送平台
+                $order->logistic_tag = '';
+                if ($order->ps_type > 0) {
+                    if ($order->ps_type == 1) {
+                        $order->logistic_tag = '平台配送';
+                    } elseif ($order->ps_type == 2) {
+                        $order->logistic_tag = '未知配送';
+                    }
+                }
+                unset($order->ps_type);
                 unset($order->order);
                 unset($order->shop);
             }
