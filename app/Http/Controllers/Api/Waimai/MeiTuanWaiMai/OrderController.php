@@ -753,10 +753,14 @@ class OrderController
             } elseif ($pt_order = Order::where('order_id', $order_id)->where('zb_status', 0)->where('status', '<', 20)->first()) {
                 if ($status == 10 && $pt_order->status == 0) {
                     $pt_order->status = 50;
+                    $pt_order->courier_name = $name;
+                    $pt_order->courier_phone = $phone;
                     $pt_order->ps_type = 1;
                     $pt_order->save();
                 } elseif ($status == 20 && $pt_order->ps_type == 1) {
                     $pt_order->status = 60;
+                    $pt_order->courier_name = $name;
+                    $pt_order->courier_phone = $phone;
                     $pt_order->save();
                 }
             } else {
@@ -796,9 +800,9 @@ class OrderController
             if ($pt_order = Order::where('order_id', $order_id)->where('status', '<', 20)->first()) {
                 if ($status == 10 && $pt_order->status == 0) {
                     $pt_order->status = 50;
-                    $pt_order->ps_type = 1;
+                    $pt_order->ps_type = 2;
                     $pt_order->save();
-                } elseif ($status == 20 && $pt_order->ps_type == 1) {
+                } elseif ($status == 20 && $pt_order->ps_type == 2) {
                     $pt_order->status = 60;
                     $pt_order->save();
                 }
