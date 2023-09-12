@@ -43,6 +43,7 @@ class BackupOrder extends Command
      */
     public function handle()
     {
+        \Log::info('订单备份命令执行');
         $day = date("Y-m-d", strtotime('-93 day'));
         // 同步跑腿订单
         $pt_order_last = Order::select('id')->where('created_at', '<', $day)->orderByDesc('id')->first();
