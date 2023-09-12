@@ -2082,6 +2082,7 @@ class OrderController extends Controller
         $res_data = [
             'id' => $order->id,
             'order_title' => $order_title,
+            'logistic_tag' => '',
             'shop_id' => $order->shop_id,
             'day_seq' => $order->day_seq,
             'platform' => $order->platform,
