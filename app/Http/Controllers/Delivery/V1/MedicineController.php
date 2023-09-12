@@ -5,12 +5,16 @@ namespace App\Http\Controllers\Delivery\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Medicine;
 use App\Models\MedicineCategory;
+use App\Models\MedicineDepot;
 use App\Models\MedicineSelectShop;
 use App\Models\Shop;
+use App\Traits\GetMedicineImageByStoreID;
 use Illuminate\Http\Request;
 
 class MedicineController extends Controller
 {
+    use GetMedicineImageByStoreID;
+
     public function shops(Request $request)
     {
         $user = $request->user();
@@ -48,7 +52,7 @@ class MedicineController extends Controller
         if (!$shop_id = $request->get('shop_id')) {
             return $this->error('请选择门店');
         }
-        if (!$shop = Shop::select('id','user_id')->find($shop_id)) {
+        if (!$shop = Shop::select('id','user_id', 'meituan_bind_platform','waimai_mt')->find($shop_id)) {
             return $this->error('门店不存在');
         }
         $user = $request->user();
@@ -60,7 +64,7 @@ class MedicineController extends Controller
             [ 'user_id' => $user->id, 'shop_id' => $shop_id ]
         );
 
-        $query = Medicine::select('id','shop_id','name','upc','cover','price','down_price','guidance_price','spec','stock',
+        $query = Medicine::select('id','store_id','depot_id','shop_id','name','upc','cover','price','down_price','guidance_price','spec','stock',
             'mt_status','ele_status','online_mt','online_ele','mt_error','ele_error')
             ->where('shop_id', $shop_id);
         // 搜索关键字
@@ -106,6 +110,18 @@ class MedicineController extends Controller
                 $medicine->price_error = $medicine->price < $medicine->guidance_price ? 1 : 0;
                 // $medicine->down_price_error = $medicine->down_price < $medicine->guidance_price ? 1 : 0;
                 $medicine->down_price_error = 0;
+                if (!$medicine->cover) {
+                    if ($medicine->mt_status == 1) {
+                        $tmp_cover = $this->getImageByStoreId(1, $shop->meituan_bind_platform == 25 ? 35 : $shop->meituan_bind_platform, $shop->waimai_mt, $medicine->store_id, '');
+                        if ($tmp_cover) {
+                            $medicine->cover = $tmp_cover;
+                            Medicine::where('id', $medicine->id)->update(['cover' => $tmp_cover]);
+                            if ($medicine->depot_id) {
+                                MedicineDepot::where('id', $medicine->depot_id)->update(['cover' => $tmp_cover]);
+                            }
+                        }
+                    }
+                }
             }
         }
 
