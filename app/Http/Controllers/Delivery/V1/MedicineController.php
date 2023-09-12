@@ -72,7 +72,7 @@ class MedicineController extends Controller
             if (is_numeric($search_key)) {
                 $query->where('upc', $search_key);
             } else {
-                $query->where('name', $search_key);
+                $query->where('name', 'like', "%{$search_key}%");
             }
         }
         // TAB搜索 (1 售罄、2 价格异常，3 下架)
