@@ -100,7 +100,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_lng','shop_lat','shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','courier_lng','courier_lat','poi_receive','send_at')
+            'courier_name', 'courier_phone','courier_lng','courier_lat','poi_receive','send_at','ps_type')
             ->where('ignore', 0)
             ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
         // 判断权限
@@ -202,8 +202,12 @@ class OrderController extends Controller
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
                     } else {
-                        $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
-                        $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                        if ($order->ps_type = 2) {
+                            $order->status_description = "[未知运力]";
+                        } else {
+                            $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
+                            $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                        }
                     }
                 }
                 preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
@@ -454,8 +458,12 @@ class OrderController extends Controller
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
                     } else {
-                        $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
-                        $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                        if ($order->ps_type = 2) {
+                            $order->status_description = "[未知运力]";
+                        } else {
+                            $status_description_platform = OrderDelivery::$delivery_platform_map[$order->logistic_type];
+                            $order->status_description = "[{$status_description_platform}] {$order->courier_name} {$order->courier_phone}";
+                        }
                     }
                 }
                 preg_match_all('/收货人隐私号.*\*\*\*\*(\d\d\d\d)/', $order->caution, $preg_result);
