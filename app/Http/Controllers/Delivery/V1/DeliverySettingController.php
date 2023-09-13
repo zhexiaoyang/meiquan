@@ -114,7 +114,7 @@ class DeliverySettingController extends Controller
             }
             if ($auto_mt === 1 && !$shop->mt_shop_id) {
                 $save_status = true;
-                $shop->mt_shop_id = $shop->waimai_mt;
+                $shop->mt_shop_id = $shop->waimai_mt ?: $shop->id;
             }
         }
         if (!is_null($auto_ele)) {
@@ -125,7 +125,7 @@ class DeliverySettingController extends Controller
             }
             if ($auto_ele === 1 && !$shop->ele_shop_id) {
                 $save_status = true;
-                $shop->ele_shop_id = $shop->waimai_ele;
+                $shop->ele_shop_id = $shop->waimai_ele ?: $shop->id;
             }
         }
         if ($save_status) {
