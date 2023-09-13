@@ -44,7 +44,31 @@ class SyncStockYongQinTangPrice extends Command
             'bind' => 'shangou',
             'bind_type' => 31,
             'mid' => 6607,
-            'name' => '永沁堂药房（泸州街店）'
+            'name' => '永沁堂大药房（泸州街店）'
+        ],
+        [
+            'yid' => 3,
+            'mtid' => '14265475',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'mid' => 5224,
+            'name' => '永沁堂大药房（人民南路店）'
+        ],
+        [
+            'yid' => 4,
+            'mtid' => '14282217',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'mid' => 5240,
+            'name' => '永沁堂大药房（汇龙东二路店）'
+        ],
+        [
+            'yid' => 6,
+            'mtid' => '14281884',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'mid' => 5237,
+            'name' => '永沁堂大药房（凤栖店）'
         ]
     ];
 
@@ -86,6 +110,7 @@ class SyncStockYongQinTangPrice extends Command
             return ;
         }
         $this->info("永沁堂更新价格-总数：" . count($price_data_res));
+        \Log::info("永沁堂更新价格-总数：" . count($price_data_res));
         $meiquan = app('meiquan');
         $minkang = app('minkang');
         foreach ($this->shops as $shop) {
@@ -116,6 +141,7 @@ class SyncStockYongQinTangPrice extends Command
 
                     \Log::info("永沁堂更新价格|{$shop['name']}|商品：{$name}|商品：{$code}|条码：{$upc}|价格：{$price}|成本：{$cost}");
                     Medicine::where('shop_id', $shop['mid'])->where('upc', $upc)->update(['price' => $price]);
+                    // Medicine::where('shop_id', $shop['mid'])->where('upc', $upc)->update(['store_id' => $code, 'price' => $price, 'guidance_price' => $cost]);
 
                     // 商家商品ID
                     $store_id = $upc;

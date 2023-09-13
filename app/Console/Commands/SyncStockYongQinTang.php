@@ -40,6 +40,27 @@ class SyncStockYongQinTang extends Command
             'bind' => 'shangou',
             'bind_type' => 31,
             'name' => '永沁堂药房（泸州街店）'
+        ],
+        [
+            'yid' => 3,
+            'mtid' => '14265475',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '永沁堂大药房（人民南路店）'
+        ],
+        [
+            'yid' => 4,
+            'mtid' => '14282217',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '永沁堂大药房（汇龙东二路店）'
+        ],
+        [
+            'yid' => 6,
+            'mtid' => '14281884',
+            'bind' => 'minkang',
+            'bind_type' => 4,
+            'name' => '永沁堂大药房（凤栖店）'
         ]
     ];
 
