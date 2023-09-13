@@ -45,7 +45,7 @@ class DeliveryController extends Controller
 
         $bound = [];
         $unbound = [];
-        $shippers = $shop->shippers();
+        $shippers = $shop->shippers;
         if (!empty($shippers)) {
             foreach ($shippers as $shipper) {
                 $bound[$shipper->platform] = [
