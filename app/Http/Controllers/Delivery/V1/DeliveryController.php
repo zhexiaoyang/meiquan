@@ -8,6 +8,7 @@ use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\ShopShipper;
+use App\Models\ShopShipperUnbound;
 use Illuminate\Http\Request;
 
 class DeliveryController extends Controller
@@ -193,10 +194,18 @@ class DeliveryController extends Controller
         if (!$shop = Shop::where('user_id',$user->id)->find($shop_id)) {
             return $this->error('门店不存在!');
         }
+        $shipper_platforms = ShopShipper::where('shop_id', $shop_id)->get()->pluck('platform')->toArray();
         if ($platform === 3) {
-            if ($shop->shop_id_ss) {
+            if ($shop->shop_id_ss || in_array(3, $shipper_platforms)) {
                 return $this->success();
             }
+            if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 3)->first()) {
+                // 已有门店
+                $shop->shop_id_ss = $shipper->three_id;
+                $shop->save();
+                return $this->success();
+            }
+            // 没有门店
             $shansong = app("shansong");
             $result = $shansong->createShop($shop);
             if (isset($result['status']) && $result['status'] == 200) {
@@ -211,6 +220,11 @@ class DeliveryController extends Controller
             if ($shop->shop_id_dd) {
                 return $this->success();
             }
+            if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 5)->first()) {
+                $shop->shop_id_dd = $shipper->three_id;
+                $shop->save();
+                return $this->success();
+            }
             $dada = app("dada");
             $result = $dada->createShop($shop);
             if (isset($result['code']) && $result['code'] == 0) {
@@ -223,6 +237,11 @@ class DeliveryController extends Controller
         }
         if ($platform === 6) {
             if ($shop->shop_id_uu) {
+                return $this->success();
+            }
+            if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 6)->first()) {
+                $shop->shop_id_uu = $shipper->three_id;
+                $shop->save();
                 return $this->success();
             }
             $city = $shop->city;
@@ -256,7 +275,12 @@ class DeliveryController extends Controller
             }
         }
         if ($platform === 7) {
-            if ($shop->shop_id_sf) {
+            if ($shop->shop_id_sf || in_array(7, $shipper_platforms)) {
+                return $this->success();
+            }
+            if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 7)->first()) {
+                $shop->shop_id_sf = $shipper->three_id;
+                $shop->save();
                 return $this->success();
             }
             $code = intval($shop->citycode);
