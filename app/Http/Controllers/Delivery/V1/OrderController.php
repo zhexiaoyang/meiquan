@@ -633,7 +633,7 @@ class OrderController extends Controller
         $user_location = [ 'type' => 'user', 'lng' => $order->receiver_lng, 'lat' => $order->receiver_lat, 'title' => '' ];
         $shop_location = [ 'type' => 'shop', 'lng' => $order->shop->shop_lng, 'lat' => $order->shop->shop_lat, 'title' => '' ];
         $delivery_location = [ 'type' => 'delivery', 'lng' => $order->courier_lng, 'lat' => $order->courier_lat, 'title' => '' ];
-        if ($order->status <= 20) {
+        if ($order->status <= 20 || $order->ps_type > 0) {
             $user_location['title'] = '距离门店' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->shop->shop_lng, $order->shop->shop_lat);
             $locations = [$user_location, $shop_location];
         } elseif ($order->status == 50) {
