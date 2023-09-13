@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Medicine;
 use Illuminate\Console\Command;
 
 class SyncStockYongQinTangPrice extends Command
@@ -18,6 +19,7 @@ class SyncStockYongQinTangPrice extends Command
             'mtid' => '14239678',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5791,
             'name' => '昌平大药房（玉屏路店）'
         ],
         [
@@ -25,6 +27,7 @@ class SyncStockYongQinTangPrice extends Command
             'mtid' => '14264178',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5792,
             'name' => '昌平大药房（渝西大道店）'
         ],
         [
@@ -32,6 +35,7 @@ class SyncStockYongQinTangPrice extends Command
             'mtid' => '14281885',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5793,
             'name' => '昌平大药房（萱花路店）'
         ],
         [
@@ -39,6 +43,7 @@ class SyncStockYongQinTangPrice extends Command
             'mtid' => '18012051',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 6607,
             'name' => '永沁堂药房（泸州街店）'
         ]
     ];
@@ -74,16 +79,17 @@ class SyncStockYongQinTangPrice extends Command
      */
     public function handle()
     {
+        $price_data_res = $this->getPrice(2 , date("Y-m-d"));
+        // $price_data_res = $this->getPrice(2 , date("Y-m-d", strtotime('-2 day')));
+        if (empty($price_data_res)) {
+            \Log::info("永沁堂更新价格-更改价格数量为0");
+            return ;
+        }
+        $this->info("永沁堂更新价格-总数：" . count($price_data_res));
         $meiquan = app('meiquan');
         $minkang = app('minkang');
         foreach ($this->shops as $shop) {
-            $price_data_res = $this->getPrice($shop['yid'] , date("Y-m-d"));
-            if (empty($price_data_res)) {
-                \Log::info("{$shop['name']}-更改价格数量为0");
-                continue;
-            }
             $data = $price_data_res;
-            $this->info("{$shop['name']}-总数：" . count($data));
             $data = array_chunk($data, 100);
             foreach ($data as $items) {
                 $code_data = [];
@@ -99,6 +105,7 @@ class SyncStockYongQinTangPrice extends Command
                     if (empty($product['barcode'])) {
                         continue;
                     }
+                    $code = $product['code'];
                     $name = $product['name'];
                     $upc = $product['barcode'];
                     if (in_array($upc, $upc_data)) {
@@ -107,7 +114,8 @@ class SyncStockYongQinTangPrice extends Command
                     $upc_data[] = $upc;
                     $cost = $product['recbuyprice'];
 
-                    \Log::info("永沁堂更新价格|{$shop['name']}|商品：{$name}|条码：{$upc}|价格：{$price}|成本：{$cost}");
+                    \Log::info("永沁堂更新价格|{$shop['name']}|商品：{$name}|商品：{$code}|条码：{$upc}|价格：{$price}|成本：{$cost}");
+                    Medicine::where('shop_id', $shop['mid'])->where('upc', $upc)->update(['price' => $price]);
 
                     // 商家商品ID
                     $store_id = $upc;
