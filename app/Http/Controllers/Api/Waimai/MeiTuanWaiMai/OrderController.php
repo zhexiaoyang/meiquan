@@ -757,11 +757,87 @@ class OrderController
                     $pt_order->courier_phone = $phone;
                     $pt_order->ps_type = 1;
                     $pt_order->save();
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $pt_order->user_id,
+                        'shop_id' => $pt_order->shop_id,
+                        'warehouse_id' => $pt_order->warehouse_id,
+                        'order_id' => $pt_order->id,
+                        'wm_id' => $pt_order->wm_id,
+                        'order_no' => $pt_order->order_id,
+                        'three_order_no' => '',
+                        'platform' => 210,
+                        'type' => 0,
+                        'day_seq' => $pt_order->day_seq,
+                        'money' => 0,
+                        'status' => 50,
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                        'delivery_name' => $name,
+                        'delivery_phone' => $phone,
+                        'delivery_lng' => $locations['lng'] ?? '',
+                        'delivery_lat' => $locations['lat'] ?? '',
+                        // 'atshop_at' => date("Y-m-d H:i:s"),
+                        // 'pickup_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $pt_order->id,
+                        'wm_id' => $pt_order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                        'status' => 50,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        'delivery_name' => $name,
+                        'delivery_phone' => $phone,
+                        'delivery_lng' => $locations['lng'] ?? '',
+                        'delivery_lat' => $locations['lat'] ?? '',
+                        'description' => "配送员: {$name} <br>联系方式：{$phone}",
+                    ]);
                 } elseif ($status == 20 && $pt_order->ps_type == 1 && $pt_order->status == 50) {
                     $pt_order->status = 60;
                     $pt_order->courier_name = $name;
                     $pt_order->courier_phone = $phone;
                     $pt_order->save();
+                    // 写入接单足迹
+                    if ($delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 210)->where('status', '<=', 70)->orderByDesc('id')->first()) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 60,
+                                'atshop_at' => date("Y-m-d H:i:s"),
+                                'pickup_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => $name,
+                                    'delivery_phone' => $phone,
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("平台配送-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("平台配送-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                 }
             } else {
                 $this->log_info("订单号：{$order_id}|非跑腿订单");
@@ -802,9 +878,85 @@ class OrderController
                     $pt_order->status = 50;
                     $pt_order->ps_type = 2;
                     $pt_order->save();
+                    $delivery_id = DB::table('order_deliveries')->insertGetId([
+                        'user_id' => $pt_order->user_id,
+                        'shop_id' => $pt_order->shop_id,
+                        'warehouse_id' => $pt_order->warehouse_id,
+                        'order_id' => $pt_order->id,
+                        'wm_id' => $pt_order->wm_id,
+                        'order_no' => $pt_order->order_id,
+                        'three_order_no' => '',
+                        'platform' => 220,
+                        'type' => 0,
+                        'day_seq' => $pt_order->day_seq,
+                        'money' => 0,
+                        'status' => 50,
+                        'send_at' => date("Y-m-d H:i:s"),
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                        'delivery_name' => '',
+                        'delivery_phone' => '',
+                        'delivery_lng' => $locations['lng'] ?? '',
+                        'delivery_lat' => $locations['lat'] ?? '',
+                        // 'atshop_at' => date("Y-m-d H:i:s"),
+                        // 'pickup_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                    ]);
+                    DB::table('order_delivery_tracks')->insert([
+                        'order_id' => $pt_order->id,
+                        'wm_id' => $pt_order->wm_id,
+                        'delivery_id' => $delivery_id,
+                        'created_at' => date("Y-m-d H:i:s"),
+                        'updated_at' => date("Y-m-d H:i:s"),
+                        'status' => 50,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_RECEIVING,
+                        'delivery_name' => '',
+                        'delivery_phone' => '',
+                        'delivery_lng' => $locations['lng'] ?? '',
+                        'delivery_lat' => $locations['lat'] ?? '',
+                        'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_RECEIVING,
+                    ]);
                 } elseif ($status == 20 && $pt_order->ps_type == 2 && $pt_order->status == 50) {
                     $pt_order->status = 60;
                     $pt_order->save();
+                    // 写入接单足迹
+                    if ($delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 210)->where('status', '<=', 70)->orderByDesc('id')->first()) {
+                        try {
+                            $delivery->update([
+                                'delivery_name' => '',
+                                'delivery_phone' => '',
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'status' => 60,
+                                'atshop_at' => date("Y-m-d H:i:s"),
+                                'pickup_at' => date("Y-m-d H:i:s"),
+                                'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            ]);
+                            OrderDeliveryTrack::firstOrCreate(
+                                [
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => '',
+                                    'delivery_phone' => '',
+                                ], [
+                                    'order_id' => $delivery->order_id,
+                                    'wm_id' => $delivery->wm_id,
+                                    'delivery_id' => $delivery->id,
+                                    'status' => 60,
+                                    'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                                    'delivery_name' => '',
+                                    'delivery_phone' => '',
+                                    'delivery_lng' => $locations['lng'] ?? '',
+                                    'delivery_lat' => $locations['lat'] ?? '',
+                                    'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                                ]
+                            );
+                        } catch (\Exception $exception) {
+                            Log::info("未知配送-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                            $this->ding_error("未知配送-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                        }
+                    }
                 }
             }
         }
