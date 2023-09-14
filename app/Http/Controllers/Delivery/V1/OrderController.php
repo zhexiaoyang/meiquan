@@ -41,7 +41,8 @@ class OrderController extends Controller
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             $order_where[] = [function ($query) use ($request) {
                 $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
             }];
@@ -105,7 +106,8 @@ class OrderController extends Controller
             ->where('ignore', 0)
             ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
         }
         if ($shop_id) {
@@ -376,7 +378,8 @@ class OrderController extends Controller
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
             'courier_name', 'courier_phone','ps_type');
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
         }
         if ($search_type === 10) {
@@ -532,7 +535,8 @@ class OrderController extends Controller
             ->find(intval($request->get('id', 0)))) {
             return $this->error('订单不存在');
         }
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -757,7 +761,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -787,7 +792,8 @@ class OrderController extends Controller
             return $this->success();
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -1687,7 +1693,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -2148,7 +2155,8 @@ class OrderController extends Controller
             return $this->error("订单已被接单，不能继续派单");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -2783,7 +2791,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -2913,7 +2922,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -2942,7 +2952,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
@@ -3056,7 +3067,8 @@ class OrderController extends Controller
             return $this->error("订单不存在");
         }
         // 判断权限
-        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+        if (true) {
             if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 return $this->error('订单不存在!');
             }
