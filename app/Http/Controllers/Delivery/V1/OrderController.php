@@ -3051,7 +3051,7 @@ class OrderController extends Controller
     public function finish(Request $request)
     {
         $order_id = (int) $request->get("order_id", 0);
-        if (!$order = Order::select('id', 'shop_id','receiver_lng','receiver_lat','over_at','status')->find($order_id)) {
+        if (!$order = Order::find($order_id)) {
             return $this->error("订单不存在");
         }
         // 判断权限

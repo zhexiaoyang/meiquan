@@ -138,7 +138,7 @@ class Order extends Model
             if ($order->status === 70) {
                 if (!ManagerProfit::where('order_id', $order->id)->first()) {
                     Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]");
-                    if ($order->ps != 4) {
+                    if ($order->ps != 4 && $order->ps != 200) {
                         $manager_ids = User::whereHas("roles", function ($query) {
                             $query->where('name', 'city_manager');
                         })->orderByDesc('id')->pluck("id")->toArray();
