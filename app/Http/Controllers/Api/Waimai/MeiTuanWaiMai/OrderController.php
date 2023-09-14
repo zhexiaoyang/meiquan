@@ -1018,6 +1018,8 @@ class OrderController
                         "order_id" => $order_pt->id,
                         "des" => "「美团外卖」完成订单"
                     ]);
+                    // 跑腿运力完成
+                    OrderDelivery::finish_log($order->id, 200, '美团外卖');
                 }
             }
         }
