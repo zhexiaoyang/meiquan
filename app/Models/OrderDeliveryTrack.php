@@ -14,6 +14,7 @@ class OrderDeliveryTrack extends Model
     const TRACK_STATUS_FINISH = '配送完成';
     const TRACK_STATUS_CANCEL = '配送已取消';
 
+    const TRACK_DESCRIPTION_RECEIVING = '配送员已接单，正赶往商家';
     const TRACK_DESCRIPTION_PICKING = '配送员已就位，请出货';
     const TRACK_DESCRIPTION_DELIVERING = '配送员已取货，正赶往目的地';
     const TRACK_DESCRIPTION_FINISH = '客户已收到商品';
