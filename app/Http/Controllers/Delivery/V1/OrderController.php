@@ -2249,7 +2249,8 @@ class OrderController extends Controller
                             'delivery_phone' => $phone,
                             'delivery_lng' => $locations['lng'] ?? '',
                             'delivery_lat' => $locations['lat'] ?? '',
-                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            // 'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                            'description' => "配送员: {$name} <br>联系方式：{$phone}",
                         ]);
                     });
                 } catch (\Exception $exception) {
