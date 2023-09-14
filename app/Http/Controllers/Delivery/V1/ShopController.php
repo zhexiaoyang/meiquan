@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Delivery\V1;
 use App\Http\Controllers\Controller;
 use App\Jobs\CreateMtShop;
 use App\Models\Shop;
+use App\Models\ShopRider;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -413,5 +414,28 @@ class ShopController extends Controller
         Shop::where('id', $shop->id)->update($data);
         // dispatch(new CreateMtShop($shop));
         return $this->success();
+    }
+
+    /**
+     * 获取自配送骑手日志
+     * @data 2023/9/14 11:34 上午
+     */
+    public function rider(Request $request)
+    {
+        if (!$name = $request->get('name')) {
+            return $this->success([]);
+        }
+        if (!$shop_id = (int) $request->get('shop_id')) {
+            return $this->error('门店ID错误');
+        }
+        if (!$shop = Shop::select('id')->find($shop_id)) {
+            return $this->error('门店不存在');
+        }
+
+        // $data = ShopRider::where('shop_id', $shop_id)->where("name", 'like', "%{$key}%")->orderByDesc('id')->limit(10)->get();
+        $data = ShopRider::select('id', 'name', 'phone')->where('shop_id', $shop_id)
+            ->where("name", 'like', "%{$name}%")->orderByDesc('id')->get();
+
+        return $this->success($data);
     }
 }

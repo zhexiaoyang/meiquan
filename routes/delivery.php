@@ -73,6 +73,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("create", "ShopController@store");
             // 更新门店
             Route::post("update", "ShopController@update");
+            // 自配送骑手日志
+            Route::get("rider", "ShopController@rider");
         });
         // 数据分析
         Route::prefix('analysis')->group(function () {
