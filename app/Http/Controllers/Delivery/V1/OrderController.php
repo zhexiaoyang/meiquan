@@ -14,6 +14,7 @@ use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
+use App\Models\ShopRider;
 use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
 use App\Models\WmPrinter;
@@ -808,6 +809,18 @@ class OrderController extends Controller
             // 已经完成
             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-订单已经完成，不能取消");
             return $this->error("订单已经完成，不能取消");
+        } elseif ($order->ps == 200) {
+            // 自配送取消
+            $order->status = 99;
+            $order->cancel_at = date("Y-m-d H:i:s");
+            $order->save();
+            OrderLog::create([
+                "order_id" => $order->id,
+                "des" => "用户操作取消[自配送]订单"
+            ]);
+            // 跑腿运力取消
+            OrderDelivery::cancel_log($order->id, 200, '中台操作');
+            return $this->success();
         } elseif (in_array($order->status, [40, 50, 60])) {
             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-已有平台接单，订单状态：{$order->status}");
             $dd = app("ding");
@@ -868,7 +881,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【美团跑腿】订单"
+                                "des" => "用户操作取消[美团跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -880,7 +893,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "美团",
                             "order_id" => $order->order_id
@@ -890,7 +903,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美团]-取消美团订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消美团订单返回失败",
+                        "des" => "[用户操作取消订单]取消美团订单返回失败",
                         "id" => $order->id,
                         "ps" => "美团",
                         "order_id" => $order->order_id
@@ -961,7 +974,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【蜂鸟跑腿】订单"
+                                "des" => "用户操作取消[蜂鸟跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -973,7 +986,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "蜂鸟",
                             "order_id" => $order->order_id
@@ -983,7 +996,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:蜂鸟]-取消蜂鸟订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消蜂鸟订单返回失败",
+                        "des" => "[用户操作取消订单]取消蜂鸟订单返回失败",
                         "id" => $order->id,
                         "ps" => "蜂鸟",
                         "order_id" => $order->order_id
@@ -1072,7 +1085,7 @@ class OrderController extends Controller
                             ]);
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【闪送跑腿】订单"
+                                "des" => "用户操作取消[闪送跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1084,7 +1097,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "闪送",
                             "order_id" => $order->order_id
@@ -1094,7 +1107,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:闪送]-取消闪送订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消闪送订单返回失败",
+                        "des" => "[用户操作取消订单]取消闪送订单返回失败",
                         "id" => $order->id,
                         "ps" => "闪送",
                         "order_id" => $order->order_id
@@ -1128,7 +1141,7 @@ class OrderController extends Controller
                             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户");
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【美全达跑腿】订单"
+                                "des" => "用户操作取消[美全达跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1140,7 +1153,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "美全达",
                             "order_id" => $order->order_id
@@ -1150,7 +1163,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:美全达]-取消美全达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消美全达订单返回失败",
+                        "des" => "[用户操作取消订单]取消美全达订单返回失败",
                         "id" => $order->id,
                         "ps" => "美全达",
                         "order_id" => $order->order_id
@@ -1226,7 +1239,7 @@ class OrderController extends Controller
                             ]);
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【达达跑腿】订单"
+                                "des" => "用户操作取消[达达跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1238,7 +1251,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "达达",
                             "order_id" => $order->order_id
@@ -1248,7 +1261,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-取消达达订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消达达订单返回失败",
+                        "des" => "[用户操作取消订单]取消达达订单返回失败",
                         "id" => $order->id,
                         "ps" => "达达",
                         "order_id" => $order->order_id
@@ -1307,7 +1320,7 @@ class OrderController extends Controller
                             }
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【UU跑腿】订单"
+                                "des" => "用户操作取消[UU跑腿]订单"
                             ]);
                         });
                     } catch (\Exception $e) {
@@ -1319,7 +1332,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:UU]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "UU",
                             "order_id" => $order->order_id
@@ -1329,7 +1342,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:UU]-取消UU订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消UU订单返回失败",
+                        "des" => "[用户操作取消订单]取消UU订单返回失败",
                         "id" => $order->id,
                         "ps" => "UU",
                         "order_id" => $order->order_id
@@ -1396,7 +1409,7 @@ class OrderController extends Controller
                             ]);
                             OrderLog::create([
                                 "order_id" => $order->id,
-                                "des" => "用户操作取消【顺丰跑腿】订单"
+                                "des" => "用户操作取消[顺丰跑腿]订单"
                             ]);
                             // 顺丰跑腿运力
                             $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
@@ -1436,7 +1449,7 @@ class OrderController extends Controller
                         ];
                         \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-将钱返回给用户失败", $message);
                         $logs = [
-                            "des" => "【用户操作取消订单】更改信息、将钱返回给用户失败",
+                            "des" => "[用户操作取消订单]更改信息、将钱返回给用户失败",
                             "id" => $order->id,
                             "ps" => "顺丰",
                             "order_id" => $order->order_id
@@ -1446,7 +1459,7 @@ class OrderController extends Controller
                 } else {
                     \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:顺丰]-取消顺丰订单返回失败", [$result]);
                     $logs = [
-                        "des" => "【用户操作取消订单】取消顺丰订单返回失败",
+                        "des" => "[用户操作取消订单]取消顺丰订单返回失败",
                         "id" => $order->id,
                         "ps" => "顺丰",
                         "order_id" => $order->order_id
@@ -1476,7 +1489,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【美团跑腿】订单"
+                        "des" => "用户操作取消[美团跑腿]订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美团成功");
                 }
@@ -1497,7 +1510,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【蜂鸟跑腿】订单"
+                        "des" => "用户操作取消[蜂鸟跑腿]订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，蜂鸟成功");
                 }
@@ -1517,7 +1530,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【闪送跑腿】订单"
+                        "des" => "用户操作取消[闪送跑腿]订单"
                     ]);
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 3, '中台操作');
@@ -1535,7 +1548,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【美全达跑腿】订单"
+                        "des" => "用户操作取消[美全达跑腿]订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，美全达成功");
                 }
@@ -1557,7 +1570,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【达达跑腿】订单"
+                        "des" => "用户操作取消[达达跑腿]订单"
                     ]);
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 5, '中台操作');
@@ -1575,7 +1588,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【UU跑腿】订单"
+                        "des" => "用户操作取消[UU跑腿]订单"
                     ]);
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 6, '中台操作');
@@ -1597,7 +1610,7 @@ class OrderController extends Controller
                     $order->save();
                     OrderLog::create([
                         "order_id" => $order->id,
-                        "des" => "用户操作取消【顺丰跑腿】订单"
+                        "des" => "用户操作取消[顺丰跑腿]订单"
                     ]);
                     \Log::info("[跑腿订单-后台取消订单]-[订单号: {$order->order_id}]-没有骑手接单，取消订单，顺丰成功");
                     // 跑腿运力取消
@@ -2028,7 +2041,7 @@ class OrderController extends Controller
                 $zhongbaoapp = app('meiquan');
             }
             $check_zb= $zhongbaoapp->zhongBaoShippingFee($order->order_id, $meituan_shop_id);
-            if (isset($check_zb['data']) && !empty($check_zb['data'])) {
+            if (isset($check_zb['data']) && !empty($check_zb['data']) && is_array($check_zb['data'])) {
                 $zb_money = sprintf("%.2f", $check_zb['data'][0]['shipping_fee']);
                 $deliveryFeeStr = $check_zb['data'][0]['deliveryFeeStr'] ?? '';
                 $distance = '';
@@ -2074,6 +2087,20 @@ class OrderController extends Controller
                 $result[$k]['checked'] = 1;
             }
         }
+        $result['zps'] = [
+            'platform' => 200,
+            'platform_name' => '自配送',
+            'price' => '',
+            'distance' => '',
+            'description' => '',
+            'error_status' => 0,
+            'error_msg' => '',
+            'status' => 1,
+            'checked' => 0,
+            'tag' => '',
+            'name' => $shop->contact_name,
+            'phone' => $shop->contact_phone,
+        ];
         if (!empty($wm_order->delivery_time)) {
             $order_title = '<text class="time-text" style="color: #5ac725">预约订单，' . date("m-d H:i", $order->order->delivery_time) . '</text>送达';
         } else {
@@ -2130,8 +2157,109 @@ class OrderController extends Controller
         if (!$shop = Shop::find($order->shop_id)) {
             return $this->error("门店不存在");
         }
+        // 自配送参数
+        $name = $request->get('name');
+        $phone = $request->get('phone');
         // 记录发单操作人
         Log::info("{配送发单:$order->order_id}|操作人：{$request->user()->id}|平台:{$platform}");
+        // 自配送发单
+        if ($platform === 200) {
+            if ($order->status == 20) {
+                return $this->error('订单已发单，不能自配送，请先取消');
+            } elseif ($order->status == 50) {
+                return $this->error('订单已接单，不能自配送');
+            } elseif ($order->status == 60) {
+                return $this->error('订单已接单，不能自配送');
+            } elseif ($order->status == 70) {
+                return $this->error('订单已完成，不能自配送');
+            } elseif ($order->status == 75) {
+                return $this->error('订单已完成，不能自配送');
+            } elseif ($order->status == 8) {
+                return $this->error('订单即将发单，不能自配送，请先取消');
+            }
+            $update_info = [
+                'money' => 0,
+                'pay_status' => 1,
+                'profit' => 0,
+                'status' => 60,
+                'ps' => 200,
+                'courier_lng' => $shop->shop_lng,
+                'courier_lat' => $shop->shop_lat,
+                'courier_name' => $name,
+                'courier_phone' => $phone,
+                'push_at' => date("Y-m-d H:i:s"),
+                'receive_at' => date("Y-m-d H:i:s"),
+                'take_at' => date("Y-m-d H:i:s"),
+                'pay_at' => date("Y-m-d H:i:s"),
+            ];
+            if (Order::where('id', $order->id)->whereNotIn('status', [8,20,50,60,70,75])->update($update_info)) {
+                DB::table('order_logs')->insert([
+                    'ps' => 200,
+                    'order_id' => $order->id,
+                    'des' => '「自配送」发单',
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'updated_at' => date("Y-m-d H:i:s"),
+                ]);
+                try {
+                    DB::transaction(function () use ($order, $name, $phone) {
+                        ShopRider::firstOrCreate(
+                            [
+                                'shop_id' => $order->shop_id,
+                                'name' => $name,
+                                'phone' => $phone,
+                            ], [
+                                'shop_id' => $order->shop_id,
+                                'name' => $name,
+                                'phone' => $phone,
+                            ]
+                        );
+                        $delivery_id = DB::table('order_deliveries')->insertGetId([
+                            'user_id' => $order->user_id,
+                            'shop_id' => $order->shop_id,
+                            'warehouse_id' => $order->warehouse_id,
+                            'order_id' => $order->id,
+                            'wm_id' => $order->wm_id,
+                            'order_no' => $order->order_id,
+                            'three_order_no' => '',
+                            'platform' => 200,
+                            'type' => 0,
+                            'day_seq' => $order->day_seq,
+                            'money' => 0,
+                            'status' => 60,
+                            'send_at' => date("Y-m-d H:i:s"),
+                            'created_at' => date("Y-m-d H:i:s"),
+                            'updated_at' => date("Y-m-d H:i:s"),
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'atshop_at' => date("Y-m-d H:i:s"),
+                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                        ]);
+                        DB::table('order_delivery_tracks')->insert([
+                            'order_id' => $order->id,
+                            'wm_id' => $order->wm_id,
+                            'delivery_id' => $delivery_id,
+                            'created_at' => date("Y-m-d H:i:s"),
+                            'updated_at' => date("Y-m-d H:i:s"),
+                            'status' => 60,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_DELIVERING,
+                        ]);
+                    });
+                } catch (\Exception $exception) {
+                    Log::info("自配送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                }
+            } else {
+                return $this->error('该订单状态不能发起自配送');
+            }
+            return $this->success();
+        }
         // 默认发单门店是订单所属门店
         $send_shop = $shop;
         // 默认设置
