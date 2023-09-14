@@ -56,6 +56,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::post("map_search", "OrderController@map_search");
             // 手动下单
             Route::post("create", "OrderController@store");
+            // 自配送订单完成
+            Route::post("finish", "OrderController@finish");
         });
         // 门店
         Route::prefix('shop')->group(function () {
