@@ -198,7 +198,7 @@ class OrderController extends Controller
                 // 状态描述
                 $order->status_title = '';
                 $order->status_description = '';
-                if (in_array($order->status, [20,50,60,70])) {
+                if (in_array($order->status, [20,50,60,70,99])) {
                     $order->status_title = OrderDelivery::$delivery_status_order_list_title_map[$order->status] ?? '其它';
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
@@ -464,7 +464,7 @@ class OrderController extends Controller
                 // 状态描述
                 $order->status_title = '';
                 $order->status_description = '';
-                if (in_array($order->status, [20,50,60,70])) {
+                if (in_array($order->status, [20,50,60,70,99])) {
                     $order->status_title = OrderDelivery::$delivery_status_order_list_title_map[$order->status] ?? '其它';
                     if ($order->status === 20) {
                         $order->status_description = '下单成功';
@@ -3042,5 +3042,35 @@ class OrderController extends Controller
         }
 
         return $this->success($result);
+    }
+
+    /**
+     * 自配送订单完成
+     * @data 2023/9/14 2:41 下午
+     */
+    public function finish(Request $request)
+    {
+        $order_id = (int) $request->get("order_id", 0);
+        if (!$order = Order::select('id', 'shop_id','receiver_lng','receiver_lat','over_at','status')->find($order_id)) {
+            return $this->error("订单不存在");
+        }
+        // 判断权限
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if (!in_array($order->shop_id, $request->user()->shops()->pluck('id')->toArray())) {
+                return $this->error('订单不存在!');
+            }
+        }
+        if ($order->status == 70 || $order->status == 75) {
+            return $this->success();
+        }
+        if ($order->status != 60) {
+            return $this->error('该订单不能完成');
+        }
+        $order->status = 70;
+        $order->over_at = date("Y-m-d H:i:s");
+        $order->courier_lng = $order->receiver_lng;
+        $order->courier_lat = $order->receiver_lat;
+        $order->save();
+        return $this->success();
     }
 }
