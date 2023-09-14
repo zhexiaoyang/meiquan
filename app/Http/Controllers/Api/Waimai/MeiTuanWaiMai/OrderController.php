@@ -920,7 +920,7 @@ class OrderController
                     $pt_order->status = 60;
                     $pt_order->save();
                     // 写入接单足迹
-                    if ($delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 210)->where('status', '<=', 70)->orderByDesc('id')->first()) {
+                    if ($delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 220)->where('status', '<=', 70)->orderByDesc('id')->first()) {
                         try {
                             $delivery->update([
                                 'delivery_name' => '',
