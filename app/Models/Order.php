@@ -317,7 +317,7 @@ class Order extends Model
                     $title = '<text class="time-text" style="color: #5ac725">预约订单，' . tranTime2($delivery_time) . '<text/>送达' . tranTime3($delivery_time);
                 } else{
                     if ($estimate_arrival_time) {
-                        $title = '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($delivery_time);
+                        $title = '<text class="time-text" style="color: #5ac725">' . tranTime2($delivery_time) . '</text>前送达' . tranTime3($estimate_arrival_time);
                     } else {
                         $title = '<text class="time-text" style="color: #5ac725">立即送达，' . tranTime(strtotime($order->created_at)) . '</text>下单';
                     }
