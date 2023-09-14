@@ -51,6 +51,7 @@ class OrderDelivery extends Model
         6 =>  'UU',
         7 =>  '顺丰',
         8 =>  '美团众包',
+        200 =>  '自配送',
     ];
 
     // 足迹记录
