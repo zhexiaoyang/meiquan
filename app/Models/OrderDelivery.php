@@ -104,7 +104,7 @@ class OrderDelivery extends Model
             try {
                 $delivery->update([
                     'status' => 70,
-                    'cancel_at' => date("Y-m-d H:i:s"),
+                    'finished_at' => date("Y-m-d H:i:s"),
                     'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
                 ]);
                 OrderDeliveryTrack::firstOrCreate(
