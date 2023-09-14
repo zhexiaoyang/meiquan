@@ -94,4 +94,37 @@ class OrderDelivery extends Model
             // $this->ding_error("未找到配送记录-众包取消顺丰|{$order->order_id}|" . date("Y-m-d H:i:s"));
         }
     }
+
+    public static function finish_log ($order_id, $platform, $action) {
+        Log::info($action . "finish_log完成{$platform}跑腿-开始|order_id:{$order_id}");
+        // 跑腿运力
+        $delivery = OrderDelivery::where('order_id', $order_id)->where('platform', $platform)->where('status', '<=', 70)->orderByDesc('id')->first();
+        // 写入完成足迹
+        if ($delivery) {
+            try {
+                $delivery->update([
+                    'status' => 70,
+                    'cancel_at' => date("Y-m-d H:i:s"),
+                    'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                ]);
+                OrderDeliveryTrack::firstOrCreate(
+                    [
+                        'delivery_id' => $delivery->id,
+                        'status' => 70,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                    ], [
+                        'order_id' => $delivery->order_id,
+                        'wm_id' => $delivery->wm_id,
+                        'delivery_id' => $delivery->id,
+                        'status' => 70,
+                        'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                    ]
+                );
+            } catch (\Exception $exception) {
+                Log::info($action . "finish_log完成{$platform}跑腿-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+            }
+        } else {
+            Log::info($action . "finish_log完成{$platform}跑腿-写入新数据出错-未找到配送记录|order_id:{$order_id}");
+        }
+    }
 }

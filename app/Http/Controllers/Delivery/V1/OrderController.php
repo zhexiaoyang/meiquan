@@ -819,7 +819,7 @@ class OrderController extends Controller
                 "des" => "用户操作取消[自配送]订单"
             ]);
             // 跑腿运力取消
-            OrderDelivery::cancel_log($order->id, 200, '中台操作');
+            OrderDelivery::cancel_log($order->id, 200, 'APP操作');
             return $this->success();
         } elseif (in_array($order->status, [40, 50, 60])) {
             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-已有平台接单，订单状态：{$order->status}");
@@ -3071,6 +3071,8 @@ class OrderController extends Controller
         $order->courier_lng = $order->receiver_lng;
         $order->courier_lat = $order->receiver_lat;
         $order->save();
+        // 跑腿运力完成
+        OrderDelivery::finish_log($order->id, 200, 'APP操作');
         return $this->success();
     }
 }
