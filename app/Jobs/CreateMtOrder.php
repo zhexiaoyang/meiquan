@@ -1215,7 +1215,7 @@ class CreateMtOrder implements ShouldQueue
             $this->log("「达达」更新创建订单状态成功");
             return true;
         } else {
-            $fail_dd = $result_dd['message'] ?? "达达创建订单失败";
+            $fail_dd = $result_dd['msg'] ?? "达达创建订单失败";
             DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $fail_dd, 'dd_status' => 3]);
             $this->log("「达达」发送订单失败：{$fail_dd}");
             OrderLog::create([
