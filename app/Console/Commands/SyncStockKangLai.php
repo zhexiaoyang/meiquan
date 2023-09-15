@@ -72,7 +72,7 @@ class SyncStockKangLai extends Command
             'PassWord' => '12345678',
             // 'KeyWord' => '123',
             'timestamp' => time() * 1000,
-            'perPageCount' => 500,
+            'perPageCount' => 5000,
             'currentPage' => 1
         ];
         $params['sign'] = md5($params['WESN'] . $params['UserName'] . $params['PassWord'] . $params['timestamp']);
