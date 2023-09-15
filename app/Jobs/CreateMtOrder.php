@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
+use App\Models\OrderLog;
 use App\Models\OrderSetting;
 use App\Models\Shop;
 use App\Models\User;
@@ -489,6 +490,11 @@ class CreateMtOrder implements ShouldQueue
                     $dd_error_msg = $check_dd['msg'] ?? "达达校验订单请求失败";
                     $order->fail_dd = $dd_error_msg;
                     $this->log("「达达」校验订单失败:{$dd_error_msg}，停止「达达」派单");
+                    OrderLog::create([
+                        "order_id" => $this->order->id,
+                        "user_id" => $this->order->user_id,
+                        "des" => "「达达」校验发单失败：{$dd_error_msg}"
+                    ]);
                 }
             }
         }
@@ -705,6 +711,11 @@ class CreateMtOrder implements ShouldQueue
                     $ss_error_msg = $check_ss['msg'] ?? "闪送校验请求失败";
                     $order->fail_ss = $ss_error_msg;
                     $this->log("「闪送」校验请求失败:{$ss_error_msg}，停止「闪送」派单");
+                    OrderLog::create([
+                        "order_id" => $this->order->id,
+                        "user_id" => $this->order->user_id,
+                        "des" => "「闪送」校验发单失败：{$ss_error_msg}"
+                    ]);
                 }
             }
         }
@@ -1103,6 +1114,11 @@ class CreateMtOrder implements ShouldQueue
             $fail_sf = $result_sf['error_msg'] ?? "顺丰创建订单失败";
             DB::table('orders')->where('id', $this->order->id)->update(['fail_sf' => $fail_sf, 'sf_status' => 3]);
             $this->log("「顺丰」发送订单失败：{$fail_sf}");
+            OrderLog::create([
+                "order_id" => $this->order->id,
+                "user_id" => $this->order->user_id,
+                "des" => "「顺丰」发送订单失败：{$fail_sf}"
+            ]);
             if (count($this->services) > 1) {
                 dispatch(new CreateMtOrder($this->order, 30));
             } else {
@@ -1202,6 +1218,11 @@ class CreateMtOrder implements ShouldQueue
             $fail_dd = $result_dd['message'] ?? "达达创建订单失败";
             DB::table('orders')->where('id', $this->order->id)->update(['fail_dd' => $fail_dd, 'dd_status' => 3]);
             $this->log("「达达」发送订单失败：{$fail_dd}");
+            OrderLog::create([
+                "order_id" => $this->order->id,
+                "user_id" => $this->order->user_id,
+                "des" => "「达达」发送订单失败：{$fail_dd}"
+            ]);
             if (count($this->services) > 1) {
                 dispatch(new CreateMtOrder($this->order, 30));
             } else {
