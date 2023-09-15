@@ -102,7 +102,7 @@ class OrderController extends Controller
             $query->select('id', 'shop_lng','shop_lat','shop_name');
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
-            'courier_name', 'courier_phone','courier_lng','courier_lat','poi_receive','send_at','ps_type')
+            'courier_name', 'courier_phone','courier_lng','courier_lat','poi_receive','send_at','ps_type','cancel_at')
             ->where('ignore', 0)
             ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
         // 判断权限
@@ -123,7 +123,7 @@ class OrderController extends Controller
             $query->where('status', 60);
         } elseif ($status === 50) {
             // 5 余额不足，10 暂无运力
-            $query->whereIn('status', [10, 5]);
+            $query->whereIn('status', [10, 5, 99]);
         } elseif ($status === 60) {
             // $query->where('status', 20);
             $query->whereHas('order', function ($query) {
@@ -154,6 +154,9 @@ class OrderController extends Controller
         } elseif ($order_by === 'create_asc') {
             $query->orderBy('id');
         } else {
+            if ($status === 50) {
+                $query->orderByDesc('cancel_at');
+            }
             $query->orderByDesc('id');
         }
         // 排序-结束

@@ -279,7 +279,7 @@ class CreateMtOrder implements ShouldQueue
                     // 判断用户金额是否满足美团众包订单
                     if ($user->money < 0.1) {
                         if ($order->status < 20) {
-                            DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                            DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                         }
                         dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
                         $this->log("用户金额不足发0.1元，停止不能发自主运力派单");
@@ -332,7 +332,7 @@ class CreateMtOrder implements ShouldQueue
                     if ($zz_sf) {
                         if ($user->money < 0.1) {
                             if ($order->status < 20) {
-                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
                             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -345,7 +345,7 @@ class CreateMtOrder implements ShouldQueue
                     } else {
                         if ($user->money < ($money_sf + $use_money)) {
                             if ($order->status < 20) {
-                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
                             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -399,7 +399,7 @@ class CreateMtOrder implements ShouldQueue
                 // 判断用户金额是否满足UU订单
                 if ($user->money < ($money_uu + $use_money)) {
                     if ($order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                     }
                     // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_uu + $use_money]));
                     dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -457,7 +457,7 @@ class CreateMtOrder implements ShouldQueue
                     if ($zz_dd) {
                         if ($user->money < 0.1) {
                             if ($order->status < 20) {
-                                DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                                DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
                             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -471,7 +471,7 @@ class CreateMtOrder implements ShouldQueue
                     } else {
                         if ($user->money < ($money_dd + $use_money)) {
                             if ($order->status < 20) {
-                                DB::table('orders')->where('id', $this->order->id)->update(['status' => 5]);
+                                DB::table('orders')->where('id', $this->order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
                             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -531,7 +531,7 @@ class CreateMtOrder implements ShouldQueue
         //         // 判断用户金额是否满足美全达订单
         //         if ($user->money < ($money_mqd + $use_money)) {
         //             if ($order->status < 20) {
-        //                 DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+        //                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
         //             }
         //             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mqd + $use_money]));
         //             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -575,7 +575,7 @@ class CreateMtOrder implements ShouldQueue
                 // 判断用户金额是否满足美团订单
                 if ($user->money < ($money_mt + $use_money)) {
                     if ($order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                     }
                     // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
                     dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -624,7 +624,7 @@ class CreateMtOrder implements ShouldQueue
                 // 判断用户金额是否满足蜂鸟订单
                 if ($user->money < ($money_fn + $use_money)) {
                     if ($this->order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                     }
                     // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
                     dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -677,7 +677,7 @@ class CreateMtOrder implements ShouldQueue
                         if ($zz_ss) {
                             if ($user->money < 0.1) {
                                 if ($order->status < 20) {
-                                    DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                                    DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                                 }
                                 // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
                                 dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -691,7 +691,7 @@ class CreateMtOrder implements ShouldQueue
                         } else {
                             if ($user->money < ($money_ss + $use_money)) {
                                 if ($order->status < 20) {
-                                    DB::table('orders')->where('id', $order->id)->update(['status' => 5]);
+                                    DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                                 }
                                 // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
                                 dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
@@ -739,7 +739,7 @@ class CreateMtOrder implements ShouldQueue
                 && !$order->uu_status
                 && !$order->sf_status
             ) {
-                DB::table('orders')->where('id', $order->id)->update(['status' => 10]);
+                DB::table('orders')->where('id', $order->id)->update(['status' => 10, 'cancel_at' => date("Y-m-d H:i:s")]);
             }
             $this->log("暂无运力，停止派单");
             return;
