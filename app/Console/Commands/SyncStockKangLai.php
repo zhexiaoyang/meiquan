@@ -72,7 +72,7 @@ class SyncStockKangLai extends Command
             'PassWord' => '12345678',
             // 'KeyWord' => '123',
             'timestamp' => time() * 1000,
-            'perPageCount' => 500,
+            'perPageCount' => 5000,
             'currentPage' => 1
         ];
         $params['sign'] = md5($params['WESN'] . $params['UserName'] . $params['PassWord'] . $params['timestamp']);
@@ -103,7 +103,7 @@ class SyncStockKangLai extends Command
                         $price = $item['Price'];
                         $store_id = $item['PID'];
                         if (in_array($upc, $upc_data)) {
-                            Log::info('重复：' . $upc);
+                            // Log::info('重复：' . $upc);
                             continue;
                         }
                         $code_data[] = [
@@ -134,7 +134,7 @@ class SyncStockKangLai extends Command
                     Log::info("康莱大药房美团:{$mt_id}」code-结果", [$coderes]);
                     Log::info("康莱大药房美团:{$mt_id}」同步库存-请求参数", $stock_data);
                     Log::info("康莱大药房美团:{$mt_id}」同步库存-结果", [$mtres]);
-                    Log::info("康莱大药房美团:{$mt_id}」同步库存-i:{$i}-key:{$key}-" . count($stock_data));
+                    // Log::info("康莱大药房美团:{$mt_id}」同步库存-i:{$i}-key:{$key}-" . count($stock_data));
                     if (!empty($stock_data_ele)) {
                         $ele_params['shop_id'] = $ele_id;
                         $ele_params['upc_stocks'] = implode(';', $stock_data_ele);
