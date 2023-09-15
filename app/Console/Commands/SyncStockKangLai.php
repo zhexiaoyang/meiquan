@@ -72,7 +72,7 @@ class SyncStockKangLai extends Command
             'PassWord' => '12345678',
             // 'KeyWord' => '123',
             'timestamp' => time() * 1000,
-            'perPageCount' => 5000,
+            'perPageCount' => 500,
             'currentPage' => 1
         ];
         $params['sign'] = md5($params['WESN'] . $params['UserName'] . $params['PassWord'] . $params['timestamp']);
@@ -149,6 +149,7 @@ class SyncStockKangLai extends Command
                 }
                 Log::info("康莱批次------------------$i------------------");
             } else {
+                Log::info("康莱批次------------------$i------------------跳出");
                 break;
             }
         }

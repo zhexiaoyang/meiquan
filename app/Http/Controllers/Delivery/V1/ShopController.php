@@ -422,9 +422,7 @@ class ShopController extends Controller
      */
     public function rider(Request $request)
     {
-        if (!$name = $request->get('name')) {
-            return $this->success([]);
-        }
+        $name = $request->get('name');
         if (!$shop_id = (int) $request->get('shop_id')) {
             return $this->error('门店ID错误');
         }
@@ -433,8 +431,14 @@ class ShopController extends Controller
         }
 
         // $data = ShopRider::where('shop_id', $shop_id)->where("name", 'like', "%{$key}%")->orderByDesc('id')->limit(10)->get();
-        $data = ShopRider::select('id', 'name', 'phone')->where('shop_id', $shop_id)
-            ->where("name", 'like', "%{$name}%")->orderByDesc('id')->get();
+        $query = ShopRider::select('id', 'name', 'phone')->where('shop_id', $shop_id);
+
+
+        if (!empty($name)) {
+            $query->where("name", 'like', "%{$name}%");
+        }
+
+        $data = $query->orderByDesc('id')->get();
 
         return $this->success($data);
     }
