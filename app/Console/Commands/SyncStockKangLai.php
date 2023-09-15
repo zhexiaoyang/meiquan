@@ -101,7 +101,8 @@ class SyncStockKangLai extends Command
                         $upc = $item['ICCode'];
                         $cost = $item['Costing'];
                         $price = $item['Price'];
-                        $store_id = $item['PID'];
+                        // $store_id = $item['PID'];
+                        $store_id = $upc;
                         if (in_array($upc, $upc_data)) {
                             // Log::info('重复：' . $upc);
                             continue;
@@ -119,7 +120,7 @@ class SyncStockKangLai extends Command
                         }
                         $upc_data[] = $upc;
                         // 更新中台
-                        Medicine::where('shop_id', $mid)->where('upc', $upc)->update(['store_id' => $store_id, 'price' => $price, 'guidance_price' => $cost, 'stock' => $stock]);
+                        Medicine::where('shop_id', $mid)->where('upc', $upc)->update(['price' => $price, 'guidance_price' => $cost, 'stock' => $stock]);
                     }
 
                     $params_code['app_poi_code'] = $mt_id;
