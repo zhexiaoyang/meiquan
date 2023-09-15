@@ -147,7 +147,7 @@ class SyncStockKangLai extends Command
                         // Log::info("康莱大药房饿了么:{$mt_id}」同步库存-i:{$i}-key:{$key}-未同步");
                     }
                 }
-                Log::info("----------------------------$i----------------------------");
+                Log::info("康莱批次------------------$i------------------");
             } else {
                 break;
             }
