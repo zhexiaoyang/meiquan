@@ -219,6 +219,7 @@ class OrderController extends Controller
             }
             $ele = app('ele');
             $order_request = $ele->orderInfo($order_id);
+            \Log::info('aa', $order_request);
             if (!empty($order_request) && isset($order_request['body']['data']) && !empty($order_request['body']['data'])) {
                 // 订单数组
                 $ele_data = $order_request['body']['data'];
@@ -274,9 +275,23 @@ class OrderController extends Controller
                 // 佣金
                 $commission = $ele_data['order']['commission'] / 100;
                 // 商家活动承担
-                $shop_rate = $ele_data['discount']['shop_rate'] / 100;
+                $shop_rate = 0;
                 // 平台活动承担
-                $baidu_rate = $ele_data['discount']['baidu_rate'] / 100;
+                $baidu_rate = 0;
+                // 活动
+                $discounts = $ele_data['discount'];
+                if (!empty($discounts)) {
+                    foreach ($discounts as $discount) {
+                        if ($discount['shop_rate']) {
+                            $shop_rate += $discount['shop_rate'];
+                        }
+                        if ($discount['baidu_rate']) {
+                            $baidu_rate += $discount['baidu_rate'];
+                        }
+                    }
+                }
+                $shop_rate /= 100;
+                $baidu_rate /= 100;
                 // 配送费
                 $send_fee = $ele_data['order']['send_fee'] / 100;
                 // 订单下帐金额 = 所有商品原价总金额 - 佣金 - 代运营费 -处方费 - 商家活动承担 + 平台活动承担 + 平台返配送费
