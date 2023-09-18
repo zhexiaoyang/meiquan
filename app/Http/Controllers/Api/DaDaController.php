@@ -50,6 +50,7 @@ class DaDaController extends Controller
         $name = $data['dm_name'] ?? '';
         // 配送员手机号
         $phone = $data['dm_mobile'] ?? '';
+        $phone = str_replace('-', '-', $phone);
         $longitude = '';
         $latitude = '';
         $locations = ['lng' => '', 'lat' => ''];
