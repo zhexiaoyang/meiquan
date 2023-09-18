@@ -1892,7 +1892,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消【闪送跑腿】订单"
                             ]);
-                            event(new OrderCancel($order->id));
+                            event(new OrderCancel($order->id, 3));
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -2034,7 +2034,7 @@ class OrderController extends Controller
                                     ];
                                     OrderDeduction::create($jian_data);
                                 }
-                                event(new OrderCancel($order->id));
+                                event(new OrderCancel($order->id, 5));
                             } else {
                                 \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-[ps:达达]-自主注册，不扣款");
                             }
@@ -2129,7 +2129,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消【UU跑腿】订单"
                             ]);
-                            event(new OrderCancel($order->id));
+                            event(new OrderCancel($order->id, 6));
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -2219,7 +2219,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消【顺丰跑腿】订单"
                             ]);
-                            event(new OrderCancel($order->id));
+                            event(new OrderCancel($order->id, 7));
                             // 顺丰跑腿运力
                             $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
                             // 写入顺丰取消足迹

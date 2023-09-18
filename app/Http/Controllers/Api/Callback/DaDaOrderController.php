@@ -725,7 +725,7 @@ class DaDaOrderController
                                     'status' => 99,
                                     'dd_status' => 99
                                 ];
-                                event(new OrderCancel($order->id));
+                                event(new OrderCancel($order->id, 5));
                             }
                             Order::where("id", $order->id)->update($update_data);
                             OrderLog::create([
