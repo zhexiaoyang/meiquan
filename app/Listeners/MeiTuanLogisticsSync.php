@@ -31,6 +31,7 @@ class MeiTuanLogisticsSync implements ShouldQueue
     {
         $order_id = $event->order_id;
         $status = $event->status;
+        $ps = $event->ps;
         if (!$order = Order::select('id','status','type','order_id','peisong_id','ps','platform')->find($order_id)) {
             return;
         }
@@ -57,7 +58,7 @@ class MeiTuanLogisticsSync implements ShouldQueue
                 $params = [
                     'order_id' => $order->order_id,
                     'third_carrier_order_id' => $order->peisong_id,
-                    'logistics_provider_code' => $codes[$order->ps ?: 4],
+                    'logistics_provider_code' => $codes[$ps ?: 4],
                     'logistics_status' => 100
                 ];
                 $this->check_data($meituan->logisticsSync($params), $order);

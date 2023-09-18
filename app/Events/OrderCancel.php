@@ -16,6 +16,7 @@ class OrderCancel
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $order_id;
+    public $ps;
     public $status = 99;
 
     /**
@@ -23,9 +24,10 @@ class OrderCancel
      *
      * @return void
      */
-    public function __construct(int $order_id)
+    public function __construct(int $order_id, int $ps = 0)
     {
         $this->order_id = $order_id;
+        $this->ps = $ps;
     }
 
     /**
