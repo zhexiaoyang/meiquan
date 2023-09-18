@@ -671,11 +671,8 @@ class MedicineController extends Controller
             //     $res = $meituan->medicineUpdate($params);
             // }
         // }
-        \Log::info('$sync_type === ' . $sync_type);
         if ($sync_type === 1) {
-            \Log::info('$sync_type === 1');
             $shop_ids = Shop::select('id')->where('user_id', $request->user()->id)->where('id', '<>', $medicine->shop_id)->pluck('id')->toArray();
-            \Log::info('$shop_ids', $shop_ids);
             $medicines = Medicine::where('upc', $medicine->upc)->whereIn('shop_id', $shop_ids)->get();
             if ($medicines->isNotEmpty()) {
                 \Log::info('$medicines->isNotEmpty');
