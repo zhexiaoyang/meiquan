@@ -129,12 +129,12 @@ class SyncStockKangLai extends Command
                     $params_stock['medicine_data'] = json_encode($stock_data);
                     $params_code['access_token'] = $meituan->getShopToken($mt_id);
                     $params_stock['access_token'] = $meituan->getShopToken($mt_id);
-                    $coderes = $meituan->medicineCodeUpdate($params_code);
-                    $mtres = $meituan->medicineStock($params_stock);
+                    $code_res = $meituan->medicineCodeUpdate($params_code);
+                    $stock_res = $meituan->medicineStock($params_stock);
                     Log::info("康莱大药房美团:{$mt_id}」code-请求参数", $params_code);
-                    Log::info("康莱大药房美团:{$mt_id}」code-结果", [$coderes]);
+                    Log::info("康莱大药房美团:{$mt_id}」code-结果", [$code_res]);
                     Log::info("康莱大药房美团:{$mt_id}」同步库存-请求参数", $stock_data);
-                    Log::info("康莱大药房美团:{$mt_id}」同步库存-结果", [$mtres]);
+                    Log::info("康莱大药房美团:{$mt_id}」同步库存-结果", [$stock_res]);
                     // Log::info("康莱大药房美团:{$mt_id}」同步库存-i:{$i}-key:{$key}-" . count($stock_data));
                     if (!empty($stock_data_ele)) {
                         $ele_params['shop_id'] = $ele_id;
