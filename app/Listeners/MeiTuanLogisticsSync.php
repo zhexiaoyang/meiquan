@@ -47,6 +47,8 @@ class MeiTuanLogisticsSync implements ShouldQueue
             $meituan = app("minkang");
         } elseif ($type === 5) {
             $meituan = app("qinqu");
+        } elseif ($type === 31) {
+            $meituan = app("meiquan");
         }
         if (!$meituan) {
             \Log::info('自配送回传错误', [$order]);

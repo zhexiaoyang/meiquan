@@ -574,6 +574,12 @@ class Api extends Request
      */
     public function logisticsSync(array $params)
     {
+        if ($this->appKey == 6167) {
+            $wm_order = WmOrder::select('order_id', 'app_poi_code')->where('order_id', $params['order_id'])->first();
+            if ($wm_order) {
+                $params['access_token'] = $this->getShopToken($wm_order->app_poi_code);
+            }
+        }
         return $this->request_post('v1/ecommerce/order/logistics/sync', $params);
     }
 
