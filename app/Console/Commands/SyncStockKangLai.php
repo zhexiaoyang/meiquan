@@ -133,7 +133,7 @@ class SyncStockKangLai extends Command
                     $stock_res = $meituan->medicineStock($params_stock);
                     Log::info("康莱大药房美团:{$mt_id}」code-请求参数", $params_code);
                     Log::info("康莱大药房美团:{$mt_id}」code-结果", [$code_res]);
-                    Log::info("康莱大药房美团:{$mt_id}」同步库存-请求参数", $stock_data);
+                    Log::info("康莱大药房美团:{$mt_id}」同步库存-请求参数", $params_stock);
                     Log::info("康莱大药房美团:{$mt_id}」同步库存-结果", [$stock_res]);
                     // Log::info("康莱大药房美团:{$mt_id}」同步库存-i:{$i}-key:{$key}-" . count($stock_data));
                     if (!empty($stock_data_ele)) {
