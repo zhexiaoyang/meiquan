@@ -102,7 +102,10 @@ class SyncStockKangLai extends Command
                         $cost = $item['Costing'];
                         $price = $item['Price'];
                         // $store_id = $item['PID'];
-                        $store_id = $upc;
+                        $store_id = (string) $upc;
+                        if (!$store_id) {
+                            continue;
+                        }
                         if (in_array($upc, $upc_data)) {
                             // Log::info('重复：' . $upc);
                             continue;
@@ -112,6 +115,7 @@ class SyncStockKangLai extends Command
                             'app_medicine_code_new' => $store_id,
                         ];
                         $stock_data[] = [
+                            'app_poi_code' => $mt_id,
                             'app_medicine_code' => $store_id,
                             'stock' => $stock,
                         ];
