@@ -3045,13 +3045,15 @@ class OrderController extends Controller
             foreach ($data as $v) {
                 if (!empty($v['location'])) {
                     $location = explode(',', $v['location']);
-                    $result[] = [
-                        'address' => $v['district'] . ',' .$v['address'],
-                        // 'address' => $v['address'],
-                        'lng' => $location[0],
-                        'lat' => $location[1],
-                        'name' => $v['name'],
-                    ];
+                    if (isset($v['district']) && isset($v['address'])) {
+                        $result[] = [
+                            'address' => $v['district'] . ',' .$v['address'],
+                            // 'address' => $v['address'],
+                            'lng' => $location[0],
+                            'lat' => $location[1],
+                            'name' => $v['name'],
+                        ];
+                    }
                 }
             }
         }
