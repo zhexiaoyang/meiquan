@@ -601,6 +601,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop/commission/set", "ShopController@commissionSet")->name("admin.shop.commission.set");
             // **门店管理-门店列表
             Route::resource("shop", "ShopController", ["only" => ["index"]]);
+            // **门店管理-VIP状态切换
+            Route::post("shop/takeout/unbound", "ShopController@takeout_unbound");
             /**
              * 城市经理
              */

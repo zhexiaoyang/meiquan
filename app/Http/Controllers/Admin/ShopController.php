@@ -647,4 +647,33 @@ class ShopController extends Controller
 
         return $this->success();
     }
+
+    /**
+     * 美团外卖、饿了么解绑
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/9/18 11:53 上午
+     */
+    public function takeout_unbound(Request $request)
+    {
+        if (!$shop = Shop::select('id', 'waimai_mt', 'waimai_ele', 'mtwm', 'ele')->find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        $platform = (int) $request->get('platform');
+
+        if (!in_array($platform, [1, 2])) {
+            return $this->success();
+        }
+
+        if ($platform === 1) {
+            $shop->waimai_mt = '';
+            $shop->mtwm = '';
+        } elseif ($platform === 2) {
+            $shop->waimai_ele = '';
+            $shop->ele = '';
+        }
+        $shop->save();
+        return $this->success();
+    }
 }
