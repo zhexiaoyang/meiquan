@@ -35,12 +35,14 @@ class EventServiceProvider extends ServiceProvider
             // 获取商品图片
             GetTakeoutProductImage::class,
         ],
+        // 跑腿订单取消
         OrderCancel::class => [
-            // 跑腿订单取消
+            // 同步取消信息到美团
             MeiTuanLogisticsSync::class,
         ],
+        // 跑腿订单配送完成
         OrderComplete::class => [
-            // 跑腿订单配送完成
+            // 自配回传更新
             MeituanPostbackUpdate::class,
         ],
     ];

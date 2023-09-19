@@ -578,7 +578,7 @@ class ShanSongOrderController
                     "tid" => $order->id
                 ]);
                 $this->log_info('配送完成，扣款成功');
-                event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at))));
+                event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at)), 70));
                 return json_encode($res);
             } elseif ($status == 60) {
                 // 写入足迹

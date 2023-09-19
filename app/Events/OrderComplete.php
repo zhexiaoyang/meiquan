@@ -15,6 +15,7 @@ class OrderComplete
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $shop_id;
+    public $status;
     public $date;
 
     /**
@@ -22,10 +23,11 @@ class OrderComplete
      *
      * @return void
      */
-    public function __construct(int $shop_id, string $date)
+    public function __construct(int $shop_id, string $date, int $status)
     {
-        $this->date = $date;
         $this->shop_id = $shop_id;
+        $this->status = 70;
+        $this->date = $date;
     }
 
     /**
