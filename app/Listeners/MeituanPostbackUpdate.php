@@ -11,6 +11,7 @@ use Illuminate\Queue\InteractsWithQueue;
 
 class MeituanPostbackUpdate implements ShouldQueue
 {
+    // 自配送回传数据统计
     /**
      * Create the event listener.
      *
