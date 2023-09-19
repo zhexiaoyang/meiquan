@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Delivery\V1;
 
+use App\Events\OrderCancel;
 use App\Handlers\AddressRecognitionHandler;
 use App\Http\Controllers\Controller;
+use App\Jobs\MtLogisticsSync;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
@@ -829,6 +831,7 @@ class OrderController extends Controller
             ]);
             // 跑腿运力取消
             OrderDelivery::cancel_log($order->id, 200, 'APP操作');
+            event(new OrderCancel($order->id, 4));
             return $this->success();
         } elseif (in_array($order->status, [40, 50, 60])) {
             \Log::info("[跑腿订单-用户操作取消订单]-[订单号: {$order->order_id}]-已有平台接单，订单状态：{$order->status}");
@@ -1096,6 +1099,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消[闪送跑腿]订单"
                             ]);
+                            event(new OrderCancel($order->id, 3));
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -1331,6 +1335,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消[UU跑腿]订单"
                             ]);
+                            event(new OrderCancel($order->id, 6));
                         });
                     } catch (\Exception $e) {
                         $message = [
@@ -1420,6 +1425,7 @@ class OrderController extends Controller
                                 "order_id" => $order->id,
                                 "des" => "用户操作取消[顺丰跑腿]订单"
                             ]);
+                            event(new OrderCancel($order->id, 7));
                             // 顺丰跑腿运力
                             $sf_delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
                             // 写入顺丰取消足迹
@@ -2267,6 +2273,7 @@ class OrderController extends Controller
                 } catch (\Exception $exception) {
                     Log::info("自配送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
                 }
+                dispatch(new MtLogisticsSync($order));
             } else {
                 return $this->error('该订单状态不能发起自配送');
             }
@@ -3091,6 +3098,7 @@ class OrderController extends Controller
         $order->save();
         // 跑腿运力完成
         OrderDelivery::finish_log($order->id, 200, 'APP操作');
+        dispatch(new MtLogisticsSync($order));
         return $this->success();
     }
 }
