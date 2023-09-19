@@ -11,6 +11,7 @@ use App\Models\MedicineDepot;
 use App\Models\MedicineDepotCategory;
 use App\Models\Shop;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class ProductController extends Controller
 {
@@ -75,31 +76,49 @@ class ProductController extends Controller
 
         $ele = app('ele');
         // 饿了么所有商品
-        $upcs = [];
+        // $upcs = [];
+        $redis_key = null;
         if ($shop_id_ele) {
-            if (count($data) > 20) {
-                foreach ($data as $v) {
-                    if (isset($v['upc'])) {
-                        $res = $ele->getSkuList($shop_id_ele, 1, 1, $v['upc']);
-                        if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
-                            foreach ($res['body']['data']['list'] as $_v) {
-                                $upcs[] = $_v['upc'];
-                            }
-                        }
-                    }
-                }
-            } else {
+            // 获取饿了么信息，放入Redis中
+            $redis_key = "ele_upcs:{$shop_id_ele}";
+            if (!Redis::exists($redis_key)) {
                 for ($i = 1; $i <= 100; $i++) {
                     $res = $ele->getSkuList($shop_id_ele, $i, 100);
                     if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
                         foreach ($res['body']['data']['list'] as $v) {
-                            $upcs[] = $v['upc'];
+                            if (!empty($v['upc'])) {
+                                Redis::sadd($redis_key, $v['upc']);
+                            }
                         }
                     } else {
                         break;
                     }
                 }
+                Redis::expire($redis_key, 3600);
             }
+            // if (count($data) > 20) {
+            //     foreach ($data as $v) {
+            //         if (isset($v['upc'])) {
+            //             $res = $ele->getSkuList($shop_id_ele, 1, 1, $v['upc']);
+            //             if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+            //                 foreach ($res['body']['data']['list'] as $_v) {
+            //                     $upcs[] = $_v['upc'];
+            //                 }
+            //             }
+            //         }
+            //     }
+            // } else {
+            //     for ($i = 1; $i <= 100; $i++) {
+            //         $res = $ele->getSkuList($shop_id_ele, $i, 100);
+            //         if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+            //             foreach ($res['body']['data']['list'] as $v) {
+            //                 $upcs[] = $v['upc'];
+            //             }
+            //         } else {
+            //             break;
+            //         }
+            //     }
+            // }
         }
         // 组合参数
         $mt_binds = [
@@ -127,7 +146,8 @@ class ProductController extends Controller
                     'stock' => (int) $stock,
                 ];
 
-                if (in_array($v['upc'], $upcs)) {
+                // if (in_array($v['upc'], $upcs)) {
+                if ($redis_key && Redis::sismember($redis_key, $v['upc'])) {
                     $stock_data_ele[] =  $v['upc'] . ':' . (int) $stock;
                 }
             }
@@ -147,7 +167,7 @@ class ProductController extends Controller
         // \Log::info("V2ERP全部参数", $request->all());
 
         // 开始同步
-        unset($upcs);
+        // unset($upcs);
         if ($shop_id_mt) {
             // \Log::info("V2ERP美团库存参数", [$mt_stocks]);
             $mt_binds['medicine_data'] = json_encode($mt_binds['medicine_data']);
