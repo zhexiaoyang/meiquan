@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\OrderDelivery;
+use App\Task\TakeoutOrderVoiceNoticeTask;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -55,5 +57,6 @@ class SetSelfDeliveryFinishJob implements ShouldQueue
         // 跑腿运力完成
         OrderDelivery::finish_log($order->id, 200, '2小时自动完成');
         dispatch(new MtLogisticsSync($order));
+        Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
     }
 }

@@ -185,7 +185,7 @@ class Order extends Model
                     } else {
                         Log::info("[完成订单监听]-[订单ID：{$order->id}，订单号：{$order->order_id}]-[美全达配送，不算收益]");
                     }
-                    Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
+                    // Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
                 }
                 if ($wm_order = WmOrder::where('is_vip', 1)->where('id', $order->wm_id)->first()) {
                     if (!VipBillItem::where('trade_type', 101)->where('order_id', 101)->exists()) {
