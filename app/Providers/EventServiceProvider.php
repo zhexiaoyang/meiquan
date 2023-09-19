@@ -6,6 +6,7 @@ use App\Events\OrderCancel;
 use App\Events\OrderComplete;
 use App\Events\OrderCreate;
 use App\Events\OrderCreated;
+use App\Listeners\DeliveryVoiceReminder;
 use App\Listeners\GetRpPicture;
 use App\Listeners\GetTakeoutProductImage;
 use App\Listeners\MeiTuanLogisticsSync;
@@ -44,6 +45,8 @@ class EventServiceProvider extends ServiceProvider
         OrderComplete::class => [
             // 自配回传更新
             MeituanPostbackUpdate::class,
+            // 跑腿订单声音提醒
+            DeliveryVoiceReminder::class,
         ],
     ];
 

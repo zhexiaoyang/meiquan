@@ -21,7 +21,9 @@ use App\Models\ShopRider;
 use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
 use App\Models\WmPrinter;
+use App\Task\SetSelfDeliveryFinishTask;
 use App\Traits\RiderOrderCancel;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -2275,7 +2277,10 @@ class OrderController extends Controller
                 } catch (\Exception $exception) {
                     Log::info("自配送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
                 }
-                SetSelfDeliveryFinishJob::dispatch($order->id, $push_at, 7200);
+                // 2小时自动完成
+                $task = new SetSelfDeliveryFinishTask($order->id, $push_at);
+                $task->delay(15);
+                Task::deliver($task);
                 dispatch(new MtLogisticsSync($order));
             } else {
                 return $this->error('该订单状态不能发起自配送');
