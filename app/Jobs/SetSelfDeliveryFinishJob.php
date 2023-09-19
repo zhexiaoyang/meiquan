@@ -36,7 +36,7 @@ class SetSelfDeliveryFinishJob implements ShouldQueue
      */
     public function handle()
     {
-        if (!$order = Order::select('id', 'order_id','status','over_at','courier_lng','courier_lat','push_at')->find($this->order_id)) {
+        if (!$order = Order::select('id', 'order_id','status','over_at','courier_lng','courier_lat','receiver_lng','receiver_lat','push_at')->find($this->order_id)) {
             return;
         }
         if ($order->push_at != $this->push_at) {
