@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Events\OrderComplete;
 use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Task\TakeoutOrderVoiceNoticeTask;
@@ -57,6 +58,7 @@ class SetSelfDeliveryFinishJob implements ShouldQueue
         // 跑腿运力完成
         OrderDelivery::finish_log($order->id, 200, '2小时自动完成');
         dispatch(new MtLogisticsSync($order));
-        Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
+        event(new OrderComplete($order->shop_id, date("Y-m-d", strtotime($order->created_at)), 70));
+        // Task::deliver(new TakeoutOrderVoiceNoticeTask(14, $order->user_id), true);
     }
 }
