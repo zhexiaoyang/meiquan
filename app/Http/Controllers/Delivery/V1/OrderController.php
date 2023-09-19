@@ -2279,7 +2279,7 @@ class OrderController extends Controller
                 }
                 // 2小时自动完成
                 $task = new SetSelfDeliveryFinishTask($order->id, $push_at);
-                $task->delay(15);
+                $task->delay(7200);
                 Task::deliver($task);
                 dispatch(new MtLogisticsSync($order));
             } else {
