@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 
 class MeiTuanLogisticsSync implements ShouldQueue
 {
+    // 订单取消后，同步取消配送到美团
     use NoticeTool2;
     /**
      * Create the event listener.
