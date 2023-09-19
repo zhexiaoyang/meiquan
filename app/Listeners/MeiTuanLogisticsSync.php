@@ -54,12 +54,12 @@ class MeiTuanLogisticsSync implements ShouldQueue
             \Log::info('自配送回传错误', [$order]);
             return;
         }
-        $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001', 8 => '10032'];
+        $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001', 8 => '10032', 200 => '10017'];
         if ($order->platform == 1) {
             if ($status == 99) {
                 $params = [
                     'order_id' => $order->order_id,
-                    'third_carrier_order_id' => $order->peisong_id,
+                    "third_carrier_order_id" => $order->peisong_id ?: $order->order_id,
                     'logistics_provider_code' => $codes[$ps ?: 4],
                     'logistics_status' => 100
                 ];
