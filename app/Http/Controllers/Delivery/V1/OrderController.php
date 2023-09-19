@@ -7,6 +7,7 @@ use App\Handlers\AddressRecognitionHandler;
 use App\Http\Controllers\Controller;
 use App\Jobs\MtLogisticsSync;
 use App\Jobs\PrintWaiMaiOrder;
+use App\Jobs\SetSelfDeliveryFinishJob;
 use App\Libraries\DaDaService\DaDaService;
 use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\Order;
@@ -2194,6 +2195,7 @@ class OrderController extends Controller
             } elseif ($order->status == 8) {
                 return $this->error('订单即将发单，不能自配送，请先取消');
             }
+            $push_at = date("Y-m-d H:i:s");
             $update_info = [
                 'money' => 0,
                 'pay_status' => 1,
@@ -2204,21 +2206,21 @@ class OrderController extends Controller
                 'courier_lat' => $shop->shop_lat,
                 'courier_name' => $name,
                 'courier_phone' => $phone,
-                'push_at' => date("Y-m-d H:i:s"),
-                'receive_at' => date("Y-m-d H:i:s"),
-                'take_at' => date("Y-m-d H:i:s"),
-                'pay_at' => date("Y-m-d H:i:s"),
+                'push_at' => $push_at,
+                'receive_at' => $push_at,
+                'take_at' => $push_at,
+                'pay_at' => $push_at,
             ];
             if (Order::where('id', $order->id)->whereNotIn('status', [8,20,50,60,70,75])->update($update_info)) {
                 DB::table('order_logs')->insert([
                     'ps' => 200,
                     'order_id' => $order->id,
                     'des' => '「自配送」发单',
-                    'created_at' => date("Y-m-d H:i:s"),
-                    'updated_at' => date("Y-m-d H:i:s"),
+                    'created_at' => $push_at,
+                    'updated_at' => $push_at,
                 ]);
                 try {
-                    DB::transaction(function () use ($order, $name, $phone) {
+                    DB::transaction(function () use ($order, $name, $phone, $push_at) {
                         ShopRider::firstOrCreate(
                             [
                                 'shop_id' => $order->shop_id,
@@ -2243,23 +2245,23 @@ class OrderController extends Controller
                             'day_seq' => $order->day_seq,
                             'money' => 0,
                             'status' => 60,
-                            'send_at' => date("Y-m-d H:i:s"),
-                            'created_at' => date("Y-m-d H:i:s"),
-                            'updated_at' => date("Y-m-d H:i:s"),
+                            'send_at' => $push_at,
+                            'created_at' => $push_at,
+                            'updated_at' => $push_at,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                             'delivery_lng' => $locations['lng'] ?? '',
                             'delivery_lat' => $locations['lat'] ?? '',
-                            'atshop_at' => date("Y-m-d H:i:s"),
-                            'pickup_at' => date("Y-m-d H:i:s"),
+                            'atshop_at' => $push_at,
+                            'pickup_at' => $push_at,
                             'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
                         ]);
                         DB::table('order_delivery_tracks')->insert([
                             'order_id' => $order->id,
                             'wm_id' => $order->wm_id,
                             'delivery_id' => $delivery_id,
-                            'created_at' => date("Y-m-d H:i:s"),
-                            'updated_at' => date("Y-m-d H:i:s"),
+                            'created_at' => $push_at,
+                            'updated_at' => $push_at,
                             'status' => 60,
                             'status_des' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
                             'delivery_name' => $name,
@@ -2273,6 +2275,7 @@ class OrderController extends Controller
                 } catch (\Exception $exception) {
                     Log::info("自配送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
                 }
+                SetSelfDeliveryFinishJob::dispatch($order->id, $push_at, 10);
                 dispatch(new MtLogisticsSync($order));
             } else {
                 return $this->error('该订单状态不能发起自配送');
