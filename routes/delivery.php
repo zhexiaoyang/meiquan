@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
  * 订单接口
  */
 Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->group(function() {
+    Route::get("test", "TestController@test");
     // 支付宝APP支付回调
     Route::post("pay/notify/alipay", "PaymentController@alipay_notify");
     // 版本更新
