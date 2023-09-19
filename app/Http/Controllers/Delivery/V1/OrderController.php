@@ -2275,7 +2275,7 @@ class OrderController extends Controller
                 } catch (\Exception $exception) {
                     Log::info("自配送写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
                 }
-                SetSelfDeliveryFinishJob::dispatch($order->id, $push_at, 10);
+                SetSelfDeliveryFinishJob::dispatch($order->id, $push_at, 7200);
                 dispatch(new MtLogisticsSync($order));
             } else {
                 return $this->error('该订单状态不能发起自配送');
