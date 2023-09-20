@@ -57,15 +57,15 @@ class TakeoutOrderVoiceNoticeTask extends Task
                     $user_fds[] = $fd;
                     \Log::info("fd:{$fd},res:{$res}");
                     $server->push($fd, $res);
-                } else {
+                // } else {
                     // 该fd没有连接，删除掉
-                    Redis::hdel($this->redis_key_fd, $fd);
-                    \Log::info("TakeoutOrderVoiceNoticeTask|fd没有链接，删除掉|user_id:{$this->user_id},fd:{$fd}");
+                    // Redis::hdel($this->redis_key_fd, $fd);
+                    // \Log::info("TakeoutOrderVoiceNoticeTask|fd没有链接，删除掉|user_id:{$this->user_id},fd:{$fd}");
                 }
             }
             if (empty($user_fds)) {
                 // 该user_id没有连接，删除掉
-                Redis::hdel($this->redis_key_user, $fd);
+                Redis::hdel($this->redis_key_user, $this->user_id);
                 \Log::info("TakeoutOrderVoiceNoticeTask|user_id没有链接，删除掉|user_id:{$this->user_id}");
             } else {
                 if (count($user_fds) < count($fds)) {
