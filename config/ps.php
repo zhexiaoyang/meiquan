@@ -279,8 +279,8 @@ return [
         ]
     ],
     "stock_urls" => [
-        1 => 'psapi1.meiquanjiankang.com/api/stock',
-        2 => 'psapi2.meiquanjiankang.com/api/stock',
+        1 => 'http://psapi1.meiquanjiankang.com/api/stock',
+        2 => 'http://psapi2.meiquanjiankang.com/api/stock',
     ]
 
 ];
