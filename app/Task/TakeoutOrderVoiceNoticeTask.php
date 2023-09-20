@@ -34,6 +34,7 @@ class TakeoutOrderVoiceNoticeTask extends Task
 
     public function handle()
     {
+        \Log::info("TakeoutOrderVoiceNoticeTask-开始执行");
         if (!$user = User::find($this->user_id)) {
             return;
         }
