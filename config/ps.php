@@ -277,6 +277,10 @@ return [
             'id' => 210001,
             'name' => '其它',
         ]
+    ],
+    "stock_urls" => [
+        1 => 'psapi1.meiquanjiankang.com/api/stock',
+        2 => 'psapi2.meiquanjiankang.com/api/stock',
     ]
 
 ];

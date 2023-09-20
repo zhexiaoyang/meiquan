@@ -12,6 +12,9 @@ Route::middleware(["force-json"])->group(function() {
         return '';
     });
     // ************** 待删除 结束 **************
+    // ************** WebStock 开始 **************
+    Route::get("stock", "WebStockPushController@stock")->name("stock");
+    // ************** WebStock 结束 **************
 
     Route::post("picture/ticket", "PictureController@ticket")->name("picture.ticket");
     Route::post("picture/xunfei/yyzz", "PictureController@xunfei_yyzz")->name("picture.xunfei_yyzz");

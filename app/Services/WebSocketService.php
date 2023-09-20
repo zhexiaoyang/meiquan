@@ -12,10 +12,17 @@ use Swoole\WebSocket\Server;
  */
 class WebSocketService implements WebSocketHandlerInterface
 {
+    public $redis_key_fd;
+    public $redis_key_user;
+
     // 声明没有参数的构造函数
     public function __construct()
     {
+        $app_id = config('app.app_id');
+        $this->redis_key_fd = "h{$app_id}:websocket:note_voice:fd";
+        $this->redis_key_user = "h{$app_id}:websocket:note_voice:user";
     }
+
     public function onOpen(Server $server, Request $request)
     {
         // 在触发onOpen事件之前Laravel的生命周期已经完结，所以Laravel的Request是可读的，Session是可读写的
@@ -28,15 +35,15 @@ class WebSocketService implements WebSocketHandlerInterface
             return;
         }
         $fd = $request->fd;
-        if ($fd < 10 && Redis::hlen('h:websocket:note_voice:fd') > $fd) {
-            Redis::del('h:websocket:note_voice:user');
-            Redis::del('h:websocket:note_voice:fd');
+        if ($fd < 10 && Redis::hlen($this->redis_key_fd) > $fd) {
+            Redis::del($this->redis_key_user);
+            Redis::del($this->redis_key_fd);
         }
-        Redis::hset('h:websocket:note_voice:fd', $fd, $user_id);
-        if ($user_fd = Redis::hget('h:websocket:note_voice:user', $user_id)) {
+        Redis::hset($this->redis_key_fd, $fd, $user_id);
+        if ($user_fd = Redis::hget($this->redis_key_user, $user_id)) {
             $fd = $user_fd . ',' . $fd;
         }
-        Redis::hset('h:websocket:note_voice:user', $user_id, $fd);
+        Redis::hset($this->redis_key_user, $user_id, $fd);
 
     }
     public function onMessage(Server $server, Frame $frame)
@@ -50,19 +57,19 @@ class WebSocketService implements WebSocketHandlerInterface
     public function onClose(Server $server, $fd, $reactorId)
     {
         \Log::info('onClose', [$fd, $reactorId]);
-        $user_id = Redis::hget('h:websocket:note_voice:fd', $fd);
+        $user_id = Redis::hget($this->redis_key_fd, $fd);
         if ($user_id) {
-            if ($fds = Redis::hget('h:websocket:note_voice:user', $user_id)) {
+            if ($fds = Redis::hget($this->redis_key_user, $user_id)) {
                 $fd_arr = explode(',', $fds);
                 foreach ($fd_arr as $k => $v) {
                     if ($v == $fd) {
                         unset($fd_arr[$k]);
                     }
                 }
-                Redis::hset('h:websocket:note_voice:user', $user_id, implode(',', $fd_arr));
+                Redis::hset($this->redis_key_user, $user_id, implode(',', $fd_arr));
             }
         }
-        Redis::hdel('h:websocket:note_voice:fd', $fd);
+        Redis::hdel($this->redis_key_fd, $fd);
         // throw new \Exception('an exception');// 此时抛出的异常上层会忽略，并记录到Swoole日志，需要开发者try/catch捕获处理
     }
 }
