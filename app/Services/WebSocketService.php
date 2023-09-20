@@ -37,6 +37,7 @@ class WebSocketService implements WebSocketHandlerInterface
         $token = request()->get('token');
         if ($token) {
             // 获取token ID
+            $token = str_replace('Bearer ', '', $token);
             $jti = (new \Lcobucci\JWT\Parser())->parse($token)->getClaim('jti');
             if ($jti && $access_token = \DB::table('oauth_access_tokens')->where('id', $jti)->first()) {
                 // 通过token ID 查询用户ID
