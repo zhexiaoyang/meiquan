@@ -31,7 +31,19 @@ class WebSocketService implements WebSocketHandlerInterface
         $server->push($request->fd, json_encode(['time' => date('Y-m-d H:i:s'), 'fd' => $request->fd], true));
         // throw new \Exception('an exception');// 此时抛出的异常上层会忽略，并记录到Swoole日志，需要开发者try/catch捕获处理
         // Redis::hset('h:feedback', $data['user_id'], $request->fd);
-        if (!$user_id = request()->get('user_id')) {
+        // 待删除，旧版写法-获取参数中user_id
+        $user_id = request()->get('user_id');
+        // 获取token
+        $token = request()->get('token');
+        if ($token) {
+            // 获取token ID
+            $jti = (new \Lcobucci\JWT\Parser())->parse($token)->getClaim('jti');
+            if ($jti && $access_token = \DB::table('oauth_access_tokens')->where('id', $jti)->first()) {
+                // 通过token ID 查询用户ID
+                $user_id = $access_token->user_id;
+            }
+        }
+        if (!$user_id) {
             return;
         }
         $fd = $request->fd;
