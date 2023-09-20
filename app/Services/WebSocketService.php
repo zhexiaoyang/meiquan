@@ -79,7 +79,11 @@ class WebSocketService implements WebSocketHandlerInterface
                         unset($fd_arr[$k]);
                     }
                 }
-                Redis::hset($this->redis_key_user, $user_id, implode(',', $fd_arr));
+                if (empty($fd_arr)) {
+                    Redis::hdel($this->redis_key_user, $user_id);
+                } else {
+                    Redis::hset($this->redis_key_user, $user_id, implode(',', $fd_arr));
+                }
             }
         }
         Redis::hdel($this->redis_key_fd, $fd);
