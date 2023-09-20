@@ -77,7 +77,7 @@ class TakeoutOrderVoiceNoticeTask extends Task
             // 该服务器未找到链接用户，往其它服务器推送
             \Log::info("TakeoutOrderVoiceNoticeTask|该服务器未找到链接用户|user_id:{$this->user_id}|other:{$this->other}");
             if ($this->other) {
-                $urls = app('ps.stock_urls');
+                $urls = config('ps.stock_urls');
                 if (!empty($urls)) {
                     $params = [
                         'cmd' => 'voice',
