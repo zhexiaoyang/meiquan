@@ -73,22 +73,21 @@ class TakeoutOrderVoiceNoticeTask extends Task
                     \Log::info("TakeoutOrderVoiceNoticeTask|user_id的fd有减少，重新赋值|原fd:{$fd_str}，新fd:{$new_fd_str}");
                 }
             }
-        } else {
-            // 该服务器未找到链接用户，往其它服务器推送
-            \Log::info("TakeoutOrderVoiceNoticeTask|该服务器未找到链接用户|user_id:{$this->user_id}|other:{$this->other}");
-            if ($this->other) {
-                $urls = config('ps.stock_urls');
-                if (!empty($urls)) {
-                    $params = [
-                        'cmd' => 'voice',
-                        'user_id' => $this->user_id,
-                        'voice' => $this->voice,
-                    ];
-                    $params_str = http_build_query($params);
-                    foreach ($urls as $key => $url) {
-                        if ($key !== $this->app_id) {
-                            file_get_contents($url . '?' . $params_str);
-                        }
+        }
+        // 往其它服务器推送
+        \Log::info("TakeoutOrderVoiceNoticeTask|往其它服务器推送|user_id:{$this->user_id}|other:{$this->other}");
+        if ($this->other) {
+            $urls = config('ps.stock_urls');
+            if (!empty($urls)) {
+                $params = [
+                    'cmd' => 'voice',
+                    'user_id' => $this->user_id,
+                    'voice' => $this->voice,
+                ];
+                $params_str = http_build_query($params);
+                foreach ($urls as $key => $url) {
+                    if ($key !== $this->app_id) {
+                        file_get_contents($url . '?' . $params_str);
                     }
                 }
             }
