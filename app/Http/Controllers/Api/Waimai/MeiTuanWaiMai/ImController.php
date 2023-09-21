@@ -22,7 +22,16 @@ class ImController
         $push_content_str = urldecode($request->get('push_content', ''));
         $push_content = json_decode($push_content_str, true);
         $this->log_info('美团外卖统一接口');
-        $app_id = $push_content['app_id'];
+        $app_id = (int) $push_content['app_id'];
+        if (!in_array($app_id, [5172, 6167])) {
+            return json_encode(['data' => 'ok']);
+        }
+        $key = '';
+        if ($app_id === 5172) {
+            $key = substr(config("ps.minkang.secret"), 0, 16);
+        } else if ($app_id === 6167) {
+            $key = substr(config("ps.meiquan.secret"), 0, 16);
+        }
         // 消息发送时间,10位时间戳
         $ctime = $push_content['cts'];
         // 消息id，确保消息唯一性，发送消息时，为三方的消息id，接收消息时，为美团的消息id
@@ -40,7 +49,7 @@ class ImController
         $app_spu_codes = $push_content['app_spu_codes'] ?? '';
         $app_poi_code = $push_content['app_poi_code'];
         $msg_content = $push_content['msg_content'];
-        $msg_content = mb_convert_encoding(openssl_decrypt($msg_content, 'AES-128-CBC', '16000d3fb478ee4d', 0, '16000d3fb478ee4d'), 'UTF-8');
+        $msg_content = mb_convert_encoding(openssl_decrypt($msg_content, 'AES-128-CBC', $key, 0, $key), 'UTF-8');
         $this->log_info("美团门店ID:{$app_poi_code}");
         ImMessage::create([
             'app_id' => $app_id,
