@@ -18,7 +18,7 @@ class ImController
         }
         $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&Im消息推送|biz_type:{$biz_type}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
-        $push_content_str = $request->get('push_content', '');
+        $push_content_str = urldecode($request->get('push_content', ''));
         $push_content = json_decode($push_content_str, true);
         $this->log_info('美团外卖统一接口');
         $app_poi_code = $push_content['app_poi_code'];
