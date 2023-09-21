@@ -53,6 +53,8 @@ Route::middleware(['force-json'])->prefix('meituan/callback')->namespace('Api\Wa
     Route::post('shop/status/{platform}', "ShopController@status");
     // 门店绑定状态
     Route::post('shop/bind/{platform}', "ShopBindController@status");
+    // IM消息推送
+    Route::post('im/create/{platform}', "ImController@create");
 });
 
 /**
