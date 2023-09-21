@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
 use App\Models\ImMessage;
 use App\Traits\LogTool2;
+use App\Traits\NoticeTool2;
 use Illuminate\Http\Request;
 
 class ImController
 {
-    use LogTool2;
+    use LogTool2, NoticeTool2;
 
     public $prefix_title = '[美团外卖回调&###]';
 
@@ -18,6 +19,7 @@ class ImController
             return json_encode(['data' => 'ok']);
         }
         $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&Im消息推送|biz_type:{$biz_type}", $this->prefix_title);
+        $this->notice_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&Im消息推送|biz_type:{$biz_type}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
         $push_content_str = urldecode($request->get('push_content', ''));
         $push_content = json_decode($push_content_str, true);
@@ -48,7 +50,11 @@ class ImController
         // 开放平台侧商品标识（无须加密）
         $app_spu_codes = $push_content['app_spu_codes'] ?? '';
         $app_poi_code = $push_content['app_poi_code'];
-        $msg_content = $push_content['msg_content'];
+        $msg_content = $push_content['msg_content'] ?? '';
+        if (empty($msg_content)) {
+            $this->ding_error('内容为空错误:' . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+            return json_encode(['data' => 'ok']);
+        }
         $msg_content = mb_convert_encoding(openssl_decrypt($msg_content, 'AES-128-CBC', $key, 0, $key), 'UTF-8');
         $this->log_info("美团门店ID:{$app_poi_code}");
         ImMessage::create([
