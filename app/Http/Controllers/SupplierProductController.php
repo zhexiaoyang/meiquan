@@ -74,7 +74,7 @@ class SupplierProductController extends Controller
         // 筛选城市是否可买
         $query->where(function ($query) use ($city_code) {
             $query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
-                $query->where("city_code", $city_code->id);
+                $query->where("city_code", $city_code->id ?? '');
             });
         });
 
