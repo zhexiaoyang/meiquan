@@ -6,6 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ImMessage extends Model
 {
-    protected $fillable = ['app_id','app_poi_code','order_id','msg_id','msg_type','msg_source','msg_content','biz_type',
-        'open_user_id','group_id','app_spu_codes','ctime'];
+    protected $fillable = ['shop_id','user_id','app_id','app_poi_code','order_id','msg_id','msg_content','biz_type',
+        'is_read','day_seq','name','title','image','group_id','open_user_id','ctime'];
 }
