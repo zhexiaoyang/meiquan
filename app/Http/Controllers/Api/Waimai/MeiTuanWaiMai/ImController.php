@@ -94,24 +94,34 @@ class ImController
                 break;
 
         }
-        $message = ImMessage::create([
-            'shop_id' => $shop->id,
-            'user_id' => $shop->user_id,
-            'app_id' => $app_id,
-            'app_poi_code' => $app_poi_code,
-            'order_id' => $order_id,
-            'msg_id' => $msg_id,
-            'msg_content' => $content,
-            'biz_type' => $biz_type,
-            'is_read' => 0,
-            'day_seq' => $day_seq,
-            'name' => $name,
-            'title' => ($day_seq ?: '') . $name,
-            'image' => substr($name, 0, 1),
-            'group_id' => $group_id,
-            'open_user_id' => $open_user_id,
-            'ctime' => $ctime,
-        ]);
+        if ($message = ImMessage::where('order_id', $order_id)->first()) {
+            $message->update([
+                'msg_id' => $msg_id,
+                'msg_content' => $content,
+                'is_read' => 0,
+                'open_user_id' => $open_user_id,
+                'ctime' => $ctime,
+            ]);
+        } else {
+            $message = ImMessage::create([
+                'shop_id' => $shop->id,
+                'user_id' => $shop->user_id,
+                'app_id' => $app_id,
+                'app_poi_code' => $app_poi_code,
+                'order_id' => $order_id,
+                'msg_id' => $msg_id,
+                'msg_content' => $content,
+                'biz_type' => $biz_type,
+                'is_read' => 0,
+                'day_seq' => $day_seq,
+                'name' => $name,
+                'title' => ($day_seq ? '#' . $day_seq : '') . $name,
+                'image' => mb_substr($name, 0, 1),
+                'group_id' => $group_id,
+                'open_user_id' => $open_user_id,
+                'ctime' => $ctime,
+            ]);
+        }
         ImMessageItem::create([
             'message_id' => $message->id,
             'msg_id' => $msg_id,
