@@ -55,7 +55,7 @@ class SupplierProductController extends Controller
         },"user" => function ($query) {
             $query->select("id","name");
         },"city_price" => function ($query) use ($city_code) {
-            $query->select("product_id", "price")->where("city_code", $city_code->id);
+            $query->select("product_id", "price")->where("city_code", $city_code->id ?? '');
         }])->where("status", 20);
 
         if ($supplier_id) {
