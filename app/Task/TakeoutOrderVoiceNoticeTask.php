@@ -46,7 +46,8 @@ class TakeoutOrderVoiceNoticeTask extends Task
             $res = [
                 'mes' => 'success',
                 'kind' => 'voice',
-                'voice' => $this->voice
+                'voice' => $this->voice,
+                'voice_url' => "https://file.meiquanda.com/mp3/notice/{$this->voice}.mp3",
             ];
             $res = json_encode($res, true);
             $fds = explode(',', $fd_str);
