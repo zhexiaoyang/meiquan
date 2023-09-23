@@ -102,6 +102,14 @@ class ImController
                 'open_user_id' => $open_user_id,
                 'ctime' => $ctime,
             ]);
+        } else if (($open_user_id != -1) && $message = ImMessage::where('open_user_id', $open_user_id)->first()) {
+            $message->update([
+                'msg_id' => $msg_id,
+                'msg_content' => $content,
+                'is_read' => 0,
+                'open_user_id' => $open_user_id,
+                'ctime' => $ctime,
+            ]);
         } else {
             $message = ImMessage::create([
                 'shop_id' => $shop->id,
