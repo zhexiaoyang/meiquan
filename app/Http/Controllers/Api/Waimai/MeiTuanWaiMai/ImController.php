@@ -6,8 +6,10 @@ use App\Models\ImMessage;
 use App\Models\ImMessageItem;
 use App\Models\Shop;
 use App\Models\WmOrder;
+use App\Task\TakeoutImMessageTask;
 use App\Traits\LogTool2;
 use App\Traits\NoticeTool2;
+use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 
 class ImController
@@ -37,6 +39,9 @@ class ImController
         // 美团门店ID
         $app_poi_code = $push_content['app_poi_code'];
         if (!$shop = Shop::select('id', 'user_id', 'waimai_mt')->where('waimai_mt', $app_poi_code)->first()) {
+            return json_encode(['data' => 'ok']);
+        }
+        if (!$shop->user_id) {
             return json_encode(['data' => 'ok']);
         }
         // key
@@ -144,6 +149,7 @@ class ImController
             'ctime' => $ctime,
             'is_read' => 0,
         ]);
+        Task::deliver(new TakeoutImMessageTask((int) $message->id, (int) $message->user_id), true);
         return json_encode(['data' => 'ok']);
     }
 }
