@@ -140,5 +140,25 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 保存设置
             Route::post("save", "DeliverySettingController@store");
         });
+        // 快捷回复
+        Route::prefix('quick_reply')->group(function () {
+            // 列表
+            Route::get("index", "QuickReplyController@index");
+            // 详情
+            Route::get("info", "QuickReplyController@show");
+            // 新增
+            Route::post("add", "QuickReplyController@store");
+            // 更新
+            Route::post("update", "QuickReplyController@update");
+            // 删除
+            Route::post("delete", "QuickReplyController@destroy");
+        });
+        // IM
+        Route::prefix('im')->group(function () {
+            // 列表
+            Route::get("index", "ImController@index");
+            // 详情
+            Route::get("info", "ImController@show");
+        });
     });
 });
