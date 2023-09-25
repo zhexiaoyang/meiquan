@@ -11,17 +11,10 @@ class QuickReplyController extends Controller
     public function index(Request $request)
     {
         $user_id = $request->user()->id;
-        $page_size = $request->get('page_size', 20);
-        if (!is_numeric($page_size) || $page_size < 20) {
-            $page_size = 20;
-        }
         $query = QuickReply::select('id', 'text')->where('user_id', $user_id);
-        if ($shop_id = $request->get('shop_id')) {
-            $query->where('shop_id', $shop_id);
-        }
-        $data = $query->orderByDesc('id')->paginate($page_size);
+        $data = $query->orderByDesc('id')->get();
 
-        return $this->page($data);
+        return $this->success($data);
     }
 
     public function show(Request $request)
