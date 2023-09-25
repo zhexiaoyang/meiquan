@@ -165,6 +165,8 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("shops", "ImController@shops");
             // 全部已读
             Route::post("set_read", "ImController@set_read");
+            // 发消息
+            Route::post("send", "ImController@send");
         });
     });
 });

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Delivery\V1;
 
+use App\Handlers\ImageUploadOssHandler;
 use App\Http\Controllers\Controller;
 use App\Models\ImMessage;
 use App\Models\ImMessageItem;
@@ -153,6 +154,80 @@ class ImController extends Controller
     {
         $user_id = $request->user()->id;
         ImMessage::where('user_id', $user_id)->update(['is_read' => 1]);
+        return $this->success();
+    }
+
+    public function send(Request $request, ImageUploadOssHandler $uploader)
+    {
+        $user_id = $request->user()->id;
+        $content = $request->get('text');
+        $file = $request->file('file');
+        $msg_type = 1;
+        if (!$content) {
+            if (!$file) {
+                return $this->error('请输入内容');
+            }
+            $msg_type = 2;
+            $content = $uploader->save($file, 'im', $user_id);
+            if (!$content) {
+                return $this->error('上传图片失败，请稍后再试');
+            }
+        }
+        if (!$message_id = $request->get('message_id')) {
+            return $this->error('消息不存在');
+        }
+        if (!$message = ImMessage::find($message_id)) {
+            return $this->error('消息不存在');
+        }
+        if ($message->user_id != $user_id) {
+            return $this->error('消息不存在!');
+        }
+        if ($message->app_id === 5172) {
+            $mt = app('minkang');
+            $key = substr(config("ps.minkang.secret"), 0, 16);
+        } else if ($message->app_id === 6167) {
+            $mt = app('meiquan');
+            $key = substr(config("ps.meiquan.secret"), 0, 16);
+        } else {
+            return $this->error('不能发送消息');
+        }
+        $msg_content = openssl_encrypt($content, 'AES-128-CBC', $key, 0, $key);
+        $msg_id = time() . rand(1111111, 9999999);
+        $ctime = time();
+        $params = [
+            'app_id' => $message->app_id,
+            'app_poi_code' => $message->app_poi_code,
+            'msg_id' => $msg_id,
+            'msg_content' => $msg_content,
+            'msg_source' => 1,
+            'msg_type' => $msg_type,
+            'cts' => $ctime,
+            'open_user_id' => $message->open_user_id,
+            'order_id' => $message->order_id,
+        ];
+        $res = $mt->ImMsgSend(json_encode($params, JSON_UNESCAPED_UNICODE));
+        if ($res['result_code'] == 1) {
+            $message->update([
+                'msg_id' => $msg_id,
+                'msg_content' => $content,
+                'is_read' => 0,
+                'is_reply' => 1,
+                'ctime' => $ctime,
+            ]);
+            ImMessageItem::create([
+                'message_id' => $message->id,
+                'msg_id' => $msg_id,
+                'msg_type' => $msg_type,
+                'msg_source' => 1,
+                'msg_content' => $content,
+                'open_user_id' => $message->open_user_id,
+                'group_id' => 0,
+                'app_spu_codes' => '',
+                'ctime' => $ctime,
+                'is_read' => 0,
+            ]);
+        }
+
         return $this->success();
     }
 }
