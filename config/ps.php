@@ -281,6 +281,23 @@ return [
     "stock_urls" => [
         1 => 'http://psapi1.meiquanjiankang.com/api/stock',
         2 => 'http://psapi2.meiquanjiankang.com/api/stock',
-    ]
+    ],
+    'delivery_order_status' => [
+        0 => '新订单',
+        3 => '[预约]待呼叫',
+        5 => '余额不足',
+        7 => '取消呼叫',
+        8 => '即将呼叫',
+        10 => '暂无运力',
+        20 => '待接单',
+        30 => '待接单',
+        40 => '待取货',
+        50 => '待取货',
+        60 => '配送中',
+        70 => '已完成',
+        75 => '已完成',
+        80 => '异常',
+        99 => '已取消',
+    ],
 
 ];
