@@ -104,6 +104,7 @@ class ImController
                 'msg_id' => $msg_id,
                 'msg_content' => $content,
                 'is_read' => 0,
+                'is_reply' => $msg_source === 1 ? 1 : 0,
                 'open_user_id' => $open_user_id,
                 'ctime' => $ctime,
             ]);
