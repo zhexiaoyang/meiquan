@@ -63,11 +63,29 @@ class ImController extends Controller
         if (!is_numeric($page_size) || $page_size < 10) {
             $page_size = 10;
         }
-        $data = ImMessageItem::select('id','msg_type','msg_source','msg_content','ctime','is_read')
+        $data = ImMessageItem::select('id','msg_type','msg_source','msg_content','ctime','is_read','from')
             ->where('message_id', $message_id)->orderByDesc('id')->paginate($page_size);
         $message->update([
             'is_read' => 1
         ]);
+        if ($data->isNotEmpty()) {
+            foreach ($data as $v) {
+                $v->description = '';
+                $v->image = '匿';
+                if ($v->msg_source == 1) {
+                    if ($v->from == 0) {
+                        $v->image = '商';
+                        $v->description = '商家版';
+                    } else if ($v->from == 1) {
+                        $v->image = '系';
+                        $v->description = '系统回复';
+                    }
+                } elseif ($v->msg_source == 2) {
+                    $v->image = $message->image;
+                }
+                unset($v->from);
+            }
+        }
         return $this->page($data);
     }
 
@@ -225,6 +243,7 @@ class ImController extends Controller
                 'app_spu_codes' => '',
                 'ctime' => $ctime,
                 'is_read' => 0,
+                'from' => 1,
             ]);
         } else {
             return $this->error('消息发送失败，请稍后再试');
