@@ -226,6 +226,8 @@ class ImController extends Controller
                 'ctime' => $ctime,
                 'is_read' => 0,
             ]);
+        } else {
+            return $this->error('消息发送失败，请稍后再试');
         }
 
         return $this->success();
