@@ -13,6 +13,7 @@ use App\Models\SupplierProductCityPriceItem;
 use App\Models\SupplierUser;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
+use App\Traits\NoticeTool2;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use App\Models\SupplierCart;
@@ -22,6 +23,7 @@ use function Matrix\trace;
 
 class SupplierOrderController extends Controller
 {
+    use NoticeTool2;
     public function index(Request $request)
     {
         $user_id = $request->user()->id;
@@ -109,6 +111,9 @@ class SupplierOrderController extends Controller
         }
         // 城市编码
         $city_code = AddressCity::where("code", $shop->citycode)->first();
+        if (!isset($city_code->id)) {
+            $this->ding_error("门店没有citycode|shop_id:{$shop_id}");
+        }
 
         // 购物车商品
         $carts = SupplierCart::with(["product.depot" => function($query) {
