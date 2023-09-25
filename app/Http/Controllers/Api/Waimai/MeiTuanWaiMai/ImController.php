@@ -51,7 +51,7 @@ class ImController
         // 消息id，确保消息唯一性，发送消息时，为三方的消息id，接收消息时，为美团的消息id
         $msg_id = $push_content['msg_id'];
         // 消息发送方，1：商家，2：用户
-        $msg_source = $push_content['msg_source'];
+        $msg_source = (int) $push_content['msg_source'];
         // 消息类型，1：文字，2：图片，3：语音，注意b2c不支持语音，4：商品卡片，发送商品卡片类型则不关注msg_content，5：订单卡片类型商家只能接收消息，不支持给用户发送消息，只支持单聊 11：群文字，12：群图片，13：群语音，注意b2c不支持语音，14：群商品卡片 其中商品卡片单次最多传7个商品
         $msg_type = (int) $push_content['msg_type'];
         $order_id = $push_content['order_id'] ?? '';
@@ -107,6 +107,7 @@ class ImController
                 'msg_id' => $msg_id,
                 'msg_content' => $content,
                 'is_read' => 0,
+                'is_reply' => $msg_source === 1 ? 1 : 0,
                 'open_user_id' => $open_user_id,
                 'ctime' => $ctime,
             ]);
@@ -121,6 +122,7 @@ class ImController
                 'msg_content' => $content,
                 'biz_type' => $biz_type,
                 'is_read' => 0,
+                'is_reply' => $msg_source === 1 ? 1 : 0,
                 'day_seq' => $day_seq,
                 'name' => $name,
                 'title' => ($day_seq ? '#' . $day_seq : '') . $name,

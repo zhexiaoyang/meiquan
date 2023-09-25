@@ -157,9 +157,14 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('im')->group(function () {
             // 列表
             Route::get("index", "ImController@index");
-            // 详情
+            // 详情-列表
             Route::get("info", "ImController@show");
+            // 详情-订单
             Route::get("order_info", "ImController@order_show");
+            // 门店列表
+            Route::get("shops", "ImController@shops");
+            // 全部已读
+            Route::post("set_read", "ImController@set_read");
         });
     });
 });
