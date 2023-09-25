@@ -8,12 +8,14 @@ use App\Models\SupplierCart;
 use App\Models\SupplierFreightCity;
 use App\Models\SupplierProduct;
 use App\Models\SupplierUser;
+use App\Traits\NoticeTool2;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class SupplierCartController extends Controller
 {
+    use NoticeTool2;
     public function index(Request $request)
     {
         $user = $request->user();
@@ -27,10 +29,7 @@ class SupplierCartController extends Controller
         // 查询门店城市编码
         $city_code = AddressCity::where("code", $shop->citycode)->first();
         if (!isset($city_code->id)) {
-            \Log::info("没有citycode", [
-                $request->user(),
-                $shop
-            ]);
+            $this->ding_error("门店没有citycode|shop_id:{$shop_id}");
         }
 
         $result = [];
@@ -121,6 +120,9 @@ class SupplierCartController extends Controller
         }
         // 城市编码
         $city_code = AddressCity::where("code", $shop->citycode)->first();
+        if (!isset($city_code->id)) {
+            $this->ding_error("门店没有citycode|shop_id:{$shop_id}");
+        }
 
         // 判断是否直接购买流程
         $product_id = $request->get("product_id", 0);
@@ -165,12 +167,12 @@ class SupplierCartController extends Controller
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
         },"product.city_price" => function($query) use ($city_code) {
-            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id ?? '');
         }])
             ->where(["user_id" => $user_id, "checked" => 1])
             ->whereHas("product", function ($query) use ($city_code) {
                 $query->select("product_id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
-                    $query->where("city_code", $city_code->id);
+                    $query->where("city_code", $city_code->id ?? '');
                 });
             })
             ->get();
@@ -459,6 +461,9 @@ class SupplierCartController extends Controller
 
         // 查询门店城市编码
         $city_code = AddressCity::where("code", $shop->citycode)->first();
+        if (!isset($city_code->id)) {
+            $this->ding_error("门店没有citycode|shop_id:{$shop_id}");
+        }
 
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
