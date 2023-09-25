@@ -41,7 +41,7 @@ class SupplierCartController extends Controller
         $carts = SupplierCart::with(["product.depot" => function($query) {
             $query->select("id","cover","name","spec","unit");
         },"product.city_price" => function($query) use ($city_code) {
-            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id);
+            $query->select("product_id", "price", "city_code")->where("city_code", $city_code->id ?? '');
         }])
             ->where("user_id", $user_id)
             ->whereHas("product", function ($query) use ($city_code) {
