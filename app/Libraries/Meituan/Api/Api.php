@@ -705,6 +705,17 @@ class Api extends Request
         return $this->request_post('v1/medicine/code/update', $params);
     }
 
+    public function ImMsgSend($push_content)
+    {
+        $params = [
+            'push_content' => $push_content,
+        ];
+        if ($this->appKey == 6167) {
+            $params['access_token'] = $this->getShopToken($push_content['app_poi_code']);
+        }
+        return $this->request_post('v1/ecommerce/IM/msgSend', $params);
+    }
+
     /*
      * 创建药品
      */
