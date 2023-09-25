@@ -159,6 +159,7 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("index", "ImController@index");
             // 详情
             Route::get("info", "ImController@show");
+            Route::get("order_info", "ImController@order_show");
         });
     });
 });
