@@ -69,7 +69,47 @@ class SyncStockYongQinTangPrice extends Command
             'bind_type' => 4,
             'mid' => 5237,
             'name' => '永沁堂大药房（凤栖店）'
-        ]
+        ],
+        [
+            'yid' => 5,
+            'mtid' => '18859007',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'mid' => 5790,
+            'name' => '永沁堂大药房（二门市店）'
+        ],
+        [
+            'yid' => 7,
+            'mtid' => '18859008',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'mid' => 5238,
+            'name' => '永沁堂大药房（五门市店）'
+        ],
+        [
+            'yid' => 11,
+            'mtid' => '18857417',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'mid' => 6818,
+            'name' => '永沁堂大药房（万来店）'
+        ],
+        [
+            'yid' => 18,
+            'mtid' => '18854087',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'mid' => 6819,
+            'name' => '永沁堂大药房(平康店)'
+        ],
+        [
+            'yid' => 24,
+            'mtid' => '18832866',
+            'bind' => 'shangou',
+            'bind_type' => 31,
+            'mid' => 6820,
+            'name' => '昌平大药房（万向店）'
+        ],
     ];
 
     /**
