@@ -84,6 +84,9 @@ class ImController extends Controller
                     $v->image = $message->image;
                 }
                 unset($v->from);
+                if ($v->msg_type == 5) {
+                    $v->msg_content = json_decode($v->msg_content, true);
+                }
             }
         }
         return $this->page($data);
