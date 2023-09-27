@@ -19,7 +19,7 @@ class WebStockPushController extends Controller
         if ($cmd === 'voice') {
             return $this->voice($user_id, $request->get('voice'));
         } elseif ($cmd === 'im') {
-            return $this->im($user_id, $request->get('message_id'));
+            return $this->im($user_id, $request->get('message_id'), $request->get('data'));
         }
         return $this->success();
     }
@@ -34,13 +34,13 @@ class WebStockPushController extends Controller
         return $this->success();
     }
 
-    public function im($user_id, $message_id)
+    public function im($user_id, $message_id, $data)
     {
         if (!$message_id) {
             return $this->success();
         }
 
-        Task::deliver(new TakeoutImMessageTask((int) $message_id, (int) $user_id, false), true);
+        Task::deliver(new TakeoutImMessageTask((int) $message_id, (int) $user_id, json_decode($data, true), false), true);
         return $this->success();
     }
 }

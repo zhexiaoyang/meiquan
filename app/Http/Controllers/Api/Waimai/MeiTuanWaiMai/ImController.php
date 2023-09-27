@@ -138,7 +138,7 @@ class ImController
                 'ctime' => $ctime,
             ]);
         }
-        ImMessageItem::create([
+        $item = ImMessageItem::create([
             'message_id' => $message->id,
             'msg_id' => $msg_id,
             'msg_type' => $msg_type,
@@ -150,7 +150,37 @@ class ImController
             'ctime' => $ctime,
             'is_read' => 0,
         ]);
-        Task::deliver(new TakeoutImMessageTask((int) $message->id, (int) $message->user_id), true);
+
+        $data = [];
+        if (isset($item->id)) {
+            $data = [
+                'id' => $item->id,
+                'msg_type' => $item->msg_type,
+                'msg_source' => $item->msg_source,
+                'msg_content' => $item->msg_content,
+                'ctime' => $item->ctime,
+                'is_read' => $item->is_read,
+                'from' => $item->from,
+            ];
+            $data['description'] = '';
+            $data['image'] = '匿';
+            if ($item->msg_source == 1) {
+                if ($item->from == 0) {
+                    $data['image'] = '商';
+                    $data['description'] = '商家版';
+                } else if ($item->from == 1) {
+                    $data['image'] = '系';
+                    $data['description'] = '系统回复';
+                }
+            } elseif ($item->msg_source == 2) {
+                $data['image'] = $message->image;
+            }
+            if ($item->msg_type == 5) {
+                $data['msg_content'] = json_decode($item->msg_content, true);
+            }
+        }
+
+        Task::deliver(new TakeoutImMessageTask((int) $message->id, (int) $message->user_id, $data), true);
         return json_encode(['data' => 'ok']);
     }
 }
