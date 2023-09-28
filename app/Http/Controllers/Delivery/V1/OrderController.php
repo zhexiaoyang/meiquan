@@ -522,7 +522,24 @@ class OrderController extends Controller
                     } elseif ($order->ps_type == 2) {
                         $order->logistic_tag = '未知配送';
                     }
+                }// 地图坐标
+                $user_location = [ 'type' => 'user', 'lng' => $order->receiver_lng, 'lat' => $order->receiver_lat, 'title' => '' ];
+                $shop_location = [ 'type' => 'shop', 'lng' => $order->shop->shop_lng, 'lat' => $order->shop->shop_lat, 'title' => '' ];
+                $delivery_location = [ 'type' => 'delivery', 'lng' => $order->courier_lng, 'lat' => $order->courier_lat, 'title' => '' ];
+                if ($order->status <= 20) {
+                    $user_location['title'] = '距离门店' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->shop->shop_lng, $order->shop->shop_lat);
+                    $locations = [$user_location, $shop_location];
+                } elseif ($order->status == 50) {
+                    $delivery_location['title'] = '距离门店' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->shop->shop_lng, $order->shop->shop_lat);
+                    $locations = [$user_location, $shop_location, $delivery_location];
+                } elseif ($order->status == 60) {
+                    $delivery_location['title'] = '距离顾客' . get_distance_title($order->receiver_lng, $order->receiver_lat, $order->courier_lng, $order->courier_lat);
+                    $locations = [$user_location, $shop_location, $delivery_location];
+                } else {
+                    $locations = [$user_location];
                 }
+                $order->locations = $locations;
+                unset($order->shop);
                 unset($order->ps_type);
                 unset($order->order);
                 unset($order->shop);
