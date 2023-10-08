@@ -469,7 +469,7 @@ class ProductController extends Controller
                             'stock' => $item['stock'],
                         ];
                         // 饿了么数组
-                        if (!is_null($ele) && Redis::sismember($redis_key, $v['upc'])) {
+                        if (!is_null($ele) && Redis::sismember($redis_key, $item['upc'])) {
                             $stock_data_ele[] =  $v['upc'] . ':' . (int) $item['stock'];
                         }
                     }
