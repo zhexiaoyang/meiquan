@@ -478,8 +478,8 @@ class ProductController extends Controller
                         $ele_stocks['shop_id'] = $shop_id_ele;
                         $ele_stocks['upc_stocks'] = implode(';', $stock_data_ele);
                         \Log::info("V1ERP饿了么库存参数", [$ele_stocks]);
-                        // $ele_res = $ele->skuStockUpdate($ele_stocks);
-                        // \Log::info("V1ERP饿了么库存返回", [$ele_res]);
+                        $ele_res = $ele->skuStockUpdate($ele_stocks);
+                        \Log::info("V1ERP饿了么库存返回", [$ele_res]);
                     }
                     // $res_data = [
                     //     "service_key" => "HXFW_365",
