@@ -343,9 +343,9 @@ class ProductController extends Controller
                         for ($i = 1; $i <= 100; $i++) {
                             $res = $ele->getSkuList($shop_id_ele, $i, 100);
                             if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
-                                foreach ($res['body']['data']['list'] as $v) {
-                                    if (!empty($v['upc'])) {
-                                        Redis::sadd($redis_key, $v['upc']);
+                                foreach ($res['body']['data']['list'] as $_v) {
+                                    if (!empty($_v['upc'])) {
+                                        Redis::sadd($redis_key, $_v['upc']);
                                     }
                                 }
                             } else {
