@@ -10,6 +10,7 @@ use App\Models\ErpShopCategory;
 use GuzzleHttp\Client;
 use GuzzleHttp\RequestOptions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Redis;
 
 class ProductController extends Controller
 {
@@ -331,6 +332,30 @@ class ProductController extends Controller
                     continue;
                 }
 
+                $ele = null;
+                $redis_key = null;
+                $shop_id_ele = $access_shop->ele_shop_id;
+                $stock_data_ele = [];
+                if ($shop_id_ele) {
+                    $ele = app('ele');
+                    $redis_key = "ele_upcs:{$shop_id_ele}";
+                    if (!Redis::exists($redis_key)) {
+                        for ($i = 1; $i <= 100; $i++) {
+                            $res = $ele->getSkuList($shop_id_ele, $i, 100);
+                            if (!empty($res['body']['data']['list']) && is_array($res['body']['data']['list'])) {
+                                foreach ($res['body']['data']['list'] as $v) {
+                                    if (!empty($v['upc'])) {
+                                        Redis::sadd($redis_key, $v['upc']);
+                                    }
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                        Redis::expire($redis_key, 3600);
+                    }
+                }
+
                 $type = $access_shop->type;
                 $meituan = null;
 
@@ -443,6 +468,18 @@ class ProductController extends Controller
                             'price' => $item['price'],
                             'stock' => $item['stock'],
                         ];
+                        // 饿了么数组
+                        if (!is_null($ele) && Redis::sismember($redis_key, $v['upc'])) {
+                            $stock_data_ele[] =  $v['upc'] . ':' . (int) $item['stock'];
+                        }
+                    }
+                    if ($shop_id_ele && !empty($stock_data_ele)) {
+                        // 饿了么同步库存参数
+                        $ele_stocks['shop_id'] = $shop_id_ele;
+                        $ele_stocks['upc_stocks'] = implode(';', $stock_data_ele);
+                        \Log::info("V1ERP饿了么库存参数", [$ele_stocks]);
+                        // $ele_res = $ele->skuStockUpdate($ele_stocks);
+                        // \Log::info("V1ERP饿了么库存返回", [$ele_res]);
                     }
                     // $res_data = [
                     //     "service_key" => "HXFW_365",
