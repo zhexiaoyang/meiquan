@@ -470,7 +470,7 @@ class ProductController extends Controller
                         ];
                         // 饿了么数组
                         if (!is_null($ele) && Redis::sismember($redis_key, $item['upc'])) {
-                            $stock_data_ele[] =  $v['upc'] . ':' . (int) $item['stock'];
+                            $stock_data_ele[] =  $item['upc'] . ':' . (int) $item['stock'];
                         }
                     }
                     if ($shop_id_ele && !empty($stock_data_ele)) {
