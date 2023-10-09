@@ -21,8 +21,8 @@ class PaymentController extends Controller
     public function pay_method()
     {
         $result = [
-            ['method' => 1, 'text' => '支付宝', 'checked' => 1],
-            ['method' => 2, 'text' => '微信', 'checked' => 0],
+            // ['method' => 1, 'text' => '支付宝', 'checked' => 1],
+            // ['method' => 2, 'text' => '微信', 'checked' => 0],
         ];
         return $this->success($result);
     }
