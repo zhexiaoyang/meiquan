@@ -209,9 +209,9 @@ class SyncStockYongQinTangPrice extends Command
                     $minkang->medicinePrice($params_price);
                 } else {
                     $params_code['access_token'] = $meiquan->getShopToken($shop['mtid']);
-                    $params_stock['access_token'] = $meiquan->getShopToken($shop['mtid']);
+                    $params_price['access_token'] = $meiquan->getShopToken($shop['mtid']);
                     $meiquan->medicineCodeUpdate($params_code);
-                    $meiquan->medicinePrice($params_stock);
+                    $meiquan->medicinePrice($params_price);
                 }
             }
             // break;
