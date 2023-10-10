@@ -168,5 +168,10 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             // 发消息
             Route::post("send", "ImController@send");
         });
+        // 注销
+        Route::prefix('log_off')->group(function () {
+            // 列表
+            Route::post("add", "LogOffController@store");
+        });
     });
 });
