@@ -114,11 +114,11 @@ class Api extends Request
         ];
         return $this->post('wmoper/ng/food/detail', $data, 16);
     }
-    public function wmoper_food_list($shop_id)
+    public function wmoper_food_list($shop_id, $offset = 0, $limit = 200)
     {
         $params = [
-            'offset' => 2,
-            'limit' => 100,
+            'offset' => $offset,
+            'limit' => $limit,
         ];
         $data = [
             'appAuthToken' => $this->get_token($shop_id),
