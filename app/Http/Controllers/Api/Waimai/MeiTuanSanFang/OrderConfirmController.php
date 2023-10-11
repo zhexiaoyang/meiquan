@@ -244,8 +244,13 @@ class OrderConfirmController
                     if ($sku_id) {
                         if ($sku = WmRetailSku::select('guidance_price')->where('shop_id', $shop->id)->where('sku_id', $sku_id)->first()) {
                             $cost = (int) $sku->guidance_price;
-                            $cost_money += ($cost * $quantity);
-                            $this->log_info("餐饮订单成本价,name:{$food_name}，sku_id:{$sku_id}，成本价格:{$cost}");
+                            if ($cost > 0) {
+                                $cost_money += ($cost * $quantity);
+                                $_tmp['vip_cost'] = $cost;
+                                $this->log_info("餐饮订单成本价,name:{$food_name}，sku_id:{$sku_id}，成本价格:{$cost}");
+                            } else {
+                                $this->log_info("餐饮订单成本价成本价小于等于0,name:{$food_name}，sku_id:{$sku_id}，成本价格:{$cost}");
+                            }
                         }
                     } else {
                         $this->log_info("sku_id不存在");
