@@ -68,6 +68,25 @@ Route::middleware(["force-json"])->group(function() {
         // 同步任务列表-导出
         Route::get("medicine/sync/log/export", "MedicineSyncLogController@export");
         /**
+         * 商品管理
+         */
+        // 同步美团商品到中台
+        Route::post("retail/sync/medicine/meituan", "RetailController@fromMeituan");
+        // 商品门店列表
+        Route::get("retail/shops", "RetailController@shops");
+        // 商品列表
+        Route::get("retail/product", "RetailController@product");
+        // 商品修改
+        Route::post("retail/product/update", "RetailController@update");
+        // 商品状态统计
+        Route::get("retail/statistics/status", "RetailController@statistics_status");
+        // 导出
+        Route::get("retail/export", "RetailController@export_retail");
+        // 导入
+        Route::post("retail/import", "RetailController@import");
+        // 清空
+        Route::post("retail/clear", "RetailController@clear");
+        /**
          * 药品管理
          */
         // 同步美团商品到中台

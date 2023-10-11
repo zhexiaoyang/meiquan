@@ -23,14 +23,14 @@ class Http
     public function request($method, $url, $options = [])
     {
         $method = strtoupper($method);
-        Log::debug('美团开放平台请求参数:', compact('url', 'method', 'options'));
+        // Log::debug('美团开放平台请求参数:', compact('url', 'method', 'options'));
         $response = $this->getClient()->request($method, $url, $options);
-        Log::debug('美团开放平台响应参数:', [
-            'Status'  => $response->getStatusCode(),
-            'Reason'  => $response->getReasonPhrase(),
-            // 'Headers' => $response->getHeaders(),
-            'Body'    => strval($response->getBody()),
-        ]);
+        // Log::debug('美团开放平台响应参数:', [
+        //     'Status'  => $response->getStatusCode(),
+        //     'Reason'  => $response->getReasonPhrase(),
+        //     // 'Headers' => $response->getHeaders(),
+        //     'Body'    => strval($response->getBody()),
+        // ]);
         return $response;
     }
 

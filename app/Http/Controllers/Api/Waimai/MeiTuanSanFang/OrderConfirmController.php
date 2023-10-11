@@ -23,6 +23,7 @@ use App\Models\WmOrderExtra;
 use App\Models\WmOrderItem;
 use App\Models\WmOrderReceive;
 use App\Models\WmPrinter;
+use App\Models\WmRetailSku;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
@@ -191,6 +192,12 @@ class OrderConfirmController
             // 组合商品数组，计算成本价
             if (!empty($products)) {
                 foreach ($products as $product) {
+                    $sku_id = $product['skuId'] ?? '';
+                    $food_name = $product['food_name'] ?? '';
+                    $spec = $product['spec'] ?? '';
+                    if (!$sku_id) {
+                        $sku_id = $food_name . '-' . $spec;
+                    }
                     $upc = $product['upc'] ?? '';
                     $quantity = $product['quantity'] ?? 0;
                     $_tmp = [
@@ -233,6 +240,15 @@ class OrderConfirmController
                         }
                     } else {
                         $this->log_info("UPC不存在");
+                    }
+                    if ($sku_id) {
+                        if ($sku = WmRetailSku::select('guidance_price')->where('shop_id', $shop->id)->where('sku_id', $sku_id)->first()) {
+                            $cost = (int) $sku->guidance_price;
+                            $cost_money += ($cost * $quantity);
+                            $this->log_info("餐饮订单成本价,name:{$food_name}，sku_id:{$sku_id}，成本价格:{$cost}");
+                        }
+                    } else {
+                        $this->log_info("sku_id不存在");
                     }
                     $items[] = $_tmp;
                 }
