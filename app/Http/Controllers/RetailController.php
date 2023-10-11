@@ -37,6 +37,11 @@ class RetailController extends Controller
         return $this->success($shops);
     }
 
+    /**
+     * 商品列表
+     * @author zhangzhen
+     * @data 2023/10/11 4:29 下午
+     */
     public function product(Request $request)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -95,6 +100,11 @@ class RetailController extends Controller
         return $this->page($data, [],'data');
     }
 
+    /**
+     * 更新成本价
+     * @author zhangzhen
+     * @data 2023/10/11 4:29 下午
+     */
     public function update(Request $request)
     {
         $guidance_price = $request->get('guidance_price');
@@ -122,6 +132,11 @@ class RetailController extends Controller
         return $this->success();
     }
 
+    /**
+     * 统计
+     * @author zhangzhen
+     * @data 2023/10/11 4:30 下午
+     */
     public function statistics_status(Request $request)
     {
         $data = [
@@ -142,6 +157,11 @@ class RetailController extends Controller
         return $this->success($data);
     }
 
+    /**
+     * 同步美团商品到中台
+     * @author zhangzhen
+     * @data dateTime
+     */
     public function fromMeituan(Request $request)
     {
         $shop_id = $request->get('shop_id', 0);
@@ -159,6 +179,7 @@ class RetailController extends Controller
         if (WmRetailSku::where('shop_id', $shop_id)->count() > 0) {
             return $this->error('该门店已同步过商品，请先清空后再操作同步');
         }
+        $waimai_mt = $shop->waimai_mt;
         if ($shop->meituan_bind_platform === 25) {
             $mt = app('mtkf');
             $page_size = 200;
@@ -217,6 +238,59 @@ class RetailController extends Controller
             }
         } else if ($shop->meituan_bind_platform === 31) {
             $mt = app('meiquan');
+            for ($i = 0; $i < 50; $i++) {
+                $products = $mt->retailList(['app_poi_code' => $waimai_mt, 'access_token' => $mt->getShopToken($waimai_mt),'offset' => $i, 'limit' => 200]);
+                if (!empty($products['data']) && is_array($products['data'])) {
+                    foreach ($products['data'] as $v) {
+                        $app_food_code = $v['app_spu_code'];
+                        $name = $v['name'];
+                        $category_name = $v['category_name'];
+                        $sequence = $v['sequence'];
+                        $picture = $v['picture'];
+                        $offset = stripos($picture, ',');
+                        if ($offset !== false) {
+                            $picture = substr($picture, 0, $offset );
+                        }
+                        $picture = str_replace('http:', 'https:', $picture);
+                        $retail = WmRetail::create([
+                            'shop_id' => $shop_id,
+                            'store_id' => $app_food_code ?: $name,
+                            'name' => $name,
+                            'category' => $category_name,
+                            'cover' => $picture,
+                            'sequence' => $sequence,
+                        ]);
+                        // 判断SKU
+                        $skus = json_decode(urldecode($v['skus']), true);
+                        if (!empty($skus)) {
+                            foreach ($skus as $sku) {
+                                $sku_id = $sku['sku_id'];
+                                $price = $sku['price'];
+                                $spec = $sku['spec'];
+                                if (!$sku_id) {
+                                    $sku_id = $name . '-' . $spec;
+                                }
+                                WmRetailSku::create([
+                                    'retail_id' => $retail->id,
+                                    'shop_id' => $shop_id,
+                                    'sku_id' => $sku_id,
+                                    'name' => $name,
+                                    'category' => $category_name,
+                                    'cover' => $picture,
+                                    'sequence' => $sequence,
+                                    'price' => $price,
+                                    'spec' => $spec,
+                                    'mt_status' => 1,
+                                    'online_mt' => 1,
+                                ]);
+                            }
+                        }
+
+                    }
+                } else {
+                    break;
+                }
+            }
         } else {
             return $this->error('餐饮不支持此操作');
         }
@@ -235,6 +309,11 @@ class RetailController extends Controller
         return $export->withRequest($shop_id);
     }
 
+    /**
+     * 导入
+     * @author zhangzhen
+     * @data 2023/10/11 4:30 下午
+     */
     public function import(Request $request, RetailImport $import)
     {
         if (!$shop_id = $request->get('shop_id')) {
@@ -245,6 +324,11 @@ class RetailController extends Controller
         return $this->success();
     }
 
+    /**
+     * 清空门店中台商品
+     * @author zhangzhen
+     * @data 2023/10/11 4:30 下午
+     */
     public function clear(Request $request)
     {
         if (!$shop_id = $request->get('shop_id')) {
