@@ -254,7 +254,7 @@ class OrderConfirmController
                 }
             }
             if (!empty($items)) {
-                if ($shop->vip_status) {
+                if ($cost_money) {
                     $this->log_info("-成本价计算：{$cost_money}|shop_id：{$shop->id},order_id：{$order_wm->order_id}");
                     $order_wm->vip_cost = $cost_money;
                     $order_wm->save();
