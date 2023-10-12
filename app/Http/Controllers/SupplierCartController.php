@@ -44,6 +44,7 @@ class SupplierCartController extends Controller
         }])
             ->where("user_id", $user_id)
             ->whereHas("product", function ($query) use ($city_code) {
+                $query->where('status', 20);
                 $query->select("id", "price");$query->where("sale_type", 1)->orWhereHas("city_price", function(Builder $query) use ($city_code) {
                     $query->where("city_code", $city_code->id ?? '');
                 });
