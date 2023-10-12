@@ -43,9 +43,11 @@ class MedicineCategoryController extends Controller
                     $data[$category['id']]['children'] = [];
                     $data[$category['id']]['products_count'] = $number;
                 } else {
-                    $category['products_count'] = $number;
-                    $data[$category['pid']]['products_count'] += $number;
-                    $data[$category['pid']]['children'][] = $category;
+                    if (isset($data[$category['pid']])) {
+                        $category['products_count'] = $number;
+                        $data[$category['pid']]['products_count'] += $number;
+                        $data[$category['pid']]['children'][] = $category;
+                    }
                 }
             }
         }
