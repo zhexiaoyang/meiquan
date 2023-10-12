@@ -243,7 +243,7 @@ class OrderConfirmController
                     }
                     if ($sku_id) {
                         if ($sku = WmRetailSku::select('guidance_price')->where('shop_id', $shop->id)->where('sku_id', $sku_id)->first()) {
-                            $cost = (int) $sku->guidance_price;
+                            $cost = (float) $sku->guidance_price;
                             if ($cost > 0) {
                                 $cost_money += ($cost * $quantity);
                                 $_tmp['vip_cost'] = $cost;
