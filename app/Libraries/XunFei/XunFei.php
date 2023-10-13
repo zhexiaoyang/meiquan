@@ -159,7 +159,7 @@ class XunFei
         $headers[] = 'Content-Type:application/x-www-form-urlencoded; charset=utf-8';
         $res =  $this->http_request($api, $Post, $headers);
         $res_data = json_decode($res, true);
-        \Log::info('讯飞-营业执照识别|结果：', $res_data);
+        \Log::info('讯飞-营业执照识别|结果：', [$res_data]);
 
         return $res_data;
     }
