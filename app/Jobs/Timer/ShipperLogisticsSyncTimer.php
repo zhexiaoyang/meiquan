@@ -25,6 +25,7 @@ class ShipperLogisticsSyncTimer extends CronJob
         $orders = Order::select('id','ps','order_id','mt_order_id','shipper_type_ss','shipper_type_dd','shipper_type_sf',
             'ss_order_id','warehouse_id','sf_order_id','peisong_id','status','sf_order_id', 'type',
             'courier_name','courier_phone','courier_lng','courier_lat','shop_id')
+            ->where('ps_type', 0)
             ->where('created_at', '>', date("Y-m-d H:i:s", time() - 86400*2))
             ->whereIn('status', [50, 60])->orderBy('id')->get();
 
