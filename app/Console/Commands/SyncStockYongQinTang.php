@@ -104,7 +104,7 @@ class SyncStockYongQinTang extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-stock-yongqintang';
+    protected $signature = 'sync-stock-yongqintang {num}';
 
     /**
      * The console command description.
@@ -132,7 +132,13 @@ class SyncStockYongQinTang extends Command
     {
         $meiquan = app('meiquan');
         $minkang = app('minkang');
-        foreach ($this->shops as $shop) {
+        $num = $this->argument('num');
+        if ($num) {
+            $shops = [$this->shops[$num]];
+        } else {
+            $shops = $this->shops;
+        }
+        foreach ($shops as $shop) {
             // $stock_data = $this->modifyStock($shop['yid'] , date("Y-m-d", time() - 86400));
             $stock_data = $this->modifyStock($shop['yid'] , date("Y-m-d"));
             if (empty($stock_data) || !isset($stock_data['rows'])) {
