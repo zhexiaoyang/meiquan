@@ -25,7 +25,7 @@ class WmOrderController extends Controller
         }
 
         $query = WmOrder::with(['items' => function ($query) {
-            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc', 'vip_cost');
+            $query->select('id', 'order_id', 'food_name', 'quantity', 'price', 'upc', 'vip_cost', 'food_property');
         }, 'running' => function ($query) {
             $query->with(['logs' => function ($q) {
                 $q->orderByDesc('id');
