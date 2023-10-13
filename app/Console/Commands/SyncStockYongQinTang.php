@@ -133,7 +133,7 @@ class SyncStockYongQinTang extends Command
         $meiquan = app('meiquan');
         $minkang = app('minkang');
         $num = $this->argument('num');
-        if ($num) {
+        if (is_numeric($num)) {
             $shops = [$this->shops[$num]];
         } else {
             $shops = $this->shops;
