@@ -539,7 +539,7 @@ class ShunFengOrderController extends Controller
                         [
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'status_des' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                         ], [
@@ -547,7 +547,7 @@ class ShunFengOrderController extends Controller
                             'wm_id' => $delivery->wm_id,
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'status_des' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                             'delivery_lng' => $locations['lng'] ?? '',
