@@ -44,7 +44,8 @@ class ShunFengOrderController extends Controller
         $status = $request->get("order_status", "");
         $status_desc = $request->get("status_desc", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "订单状态&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->log_tool2_prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->notice_tool2_prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
 
         if (in_array($status, [10, 15])) {
@@ -505,13 +506,19 @@ class ShunFengOrderController extends Controller
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->log_tool2_prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->notice_tool2_prefix = str_replace('###', "完成订单&中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
         Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
-
+        // 签收类型	1:正常签收, 2:商家退回签收
         $receipt_type = $request->get("receipt_type", 1);
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            if ($receipt_type === 2) {
+                $this->ding_error("顺丰签收类型：商家退回签收|id:{$order->id},order_id:{$order->order_id}");
+                $this->log_info("顺丰签收类型：商家退回签收|id:{$order->id},order_id:{$order->order_id}");
+                return json_encode($res);
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 写入完成足迹
@@ -524,7 +531,7 @@ class ShunFengOrderController extends Controller
                         'delivery_lat' => $locations['lat'] ?? '',
                         'status' => 70,
                         'finished_at' => date("Y-m-d H:i:s"),
-                        'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                         'is_payment' => 1,
                         'paid_at' => date("Y-m-d H:i:s"),
                     ]);
@@ -532,7 +539,7 @@ class ShunFengOrderController extends Controller
                         [
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                         ], [
@@ -540,12 +547,12 @@ class ShunFengOrderController extends Controller
                             'wm_id' => $delivery->wm_id,
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                             'delivery_lng' => $locations['lng'] ?? '',
                             'delivery_lat' => $locations['lat'] ?? '',
-                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                            'description' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH2 : OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
                         ]
                     );
                 } catch (\Exception $exception) {
@@ -562,11 +569,6 @@ class ShunFengOrderController extends Controller
             }
             if ($order->status == 70) {
                 $this->log_info("订单已是完成状态");
-                return json_encode($res);
-            }
-
-            if ($receipt_type != 1) {
-                $this->ding_error("顺丰签收类型：商家退回签收|id:{$order->id},order_id:{$order->order_id}");
                 return json_encode($res);
             }
             // 服务费
@@ -588,36 +590,38 @@ class ShunFengOrderController extends Controller
             OrderLog::create([
                 'ps' => 7,
                 "order_id" => $order->id,
-                "des" => "[顺丰]跑腿，已送达",
+                "des" => $receipt_type === 2 ? "【顺丰】跑腿，商家退回签收" : "【顺丰】跑腿，已送达",
                 'name' => $name,
                 'phone' => $phone,
             ]);
             $this->log_info('配送完成，更改信息成功');
-            dispatch(new MtLogisticsSync($order));
-            event(new OrderComplete($order->id, $order->user_id, $order->shop_id, date("Y-m-d", strtotime($order->created_at))));
-            // 查找扣款用户，为了记录余额日志
-            $current_user = DB::table('users')->find($order->user_id);
-            // 减去用户配送费
-            DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
-            // 用户余额日志
-            UserMoneyBalance::create([
-                "user_id" => $order->user_id,
-                "money" => $service_fee,
-                "type" => 2,
-                "before_money" => $current_user->money,
-                "after_money" => ($current_user->money - $service_fee),
-                "description" => "顺丰跑腿订单服务费：" . $order->order_id,
-                "tid" => $order->id
-            ]);
-            $this->log_info('配送完成，扣款成功' . json_encode($res));
+            if ($receipt_type === 1) {
+                dispatch(new MtLogisticsSync($order));
+                event(new OrderComplete($order->id, $order->user_id, $order->shop_id, date("Y-m-d", strtotime($order->created_at))));
+                // 查找扣款用户，为了记录余额日志
+                $current_user = DB::table('users')->find($order->user_id);
+                // 减去用户配送费
+                DB::table('users')->where('id', $order->user_id)->decrement('money', $service_fee);
+                // 用户余额日志
+                UserMoneyBalance::create([
+                    "user_id" => $order->user_id,
+                    "money" => $service_fee,
+                    "type" => 2,
+                    "before_money" => $current_user->money,
+                    "after_money" => ($current_user->money - $service_fee),
+                    "description" => "顺丰跑腿订单服务费：" . $order->order_id,
+                    "tid" => $order->id
+                ]);
+                $this->log_info('配送完成，扣款成功' . json_encode($res));
+            }
         }
-
+        return json_encode($res);
     }
 
     public function cancel(Request $request)
     {
         $res = ["error_code" => 0, "error_msg" => "success"];
-        Log::info('顺丰跑腿回调-订单取消回调-全部参数', $request->all());
+        // Log::info('顺丰跑腿回调-订单取消回调-全部参数', $request->all());
         // 商家订单ID
         $order_id = $request->get("shop_order_id", "");
         // 配送员
@@ -628,7 +632,8 @@ class ShunFengOrderController extends Controller
         // 配送员位置纬度
         $rider_lat = $request->get("rider_lat", "");
         // 定义日志格式
-        $this->prefix = str_replace('###', "取消订单&中台单号:{$order_id}", $this->prefix_title);
+        $this->log_tool2_prefix = str_replace('###', "取消订单&中台单号:{$order_id}", $this->prefix_title);
+        $this->notice_tool2_prefix = str_replace('###', "取消订单&中台单号:{$order_id}", $this->prefix_title);
         $this->log_info('全部参数', $request->all());
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {

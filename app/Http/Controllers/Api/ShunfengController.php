@@ -580,10 +580,13 @@ class ShunfengController
         // 10-配送员确认;12:配送员到店;15:配送员配送中
         $status = $request->get("order_status", "");
         Log::info("顺丰配送员坐标|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
-
+        // 签收类型	1:正常签收, 2:商家退回签收
         $receipt_type = $request->get("receipt_type", 1);
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            if ($receipt_type === 2) {
+                Log::info("商家退回签收|order_id:{$order_id}，status:{$status}", ['lng' => $rider_lng, 'lat' => $rider_lat]);
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 写入完成足迹
@@ -596,13 +599,13 @@ class ShunfengController
                         'delivery_lat' => $locations['lat'] ?? '',
                         'status' => 70,
                         'finished_at' => date("Y-m-d H:i:s"),
-                        'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                        'track' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                     ]);
                     OrderDeliveryTrack::firstOrCreate(
                         [
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'status_des' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                         ], [
@@ -610,12 +613,12 @@ class ShunfengController
                             'wm_id' => $delivery->wm_id,
                             'delivery_id' => $delivery->id,
                             'status' => 70,
-                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'status_des' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_STATUS_RETURN : OrderDeliveryTrack::TRACK_STATUS_FINISH,
                             'delivery_name' => $name,
                             'delivery_phone' => $phone,
                             'delivery_lng' => $locations['lng'] ?? '',
                             'delivery_lat' => $locations['lat'] ?? '',
-                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                            'description' => $receipt_type === 2 ? OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH2 : OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
                         ]
                     );
                 } catch (\Exception $exception) {
@@ -636,18 +639,6 @@ class ShunfengController
                 Log::info($log_prefix . '订单已是完成');
                 return json_encode($res);
             }
-            // 钉钉报警提醒
-            $dingding = app("ding");
-
-            if ($receipt_type != 1) {
-                $logs = [
-                    "des" => "【顺丰订单完成回调】签收类型：商家退回签收",
-                    "id" => $order->id,
-                    "order_id" => $order->order_id
-                ];
-                $dingding->sendMarkdownMsgArray("顺丰签收类型：商家退回签收", $logs);
-                return json_encode($res);
-            }
 
             $shop = Shop::select('id', 'running_add')->find($order->shop_id);
             // 已送达【已完成】
@@ -665,12 +656,14 @@ class ShunfengController
             OrderLog::create([
                 'ps' => 7,
                 "order_id" => $order->id,
-                "des" => "【顺丰】跑腿，已送达",
+                "des" => $receipt_type === 2 ? "【顺丰】跑腿，商家退回签收" : "【顺丰】跑腿，已送达",
                 'name' => $name,
                 'phone' => $phone,
             ]);
-            dispatch(new MtLogisticsSync($order));
-            event(new OrderComplete($order->id, $order->user_id, $order->shop_id, date("Y-m-d", strtotime($order->created_at))));
+            if ($receipt_type === 1) {
+                dispatch(new MtLogisticsSync($order));
+                event(new OrderComplete($order->id, $order->user_id, $order->shop_id, date("Y-m-d", strtotime($order->created_at))));
+            }
         }
 
         return json_encode($res);
