@@ -55,7 +55,7 @@ class DaDaOrderController
         $locations = ['lng' => '', 'lat' => ''];
         $cancel_from = $data['cancel_from'] ?? 2;
         // 定义日志格式
-        $this->prefix = str_replace('###', "中台单号:{$order_id},状态:{$status}", $this->prefix_title);
+        $this->notice_tool2_prefix = str_replace('###', "中台单号:{$order_id},状态:{$status}", $this->prefix_title);
         $this->log_info('全部参数', $data);
         // if ($status === 1) {
         //     return json_encode($res);
