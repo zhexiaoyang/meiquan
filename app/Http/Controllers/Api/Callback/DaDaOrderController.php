@@ -122,11 +122,61 @@ class DaDaOrderController
                     ]);
                 } else {
                     // 重复回传状态原因-重新分配骑士:取消订单失败
-                    $this->ding_error("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}|取消达达订单失败");
+                    $this->ding_error("达达自有{$order_id}:重复回传状态原因:{$repeat_reason_type}|取消达达订单失败");
                 }
                 return json_encode($res);
             }
             if ($repeat_reason_type == 2) {
+                if ($delivery) {
+                    try {
+                        $delivery->update([
+                            'delivery_name' => $name,
+                            'delivery_phone' => $phone,
+                            'delivery_lng' => $locations['lng'] ?? '',
+                            'delivery_lat' => $locations['lat'] ?? '',
+                            'status' => 50,
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_TRANSFER,
+                        ]);
+                        OrderDeliveryTrack::firstOrCreate(
+                            [
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_TRANSFER,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                            ], [
+                                'order_id' => $delivery->order_id,
+                                'wm_id' => $delivery->wm_id,
+                                'delivery_id' => $delivery->id,
+                                'status' => 50,
+                                'status_des' => OrderDeliveryTrack::TRACK_STATUS_TRANSFER,
+                                'delivery_name' => $name,
+                                'delivery_phone' => $phone,
+                                'delivery_lng' => $locations['lng'] ?? '',
+                                'delivery_lat' => $locations['lat'] ?? '',
+                                'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_TRANSFER,
+                            ]
+                        );
+                    } catch (\Exception $exception) {
+                        Log::info("达达自有-转单回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        $this->ding_error("达达自有-转单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                    }
+                }
+                // 转单
+                $order->courier_name = $name;
+                $order->courier_phone = $phone;
+                $order->courier_lng = $longitude;
+                $order->courier_lat = $latitude;
+                $order->save();
+                // 记录订单日志
+                OrderLog::create([
+                    'ps' => 5,
+                    "order_id" => $order->id,
+                    "des" => "[达达]跑腿，转单",
+                    'name' => $name,
+                    'phone' => $phone,
+                ]);
+                dispatch(new MtLogisticsSync($order));
                 return json_encode($res);
             }
             $this->log_info("中台订单状态：{$order->status}");
@@ -509,7 +559,7 @@ class DaDaOrderController
                             'delivery_lat' => $locations['lat'] ?? '',
                             'status' => 50,
                             'atshop_at' => date("Y-m-d H:i:s"),
-                            'track' => OrderDeliveryTrack::TRACK_STATUS_DELIVERING,
+                            'track' => OrderDeliveryTrack::TRACK_STATUS_PICKING,
                         ]);
                         OrderDeliveryTrack::firstOrCreate(
                             [
