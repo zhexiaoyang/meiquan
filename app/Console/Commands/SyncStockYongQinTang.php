@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Redis;
 
 class SyncStockYongQinTang extends Command
 {
@@ -130,6 +131,7 @@ class SyncStockYongQinTang extends Command
      */
     public function handle()
     {
+        $redis_key = "upcs:yongqintang";
         $meiquan = app('meiquan');
         $minkang = app('minkang');
         $num = $this->argument('num');
@@ -148,52 +150,34 @@ class SyncStockYongQinTang extends Command
             $data = $stock_data['rows'];
             $this->info("{$shop['name']}-总数：" . count($data));
             $data = array_chunk($data, 100);
-            foreach ($data as $items) {
+            foreach ($data as $key => $items) {
                 $code_data = [];
                 $stock_data = [];
-                $upc_data = [];
                 foreach ($items as $item) {
                     $pid = $item['pid'];
-                    $name = $item['pname'];
                     $quantity = $item['quantity'];
-                    $product = $this->getProduct($name);
-                    if (empty($product['barcode'])) {
+                    if (!$upc = Redis::hget($redis_key, $pid)) {
                         continue;
                     }
-                    $upc = $product['barcode'];
-                    if (in_array($upc, $upc_data)) {
-                        continue;
-                    }
-                    $upc_data[] = $upc;
-                    $cost = $product['recbuyprice'];
-                    // $price = $this->getPrice($pid);
-                    // if (empty($price[''])) {
-                    //     continue;
-                    // }
-                    // \Log::info("{$shop['name']}|{$upc}|{$quantity}|{$cost}|{$name}|{$shop['name']}");
-                    // \Log::info('stock', $item);
-                    // \Log::info('product', $product);
-                    // \Log::info('price', $price);
-
                     // 商家商品ID
                     $store_id = $upc;
                     // 组合数组
-                    $code_data[] = [
+                    $code_data[$upc] = [
                         'upc' => $upc,
                         'app_medicine_code_new' => $store_id,
                     ];
-                    $stock_data[] = [
+                    $stock_data[$upc] = [
                         'app_medicine_code' => $store_id,
                         'stock' => (int) $quantity,
                     ];
                 }
-                $this->info("{$shop['name']}-第一批总数：" . count($upc_data));
+                $this->info("{$shop['name']}-第{$key}批总数：" . count($code_data));
 
                 // 绑定编码
                 $params_code['app_poi_code'] = $shop['mtid'];
-                $params_code['medicine_data'] = json_encode($code_data);
+                $params_code['medicine_data'] = json_encode(array_values($code_data));
                 $params_stock['app_poi_code'] = $shop['mtid'];
-                $params_stock['medicine_data'] = json_encode($stock_data);
+                $params_stock['medicine_data'] = json_encode(array_values($stock_data));
 
                 if ($shop['bind_type'] === 4) {
                     $minkang->medicineCodeUpdate($params_code);
