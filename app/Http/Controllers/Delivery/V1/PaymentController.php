@@ -18,12 +18,21 @@ class PaymentController extends Controller
      * 支付方式
      * @data 2023/8/16 9:51 上午
      */
-    public function pay_method()
+    public function pay_method(Request $request)
     {
-        $result = [
-            // ['method' => 1, 'text' => '支付宝', 'checked' => 1],
-            // ['method' => 2, 'text' => '微信', 'checked' => 0],
-        ];
+        // 渠道（1 APP，2 PC网站）
+        $channel = (int) $request->get("channel", 1);
+        if ($channel === 2) {
+            $result = [
+                ['method' => 1, 'text' => '支付宝', 'checked' => 0],
+                ['method' => 2, 'text' => '微信', 'checked' => 1],
+            ];
+        } else {
+            $result = [
+                // ['method' => 1, 'text' => '支付宝', 'checked' => 1],
+                // ['method' => 2, 'text' => '微信', 'checked' => 0],
+            ];
+        }
         return $this->success($result);
     }
 
@@ -36,19 +45,22 @@ class PaymentController extends Controller
         $user  = $request->user();
         $amount = (int) $request->get("amount", 0);
         $method = (int) $request->get("method", 0);
+        // 渠道（1 APP，2 PC网站）
+        $channel = (int) $request->get("channel", 1);
         if (!in_array($method, [1,2])) {
             return $this->error("支付方式不正确");
         }
-
         if ($amount < 1) {
             return $this->error("金额不正确");
+        }
+        if (!in_array($channel, [1,2])) {
+            return $this->error("支付方式不正确");
         }
 
         $deposit = new Deposit([
             'pay_method' => 11,
             'type' => 1,
-            // 'amount' => $amount,
-            'amount' => 0.1,
+            'amount' => $amount,
         ]);
         $deposit->user()->associate($user);
         // 写入数据库
@@ -57,25 +69,51 @@ class PaymentController extends Controller
         $order = [
             'out_trade_no' => $deposit->no,
             'total_amount' => $deposit->amount,
-            'subject' => '美全跑腿费充值',
+            'subject' => '美全配送充值',
         ];
 
         $result = [];
-        if ($method === 1) {
-            $config = config("pay.alipay");
-            $config['notify_url'] = $config['app_notify_url'];
-            $order_info = Pay::alipay($config)->app($order)->getContent();
-            $result = ['order_info' => $order_info];
-        } elseif ($method === 2) {
-            $result = [
-                'appid' => '',
-                'noncestr' => '',
-                'package' => '',
-                'partnerid' => '',
-                'prepayid' => '',
-                'timestamp' => '',
-                'sign' => '',
-            ];
+        if ($channel === 1) {
+            // APP充值
+            if ($method === 1) {
+                $config = config("pay.alipay");
+                $config['notify_url'] = $config['app_notify_url'];
+                $order_info = Pay::alipay($config)->app($order)->getContent();
+                $result = ['order_info' => $order_info];
+            } elseif ($method === 2) {
+                $result = [
+                    'appid' => '',
+                    'noncestr' => '',
+                    'package' => '',
+                    'partnerid' => '',
+                    'prepayid' => '',
+                    'timestamp' => '',
+                    'sign' => '',
+                ];
+            }
+        } else {
+            // PC充值
+            if ($method == 1) {
+                $order = [
+                    'out_trade_no' => $deposit->no,
+                    'total_amount' => $deposit->amount,
+                    'subject' => '美全配送充值',
+                ];
+                return $this->success(['html' => Pay::alipay(config("pay.alipay"))->web($order)->getContent()]);
+            } else if ($method == 2) {
+                $order = [
+                    'out_trade_no'  => $deposit->no,
+                    'body'          => '美全配送充值',
+                    'total_fee'     => $deposit->amount * 100
+                ];
+                $wechatOrder = Pay::wechat(config("pay.wechat"))->scan($order);
+                $data = [
+                    'code_url' => $wechatOrder->code_url,
+                    'amount'  => $deposit->amount,
+                    'out_trade_no'  => $deposit->no,
+                ];
+                return $this->success($data);
+            }
         }
         return $this->success($result);
     }
