@@ -245,6 +245,12 @@ class AnalysisController extends Controller
         if (!$edate) {
             $edate = date("Y-m-d", strtotime("-1 day"));
         }
+        $date_range = $request->get('date_range', '');
+        if ($date_range) {
+            $date_arr = explode(',', $date_range);
+            $sdate = $date_arr[0];
+            $edate = $date_arr[1];
+        }
         if (strtotime($sdate) < date("Y-m-d",strtotime("-93 day"))) {
             return $this->error('只能查询3个月内的数据');
         }
