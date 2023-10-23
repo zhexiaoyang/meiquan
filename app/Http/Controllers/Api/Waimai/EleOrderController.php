@@ -251,6 +251,7 @@ class EleOrderController extends Controller
                 ]);
             }
         }
+        return $this->res("order.status.success");
     }
 
     public function cancelOrder($order_id)
