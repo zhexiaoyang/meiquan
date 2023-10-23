@@ -3,10 +3,8 @@
 namespace App\Http\Controllers\Delivery\V1;
 
 use App\Http\Controllers\Controller;
-use App\Jobs\CreateMtShop;
 use App\Models\Shop;
 use App\Models\ShopRider;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class ShopController extends Controller
@@ -77,6 +75,7 @@ class ShopController extends Controller
      */
     public function takeout(Request $request)
     {
+        $name = $request->get('name', '');
         // 类型（1 美团闪购，2 美团外卖，5 饿了么）
         if (!$type = $request->get('type')) {
             return $this->error('平台类型不能为空');
@@ -92,6 +91,9 @@ class ShopController extends Controller
             $query->where('waimai_mt', '<>', '')->where('meituan_bind_platform', 25);
         } elseif ($type == 5) {
             $query->where('waimai_ele', '<>', '');
+        }
+        if ($name) {
+            $query->where('shop_name', 'like', "%{$name}%");
         }
         $shops = $query->get();
         $minkang = null;
@@ -426,7 +428,7 @@ class ShopController extends Controller
         if (!$shop_id = (int) $request->get('shop_id')) {
             return $this->error('门店ID错误');
         }
-        if (!$shop = Shop::select('id')->find($shop_id)) {
+        if (!Shop::select('id')->find($shop_id)) {
             return $this->error('门店不存在');
         }
 
