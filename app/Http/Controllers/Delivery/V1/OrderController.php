@@ -301,6 +301,11 @@ class OrderController extends Controller
         $order_tag = (int) $request->get('order_tag', 0);
         // 订单来源（0 全部，1 美团外卖，2 饿了么，10 其它）
         $order_source = (int) $request->get('order_source', 0);
+        // 新订单( 10 new)、待抢单(20 pending)、待取货(30 receiving)、配送中(40 delivering)、配送异常(50 exceptional)、取消/退款(60 refund)、催单(70 remind)
+        $status = (int) $request->get('status', '');
+        if (!in_array($status, [10,20,30,40,50,60,70,80])) {
+            $status = 10;
+        }
 
         // 没有搜索关键字、搜索日期类型，返回空
         // if (empty($search_type) && empty($date_type)) {
@@ -438,6 +443,27 @@ class OrderController extends Controller
             $query->where('shop_id', $shop_id);
         // } else {
         //     $query->whereIn('shop_id', $user_shop_ids);
+        }
+        if ($status === 10) {
+            $query->whereIn('status', [0, 3, 7, 8]);
+        } elseif ($status === 20) {
+            $query->where('status', 20);
+        } elseif ($status === 30) {
+            $query->where('status', 50);
+        } elseif ($status === 40) {
+            $query->where('status', 60);
+        } elseif ($status === 50) {
+            // 5 余额不足，10 暂无运力
+            $query->whereIn('status', [10, 5, 99]);
+        } elseif ($status === 60) {
+            // $query->where('status', 20);
+            $query->whereHas('order', function ($query) {
+                $query->where('status', 30);
+            })->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day')));;
+        } elseif ($status === 70) {
+            $query->where('status', '<', 70)->where('remind_num', '>', 0);
+        } elseif ($status === 80) {
+            $query->whereIn('status', [70, 75])->where('over_at', '>', date('Y-m-d'));
         }
         // 查询订单
         $orders = $query->orderByDesc('id')->paginate($page_size);
