@@ -303,9 +303,9 @@ class OrderController extends Controller
         $order_source = (int) $request->get('order_source', 0);
 
         // 没有搜索关键字、搜索日期类型，返回空
-        if (empty($search_type) && empty($date_type)) {
-            return $this->success();
-        }
+        // if (empty($search_type) && empty($date_type)) {
+        //     return $this->success();
+        // }
         $user_shop_ids = $request->user()->shops()->pluck('id')->toArray();
         // 门店判断
         if ($shop_id) {
