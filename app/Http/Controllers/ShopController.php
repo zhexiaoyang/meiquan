@@ -1099,6 +1099,9 @@ class ShopController extends Controller
             return $this->error("无权限操作");
         }
         $user_id = Auth::id();
+        if ($user_id != 1 && $user_id !== 32) {
+            return $this->error("无权限操作");
+        }
         $this->ding_error("用户ID:$user_id|操作删除门店|" . json_encode($shop));
 
         $shop->user_id = 0;
