@@ -10,6 +10,7 @@ use App\Models\Shop;
 use App\Models\ShopRange;
 use App\Models\ShopThreeId;
 use App\Models\User;
+use App\Traits\NoticeTool2;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,8 +18,12 @@ use Illuminate\Support\Facades\DB;
 
 class ShopController extends Controller
 {
+
+    use NoticeTool2;
+
     public function __construct()
     {
+        $this->notice_tool2_prefix = '门店管理';
         $this->middleware('auth:api');
     }
 
@@ -1081,7 +1086,7 @@ class ShopController extends Controller
      * @author zhangzhen
      * @data 2021/6/7 10:19 下午
      */
-    public function delete(Shop $shop)
+    public function delete(Shop $shop, Request $request)
     {
         if ($shop->mt_shop_id) {
             return $this->error("请先关闭美团自动接单");
@@ -1089,6 +1094,12 @@ class ShopController extends Controller
         if ($shop->ele_shop_id) {
             return $this->error("请先关闭饿了么自动接单");
         }
+
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            return $this->error("无权限操作");
+        }
+        $user_id = Auth::id();
+        $this->ding_error("用户ID:$user_id|操作删除门店|" . json_encode($shop));
 
         $shop->user_id = 0;
         $shop->own_id = 0;
