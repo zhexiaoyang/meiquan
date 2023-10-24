@@ -22,6 +22,7 @@ class AccountController extends Controller
             'phone' => $user->phone,
             'nickname' => $user->nickname,
             'money' => $user->money,
+            'operate_money' => $user->operate_money,
         ];
 
         return $this->success($user_info);
