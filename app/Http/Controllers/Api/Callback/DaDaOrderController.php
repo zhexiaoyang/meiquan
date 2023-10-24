@@ -42,9 +42,9 @@ class DaDaOrderController
         $status = $data['order_status'] ?? '';
         // 重复回传状态原因
         $repeat_reason_type = $data['repeat_reason_type'] ?? 0;
-        if ($repeat_reason_type) {
-            $this->ding_error("{$order_id}:重复回传状态原因:{$repeat_reason_type}");
-        }
+        // if ($repeat_reason_type) {
+            // $this->ding_error("{$order_id}:重复回传状态原因:{$repeat_reason_type}");
+        // }
         // 配送员姓名
         $name = $data['dm_name'] ?? '';
         // 配送员手机号

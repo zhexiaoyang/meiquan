@@ -43,9 +43,9 @@ class DaDaController extends Controller
         // 重复回传状态原因
         $repeat_reason_type = $data['repeat_reason_type'] ?? 0;
         $ding_error = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
-        if ($repeat_reason_type) {
-            $ding_error->sendTextMsg("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}");
-        }
+        // if ($repeat_reason_type) {
+            // $ding_error->sendTextMsg("达达聚合{$order_id}:重复回传状态原因:{$repeat_reason_type}");
+        // }
         // 配送员姓名
         $name = $data['dm_name'] ?? '';
         // 配送员手机号
