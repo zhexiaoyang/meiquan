@@ -1053,6 +1053,7 @@ class EleOrderController extends Controller
         $this->prefix = str_replace('###', "创建订单|订单号:{$order_id}", $this->prefix_title);
         $ele = app("ele");
         $order_request = $ele->orderInfo($order_id);
+        $this->log_info("开始获取订单全部信息");
         if (!empty($order_request) && isset($order_request['body']['data']) && !empty($order_request['body']['data'])) {
             // 订单数组
             $order = $order_request['body']['data'];
@@ -1433,6 +1434,9 @@ class EleOrderController extends Controller
                     Task::deliver(new TakeoutOrderVoiceNoticeTask(1, $shop->account_id ?: $shop->user_id), true);
                 }
             }
+        } else {
+            $this->log_info("未获取到订单信息");
+            $this->ding_error("未获取到订单信息");
         }
         return $this->res("order.status.success");
     }
