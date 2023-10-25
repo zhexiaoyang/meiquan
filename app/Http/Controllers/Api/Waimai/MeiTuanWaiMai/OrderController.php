@@ -25,6 +25,7 @@ use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -272,6 +273,12 @@ class OrderController
                     $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
                 } elseif ($status === 10) {
                     // 骑手接单
+                    $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                    if (!$jiedan_lock->get()) {
+                        // 获取锁定5秒...
+                        $this->ding_error("[美团众包]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                        sleep(1);
+                    }
                     // 写入接单足迹
                     if ($delivery) {
                         try {
