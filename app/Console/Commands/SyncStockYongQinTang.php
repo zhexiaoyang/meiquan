@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Medicine;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Redis;
 
@@ -19,6 +20,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '14239678',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5791,
             'name' => '昌平大药房（玉屏路店）'
         ],
         [
@@ -26,6 +28,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '14264178',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5792,
             'name' => '昌平大药房（渝西大道店）'
         ],
         [
@@ -33,6 +36,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '14281885',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5793,
             'name' => '昌平大药房（萱花路店）'
         ],
         [
@@ -40,13 +44,15 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18012051',
             'bind' => 'shangou',
             'bind_type' => 31,
-            'name' => '永沁堂药房（泸州街店）'
+            'mid' => 6607,
+            'name' => '永沁堂大药房（泸州街店）'
         ],
         [
             'yid' => 3,
             'mtid' => '14265475',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5224,
             'name' => '永沁堂大药房（人民南路店）'
         ],
         [
@@ -54,6 +60,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '14282217',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5240,
             'name' => '永沁堂大药房（汇龙东二路店）'
         ],
         [
@@ -61,6 +68,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '14281884',
             'bind' => 'minkang',
             'bind_type' => 4,
+            'mid' => 5237,
             'name' => '永沁堂大药房（凤栖店）'
         ],
         [
@@ -68,6 +76,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18859007',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 5790,
             'name' => '永沁堂大药房（二门市店）'
         ],
         [
@@ -75,6 +84,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18859008',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 5238,
             'name' => '永沁堂大药房（五门市店）'
         ],
         [
@@ -82,6 +92,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18857417',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 6818,
             'name' => '永沁堂大药房（万来店）'
         ],
         [
@@ -89,6 +100,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18854087',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 6819,
             'name' => '永沁堂大药房(平康店)'
         ],
         [
@@ -96,13 +108,15 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18832866',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 6820,
             'name' => '昌平大药房（万向店）'
         ],
         [
-            'yid' => 9,
+            'yid' => 25,
             'mtid' => '19232483',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 7029,
             'name' => '昌平大药房（自源店）'
         ],
         [
@@ -110,6 +124,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '18859000',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 5239,
             'name' => '永沁堂大药房（六门市店）'
         ],
         [
@@ -117,6 +132,7 @@ class SyncStockYongQinTang extends Command
             'mtid' => '19416431',
             'bind' => 'shangou',
             'bind_type' => 31,
+            'mid' => 7067,
             'name' => '永沁堂大药房(万城店)'
         ],
     ];
@@ -176,7 +192,7 @@ class SyncStockYongQinTang extends Command
                 $stock_data = [];
                 foreach ($items as $item) {
                     $pid = $item['pid'];
-                    $quantity = $item['quantity'];
+                    $quantity = (int) $item['quantity'];
                     if (!$upc = Redis::hget($redis_key, $pid)) {
                         continue;
                     }
@@ -189,8 +205,10 @@ class SyncStockYongQinTang extends Command
                     ];
                     $stock_data[$upc] = [
                         'app_medicine_code' => $store_id,
-                        'stock' => (int) $quantity,
+                        'stock' => $quantity,
                     ];
+                    \Log::info("永沁堂更新价格|{$shop['name']}|条码：{$upc}|库存：{$quantity}");
+                    Medicine::where('shop_id', $shop['mid'])->where('upc', $upc)->update(['stock' => $quantity]);
                 }
                 $this->info("{$shop['name']}-第{$key}批总数：" . count($code_data));
 
