@@ -412,7 +412,7 @@ class OrderController extends Controller
             $res['status'] = 6;
         } elseif ($order_pt->status === 60) {
             $res['status'] = 5;
-        } elseif ($order_pt->status === 40) {
+        } elseif ($order_pt->status === 40 || $order_pt->status === 50) {
             $res['status'] = 4;
         } elseif ($order_pt->status === 20) {
             $res['status'] = 3;
