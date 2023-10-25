@@ -394,7 +394,7 @@ class OrderController extends Controller
             'customer_lng' => $order->longitude,
             'customer_lat' => $order->latitude,
             'price' => $order->total,
-            'shipping_fee' => $order->money,
+            'shipping_fee' => $order_pt->money,
             'caution' => $order->caution,
             'courier_name' => $order_pt->courier_name,
             'courier_tel' => $order_pt->courier_phone,
