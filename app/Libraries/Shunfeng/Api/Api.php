@@ -43,7 +43,8 @@ class Api extends Request
             "user_address" => $order->receiver_address,
             "city_name" => $shop->city,
             "weight" => 1000,
-            "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
+            // "product_type" => isset($this->product_data[$shop->category]) ? $this->product_data[$shop->category] : 99,
+            "product_type" => 2,
             // 是否是预约单	0：非预约单；1：预约单
             "is_appoint" => 0,
             // 单位分，加小费最低不能少于100分
