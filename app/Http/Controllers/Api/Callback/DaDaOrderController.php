@@ -113,6 +113,7 @@ class DaDaOrderController
                     $order->shipper_type_dd = 0;
                     $order->shipper_type_sf = 0;
                     $order->save();
+                    event(new OrderCancel($order->id, 5));
                     $order = Order::find($order->id);
                     dispatch(new CreateMtOrder($order));
                     OrderLog::create([

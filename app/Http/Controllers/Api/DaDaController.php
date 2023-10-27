@@ -132,6 +132,7 @@ class DaDaController extends Controller
                     $order->shipper_type_sf = 0;
                     $order->save();
                     $order = Order::find($order->id);
+                    event(new OrderCancel($order->id, 5));
                     dispatch(new CreateMtOrder($order));
                     OrderLog::create([
                         'ps' => 5,

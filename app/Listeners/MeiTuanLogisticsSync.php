@@ -32,10 +32,12 @@ class MeiTuanLogisticsSync implements ShouldQueue
     {
         $order_id = $event->order_id;
         $status = $event->status;
+        \Log::info("取消订单同步美团状态|order_id：" . $order_id);
         $ps = $event->ps;
         if (!$order = Order::select('id','status','type','order_id','peisong_id','ps','platform')->find($order_id)) {
             return;
         }
+        \Log::info("取消订单同步美团状态|order_id：{$order_id}|order_id:{$order->order_id}");
         $meituan = null;
         $type = $order->type;
         if ($type === 1) {
@@ -52,7 +54,7 @@ class MeiTuanLogisticsSync implements ShouldQueue
             $meituan = app("meiquan");
         }
         if (!$meituan) {
-            \Log::info('自配送回传错误', [$order]);
+            \Log::info("取消订单同步美团状态|order_id：{$order_id}|order_id:{$order->order_id}|没有平台", [$order]);
             return;
         }
         $codes = [ 1 => '10032', 2 => '10004', 3 => '10003', 4 => '10017', 5 => '10002', 6 => '10005', 7 => '10001', 8 => '10032', 200 => '10017'];
@@ -76,14 +78,14 @@ class MeiTuanLogisticsSync implements ShouldQueue
     {
         if ($order->platform == 1) {
             if (isset($result['data']) && $result['data'] == 'ok') {
-                \Log::info("自配回传成功|order,{$order->id},{$order->order_id},{$order->ps}");
+                \Log::info("取消订单同步美团状态|order,{$order->id},{$order->order_id},{$order->ps}");
                 return true;
             }
         } elseif ($order->platform == 2) {
             return true;
         }
-        \Log::info("自配回传返回错误|order,{$order->id},{$order->order_id},{$order->ps}", is_array($result) ? $result : [$result]);
-        $this->ding_error("自配回传返回错误|order,{$order->id},{$order->order_id},{$order->ps}");
+        \Log::info("取消订单同步美团状态|order,{$order->id},{$order->order_id},{$order->ps}", is_array($result) ? $result : [$result]);
+        $this->ding_error("取消订单同步美团状态|order,{$order->id},{$order->order_id},{$order->ps}");
         return false;
     }
 
