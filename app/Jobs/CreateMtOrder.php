@@ -133,6 +133,15 @@ class CreateMtOrder implements ShouldQueue
             return;
         }
 
+        // 判断发送短信提醒余额不足
+        $send_sms_status = true;
+        $create_user_time_status = strtotime($user->created_at) < (time() - strtotime('-2 month'));
+        $range_date_order_count = Order::where('user_id', $user->id)->where('status', 70)->where('created_at', '>', date('Y-m-d', strtotime('-2 month')))->count();
+        if ($create_user_time_status && ($range_date_order_count <= 0)) {
+            $send_sms_status = false;
+        }
+
+
         // 发单6：判断用户金额是否满足最小订单」』」』因为自主运力，取消此判断
         // if ($user->money <= 5.2) {
         //     if ($order->status < 20) {
@@ -281,8 +290,12 @@ class CreateMtOrder implements ShouldQueue
                         if ($order->status < 20) {
                             DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                         }
-                        dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                        $this->log("用户金额不足发0.1元，停止不能发自主运力派单");
+                        if ($send_sms_status) {
+                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                            $this->log("发短信|用户金额不足发0.1元，停止不能发「美团众包」运力派单");
+                        } else {
+                            $this->log("未发短信|用户金额不足发0.1元，停止不能发「美团众包」运力派单");
+                        }
                         return;
                     }
                     $this->money_zb = $money_zb;
@@ -335,8 +348,12 @@ class CreateMtOrder implements ShouldQueue
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
-                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                            $this->log("用户金额不足发0.1元，停止不能发「顺丰」自主运力派单");
+                            if ($send_sms_status) {
+                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                $this->log("发短信|用户金额不足发0.1元，停止不能发「顺丰」自主运力派单");
+                            } else {
+                                $this->log("未发短信|用户金额不足发0.1元，停止不能发「顺丰」自主运力派单");
+                            }
                             return;
                         } else {
                             $order->money_sf = $money_sf;
@@ -348,8 +365,12 @@ class CreateMtOrder implements ShouldQueue
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_sf + $use_money]));
-                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                            $this->log("用户金额不足发「顺丰」单，停止派单");
+                            if ($send_sms_status) {
+                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                $this->log("发短信|用户金额不足发「顺丰」单，停止派单");
+                            } else {
+                                $this->log("未发短信|用户金额不足发「顺丰」单，停止派单");
+                            }
                             if (!$zz_status) {
                                 // 如果有自主运力，不跳出发单
                                 return;
@@ -402,8 +423,12 @@ class CreateMtOrder implements ShouldQueue
                         DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                     }
                     // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_uu + $use_money]));
-                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                    $this->log("用户金额不足发「UU」订单，停止派单");
+                    if ($send_sms_status) {
+                        dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                        $this->log("发短信|用户金额不足发「UU」单，停止派单");
+                    } else {
+                        $this->log("未发短信|用户金额不足发「UU」单，停止派单");
+                    }
                     return;
                 }
                 $order->money_uu = $money_uu;
@@ -460,8 +485,12 @@ class CreateMtOrder implements ShouldQueue
                                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
-                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                            $this->log("用户金额不足发0.1元，停止不能发「达达」自主运力派单");
+                            if ($send_sms_status) {
+                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                $this->log("发短信|用户金额不足发0.1元，停止不能发「达达」自主运力派单");
+                            } else {
+                                $this->log("未发短信|用户金额不足发0.1元，停止不能发「达达」自主运力派单");
+                            }
                             return;
                         } else {
                             $this->dada_order_id = $check_dd['result']['deliveryNo'];
@@ -474,8 +503,12 @@ class CreateMtOrder implements ShouldQueue
                                 DB::table('orders')->where('id', $this->order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                             }
                             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_dd + $use_money]));
-                            dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                            $this->log("用户金额不足发「达达」订单，停止派单");
+                            if ($send_sms_status) {
+                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                $this->log("发短信|用户金额不足发「达达」单，停止派单");
+                            } else {
+                                $this->log("未发短信|用户金额不足发「达达」单，停止派单");
+                            }
                             if (!$zz_status) {
                                 // 如果有自主运力，不跳出发单
                                 return;
@@ -552,93 +585,93 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  美  团  跑  腿  ***********************************
         // **********************************************************************************
         // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
-        if (true) {
-            $order->fail_mt = "公司关闭美团跑腿";
-            $this->log("公司关闭「美团」跑腿，停止「美团」派单");
-        }elseif ($order->fail_mt) {
-            $this->log("已经有「美团」失败信息：{$order->fail_mt}，停止「美团」派单");
-        } elseif ($order->mt_status != 0) {
-            $this->log("订单状态[{$order->dd_status}]不是0，停止「美团」派单");
-        } elseif (!$shop->shop_id) {
-            $order->fail_mt = "门店不支持美团跑腿";
-            $this->log("门店不支持「美团」跑腿，停止「美团」派单");
-        } elseif (!$mt_switch) {
-            $order->fail_mt = "门店关闭美团跑腿";
-            $this->log("门店关闭「美团」跑腿，停止「美团」派单");
-        } else {
-            $meituan = app("meituan");
-            $check_mt = $meituan->preCreateByShop($shop, $this->order);
-            $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
-            $money_mt += $add_money;
-            $this->log("「美团」金额：{$money_mt}");
-            if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
-                // 判断用户金额是否满足美团订单
-                if ($user->money < ($money_mt + $use_money)) {
-                    if ($order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
-                    }
-                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                    $this->log("用户金额不足发「美团」单，停止派单");
-                    return;
-                }
-                $order->money_mt = $money_mt;
-                $this->services['meituan'] = $money_mt;
-            } else {
-                $mt_error_msg = $check_mt['message'] ?? "美团校验订单失败";
-                $order->fail_mt = $mt_error_msg;
-                $this->log("「美团」校验订单失败:{$mt_error_msg}，停止「美团」派单");
-            }
-        }
+        // if (true) {
+        //     $order->fail_mt = "公司关闭美团跑腿";
+        //     $this->log("公司关闭「美团」跑腿，停止「美团」派单");
+        // }elseif ($order->fail_mt) {
+        //     $this->log("已经有「美团」失败信息：{$order->fail_mt}，停止「美团」派单");
+        // } elseif ($order->mt_status != 0) {
+        //     $this->log("订单状态[{$order->dd_status}]不是0，停止「美团」派单");
+        // } elseif (!$shop->shop_id) {
+        //     $order->fail_mt = "门店不支持美团跑腿";
+        //     $this->log("门店不支持「美团」跑腿，停止「美团」派单");
+        // } elseif (!$mt_switch) {
+        //     $order->fail_mt = "门店关闭美团跑腿";
+        //     $this->log("门店关闭「美团」跑腿，停止「美团」派单");
+        // } else {
+        //     $meituan = app("meituan");
+        //     $check_mt = $meituan->preCreateByShop($shop, $this->order);
+        //     $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
+        //     $money_mt += $add_money;
+        //     $this->log("「美团」金额：{$money_mt}");
+        //     if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
+        //         // 判断用户金额是否满足美团订单
+        //         if ($user->money < ($money_mt + $use_money)) {
+        //             if ($order->status < 20) {
+        //                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
+        //             }
+        //             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+        //             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+        //             $this->log("用户金额不足发「美团」单，停止派单");
+        //             return;
+        //         }
+        //         $order->money_mt = $money_mt;
+        //         $this->services['meituan'] = $money_mt;
+        //     } else {
+        //         $mt_error_msg = $check_mt['message'] ?? "美团校验订单失败";
+        //         $order->fail_mt = $mt_error_msg;
+        //         $this->log("「美团」校验订单失败:{$mt_error_msg}，停止「美团」派单");
+        //     }
+        // }
 
         // **********************************************************************************
         // ******************************  蜂  鸟  跑  腿  ***********************************
         // **********************************************************************************
         // 判断蜂鸟是否可以接单、并加入数组
-        if (true) {
-            $order->fail_mt = "公司关闭蜂鸟跑腿";
-            $this->log("公司关闭「蜂鸟」跑腿，停止「蜂鸟」派单");
-        }elseif ($order->fail_fn) {
-            $this->log("已经有「蜂鸟」失败信息：{$order->fail_fn}，停止「蜂鸟」派单");
-        } elseif ($order->fn_status != 0) {
-            $this->log("订单状态[{$order->fn_status}]不是0，停止「蜂鸟」派单");
-        } elseif (!$shop->shop_id_fn) {
-            $order->fail_fn = "门店不支持蜂鸟跑腿";
-            $this->log("门店不支持「蜂鸟」跑腿，停止「蜂鸟」派单");
-        } elseif (!$fn_switch) {
-            $order->fail_fn = "门店关闭蜂鸟跑腿";
-            $this->log("门店关闭「蜂鸟」跑腿，停止「蜂鸟」派单");
-        } elseif ($order->type == 11) {
-            $order->fail_fn = "药柜订单禁止发送蜂鸟";
-            $this->log("药柜订单禁止发送「蜂鸟」，停止「蜂鸟」派单");
-        } elseif ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
-            $order->fail_fn = "蜂鸟拒单";
-            $this->log("时间问题-「蜂鸟」拒单，停止「蜂鸟」派单");
-        } else {
-            $fengniao = app("fengniao");
-            $check_fn_res = $fengniao->preCreateOrderNew($shop, $this->order);
-            $check_fn = json_decode($check_fn_res['business_data'], true);
-            $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
-            $this->log("「蜂鸟」金额：{$money_fn}");
-            if ($money_fn > 1) {
-                // 判断用户金额是否满足蜂鸟订单
-                if ($user->money < ($money_fn + $use_money)) {
-                    if ($this->order->status < 20) {
-                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
-                    }
-                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
-                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                    $this->log("用户金额不足发「蜂鸟」订单，停止派单");
-                    return;
-                }
-                $order->money_fn = $money_fn;
-                $this->services['fengniao'] = $money_fn;
-            } else {
-                $fn_error_msg = $check_fn['goods_infos'][0]['disable_reason'] ?? "蜂鸟校验请求失败";
-                $order->fail_fn = $fn_error_msg;
-                $this->log("「蜂鸟」校验请求失败:{$fn_error_msg}，停止「蜂鸟」派单");
-            }
-        }
+        // if (true) {
+        //     $order->fail_mt = "公司关闭蜂鸟跑腿";
+        //     $this->log("公司关闭「蜂鸟」跑腿，停止「蜂鸟」派单");
+        // }elseif ($order->fail_fn) {
+        //     $this->log("已经有「蜂鸟」失败信息：{$order->fail_fn}，停止「蜂鸟」派单");
+        // } elseif ($order->fn_status != 0) {
+        //     $this->log("订单状态[{$order->fn_status}]不是0，停止「蜂鸟」派单");
+        // } elseif (!$shop->shop_id_fn) {
+        //     $order->fail_fn = "门店不支持蜂鸟跑腿";
+        //     $this->log("门店不支持「蜂鸟」跑腿，停止「蜂鸟」派单");
+        // } elseif (!$fn_switch) {
+        //     $order->fail_fn = "门店关闭蜂鸟跑腿";
+        //     $this->log("门店关闭「蜂鸟」跑腿，停止「蜂鸟」派单");
+        // } elseif ($order->type == 11) {
+        //     $order->fail_fn = "药柜订单禁止发送蜂鸟";
+        //     $this->log("药柜订单禁止发送「蜂鸟」，停止「蜂鸟」派单");
+        // } elseif ((time() > strtotime(date("Y-m-d 22:00:00"))) || (time() < strtotime(date("Y-m-d 09:00:00")))) {
+        //     $order->fail_fn = "蜂鸟拒单";
+        //     $this->log("时间问题-「蜂鸟」拒单，停止「蜂鸟」派单");
+        // } else {
+        //     $fengniao = app("fengniao");
+        //     $check_fn_res = $fengniao->preCreateOrderNew($shop, $this->order);
+        //     $check_fn = json_decode($check_fn_res['business_data'], true);
+        //     $money_fn = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+        //     $this->log("「蜂鸟」金额：{$money_fn}");
+        //     if ($money_fn > 1) {
+        //         // 判断用户金额是否满足蜂鸟订单
+        //         if ($user->money < ($money_fn + $use_money)) {
+        //             if ($this->order->status < 20) {
+        //                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
+        //             }
+        //             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_fn + $use_money]));
+        //             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+        //             $this->log("用户金额不足发「蜂鸟」订单，停止派单");
+        //             return;
+        //         }
+        //         $order->money_fn = $money_fn;
+        //         $this->services['fengniao'] = $money_fn;
+        //     } else {
+        //         $fn_error_msg = $check_fn['goods_infos'][0]['disable_reason'] ?? "蜂鸟校验请求失败";
+        //         $order->fail_fn = $fn_error_msg;
+        //         $this->log("「蜂鸟」校验请求失败:{$fn_error_msg}，停止「蜂鸟」派单");
+        //     }
+        // }
 
         // **********************************************************************************
         // ******************************  闪  送  跑  腿  ***********************************
@@ -680,8 +713,12 @@ class CreateMtOrder implements ShouldQueue
                                     DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                                 }
                                 // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $use_money]));
-                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                                $this->log("用户金额不足发0.1元，停止不能发「闪送」自主运力派单");
+                                if ($send_sms_status) {
+                                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                    $this->log("发短信|用户金额不足发0.1元，停止不能发「闪送」自主运力派单");
+                                } else {
+                                    $this->log("未发短信|用户金额不足发0.1元，停止不能发「闪送」自主运力派单");
+                                }
                                 return;
                             } else {
                                 $order->money_ss = $money_ss;
@@ -694,8 +731,12 @@ class CreateMtOrder implements ShouldQueue
                                     DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
                                 }
                                 // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_ss + $use_money]));
-                                dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-                                $this->log("用户金额不足发「闪送」单，停止派单");
+                                if ($send_sms_status) {
+                                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                                    $this->log("发短信|用户金额不足发「闪送」单，停止派单");
+                                } else {
+                                    $this->log("未发短信|用户金额不足发「闪送」单，停止派单");
+                                }
                                 if (!$zz_status) {
                                     // 如果有自主运力，不跳出发单
                                     return;
