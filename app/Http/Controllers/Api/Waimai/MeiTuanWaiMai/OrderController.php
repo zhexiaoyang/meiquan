@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 
 use App\Events\OrderComplete;
+use App\Jobs\GetRunningFeeFromMeituanJob;
 use App\Jobs\MtLogisticsSync;
 use App\Jobs\PrescriptionFeeDeductionJob;
 use App\Jobs\VipOrderSettlement;
@@ -1055,6 +1056,8 @@ class OrderController
                     // \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
                     PrescriptionFeeDeductionJob::dispatch($order->id, $platformChargeFee2);
                 }
+                // 触发获取美团跑腿费任务
+                GetRunningFeeFromMeituanJob::dispatch($order->id)->delay(3);
             } else {
                 $this->log_info("订单号：{$order_id}|订单不存在");
             }
