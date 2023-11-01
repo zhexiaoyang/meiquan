@@ -235,7 +235,17 @@ class MedicineController extends Controller
                 'online_ele' => $status == 1 ? 1 : 0,
             ];
         }
-        $medicine = Medicine::firstOrCreate(['shop_id' => $shop->id, 'upc' => $upc], $medicine_arr);
+        if ($medicine = Medicine::where('shop_id', $shop->id)->where('upc', $upc)->first()) {
+            Medicine::where('id', $medicine->id)->update([
+                'price' => $price,
+                'stock' => $stock,
+                'guidance_price' => $cost,
+                'store_id' => $store_code,
+                'sequence' => $sequence,
+            ]);
+        } else {
+            $medicine = Medicine::create($medicine_arr);
+        }
         $category_create_result = $this->createCategory($shop, $medicine, (bool) $mt_id, (bool) $ele_id);
         $update = [];
 
