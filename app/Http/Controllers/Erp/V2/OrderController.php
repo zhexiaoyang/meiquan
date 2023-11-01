@@ -95,6 +95,7 @@ class OrderController extends Controller
         if (!$order_id = $request->get('orderId')) {
             return $this->error('订单号不能为空');
         }
+        $wm_order = WmOrder::where('order_id', $order_id)->first();
 
         $res = [];
         if ($mt_id) {
@@ -195,9 +196,9 @@ class OrderController extends Controller
                             $actOrderChargeByPoi += $item['money'];
                         }
                     }
-                    // 订单下帐金额 = 所有商品原价总金额 - 佣金 - 代运营费 -处方费 - 商家活动承担 + 平台活动承担 + 平台返配送费
-                    $keepAccount = $product_total - $foodShareFeeChargeByPoi - $operate_service_fee - $prescription_fee - $actOrderChargeByPoi + $actOrderChargeByMt + $logisticsFee;
-                    $keepAccountText = "{$order_id}订单下帐金额 = 所有商品原价总金额($product_total) - 佣金($foodShareFeeChargeByPoi) - 代运营费($operate_service_fee) -处方费($prescription_fee) - 商家活动承担($actOrderChargeByPoi) + 平台活动承担($actOrderChargeByMt) + 平台返配送费($logisticsFee)";
+                    // 订单下帐金额 = 所有商品原价总金额 - 佣金 - 代运营费 -处方费 - 商家活动承担 + 平台活动承担 + 平台返配送费 - 跑腿费
+                    $keepAccount = $product_total - $foodShareFeeChargeByPoi - $operate_service_fee - $prescription_fee - $actOrderChargeByPoi + $actOrderChargeByMt + $logisticsFee - $wm_order->running_fee;
+                    $keepAccountText = "{$order_id}订单下帐金额 = 所有商品原价总金额($product_total) - 佣金($foodShareFeeChargeByPoi) - 代运营费($operate_service_fee) -处方费($prescription_fee) - 商家活动承担($actOrderChargeByPoi) + 平台活动承担($actOrderChargeByMt) + 平台返配送费($logisticsFee) - 跑腿费($wm_order->running_fee)";
                     // \Log::info($keepAccountText);
                     if (!empty($detail)) {
                         foreach ($detail as $k => $v) {
@@ -294,9 +295,9 @@ class OrderController extends Controller
                 $baidu_rate /= 100;
                 // 配送费
                 $send_fee = $ele_data['order']['send_fee'] / 100;
-                // 订单下帐金额 = 所有商品原价总金额 - 佣金 - 代运营费 -处方费 - 商家活动承担 + 平台活动承担 + 平台返配送费
-                $keepAccount = $product_total - $commission - $operate_service_fee - $prescription_fee - $shop_rate + $baidu_rate + $send_fee;
-                $keepAccountText = "{$order_id}订单下帐金额 = 所有商品原价总金额($product_total) - 佣金($commission) - 代运营费($operate_service_fee) -处方费($prescription_fee) - 商家活动承担($shop_rate) + 平台活动承担($baidu_rate) + 平台返配送费($send_fee)";
+                // 订单下帐金额 = 所有商品原价总金额 - 佣金 - 代运营费 -处方费 - 商家活动承担 + 平台活动承担 + 平台返配送费 - 跑腿费
+                $keepAccount = $product_total - $commission - $operate_service_fee - $prescription_fee - $shop_rate + $baidu_rate + $send_fee - $wm_order->running_fee;
+                $keepAccountText = "{$order_id}订单下帐金额 = 所有商品原价总金额($product_total) - 佣金($commission) - 代运营费($operate_service_fee) -处方费($prescription_fee) - 商家活动承担($shop_rate) + 平台活动承担($baidu_rate) + 平台返配送费($send_fee) - 跑腿费($wm_order->running_fee)";
                 if (!empty($detail)) {
                     foreach ($detail as $k => $v) {
                         $ratio = $v['total_price'] / $product_total;
