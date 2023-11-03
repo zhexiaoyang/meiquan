@@ -18,6 +18,7 @@ class SendOrderToErp implements ShouldQueue
 
     protected $data;
     protected $shop_id;
+    public $tries = 5;
 
     /**
      * SendOrderToErp constructor.
