@@ -786,6 +786,13 @@ class DaDaOrderController
                             ]);
                             if (in_array(in_array($order->zb_status, [0,1,3,7,80,99]) && $order->mt_status, [0,1,3,7,80,99]) && in_array($order->fn_status, [0,1,3,7,80,99]) && in_array($order->ss_status, [0,1,3,7,80,99]) && in_array($order->mqd_status, [0,1,3,7,80,99]) && in_array($order->sf_status, [0,1,3,7,80,99]) && in_array($order->uu_status, [0,1,3,7,80,99])) {
                                 if ($cancel_from === 1 || $cancel_from === 3) {
+                                    $update_data = [
+                                        'status' => 0,
+                                        'dd_status' => 0,
+                                        'ps' => 0
+                                    ];
+                                    Order::where("id", $order->id)->update($update_data);
+                                    $this->log_info('达达发起取消配送，系统重新呼叫跑腿');
                                     dispatch(new CreateMtOrder($order, 2));
                                 }
                             }

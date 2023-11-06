@@ -778,6 +778,7 @@ class ShunfengController
                                 'ps' => 0
                             ];
                             Order::where("id", $order->id)->update($update_data);
+                            Log::info($log_prefix . '顺丰发起取消配送，系统重新呼叫跑腿');
                             dispatch(new CreateMtOrder($order, 2));
                         }
                     });

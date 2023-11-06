@@ -716,6 +716,7 @@ class ShunFengOrderController extends Controller
                                 'ps' => 0
                             ];
                             Order::where("id", $order->id)->update($update_data);
+                            $this->log_info('达达发起取消配送，系统重新呼叫跑腿');
                             dispatch(new CreateMtOrder($order, 2));
                         }
                     });
