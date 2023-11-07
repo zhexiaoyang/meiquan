@@ -228,7 +228,7 @@ class RetailController extends Controller
                                 'spec' => $spec,
                                 'mt_status' => 1,
                                 'online_mt' => 1,
-                            ], ['shop_id' => $shop_id, 'sku_id' => $sku_id]);
+                            ], ['shop_id' => $shop_id, 'retail_id' => $retail->id, 'sku_id' => $sku_id]);
                             // Log::info("$name-$spec|$sku_id|$price|$category_name|$picture|$pictures");
                         }
                     }
