@@ -201,14 +201,17 @@ class RetailController extends Controller
                         // $pictures = $v['pictures'];
                         $picture = str_replace('http:', 'https:', $picture);
                         // $pictures = str_replace('http:', 'https:', $pictures);
-                        $retail = WmRetail::updateOrCreate([
-                            'shop_id' => $shop_id,
-                            'store_id' => $app_food_code ?: $name,
-                            'name' => $name,
-                            'category' => $category_name,
-                            'cover' => $picture,
-                            'sequence' => $sequence,
-                        ], ['shop_id' => $shop_id, 'store_id' => $app_food_code ?: $name]);
+                        $retail = WmRetail::query()->updateOrCreate(
+                            ['shop_id' => $shop_id, 'store_id' => $app_food_code ?: $name],
+                            [
+                                'shop_id' => $shop_id,
+                                'store_id' => $app_food_code ?: $name,
+                                'name' => $name,
+                                'category' => $category_name,
+                                'cover' => $picture,
+                                'sequence' => $sequence,
+                            ]
+                        );
                         foreach ($skus as $sku) {
                             $sku_id = $sku['sku_id'];
                             $price = $sku['price'];
@@ -216,19 +219,22 @@ class RetailController extends Controller
                             if (!$sku_id) {
                                 $sku_id = $name . '-' . $spec;
                             }
-                            WmRetailSku::updateOrCreate([
-                                'retail_id' => $retail->id,
-                                'shop_id' => $shop_id,
-                                'sku_id' => $sku_id,
-                                'name' => $name,
-                                'category' => $category_name,
-                                'cover' => $picture,
-                                'sequence' => $sequence,
-                                'price' => $price,
-                                'spec' => $spec,
-                                'mt_status' => 1,
-                                'online_mt' => 1,
-                            ], ['shop_id' => $shop_id, 'retail_id' => $retail->id, 'sku_id' => $sku_id]);
+                            WmRetailSku::updateOrCreate(
+                                ['shop_id' => $shop_id, 'retail_id' => $retail->id, 'sku_id' => $sku_id],
+                                [
+                                    'retail_id' => $retail->id,
+                                    'shop_id' => $shop_id,
+                                    'sku_id' => $sku_id,
+                                    'name' => $name,
+                                    'category' => $category_name,
+                                    'cover' => $picture,
+                                    'sequence' => $sequence,
+                                    'price' => $price,
+                                    'spec' => $spec,
+                                    'mt_status' => 1,
+                                    'online_mt' => 1,
+                                ]
+                            );
                             // Log::info("$name-$spec|$sku_id|$price|$category_name|$picture|$pictures");
                         }
                     }
