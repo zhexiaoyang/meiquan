@@ -176,9 +176,9 @@ class RetailController extends Controller
         if (!$shop->waimai_mt) {
             return $this->error('门店未绑定美团');
         }
-        if (WmRetailSku::where('shop_id', $shop_id)->count() > 0) {
-            return $this->error('该门店已同步过商品，请先清空后再操作同步');
-        }
+        // if (WmRetailSku::where('shop_id', $shop_id)->count() > 0) {
+        //     return $this->error('该门店已同步过商品，请先清空后再操作同步');
+        // }
         $waimai_mt = $shop->waimai_mt;
         if ($shop->meituan_bind_platform === 25) {
             $mt = app('mtkf');
@@ -201,14 +201,14 @@ class RetailController extends Controller
                         // $pictures = $v['pictures'];
                         $picture = str_replace('http:', 'https:', $picture);
                         // $pictures = str_replace('http:', 'https:', $pictures);
-                        $retail = WmRetail::create([
+                        $retail = WmRetail::updateOrCreate([
                             'shop_id' => $shop_id,
                             'store_id' => $app_food_code ?: $name,
                             'name' => $name,
                             'category' => $category_name,
                             'cover' => $picture,
                             'sequence' => $sequence,
-                        ]);
+                        ], ['shop_id' => $shop_id, 'store_id' => $app_food_code ?: $name]);
                         foreach ($skus as $sku) {
                             $sku_id = $sku['sku_id'];
                             $price = $sku['price'];
@@ -216,7 +216,7 @@ class RetailController extends Controller
                             if (!$sku_id) {
                                 $sku_id = $name . '-' . $spec;
                             }
-                            WmRetailSku::create([
+                            WmRetailSku::updateOrCreate([
                                 'retail_id' => $retail->id,
                                 'shop_id' => $shop_id,
                                 'sku_id' => $sku_id,
@@ -228,7 +228,7 @@ class RetailController extends Controller
                                 'spec' => $spec,
                                 'mt_status' => 1,
                                 'online_mt' => 1,
-                            ]);
+                            ], ['shop_id' => $shop_id, 'sku_id' => $sku_id]);
                             // Log::info("$name-$spec|$sku_id|$price|$category_name|$picture|$pictures");
                         }
                     }
