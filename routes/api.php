@@ -462,7 +462,7 @@ Route::middleware(["force-json"])->group(function() {
         /**
          * 管理员操作
          */
-        Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
+        Route::middleware(["role:super_man|super_admin|admin|finance|city_manager|marketing"])->prefix("admin")->namespace("Admin")->group(function () {
             /**
              * 数据分析
              */
@@ -615,6 +615,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop/erp/status", "ShopController@erpStatus");
             // **门店管理-VIP状态切换
             Route::post("shop/vip/status", "ShopController@vipStatus");
+            // **门店管理-代运营服务费状态切换
+            Route::post("shop/yunying/status", "ShopController@yunyingStatus");
             // **门店管理-保存仓库设置
             Route::post("shop/warehouse", "ShopController@warehouse");
             // 修改跑腿订单加价
@@ -720,7 +722,7 @@ Route::middleware(["force-json"])->group(function() {
                 Route::get("manager/profit", "ManagerProfitController@index");
             });
         });
-        Route::middleware(["role:super_man|admin|finance|city_manager|marketing"])->group(function () {
+        Route::middleware(["role:super_man|super_admin|admin|finance|city_manager|marketing"])->group(function () {
             // 用户管理
             Route::post("admin/user/chain", "UserController@chain");
             // 用户管理-导出
@@ -831,15 +833,15 @@ Route::middleware(["force-json"])->group(function() {
          */
         Route::get("order/location/{order}", "OrderController@location");
         // 未绑定全部药店
-        Route::get("shop/wei", "ShopController@wei")->name("api.shop.wei")->middleware("role:super_man");
+        Route::get("shop/wei", "ShopController@wei")->name("api.shop.wei")->middleware("role:super_man|super_admin");
         // 同步门店
-        Route::post("shop/sync", "ShopController@sync")->name("api.shop.sync")->middleware("role:super_man");
+        Route::post("shop/sync", "ShopController@sync")->name("api.shop.sync")->middleware("role:super_man|super_admin");
         // 管理员手动充值
-        Route::post("user/recharge", "UserController@recharge")->name("api.shop.recharge")->middleware("role:super_man");
+        Route::post("user/recharge", "UserController@recharge")->name("api.shop.recharge")->middleware("role:super_man|super_admin");
         // 管理员查看充值列表
-        Route::get("user/recharge", "UserController@rechargeList")->middleware("role:super_man");
+        Route::get("user/recharge", "UserController@rechargeList")->middleware("role:super_man|super_admin");
         // 用户
-        Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man");
+        Route::resource("user", "UserController", ["only" => ["store", "show", "index", "update"]])->middleware("role:super_man|super_admin");
 
         /**
          * 资源路由

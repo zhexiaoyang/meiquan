@@ -210,6 +210,7 @@ class ShopController extends Controller
                 $tmp['is_erp'] = $shop->erp_status === 1;
                 $tmp['erp_status'] = $shop->erp_status;
                 $tmp['vip_status_new'] = $shop->vip_status_new;
+                $tmp['yunying_status'] = $shop->yunying_status;
                 // 赋值
                 $data[] = $tmp;
             }
@@ -301,7 +302,7 @@ class ShopController extends Controller
     public function export(Request $request, ShopExport $export)
     {
         $user = $request->user();
-        if (!in_array($user->id, [1,32])) {
+        if (!in_array($user->id, [1,4478])) {
             return $this->error('没有权限');
         }
         return $export->withRequest();
@@ -612,6 +613,24 @@ class ShopController extends Controller
             $shop->vip_status_new = 1;
         } else {
             $shop->vip_status_new = 0;
+        }
+        $shop->save();
+
+        return $this->success();
+    }
+
+    public function yunyingStatus(Request $request)
+    {
+        if (!$request->user()->hasPermissionTo('yunying_switch')) {
+            return $this->error('错误请求');
+        }
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+        if ($shop->yunying_status != 1) {
+            $shop->yunying_status = 1;
+        } else {
+            $shop->yunying_status = 0;
         }
         $shop->save();
 
