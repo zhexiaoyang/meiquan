@@ -21,7 +21,7 @@ trait SmsTool
                     'created_at' => date("Y-m-d H:i:s"),
                     'updated_at' => date("Y-m-d H:i:s")
                 ]);
-                dispatch(new SendSmsNew($phone, "SMS_463750709", [ 'name' => '老板', 'date' => date("n-d H:i"), 'money' => $money]));
+                dispatch(new SendSmsNew($phone, "SMS_463750709", [ 'name' => '老板', 'date' => date("n-d H:i"), 'money' => $money, 'sign_name' => '美全健康']));
             }
         }
     }
