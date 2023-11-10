@@ -72,7 +72,7 @@ class OperateServiceFeeDeductionJob implements ShouldQueue
                 'created_at' => date("Y-m-d H:i:s"),
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
-            if ($current_user->operate_money < (100 + $money)) {
+            if ($current_user->operate_money < (config('ps.sms_operate_remind.max') + $money)) {
                 $this->prescriptionSms($current_user->phone);
             }
         });

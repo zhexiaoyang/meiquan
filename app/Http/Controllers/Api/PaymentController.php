@@ -301,6 +301,11 @@ class PaymentController
             return true;
         });
 
+        $user = DB::table('users')->find($order->user_id)->first();
+        if ($user && $user->operate_money >= config('ps.sms_operate_remind.max')) {
+            DB::table('send_sms_logs')->where('phone', $user->phone)->where('type', 2)->limit(1)->delete();
+        }
+
         if ($status) {
 
             return $this->wechat();
