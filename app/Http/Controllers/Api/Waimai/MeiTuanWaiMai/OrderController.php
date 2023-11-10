@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Waimai\MeiTuanWaiMai;
 use App\Events\OrderComplete;
 use App\Jobs\GetRunningFeeFromMeituanJob;
 use App\Jobs\MtLogisticsSync;
+use App\Jobs\OperateServiceFeeDeductionJob;
 use App\Jobs\PrescriptionFeeDeductionJob;
 use App\Jobs\VipOrderSettlement;
 use App\Libraries\DaDaService\DaDaService;
@@ -1053,11 +1054,18 @@ class OrderController
                     $reconciliationExtras = json_decode($poi_receive_detail_yuan['reconciliationExtras'] ?? '', true);
                     // \Log::info("完成订单扣款处方|{$order_id}}", $reconciliationExtras);
                     $platformChargeFee2 = (float) $reconciliationExtras['platformChargeFee2'] ?? null;
-                    // \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");
+                    // \Log::info("完成订单扣款处方|{$order_id}|{$platformChargeFee2}");operate_service_fee_at
                     PrescriptionFeeDeductionJob::dispatch($order->id, $platformChargeFee2);
                 }
                 // 触发获取美团跑腿费任务
                 GetRunningFeeFromMeituanJob::dispatch($order->id)->delay(3);
+
+                // 门店
+                $shop = Shop::find($order->shop_id);
+                if ($shop->yunying_status) {
+                    $this->ding_error("代运营服务费扣款事件触发");
+                    OperateServiceFeeDeductionJob::dispatch($order->id);
+                }
             } else {
                 $this->log_info("订单号：{$order_id}|订单不存在");
             }
