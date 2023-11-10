@@ -16,6 +16,7 @@ use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Models\WmOrder;
 use App\Traits\LogTool;
+use App\Traits\NoticeTool2;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +24,7 @@ use Illuminate\Support\Facades\Log;
 
 class MeiTuanMeiquanController extends Controller
 {
-    use LogTool;
+    use LogTool, NoticeTool2;
     public $prefix_title = '[美团外卖闪购回调&###]';
 
     // 闪购应用-门店绑定授权-正在使用
@@ -76,13 +77,13 @@ class MeiTuanMeiquanController extends Controller
             $shops = Shop::where("mtwm", $shop_id)->get();
             if ($shop = $shops->first()) {
                 if ($shops->count() > 1) {
-                    $this->ding_error("美团外卖ID，数量大于1");
+                    $this->ding_error("美团外卖ID，数量大于1" . json_encode($poi_info));
                     return json_encode(['data' => 'ok']);
                 }
                 if ($op_type == 1) {
                     // 绑定
                     if ($shop->waimai_mt) {
-                        $this->ding_error("该门店已经绑定");
+                        $this->ding_error("该门店已经绑定" . json_encode($poi_info));
                         return json_encode(['data' => 'ok']);
                     } else {
                         $shop->waimai_mt = $shop_id;
