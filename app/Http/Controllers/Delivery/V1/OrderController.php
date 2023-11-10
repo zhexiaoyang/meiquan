@@ -2731,7 +2731,7 @@ class OrderController extends Controller
                     }
                     return $this->success('顺丰发单成功');
                 } else {
-                    return $this->error('顺丰发单失败' . !empty($result_sf['msg']) ? ':'.$result_sf['msg'] : '');
+                    return $this->error('顺丰发单失败' . (!empty($result_sf['msg']) ? ':'.$result_sf['msg'] : ''));
                 }
             }
         } elseif ($platform === 8) {
@@ -2816,7 +2816,7 @@ class OrderController extends Controller
                     }
                     return $this->success('美团众包发单成功');
                 } else {
-                    return $this->error('美团众包发单失败' . !empty($result_zb['msg']) ? ':'.$result_zb['msg'] : '');
+                    return $this->error('美团众包发单失败' . (!empty($result_zb['msg']) ? ':'.$result_zb['msg'] : ''));
                 }
             }
         }
