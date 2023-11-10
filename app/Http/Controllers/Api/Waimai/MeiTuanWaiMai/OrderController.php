@@ -42,7 +42,7 @@ class OrderController
     public function create(Request $request, $platform)
     {
         if ($order_id = $request->get("order_id", "")) {
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&支付订单|订单号:{$order_id}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&支付订单|订单号:{$order_id}", $this->prefix_title);
             $this->log_info('美团外卖统一接口');
             $app_poi_code = $request->get('app_poi_code', '');
             // $data = ['15243198'];
@@ -67,7 +67,7 @@ class OrderController
     {
         if ($order_id = $request->get("order_id", "")) {
             $notify_type = $request->get('notify_type');
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&全部退款|订单号:{$order_id},类型:{$notify_type}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&全部退款|订单号:{$order_id},类型:{$notify_type}", $this->prefix_title);
             if ($notify_type == 'agree') {
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     WmOrder::where('id', $order->id)->update([
@@ -93,7 +93,7 @@ class OrderController
             $shop = null;
             $money = $request->get('money');
             $notify_type = $request->get('notify_type');
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
             if (($notify_type == 'agree') && ($money > 0)) {
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // if ($order->status != 18) {
@@ -238,7 +238,7 @@ class OrderController
         $phone = $request->get('dispatcher_mobile', '');
 
         if ($order_id && $status) {
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&美配订单状态回调|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&美配订单状态回调|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             $this->log_info("全部参数", $request->all());
             // 更改外卖订单状态
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
@@ -911,7 +911,7 @@ class OrderController
         $time = $request->get('operate_time', 0);
 
         if ($order_id && $status) {
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&自配订单状态|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&自配订单状态|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($status == 20 && $order->status < 14) {
                     $order->send_at = date("Y-m-d H:i:s", $time ?: time());
@@ -1026,7 +1026,7 @@ class OrderController
         $status = $request->get('status', '');
 
         if ($order_id && $status) {
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&完成订单|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&完成订单|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 if ($status == 8 && $order->status < 18) {
                     $bill_date = date("Y-m-d");
@@ -1090,7 +1090,7 @@ class OrderController
         $status = $request->get('status', '');
         $fee = $request->get('settleAmount', '');
         if ($order_id && $status) {
-            $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&订单结算|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&订单结算|订单状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
                 $this->log_info('VIP全部参数', $request->all());
                 if (floatval($order->poi_receive) != floatval($fee)) {
@@ -1106,7 +1106,7 @@ class OrderController
     public function remind(Request $request, $platform)
     {
         $voice = 5;
-        $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&催单", $this->prefix_title);
+        $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&催单", $this->prefix_title);
 
         if ($order_id = $request->get("order_id", "")) {
             $this->log_info('全部参数', $request->all());
@@ -1123,7 +1123,7 @@ class OrderController
 
     public function down(Request $request, $platform)
     {
-        $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&隐私号降级", $this->prefix_title);
+        $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&隐私号降级", $this->prefix_title);
 
         $data = $request->all();
 

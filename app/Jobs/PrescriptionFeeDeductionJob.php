@@ -166,8 +166,9 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                 'updated_at' => date("Y-m-d H:i:s"),
             ]);
             // UserOperateBalance::create();
-            if ($current_user->operate_money < (50 + $money)) {
-                $this->prescriptionSms($current_user->phone);
+            if ($current_user->operate_money < (config('ps.sms_operate_remind.max') + $money)) {
+                // $this->prescriptionSms($current_user->phone, ($current_user - $money));
+                $this->prescriptionSms($current_user->phone, ($current_user - $money) > 0 ? ($current_user - $money) : 0);
             }
             $this->log('扣款成功');
         });

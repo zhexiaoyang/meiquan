@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Cache;
 
 trait SmsTool
 {
-    public function prescriptionSms($phone)
+    public function prescriptionSms($phone, $money = 100)
     {
         // 处方余额不足短信
         // 每天只能发送一条处方余额短信短信
@@ -21,7 +21,7 @@ trait SmsTool
                     'created_at' => date("Y-m-d H:i:s"),
                     'updated_at' => date("Y-m-d H:i:s")
                 ]);
-                dispatch(new SendSmsNew($phone, "SMS_267395014", [ 'phone' => '15043264324']));
+                dispatch(new SendSmsNew($phone, "SMS_463750709", [ 'name' => '老板', 'date' => date("n-d H:i"), 'money' => $money]));
             }
         }
     }
