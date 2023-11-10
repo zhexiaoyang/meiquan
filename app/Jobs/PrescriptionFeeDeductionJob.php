@@ -168,7 +168,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
             // UserOperateBalance::create();
             if ($current_user->operate_money < (config('ps.sms_operate_remind.max') + $money)) {
                 // $this->prescriptionSms($current_user->phone, ($current_user - $money));
-                $this->prescriptionSms($current_user->phone, ($current_user - $money) > 0 ? ($current_user - $money) : 0);
+                $this->prescriptionSms($current_user->phone, ($current_user->operate_money - $money) > 0 ? ($current_user->operate_money - $money) : 0);
             }
             $this->log('扣款成功');
         });
