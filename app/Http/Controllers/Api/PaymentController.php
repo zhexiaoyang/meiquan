@@ -307,7 +307,7 @@ class PaymentController
         if ($user && $user->operate_money >= config('ps.sms_operate_remind.max')) {
             DB::table('send_sms_logs')->where('phone', $user->phone)->where('type', 2)->limit(1)->delete();
         }
-        if ($user && $user->aaa > 0) {
+        if ($user && $user->operate_money > 0) {
             $shops = Shop::select('id', 'user_id', 'yunying_status')->where('user_id', $user->id)->get();
             if (!empty($shops)) {
                 foreach ($shops as $shop) {
