@@ -76,7 +76,7 @@ class StoreRestJob implements ShouldQueue
                         $this->ding_error("门店:{$shop->shop_name},ID:{$shop->waimai_mt}，休息成功");
                         if ($this->type === 1) {
                             if ($user = User::find($shop->user_id)) {
-                                $this->restShopSms($user->phone);
+                                $this->restShopSms($user->phone, $user->operate_money);
                             }
                         }
                         return ;
