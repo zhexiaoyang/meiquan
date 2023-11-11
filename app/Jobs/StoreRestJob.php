@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
 
 class StoreRestJob implements ShouldQueue
 {
@@ -46,6 +47,9 @@ class StoreRestJob implements ShouldQueue
         if (!$shop->yunying_status) {
             return;
         }
+        // if (Redis::get('delay_close_time:' . $shop->id)) {
+        //     return;
+        // }
         $data = [
             'shop_id' => $shop->id,
             'shop_name' => $shop->shop_name,
@@ -54,6 +58,14 @@ class StoreRestJob implements ShouldQueue
             'status' => 0,
             'error' => '',
         ];
+        if ($delay_time = Redis::get('delay_close_time:' . $shop->id)){
+            $log = ShopRestLog::where('shop_id', $shop->id)->where('error', '管理员操作延时置休')->where('created_at', '<', date("Y-m-d H:i:s", $delay_time + 86400))->first();
+            if (!$log) {
+                $data['error'] = '管理员操作延时置休';
+                ShopRestLog::create($data);
+            }
+            return ;
+        }
         if ($shop->meituan_bind_platform === 4) {
             $mt = app('minkang');
         } else if ($shop->meituan_bind_platform === 31) {

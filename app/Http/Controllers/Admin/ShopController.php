@@ -13,6 +13,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class ShopController extends Controller
 {
@@ -211,6 +212,12 @@ class ShopController extends Controller
                 $tmp['erp_status'] = $shop->erp_status;
                 $tmp['vip_status_new'] = $shop->vip_status_new;
                 $tmp['yunying_status'] = $shop->yunying_status;
+                // 延时置休
+                $delay_close_time = Redis::get('delay_close_time:' . $shop->id) ?: 0;
+                $tmp['delay_close_time'] = $delay_close_time;
+                if ($delay_close_time > 0) {
+                    $tmp['delay_close_time_text'] = formetTime($delay_close_time);
+                }
                 // 赋值
                 $data[] = $tmp;
             }
@@ -633,6 +640,22 @@ class ShopController extends Controller
             $shop->yunying_status = 0;
         }
         $shop->save();
+
+        return $this->success();
+    }
+
+    public function delayStatus(Request $request)
+    {
+        if (!$request->user()->hasPermissionTo('yunying_switch')) {
+            return $this->error('错误请求');
+        }
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $redis_key = 'delay_close_time:' . $shop->id;
+        Redis::set($redis_key, time());
+        Redis::expire($redis_key, 86400);
 
         return $this->success();
     }

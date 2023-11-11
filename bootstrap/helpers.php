@@ -126,6 +126,26 @@ function tranTime($time) {
     return $str;
 }
 
+// 正常
+function formetTime($time) {
+    $time = ($time + 86400) - time();
+    if ($time < 60)
+    {
+        $str = $time . '秒';
+    }
+    elseif ($time < 60 * 60)
+    {
+        $min = floor($time/60);
+        $str = $min.'分钟';
+    }
+    elseif ($time < 60 * 60 * 24)
+    {
+        $h = floor($time/(60*60));
+        $str = $h.'小时';
+    }
+    return $str;
+}
+
 function randomPassword($length = 6)
 {
     //字符组合

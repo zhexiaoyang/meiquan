@@ -617,6 +617,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::post("shop/vip/status", "ShopController@vipStatus");
             // **门店管理-代运营服务费状态切换
             Route::post("shop/yunying/status", "ShopController@yunyingStatus");
+            // **门店管理-24小时延时置休
+            Route::post("shop/delay/status", "ShopController@delayStatus");
             // **门店管理-保存仓库设置
             Route::post("shop/warehouse", "ShopController@warehouse");
             // 修改跑腿订单加价
