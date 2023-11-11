@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Jobs\StoreRestJob;
 use App\Models\ContractOrder;
 use App\Models\Deposit;
+use App\Models\Shop;
 use App\Models\SupplierOrder;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
@@ -304,6 +306,16 @@ class PaymentController
         $user = DB::table('users')->find($order->user_id);
         if ($user && $user->operate_money >= config('ps.sms_operate_remind.max')) {
             DB::table('send_sms_logs')->where('phone', $user->phone)->where('type', 2)->limit(1)->delete();
+        }
+        if ($user && $user->aaa > 0) {
+            $shops = Shop::select('id', 'user_id', 'yunying_status')->where('user_id', $user->id)->get();
+            if (!empty($shops)) {
+                foreach ($shops as $shop) {
+                    if ($shop->yunying_status) {
+                        StoreRestJob::dispatch($shop->id, 2);
+                    }
+                }
+            }
         }
 
         if ($status) {

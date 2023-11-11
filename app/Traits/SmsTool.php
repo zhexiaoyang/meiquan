@@ -26,6 +26,17 @@ trait SmsTool
         }
     }
 
+    public function restShopSms($phone, $money = 100)
+    {
+        // 处方余额不足短信
+        // 每天只能发送一条处方余额短信短信
+        $lock = Cache::lock("send_sms_rest_shop:{$phone}", 86400);
+        if ($lock->get()) {
+            // 参数 phone 客服
+            dispatch(new SendSmsNew($phone, "SMS_463755795", ['name' => '老板', 'money' => $money, 'sign_name' => '美全健康']));
+        }
+    }
+
     // public function operateMoneySms($phone)
     // {
     //     // 运营余额短信
