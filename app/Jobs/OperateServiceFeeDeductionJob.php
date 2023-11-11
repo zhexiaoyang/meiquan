@@ -76,9 +76,12 @@ class OperateServiceFeeDeductionJob implements ShouldQueue
             if ($current_user->operate_money < (config('ps.sms_operate_remind.max') + $money)) {
                 $this->prescriptionSms($current_user->phone, ($current_user->operate_money - $money) > 0 ? ($current_user->operate_money - $money) : 0);
             }
+            \Log::info('代运营扣费任务：1', [$current_user->operate_money, $money,$order->shop_id]);
             if ($current_user->operate_money < $money) {
                 $shop = Shop::select('id', 'user_id', 'yunying_status')->find($order->shop_id);
+                \Log::info('代运营扣费任务：2', [$shop->yunying_status]);
                 if ($shop->yunying_status) {
+                    \Log::info('代运营扣费任务：3');
                     StoreRestJob::dispatch($shop->id);
                 }
             }
