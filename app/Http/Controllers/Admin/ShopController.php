@@ -660,6 +660,21 @@ class ShopController extends Controller
         return $this->success();
     }
 
+    public function undelayStatus(Request $request)
+    {
+        if (!$request->user()->hasPermissionTo('yunying_switch')) {
+            return $this->error('错误请求');
+        }
+        if (!$shop = Shop::find($request->get('shop_id', 0))) {
+            return $this->error('门店不存在');
+        }
+
+        $redis_key = 'delay_close_time:' . $shop->id;
+        Redis::del($redis_key);
+
+        return $this->success();
+    }
+
     /**
      * 佣金设置
      * @param Request $request
