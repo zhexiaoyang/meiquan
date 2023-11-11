@@ -39,6 +39,7 @@ class StoreRestJob implements ShouldQueue
      */
     public function handle()
     {
+        $this->ding_error('自动置休门店');
         $shop = Shop::select('id','user_id','waimai_mt','shop_name','mt_shop_name', 'meituan_bind_platform')->find($this->shop_id);
         if (!$shop) {
             return;
@@ -107,7 +108,6 @@ class StoreRestJob implements ShouldQueue
             $data['error'] = $online_shop['msg'] ?? '获取门店营业状态失败';
             \Log::info('自动置休门店-获取门店营业状态失败', [$online_shop]);
             ShopRestLog::create($data);
-            return ;
         }
     }
 }
