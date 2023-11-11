@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Shop;
 use App\Traits\SmsTool;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -171,6 +172,12 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
                 $this->prescriptionSms($current_user->phone, ($current_user->operate_money - $money) > 0 ? ($current_user->operate_money - $money) : 0);
             }
             $this->log('扣款成功');
+            if ($current_user->operate_money < $money) {
+                $shop = Shop::select('id', 'user_id', 'yunying_status')->find($order->shop_id);
+                if ($shop->yunying_status) {
+                    StoreRestJob::dispatch($shop->id);
+                }
+            }
         });
     }
 

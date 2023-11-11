@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Jobs\StoreRestJob;
 use App\Models\Shop;
-use App\Models\ShopRestLog;
 use Illuminate\Console\Command;
 
 class StoreRestCommands extends Command
