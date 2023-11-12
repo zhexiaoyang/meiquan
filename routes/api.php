@@ -25,6 +25,7 @@ Route::middleware(["force-json"])->group(function() {
     // *中台登录
     Route::post("auth/login", "AuthController@login");
     // *中台登录[移动端]
+    Route::post("m/auth/login2", "AuthController@login2");
     Route::post("m/auth/login", "AuthController@loginFromMobile");
 
     // 模拟接单建店

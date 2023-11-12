@@ -57,6 +57,46 @@ class AuthController extends Controller
         }
     }
 
+    public function login2(Request $request)
+    {
+        if ($request->get("captcha")) {
+            return $this->loginByMobile($request);
+        }
+
+        try {
+            // $scope = new Scope('web');
+            $token = app(Client::class)->post(url('/oauth/token'), [
+                'form_params' => [
+                    'grant_type' => 'password',
+                    'client_id' => config('passport.clients.password.client_id'),
+                    'client_secret' => config('passport.clients.password.client_secret'),
+                    'username' => $request->get('username'),
+                    'password' => $request->get('password'),
+                    'scope' => '',
+                    "provider" => "users"
+                ],
+            ]);
+
+            $result = json_decode($token->getBody(), true);
+
+            if ($user = User::where("name", $request->get("username"))->first()) {
+                if ($user->status === 2) {
+                    return $this->error("用户禁止登录");
+                }
+            }
+
+            $data = [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'token' => $result['access_token']
+            ];
+
+            return $this->success($data);
+        } catch (\Exception $e) {
+            return $this->error("用户名或密码错误", 422);
+        }
+    }
+
     /**
      * PC端验证码登录
      * @param Request $request
