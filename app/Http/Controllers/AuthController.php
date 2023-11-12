@@ -20,7 +20,7 @@ class AuthController extends Controller
 
     public function __construct()
     {
-        $this->middleware('auth:api')->except(['login', 'register', 'loginFromMobile']);
+        $this->middleware('auth:api')->except(['login', 'register', 'loginFromMobile', 'login2']);
     }
 
     public function login(Request $request)
