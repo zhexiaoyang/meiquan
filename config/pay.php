@@ -107,7 +107,7 @@ return [
         'app_id' => env('WECHAT_APP_ID', ''),
 
         // 小程序 APPID
-        'miniapp_id' => env('SUPPLIER_WECHAT_MINIAPP_ID', ''),
+        'miniapp_id' => env('OPERATE_WECHAT_MINIAPP_ID', ''),
 
         // APP 引用的 appid
         'appid' => env('WECHAT_APPID', ''),
@@ -135,10 +135,11 @@ return [
 
     'wechat_operate_money' => [
         // 公众号 APPID
-        'app_id' => env('WECHAT_APP_ID', ''),
+        'app_id' => env('OPERATE_WECHAT_APP_ID', ''),
 
         // 小程序 APPID
         'miniapp_id' => env('OPERATE_WECHAT_MINIAPP_ID', ''),
+        'miniapp_app_secret' => env('OPERATE_WECHAT_MINIAPP_APP_SECRET', ''),
 
         // APP 引用的 appid
         'appid' => env('WECHAT_APPID', ''),
