@@ -873,6 +873,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("deposit/shop/wechat/miniapp", "DepositController@shopWechatMiniApp");
         // 个人中心-跑腿余额-微信支付-小程序
         Route::post("deposit/running/wechat/miniapp", "DepositController@runningWechatMiniApp");
+        // 个人中心-运营余额-微信支付-小程序
+        Route::post("deposit/operate/wechat/miniapp", "DepositController@operateWechatMiniApp");
         // 个人中心-用户充值
         Route::resource("deposit", "DepositController", ["only" => ["store", "show", "index"]]);
         // 所有权限列表

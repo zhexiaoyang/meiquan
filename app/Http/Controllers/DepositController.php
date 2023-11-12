@@ -271,4 +271,66 @@ class DepositController extends Controller
         return $this->success($wechatOrder);
 
     }
+
+    /**
+     * 运营余额-微信支付-小程序
+     */
+    public function operateWechatMiniApp(Request $request)
+    {
+        $user  = $request->user();
+        $amount = $request->get("amount", 0);
+
+        if ($amount < 1) {
+            return $this->error("金额不正确");
+        }
+
+        // 写入充值记录表
+        $deposit = new Deposit([
+            'pay_method' => 2,
+            'type' => 3,
+            'amount' => $amount,
+        ]);
+        $deposit->user()->associate($user);
+        // 写入数据库
+        $deposit->save();
+
+        // 获取 openid
+        if (!$code = $request->get('code')) {
+            return $this->error('微信未授权，无法使用支付');
+        }
+        // 获取授权缓存
+        $auth = Cache::get($code);
+
+        // 判断是否授权过了
+        if (!$auth) {
+            $url = "https://api.weixin.qq.com/sns/jscode2session?appid=" . config('pay.wechat.miniapp_id') . "&secret=" . config('pay.wechat.miniapp_app_secret') . "&js_code={$code}&grant_type=authorization_code";
+            $auth_json = file_get_contents($url);
+            $auth = json_decode($auth_json, true);
+            // Log::info($prefix . "openid不存在，微信未授权，无法使用支付", [$auth]);
+
+            if (!isset($auth['openid'])) {
+                // Log::info($prefix . "openid不存在，微信未授权，无法使用支付");
+                return $this->error('微信未授权，无法使用支付');
+            }
+
+            // 将获取到的 auth 缓存1个小时
+            $expiredAt = now()->addHours(1);
+            Cache::put($code, $auth, $expiredAt);
+        }
+
+        // 充值数组
+        $order = [
+            'out_trade_no'  => $deposit->no,
+            'body'          => '美全运营充值',
+            'total_fee'     => $deposit->amount * 100,
+            'openid'        => $auth['openid']
+        ];
+
+        $wechatOrder = Pay::wechat(config('pay.wechat_operate_money'))->miniapp($order);
+
+        Log::info("运营余额跑腿小程序支付获取参数", [$wechatOrder]);
+
+        return $this->success($wechatOrder);
+
+    }
 }
