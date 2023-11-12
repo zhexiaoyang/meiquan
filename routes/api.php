@@ -545,6 +545,8 @@ Route::middleware(["force-json"])->group(function() {
             Route::get("takeout", "WmOrderController@index");
             // *外卖订单-详情
             Route::get("takeout/info", "WmOrderController@show");
+            // *代运营扣费-外卖订单列表
+            Route::get("takeout/operate", "WmOrderController@operateIndex");
             /**
              * 协议管理
              */

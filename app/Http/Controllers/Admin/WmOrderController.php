@@ -71,6 +71,9 @@ class WmOrderController extends Controller
         if ($phone = $request->get('phone', '')) {
             $query->where('recipient_phone', $phone);
         }
+        if ($shop_id = $request->get('shop_id', '')) {
+            $query->where('shop_id', $shop_id);
+        }
 
         $data = $query->orderByDesc('id')->paginate($page_size);
 
@@ -84,5 +87,16 @@ class WmOrderController extends Controller
         }
 
         return $this->success($order);
+    }
+
+    public function operateIndex(Request $request)
+    {
+        $query = WmOrder::select('id','platform','day_seq','shop_id','is_prescription','order_id','wm_shop_name',
+            'operate_service_fee','app_poi_code','finish_at')
+            ->where('shop_id', '>', 0)->where('operate_service_fee_status', 1);
+
+        $data = $query->orderByDesc('id')->paginate($request->get('page_size', 10));
+
+        return $this->page($data, [],'data');
     }
 }

@@ -10,7 +10,7 @@ class ShopRestController extends Controller
 {
     public function index(Request $request)
     {
-        $query = ShopRestLog::query();
+        $query = ShopRestLog::where('id', '>', 0);
         if ($shop_id = (int) $request->get('shop_id')) {
             $query->where('shop_id', $shop_id);
         }
@@ -32,7 +32,7 @@ class ShopRestController extends Controller
             }
         }
 
-        $data = $query->orderByDesc('id')->paginate($request->get('page_size'));
+        $data = $query->orderByDesc('id')->paginate($request->get('page_size', 10));
 
         return $this->page($data, [],'data');
     }
