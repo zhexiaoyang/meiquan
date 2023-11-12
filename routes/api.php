@@ -437,6 +437,8 @@ Route::middleware(["force-json"])->group(function() {
         // *外卖订单-详情
         Route::get("takeout/info", "WmOrderController@show");
         // *外卖订单-详情
+        Route::get("takeout/export", "WmOrderController@export");
+        // *外卖订单-详情
         Route::get("takeout/getRpPicture", "WmOrderController@getRpPicture");
         // *外卖订单-打印
         Route::get("takeout/print", "WmOrderController@print_order");

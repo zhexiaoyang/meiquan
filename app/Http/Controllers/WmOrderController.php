@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\OrderCreate;
+use App\Exports\WmOrdersExport;
 use App\Jobs\PrintWaiMaiOrder;
 use App\Libraries\Feie\Feie;
 use App\Models\Shop;
@@ -40,7 +41,7 @@ class WmOrderController extends Controller
             $query->select('id', 'shop_lng', 'shop_lat');
         }])->select('id','platform','day_seq','shop_id','is_prescription','order_id','delivery_time','estimate_arrival_time',
             'status','recipient_name','recipient_phone','is_poi_first_order','way','recipient_address_detail','wm_shop_name',
-            'ctime','caution','print_number','poi_receive','vip_cost','running_fee','prescription_fee','operate_service_fee');
+            'ctime','caution','print_number','poi_receive','vip_cost','running_fee','prescription_fee','operate_service_fee','operate_service_fee_status');
 
         $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
 
@@ -527,5 +528,20 @@ class WmOrderController extends Controller
             return $this->error('正在获取处方信息，请稍后查看');
         }
         return $this->success(['rp_picture' => $rp_picture]);
+    }
+
+    public function export(Request $request, WmOrdersExport $export)
+    {
+        if (!$sdate = $request->get('sdate')) {
+            $sdate = date("Y-m-d");
+        }
+        if (!$edate = $request->get('edate')) {
+            $edate = date("Y-m-d");
+        }
+        if ((strtotime($edate) - strtotime($sdate)) / 86400 > 31) {
+            return $this->error('时间范围不能超过31天');
+        }
+
+        return $export->withRequest($request);
     }
 }
