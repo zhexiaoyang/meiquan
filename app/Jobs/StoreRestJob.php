@@ -52,6 +52,7 @@ class StoreRestJob implements ShouldQueue
         // }
         $data = [
             'shop_id' => $shop->id,
+            'mt_shop_id' => $shop->waimai_mt,
             'shop_name' => $shop->shop_name,
             'wm_shop_name' => $shop->mt_shop_name ?: $shop->shop_name,
             'type' => $this->type,
