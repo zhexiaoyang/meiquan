@@ -119,6 +119,8 @@ class OrderController extends Controller
                     // 是否处方
                     $order_tag_list = $mt_data['order_tag_list'];
                     $prescription_fee = 0;
+                    // 商户结算-预计收入
+                    $poi_receive = $poi_receive_detail_yuan['poiReceive'] ?? 0;
                     if (!is_array($order_tag_list)) {
                         $order_tag_list = json_decode(urldecode($mt_data['order_tag_list']), true);
                         $prescription_fee = 0.8;
@@ -143,7 +145,7 @@ class OrderController extends Controller
                         "shippingFee" => $mt_data['shipping_fee'],
                         "total" => $mt_data['total'],
                         "originalPrice" => $mt_data['original_price'],
-                        "poiReceive" => $poi_receive_detail_yuan['poiReceive'] ?? 0,
+                        "poiReceive" => (float) $poi_receive,
                         "caution" => $mt_data['caution'],
                         "status" => $mt_data['status'],
                         "ctime" => $mt_data['ctime'],
@@ -203,7 +205,7 @@ class OrderController extends Controller
                     if (!empty($detail)) {
                         foreach ($detail as $k => $v) {
                             $ratio = $v['total_price'] / $product_total;
-                            $productKeepAccount = round($keepAccount * $ratio, 2);
+                            $productKeepAccount = round($poi_receive * $ratio, 2);
                             $productKeepAccountText = $v['name'] . ",商品下账金额 = 订单下帐金额($keepAccount) * 单个商品分摊比($ratio)";
                             $detail[$k]['keepAccount'] = (float) sprintf("%.2f", $productKeepAccount);
                             $detail[$k]['keepAccountText'] = $productKeepAccountText;
@@ -230,6 +232,7 @@ class OrderController extends Controller
                 // 饿了么订单状态： 1 待确认，5 已确认，7 骑士已接单，8 骑士已取餐，快递已揽收（快递发货场景），9 已完成，10 已取消
                 // 美团订单状态：返回订单当前的状态。目前平台的订单状态参考值有：1-用户已提交订单；2-向商家推送订单；4-商家已确认；8-订单已完成；9-订单已取消。
                 $status_map = [1 => 1, 5 => 4, 7 => 4, 8 => 4, 9 => 8, 10 => 9];
+                $poi_receive = $ele_data['order']['shop_fee'] / 100;
                 $res = [
                     "orderId" => $ele_data['order']['order_id'],
                     "isPrescription" => $is_prescription,
@@ -239,7 +242,7 @@ class OrderController extends Controller
                     "shippingFee" => $ele_data['order']['send_fee'] / 100,
                     "total" => $ele_data['order']['user_fee'] / 100,
                     "originalPrice" => $ele_data['order']['total_fee'] / 100,
-                    "poiReceive" => $ele_data['order']['shop_fee'] / 100,
+                    "poiReceive" => (float) $poi_receive,
                     "keepAccount" => 0,
                     "caution" => $ele_data['order']['remark'] ?: '',
                     "status" => $status_map[$ele_data['order']['status']],
@@ -301,7 +304,7 @@ class OrderController extends Controller
                 if (!empty($detail)) {
                     foreach ($detail as $k => $v) {
                         $ratio = $v['total_price'] / $product_total;
-                        $productKeepAccount = round($keepAccount * $ratio, 2);
+                        $productKeepAccount = round($poi_receive * $ratio, 2);
                         $productKeepAccountText = $v['name'] . ",商品下账金额 = 订单下帐金额($keepAccount) * 单个商品分摊比($ratio)";
                         $detail[$k]['keepAccount'] = (float) sprintf("%.2f", $productKeepAccount);
                         $detail[$k]['keepAccountText'] = $productKeepAccountText;
