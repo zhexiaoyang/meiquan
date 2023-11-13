@@ -55,7 +55,7 @@ class OrderConfirmController
                 return json_encode(['data' => 'ok']);
             }
             /********************* 查找门店 *********************/
-            if (!$shop = Shop::where("waimai_mt", $mt_shop_id)->first()) {
+            if (!$shop = Shop::where("waimai_mt", $mt_shop_id)->where('user_id', '>', 0)->first()) {
                 if (!$shop = Shop::where("mt_shop_id", $mt_shop_id)->first()) {
                     $this->log_info('没有找到门店');
                     return json_encode(['data' => 'ok']);
