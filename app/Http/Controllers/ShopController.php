@@ -1180,7 +1180,7 @@ class ShopController extends Controller
         }
 
         // 判断角色
-        if (!$request->user()->hasRole('city_manager')) {
+        if (!$request->user()->hasRole('city_manager') && !$request->user()->hasRole('currency_shop_all')) {
             if (($shop->own_id != Auth::user()->id)) {
                 return $this->error('门店不存在');
             }
