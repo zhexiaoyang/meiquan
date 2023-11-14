@@ -50,6 +50,10 @@ class ShopController extends Controller
                    ->orWhere('id', 'like', "%{$search_key}%")
                    ->orWhere('shop_name', 'like', "%{$search_key}%")
                    ->orWhere('city', 'like', "%{$search_key}%")
+                   ->orWhere('waimai_ele', 'like', "%{$search_key}%")
+                   ->orWhere('waimai_mt', 'like', "%{$search_key}%")
+                   ->orWhere('mtwm', 'like', "%{$search_key}%")
+                   ->orWhere('ele', 'like', "%{$search_key}%")
                    ->orWhere('contact_name', 'like', "%{$search_key}%")
                    ->orWhere('contact_phone', 'like', "%{$search_key}%");
             });
