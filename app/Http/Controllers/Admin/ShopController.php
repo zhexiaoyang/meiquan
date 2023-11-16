@@ -538,7 +538,7 @@ class ShopController extends Controller
 
     public function transfer(Request $request)
     {
-        if (!$request->user()->hasRole('super_man')) {
+        if (!$request->user()->hasRole('super_admin')) {
             return $this->error('无权限此操作');
         }
         if (!$new = $request->get('new')) {
