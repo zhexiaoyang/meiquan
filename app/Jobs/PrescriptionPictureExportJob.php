@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\WmPrescriptionDown;
+use App\Traits\NoticeTool2;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -11,7 +12,7 @@ use Illuminate\Queue\SerializesModels;
 
 class PrescriptionPictureExportJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, NoticeTool2;
 
     public $timeout = 600;
 
@@ -52,7 +53,19 @@ class PrescriptionPictureExportJob implements ShouldQueue
                 foreach ($orders as $order) {
                     if ($order->rp_picture) {
                         $name = substr($order->rp_picture, strripos($order->rp_picture, '/') + 1);
-                        $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                        try {
+                            $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                        } catch (\Exception $exception) {
+                            $error_data = [
+                                'message' => $exception->getMessage(),
+                                'file' => $exception->getFile(),
+                                'line' => $exception->getLine(),
+                                'order' => $order->id,
+                                'order_no' => $order->order_id,
+                                'rp_picture' => $order->rp_picture,
+                            ];
+                            $this->ding_error('处方导出任务PrescriptionPictureExportJob出错：' . json_encode($error_data, true));
+                        }
                     }
                 }
                 // 关闭zip文件
