@@ -212,7 +212,7 @@ class PaymentController extends Controller
                     'body'          => '美全运营充值',
                     'total_fee'     => $deposit->amount * 100
                 ];
-                $wechatOrder = Pay::wechat(config("pay.wechat_operate_money"))->mp($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat_operate_money"))->scan($order);
                 $data = [
                     'code_url' => $wechatOrder->code_url,
                     'amount'  => $deposit->amount,
