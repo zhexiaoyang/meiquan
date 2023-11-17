@@ -20,12 +20,18 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('account')->group(function () {
             // 用户信息
             Route::get("user", "AccountController@user_info");
-            // 余额记录
+            // 跑腿余额记录
             Route::get("money_balance", "AccountController@money_balance");
             // 余额充值-获取支付订单
             Route::post("pay", "PaymentController@pay");
             // 支付方式
             Route::get("pay_method", "PaymentController@pay_method");
+            // 运营余额记录
+            Route::get("operate_balance", "AccountController@operate_balance");
+            // 运营余额充值-获取支付订单
+            Route::post("operate_pay", "PaymentController@operate_pay");
+            // 运营支付方式
+            Route::get("operate_pay_method", "PaymentController@operate_pay_method");
         });
         // 订单
         Route::prefix('order')->group(function () {
