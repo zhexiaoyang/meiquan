@@ -70,12 +70,15 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
         Route::prefix('prescription')->group(function () {
             // *已开通处方单门店列表
             Route::get("shops", "PrescriptionController@shops");
+            // *处方单列表统计
+            Route::get("statistics", "PrescriptionController@statistics");
+            // *处方单列表
+            Route::get("index", "PrescriptionController@index");
+
             // *处方单列表-导出
             Route::get("export", "PrescriptionController@export");
             // *处方单列表-图片下载
             Route::get("picture/down", "PrescriptionController@pictureDown");
-            // *处方单列表
-            Route::get("prescription", "PrescriptionController@index");
             // *处方-线下下单
             Route::get("down", "PrescriptionController@down");
             // *处方-处方图片压缩包下载列表
