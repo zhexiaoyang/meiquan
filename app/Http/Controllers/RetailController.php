@@ -201,7 +201,7 @@ class RetailController extends Controller
                         // $pictures = $v['pictures'];
                         $picture = str_replace('http:', 'https:', $picture);
                         // $pictures = str_replace('http:', 'https:', $pictures);
-                        $retail = WmRetail::query()->updateOrCreate(
+                        $retail = WmRetail::updateOrCreate(
                             ['shop_id' => $shop_id, 'store_id' => $app_food_code ?: $name],
                             [
                                 'shop_id' => $shop_id,
