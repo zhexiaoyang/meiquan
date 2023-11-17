@@ -276,6 +276,10 @@ class OrderController extends Controller
                     }
                 }
                 unset($order->ps_type);
+                // 预约单不能配送下单，该状态为0
+                if ($order->status === 3) {
+                    $order->status = 0;
+                }
             }
         }
         return $this->page($orders);
