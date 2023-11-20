@@ -79,8 +79,6 @@ Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->grou
             Route::get("export", "PrescriptionController@export");
             // *处方单列表-图片下载
             Route::get("picture/down", "PrescriptionController@pictureDown");
-            // *处方-线下下单
-            Route::get("down", "PrescriptionController@down");
             // *处方-处方图片压缩包下载列表
             Route::get("zip", "PrescriptionController@zip");
             // *处方单列表统计
