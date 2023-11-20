@@ -294,6 +294,6 @@ class PrescriptionController extends Controller
     public function zip(Request $request)
     {
         $data = WmPrescriptionDown::where('user_id', $request->user()->id)->orderByDesc('id')->paginate(10);
-        return $this->page($data, [],'data');
+        return $this->page($data);
     }
 }
