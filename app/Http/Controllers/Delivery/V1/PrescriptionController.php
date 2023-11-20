@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Delivery\V1;
 
+use App\Exports\PrescriptionOrderNewExport;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Exports\PrescriptionOrderExport;
@@ -94,6 +95,27 @@ class PrescriptionController extends Controller
 
         $orders = $query->orderByDesc('id')->paginate($page_size);
 
+        if (!empty($orders)) {
+            foreach ($orders as $order) {
+                // 平台
+                if ($order->platform === 1) {
+                    $order->platform_text = '美团';
+                } elseif ($order->platform === 2) {
+                    $order->platform_text = '饿了么';
+                } elseif ($order->platform === 3) {
+                    $order->platform_text = '线下';
+                }
+                // 状态
+                if ($order->status === 18) {
+                    $order->status_text = '已完成';
+                } else {
+                    $order->status_text = '进行中';
+                }
+                // 时间
+                $order->ctime_text = date("Y-m-d H:i:s");
+            }
+        }
+
         return $this->page($orders);
     }
 
@@ -182,38 +204,47 @@ class PrescriptionController extends Controller
         return $this->success($res);
     }
 
-
-
-
-    public function export(Request $request, PrescriptionOrderExport $export)
+    /**
+     * 处方订单导出
+     * @param Request $request
+     * @param PrescriptionOrderNewExport $export
+     * @return PrescriptionOrderNewExport
+     * @author zhangzhen
+     * @data 2023/11/20 11:01 上午
+     */
+    public function export(Request $request, PrescriptionOrderNewExport $export)
     {
         return $export->withRequest($request);
     }
 
+    /**
+     * 处方图片下载
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/11/20 11:02 上午
+     */
     public function pictureDown(Request $request)
     {
-        $request->validate([
-            'sdate'   => 'required|date_format:Y-m-d,Y-m-d',
-            'edate'   => 'required|date_format:Y-m-d,Y-m-d',
-            // 'shop_id'   => 'required',
-        ], [
-            'sdate.required'   => '开始日期不能为空',
-            'sdate.date_format'   => '开始日期格式不正确',
-            'edate.required'   => '结束时间不能为空',
-            'edate.date_format'   => '结束时间格式不正确',
-            // 'shop_id.required'   => '请选择要下载处方图片的门店',
-        ]);
+        // 时间判定
+        $date_range = $request->get('date_range', '');
+        if (!$date_range) {
+            return $this->error('日期范围不能为空');
+        }
+        $date_arr = explode(',', $date_range);
+        if (count($date_arr) !== 2) {
+            return $this->error('日期格式不正确');
+        }
+        $sdate = $date_arr[0];
+        $edate = $date_arr[1];
+        if ((strtotime($edate) - strtotime($sdate)) >= 86400 * 31) {
+            return $this->error('查询时间范围不能超过31天');
+        }
+        // 其它筛选
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
         $platform = $request->get('platform', '');
-        $sdate = $request->get('sdate', '');
-        $edate = $request->get('edate', '');
-        if ((strtotime($edate) - strtotime($sdate)) >= 86400 * 31) {
-            return $this->error('下载时间范围不能超过31天');
-        }
-        // if (!$shop = Shop::find($shop_id)) {
-        //     return $this->error('门店不存在');
-        // }
+
         if ($shop_id) {
             if (!$shop = Shop::find($shop_id)) {
                 return $this->error('门店不存在');
@@ -253,51 +284,13 @@ class PrescriptionController extends Controller
         return $this->error('选择数据中无处方图片', 422);
     }
 
-    public function down(Request $request)
-    {
-        $id = $request->get('id', 0);
-
-        if (!$pharmacist = Pharmacist::query()->find($id)) {
-            return $this->error('药师不存在');
-        }
-
-        $shop_id = $pharmacist->shop_id;
-
-        if (!$shop = Shop::query()->find($shop_id)) {
-            return $this->error('门店不存在');
-        }
-
-        // if (!$contract = ContractOrder::where('shop_id', $shop_id)->where('contract_id', 4)->first()) {
-        //     return $this->error('该门店未签署线下处方合同');
-        // }
-        //
-        // if ($contract->status != 1) {
-        //     return $this->error('该门店处方合同未签署完成');
-        // }
-
-        $user = User::find($request->user()->id);
-
-        if ($user->operate_money <= 1) {
-            return $this->error('处方余额不足，请先充值');
-        }
-
-        // $prescription = WmPrescription::query()->create([
-        //     'shop_id' => $shop->id,
-        //     'storeName' => $shop->shop_name,
-        //     'platform' => 3,
-        //     'orderCreateTime' => date("Y-m-d H:i:s"),
-        // ]);
-
-        $t = app('taozi_xia');
-        $res = $t->create_order($request->user(), $shop, $pharmacist);
-
-        if (!isset($res['data']['url']) || empty($res['data']['url'])) {
-            return $this->alert('开方失败，请稍后再试');
-        }
-
-        return $this->success(['url' => $res['data']['url'] ?? '']);
-    }
-
+    /**
+     * 处方图片压缩包下载列表
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/11/20 11:07 上午
+     */
     public function zip(Request $request)
     {
         $data = WmPrescriptionDown::where('user_id', $request->user()->id)->orderByDesc('id')->paginate(10);
