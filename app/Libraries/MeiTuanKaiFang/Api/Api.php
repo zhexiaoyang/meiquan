@@ -114,6 +114,16 @@ class Api extends Request
         ];
         return $this->post('wmoper/ng/food/detail', $data, 16);
     }
+
+    /**
+     * 门店菜品列表
+     * @param $shop_id
+     * @param int $offset
+     * @param int $limit
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/11/21 3:49 下午
+     */
     public function wmoper_food_list($shop_id, $offset = 0, $limit = 200)
     {
         $params = [
@@ -125,6 +135,23 @@ class Api extends Request
             'biz' => json_encode($params)
         ];
         return $this->post('wmoper/ng/food/queryFoodList', $data, 16);
+    }
+
+    /**
+     * 根据名称和规格更新店内码
+     * @param $shop_id
+     * @param $params
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/11/21 8:29 下午
+     */
+    public function updateAppFoodCodeByNameAndSpec($shop_id, $params)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/foodop/food/updateAppFoodCodeByNameAndSpec', $data, 16);
     }
 
     /**
