@@ -43,7 +43,7 @@ class SupplierOrderProductsExport implements WithStrictNullComparison, Responsab
         if ($search_key) {
             $query->where(function ($query) use ($search_key) {
                 $query->where('no', 'like', "%{$search_key}%");
-                $query->orWhere('shop_name', 'like', "%{$search_key}%");
+                // $query->orWhere('shop_name', 'like', "%{$search_key}%");
             });
         }
 
