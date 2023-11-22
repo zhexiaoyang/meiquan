@@ -16,7 +16,7 @@ class CallbackController extends Controller
         $result = [
             'message' => 'ok',
         ];
-        return $this->success($result);
+        return response()->json($result);
     }
 
 }

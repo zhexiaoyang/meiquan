@@ -16,7 +16,7 @@ class MessageController extends Controller
         $result = [
             'message' => 'ok',
         ];
-        return $this->success($result);
+        return response()->json($result);
     }
 
 }
