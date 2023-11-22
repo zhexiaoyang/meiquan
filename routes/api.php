@@ -77,6 +77,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("retail/shops", "RetailController@shops");
         // 商品列表
         Route::get("retail/product", "RetailController@product");
+        // 商品（SKU）店内码修改
+        Route::post("retail/product/code/update", "RetailController@updateCode");
         // 商品修改
         Route::post("retail/product/update", "RetailController@update");
         // 商品状态统计
@@ -87,6 +89,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::post("retail/import", "RetailController@import");
         // 清空
         Route::post("retail/clear", "RetailController@clear");
+        // 清空
+        Route::post("retail/delete", "RetailController@destroy");
         /**
          * 药品管理
          */
