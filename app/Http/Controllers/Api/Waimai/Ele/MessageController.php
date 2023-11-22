@@ -14,9 +14,7 @@ class MessageController extends Controller
     public function index(Request $request)
     {
         $result = [
-            'id' => 'fbcae8d5-5708-4aef-8bea-6d0dc83f1740',
-            'result' => null,
-            'error' => null,
+            'message' => 'ok',
         ];
         return $this->success($result);
     }
