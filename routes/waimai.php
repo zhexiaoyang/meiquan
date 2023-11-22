@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\Route;
  * 接收外卖订单
  */
 
+// 饿了么服务商回调
+Route::middleware(['force-json'])->prefix('eleme')->namespace('Api\Waimai\Ele')->group(function () {
+    Route::post('message', "MessageController@index");
+    Route::post('callback', "CallbackController@index");
+});
+
 // 饿了么回调
 Route::middleware(['force-json'])->prefix('ele')->namespace('Api\Waimai')->group(function () {
     Route::post('auth', "EleOrderController@auth");
