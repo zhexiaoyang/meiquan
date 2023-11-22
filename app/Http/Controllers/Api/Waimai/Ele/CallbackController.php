@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\Waimai\Ele;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Request;
+use Illuminate\Http\Request;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 
