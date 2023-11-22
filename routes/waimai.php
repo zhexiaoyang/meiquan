@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Route;
 
 // 饿了么服务商回调
 Route::middleware(['force-json'])->prefix('eleme')->namespace('Api\Waimai\Ele')->group(function () {
-    Route::post('message', "MessageController@index");
-    Route::post('callback', "CallbackController@index");
+    Route::any('message', "MessageController@index");
+    Route::any('callback', "CallbackController@index");
 });
 
 // 饿了么回调
