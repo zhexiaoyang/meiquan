@@ -195,12 +195,12 @@ class ShunFengOrderController extends Controller
                     $this->log_info('顺丰配送员已改派，更改信息成功');
                     return json_encode($res);
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $this->ding_error("[顺丰]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
-                    sleep(1);
-                }
+                // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                // if (!$jiedan_lock->get()) {
+                //     // 获取锁定5秒...
+                //     $this->ding_error("[顺丰]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                //     sleep(1);
+                // }
                 // 配送员确认
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
