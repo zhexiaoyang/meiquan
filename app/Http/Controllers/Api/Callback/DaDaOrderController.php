@@ -333,12 +333,12 @@ class DaDaOrderController
                         $this->ding_error("自有达达-接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $this->ding_error("[达达]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
-                    sleep(1);
-                }
+                // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                // if (!$jiedan_lock->get()) {
+                //     // 获取锁定5秒...
+                //     $this->ding_error("[达达]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                //     sleep(1);
+                // }
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {
