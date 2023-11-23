@@ -789,13 +789,12 @@ class CreateMtOrder implements ShouldQueue
         $ps = $this->getService();
 
         // 判断是否接单了
-        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 1);
+        $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 2);
         if (!$jiedan_lock->get()) {
-            // 获取锁定5秒...
-            $this->log("已经操作接单，停止派单");
+            // 获取接单锁失败，说明有接单情况，停止派单
+            $this->log("获取接单锁失败，说明已经操作接单，停止派单");
             return;
         }
-        $jiedan_lock->release();
 
         if ($ps === "meituan") {
             if ($this->meituan()) {
@@ -872,7 +871,8 @@ class CreateMtOrder implements ShouldQueue
         }
         $this->log("发送订单失败，没有返回最小平台");
 
-        $lock->release();
+        $jiedan_lock->release();
+        // $lock->release();
     }
 
     public function zhongbao($money, $zhongbaoapp, $meituan_shop_id)

@@ -15,6 +15,7 @@ use App\Models\OrderLog;
 use App\Models\OrderResend;
 use App\Models\UserMoneyBalance;
 use App\Traits\RiderOrderCancel;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -67,6 +68,17 @@ class DaDaOrderController
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 如果是接单状态，设置接单锁
+            if ($status == 2) {
+                try {
+                    // 获取接单状态锁，如果锁存在，等待8秒
+                    Cache::lock("jiedan_lock:{$order->id}", 3)->block(8);
+                    // 获取锁成功
+                } catch (LockTimeoutException $e) {
+                    // 获取锁失败
+                    $this->ding_error("自有达达|接单获取锁失败错误|{$order->id}|{$order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                }
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('three_order_no', $order_id)->where('platform', 5)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 重复回传状态原因-重新分配骑士:取消订单

@@ -26,6 +26,7 @@ use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -275,12 +276,20 @@ class OrderController
                     $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
                 } elseif ($status === 10) {
                     // 骑手接单
-                    $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                    if (!$jiedan_lock->get()) {
-                        // 获取锁定5秒...
-                        $this->ding_error("[美团众包]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
-                        sleep(1);
+                    try {
+                        // 获取接单状态锁，如果锁存在，等待8秒
+                        Cache::lock("jiedan_lock:{$pt_order->id}", 3)->block(8);
+                        // 获取锁成功
+                    } catch (LockTimeoutException $e) {
+                        // 获取锁失败
+                        $this->ding_error("美团众包|接单获取锁失败错误|{$pt_order->id}|{$pt_order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
                     }
+                    // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                    // if (!$jiedan_lock->get()) {
+                    //     // 获取锁定5秒...
+                    //     $this->ding_error("[美团众包]派单后接单了,id:{$order->id},order_id:{$order->order_id},status:{$order->status}");
+                    //     sleep(1);
+                    // }
                     // 写入接单足迹
                     if ($delivery) {
                         try {

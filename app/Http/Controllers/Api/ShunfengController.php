@@ -16,6 +16,7 @@ use App\Models\OrderResend;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Traits\RiderOrderCancel;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,17 @@ class ShunfengController
         }
 
         if ($order = Order::where('delivery_id', $order_id)->first()) {
+            // 如果是接单状态，设置接单锁
+            if ($status == 10) {
+                try {
+                    // 获取接单状态锁，如果锁存在，等待8秒
+                    Cache::lock("jiedan_lock:{$order->id}", 3)->block(8);
+                    // 获取锁成功
+                } catch (LockTimeoutException $e) {
+                    // 获取锁失败
+                    $this->ding_error("集合顺丰|接单获取锁失败错误|{$order->id}|{$order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                }
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 7)->where('status', '<=', 70)->orderByDesc('id')->first();
             // 日志前缀
@@ -180,18 +192,18 @@ class ShunfengController
                     Log::info($log_prefix . '顺丰配送员已改派，更改信息成功');
                     return json_encode($res);
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $logs = [
-                        "des" => "【顺丰接单】派单后接单了",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
-                    sleep(1);
-                }
+                // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                // if (!$jiedan_lock->get()) {
+                //     // 获取锁定5秒...
+                //     $logs = [
+                //         "des" => "【顺丰接单】派单后接单了",
+                //         "status" => $order->status,
+                //         "id" => $order->id,
+                //         "order_id" => $order->order_id
+                //     ];
+                //     $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                //     sleep(1);
+                // }
                 // 配送员确认
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {

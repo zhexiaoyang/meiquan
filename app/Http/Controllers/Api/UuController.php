@@ -15,6 +15,7 @@ use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Traits\RiderOrderCancel;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -64,6 +65,17 @@ class UuController extends Controller
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 如果是接单状态，设置接单锁
+            if ($status == 3) {
+                try {
+                    // 获取接单状态锁，如果锁存在，等待8秒
+                    Cache::lock("jiedan_lock:{$order->id}", 3)->block(8);
+                    // 获取锁成功
+                } catch (LockTimeoutException $e) {
+                    // 获取锁失败
+                    $this->ding_error("UU|接单获取锁失败错误|{$order->id}|{$order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                }
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('three_order_no', $order_code)->first();
             // UU配送员坐标
@@ -204,18 +216,18 @@ class UuController extends Controller
                         $this->ding_error("UU接单回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
                     }
                 }
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $logs = [
-                        "des" => "【UU接单】派单后接单了",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
-                    sleep(1);
-                }
+                // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                // if (!$jiedan_lock->get()) {
+                //     // 获取锁定5秒...
+                //     $logs = [
+                //         "des" => "【UU接单】派单后接单了",
+                //         "status" => $order->status,
+                //         "id" => $order->id,
+                //         "order_id" => $order->order_id
+                //     ];
+                //     $dingding->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                //     sleep(1);
+                // }
                 // 取货中
                 // 判断订单状态，是否可接单
                 if ($order->status != 20 && $order->status != 30) {

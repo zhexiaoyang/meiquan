@@ -14,6 +14,7 @@ use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
 use App\Traits\RiderOrderCancel;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -69,6 +70,17 @@ class OrderController
 
         // 查找订单
         if ($order = Order::where('order_id', $order_id)->first()) {
+            // 如果是接单状态，设置接单锁
+            if ($status == 30) {
+                try {
+                    // 获取接单状态锁，如果锁存在，等待8秒
+                    Cache::lock("jiedan_lock:{$order->id}", 3)->block(8);
+                    // 获取锁成功
+                } catch (LockTimeoutException $e) {
+                    // 获取锁失败
+                    $this->ding_error("聚合闪送|接单获取锁失败错误|{$order->id}|{$order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                }
+            }
             // 跑腿运力
             $delivery = OrderDelivery::where('three_order_no', $ss_order_id)->first();
             $log_prefix = "[闪送跑腿回调-订单|订单号:{$order_id}|订单状态:{$order->status}|请求状态:{$status}]-";
@@ -186,22 +198,22 @@ class OrderController
                 return json_encode($res);
 
             } elseif ($status == 30) {
-                $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
-                if (!$jiedan_lock->get()) {
-                    // 获取锁定5秒...
-                    $logs = [
-                        "des" => "【闪送接单】派单后接单了",
-                        "status" => $order->status,
-                        "id" => $order->id,
-                        "order_id" => $order->order_id
-                    ];
-                    $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
-                }
-                $before_time = time();
-                Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
-                sleep(1);
-                $after_time = time();
-                Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
+                // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
+                // if (!$jiedan_lock->get()) {
+                //     // 获取锁定5秒...
+                //     $logs = [
+                //         "des" => "【闪送接单】派单后接单了",
+                //         "status" => $order->status,
+                //         "id" => $order->id,
+                //         "order_id" => $order->order_id
+                //     ];
+                //     $dd->sendMarkdownMsgArray("【派单后接单了】", $logs);
+                // }
+                // $before_time = time();
+                // Log::info($log_prefix . "取货中-睡眠之前：" . date("Y-m-d H:i:s", $before_time));
+                // sleep(1);
+                // $after_time = time();
+                // Log::info($log_prefix . "取货中-睡眠之后：" . date("Y-m-d H:i:s", $after_time));
                 // 写入接单足迹
                 if ($delivery) {
                     try {
