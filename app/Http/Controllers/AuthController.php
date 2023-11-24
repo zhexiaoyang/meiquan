@@ -322,7 +322,7 @@ class AuthController extends Controller
                     }
                 }
 
-                if (!empty($user_permissions)) {
+                if ($user_permissions->isNotEmpty()) {
                     foreach ($user_permissions as $user_permission) {
                         unset($tmp);
                         $tmp['actionEntitySet'] = [
@@ -337,6 +337,22 @@ class AuthController extends Controller
                         $tmp['permissionName'] = $user_permission->title;
                         $permissions[] = $tmp;
                     }
+                } else {
+                    if (Shop::where('user_id', $user->id)->where('auth', 10)->count() > 0) {
+                        $tmp['actionEntitySet'] = [
+                            [
+                                'action' => "supplier_index",
+                                'describe' => "index",
+                                'defaultCheck' => true
+                            ]
+                        ];
+                        $tmp['roleId'] = 'supplier';
+                        $tmp['permissionId'] = 'supplier';
+                        $tmp['permissionName'] = '采购';
+                        $permissions[] = $tmp;
+                        $user->givePermissionTo("supplier");
+                    }
+
                 }
                 // $permissions[] = [
                 //     'roleId' => 'shop',
