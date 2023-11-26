@@ -54,8 +54,8 @@ class CallbackController extends Controller
         $shop->save();
         $key = 'ele:shop:token:' . $state;
         $key_ref = 'ele:shop:token:ref:' . $state;
-        Cache::put($key, $access_token, $expires_in - 60);
-        Cache::put($key_ref, $refresh_token, $expires_in - 60);
+        Cache::put($key, $access_token, $expires_in - 30);
+        Cache::put($key_ref, $refresh_token, $expires_in - 30);
         EleOpenToken::create([
             'shop_id' => $shop->id,
             'ele_shop_id' => $state,
