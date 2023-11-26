@@ -2,12 +2,16 @@
 
 namespace App\Libraries\ElemeOpenApi\OAuth;
 
+use App\Traits\NoticeTool2;
 use Exception;
 use App\Libraries\ElemeOpenApi\Config\Config;
 use App\Libraries\ElemeOpenApi\Exception\IllegalRequestException;
+use Illuminate\Support\Facades\Log;
 
 class OAuthClient
 {
+    use NoticeTool2;
+
     private $client_id;
     private $secret;
     private $token_url;
@@ -124,7 +128,9 @@ class OAuthClient
     private function request($body, $url)
     {
         if ($this->log != null) {
-            $this->log->info("request data: " . json_encode($body));
+            // $this->log->info("request data: " . json_encode($body));
+            Log::channel('ele-open')->info($url);
+            Log::channel('ele-open')->info("request data: " . json_encode($body, JSON_UNESCAPED_UNICODE));
         }
 
         $ch = curl_init($url);
@@ -137,9 +143,11 @@ class OAuthClient
         $request_response = curl_exec($ch);
         if (curl_errno($ch)) {
             if ($this->log != null) {
-                $this->log->error("error: " . curl_error($ch));
+                // $this->log->error("error: " . curl_error($ch));
+                Log::channel('ele-open')->info("error: " . curl_error($ch));
+                $this->ding_error('饿了么开放平台，请求接口curl报错：'. curl_error($ch));
             }
-            throw new Exception(curl_error($ch));
+            // throw new Exception(curl_error($ch));
         }
         $response = json_decode($request_response);
         if (is_null($response)) {
@@ -150,7 +158,8 @@ class OAuthClient
         }
 
         if ($this->log != null) {
-            $this->log->info("response: " . json_encode($response));
+            Log::channel('ele-open')->info("response: " . $response);
+            // $this->log->info("response: " . json_encode($response));
         }
         return $response;
     }
