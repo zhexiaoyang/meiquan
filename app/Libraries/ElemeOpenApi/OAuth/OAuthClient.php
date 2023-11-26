@@ -158,7 +158,7 @@ class OAuthClient
         }
 
         if ($this->log != null) {
-            Log::channel('ele-open')->info("response: " . $response);
+            Log::channel('ele-open')->info("response: " . $request_response);
             // $this->log->info("response: " . json_encode($response));
         }
         return $response;
