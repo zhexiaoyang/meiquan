@@ -134,6 +134,17 @@ return [
         "secret_key" => env("TAOZI_XIA_SECRET_KEY", ""),
         "url" => env("TAOZI_XIA_URL", ""),
     ],
+    // 饿了么开放平台
+    "ele_open" => [
+        "key" => env("ELE_OPEN_KEY", ""),
+        "secret" => env("ELE_OPEN_SECRET", ""),
+        "url" => env("ELE_OPEN_URL", ""),
+        "sandbox_key" => env("ELE_OPEN_SANDBOX_KEY", ""),
+        "sandbox_secret" => env("ELE_OPEN_SANDBOX_SECRET", ""),
+        "sandbox_url" => env("ELE_OPEN_SANDBOX_URL", ""),
+        "callback_url" => env("ELE_OPEN_CALLBACK_URL", ""),
+        "sandbox" => true,
+    ],
     // 外卖平台
     "takeout_map" => [
         1 => '美团外卖',2 => '饿了么',3 => '京东到家',
