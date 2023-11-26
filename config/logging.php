@@ -47,6 +47,13 @@ return [
             'level' => 'debug',
         ],
 
+        'ele-open' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/ele-open.log'),
+            'level' => 'debug',
+            'days' => 10,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
