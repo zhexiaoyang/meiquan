@@ -233,12 +233,12 @@ class OrderController
     public function rider(Request $request, $platform)
     {
         $order_id = $request->get('order_id', '');
-        $status = (int) $request->get('logistics_status', '');
+        $status = $request->get('logistics_status');
         $time = $request->get('time', 0);
         $name = urldecode($request->get('dispatcher_name', ''));
         $phone = $request->get('dispatcher_mobile', '');
 
-        if ($order_id && $status) {
+        if ($order_id && is_numeric($status)) {
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&美配订单状态回调|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             $this->log_info("全部参数", $request->all());
             // 更改外卖订单状态
