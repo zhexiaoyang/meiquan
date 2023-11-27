@@ -278,51 +278,60 @@ class OrderController
                 // 跑腿运力
                 $delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
                 $this->log_info("订单号：{$order_id}|跑腿订单-开始");
-                if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40) {
+                if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40 && $pt_order->status < 70) {
                     // 已有其它平台接单，取消美团跑腿
                     $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
                 } elseif ($status === 0 && ($pt_order->zb_status < 20 || $pt_order->zb_status > 80)) {
-                    $this->ding_error("美团后台发单:{$order_id}");
-                    $pt_order->status = 20;
-                    $pt_order->zb_status = 20;
-                    $pt_order->save();
-                    try {
-                        DB::transaction(function () use ($pt_order) {
-                            $delivery_id = DB::table('order_deliveries')->insertGetId([
-                                'user_id' => $pt_order->user_id,
-                                'shop_id' => $pt_order->shop_id,
-                                'warehouse_id' => $pt_order->warehouse_id,
-                                'order_id' => $pt_order->id,
-                                'wm_id' => $pt_order->wm_id,
-                                'order_no' => $pt_order->order_id,
-                                'three_order_no' => $pt_order->order_id,
-                                'platform' => 8,
-                                'type' => 0,
-                                'day_seq' => $pt_order->day_seq,
-                                'money' => 0,
-                                'original' => 0,
-                                'coupon' => 0,
-                                'distance' => 0,
-                                'weight' => 0,
-                                'status' => 20,
-                                'track' => '待接单',
-                                'send_at' => date("Y-m-d H:i:s"),
-                                'created_at' => date("Y-m-d H:i:s"),
-                                'updated_at' => date("Y-m-d H:i:s"),
-                            ]);
-                            DB::table('order_delivery_tracks')->insert([
-                                'order_id' => $pt_order->id,
-                                'wm_id' => $pt_order->wm_id,
-                                'delivery_id' => $delivery_id,
-                                'status' => 20,
-                                'status_des' => '下单成功',
-                                'description' => '美团后台发单',
-                                'created_at' => date("Y-m-d H:i:s"),
-                                'updated_at' => date("Y-m-d H:i:s"),
-                            ]);
-                        });
-                    } catch (\Exception $exception) {
-                        Log::info("美团众包写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    $shop = Shop::select('id', 'shop_id_zb')->find($pt_order->shop_id);
+                    if ($shop && $shop->shop_id_zb) {
+                        $this->ding_error("美团后台操作发单:{$order_id}");
+                        $pt_order->status = 20;
+                        $pt_order->zb_status = 20;
+                        $pt_order->save();
+                        try {
+                            DB::transaction(function () use ($pt_order) {
+                                $delivery_id = DB::table('order_deliveries')->insertGetId([
+                                    'user_id' => $pt_order->user_id,
+                                    'shop_id' => $pt_order->shop_id,
+                                    'warehouse_id' => $pt_order->warehouse_id,
+                                    'order_id' => $pt_order->id,
+                                    'wm_id' => $pt_order->wm_id,
+                                    'order_no' => $pt_order->order_id,
+                                    'three_order_no' => $pt_order->order_id,
+                                    'platform' => 8,
+                                    'type' => 0,
+                                    'day_seq' => $pt_order->day_seq,
+                                    'money' => 0,
+                                    'original' => 0,
+                                    'coupon' => 0,
+                                    'distance' => 0,
+                                    'weight' => 0,
+                                    'status' => 20,
+                                    'track' => '待接单',
+                                    'send_at' => date("Y-m-d H:i:s"),
+                                    'created_at' => date("Y-m-d H:i:s"),
+                                    'updated_at' => date("Y-m-d H:i:s"),
+                                ]);
+                                DB::table('order_delivery_tracks')->insert([
+                                    'order_id' => $pt_order->id,
+                                    'wm_id' => $pt_order->wm_id,
+                                    'delivery_id' => $delivery_id,
+                                    'status' => 20,
+                                    'status_des' => '下单成功',
+                                    'description' => '美团后台发单',
+                                    'created_at' => date("Y-m-d H:i:s"),
+                                    'updated_at' => date("Y-m-d H:i:s"),
+                                ]);
+                                // 记录订单日志
+                                OrderLog::create([
+                                    'ps' => 8,
+                                    "order_id" => $pt_order->id,
+                                    "des" => "「美团众包」美团发单",
+                                ]);
+                            });
+                        } catch (\Exception $exception) {
+                            Log::info("美团众包写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                        }
                     }
                 } elseif ($status === 10) {
                     // 骑手接单
