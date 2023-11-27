@@ -240,6 +240,9 @@ class OrderController
 
         if ($order_id && is_numeric($status)) {
             $status = (int) $status;
+            if ($status === 0) {
+                sleep(1);
+            }
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&美配订单状态回调|配送状态:{$status}|订单号:{$order_id}", $this->prefix_title);
             $this->log_info("全部参数", $request->all());
             // 更改外卖订单状态
