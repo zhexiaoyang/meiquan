@@ -13,7 +13,7 @@ class SyncStockWanXiang extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-stock-wanxiang';
+    protected $signature = 'sync-stock-wanxiang {num}';
 
     /**
      * The console command description.
@@ -39,7 +39,6 @@ class SyncStockWanXiang extends Command
      */
     public function handle()
     {
-        $this->info('------------万祥同步库存开始------------');
         $shops = [
             [
                 'name' => '万祥大药房（未来公馆店）',
@@ -191,14 +190,22 @@ class SyncStockWanXiang extends Command
                 'bind' => 31,
             ],
         ];
-        foreach ($shops as $shop) {
+        $num = $this->argument('num');
+        if (is_numeric($num)) {
+            $_shops = [$shops[$num]];
+        } else {
+            $_shops = [$shops[0]];
+        }
+        $this->info("万祥同步库存开始|{$num}|数量：" . count($_shops) . "|门店名称：" . $_shops[0]['name']);
+        Log::info("万祥同步库存开始|{$num}|数量：" . count($_shops) . "|门店名称：" . $_shops[0]['name']);
+        foreach ($_shops as $shop) {
             $name = $shop['name'];
             $shop_id = $shop['shopid'];
             $mt_id = $shop['mtid'];
             $ele_id = $shop['eleid'];
             $bind = $shop['bind'];
-            $this->info("门店「{$name}}:{$mt_id}」同步库存-开始......");
-            Log::info("门店「{$name}}:{$mt_id}」同步库存-开始......");
+            $this->info("万祥同步库门店「{$name}}:{$mt_id}」同步库存-开始......");
+            Log::info("万祥同步库门店「{$name}}:{$mt_id}」同步库存-开始......");
             $minkang = app("minkang");
             $meiquan = app("meiquan");
             $ele = app("ele");
@@ -219,8 +226,8 @@ class SyncStockWanXiang extends Command
                     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[药品ID],[库存]");
             } catch (\Exception $exception) {
                 $data = [];
-                $this->info("门店「{$name}}:{$mt_id}」数据查询报错......");
-                Log::info("门店「{$name}}:{$mt_id}」数据查询报错......");
+                $this->info("万祥同步库门店「{$name}}:{$mt_id}」数据查询报错......");
+                Log::info("万祥同步库门店「{$name}}:{$mt_id}」数据查询报错......");
             }
             if (!empty($data)) {
                 $data = array_chunk($data, 50);
