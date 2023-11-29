@@ -190,6 +190,13 @@ class SyncStockWanXiang extends Command
                 'eleid' => '1166694862',
                 'bind' => 31,
             ],
+            [
+                'name' => '万祥大药房(义和谦店)',
+                'shopid' => '0025',
+                'mtid' => '19694050',
+                'eleid' => '512947516',
+                'bind' => 31,
+            ],
         ];
         foreach ($shops as $shop) {
             $name = $shop['name'];
