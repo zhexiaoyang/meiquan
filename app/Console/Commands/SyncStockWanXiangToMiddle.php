@@ -200,6 +200,13 @@ class SyncStockWanXiangToMiddle extends Command
                 'bind' => 31,
                 'mqid' => 6631,
             ],
+            [
+                'name' => '万祥大药房(义和谦店)',
+                'shopid' => '0025',
+                'mtid' => '19694050',
+                'eleid' => '512947516',
+                'bind' => 31,
+            ],
         ];
         foreach ($shops as $shop) {
             $shop_name = $shop['name'];
