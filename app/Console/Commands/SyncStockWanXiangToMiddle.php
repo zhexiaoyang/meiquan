@@ -206,6 +206,7 @@ class SyncStockWanXiangToMiddle extends Command
                 'mtid' => '19694050',
                 'eleid' => '512947516',
                 'bind' => 31,
+                'mqid' => 7149,
             ],
         ];
         foreach ($shops as $shop) {
