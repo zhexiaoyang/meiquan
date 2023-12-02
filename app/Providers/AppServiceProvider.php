@@ -44,20 +44,20 @@ class AppServiceProvider extends ServiceProvider
             return new DaDa($config);
         });
         // 美全达跑腿
-        $this->app->singleton('meiquanda', function () {
-            $config = config('ps.meiquanda');
-            return new MeiQuanDa($config);
-        });
+        // $this->app->singleton('meiquanda', function () {
+        //     $config = config('ps.meiquanda');
+        //     return new MeiQuanDa($config);
+        // });
         // 美团跑腿
         $this->app->singleton('meituan', function () {
             $config = config('ps.meituan');
             return new MeiTuan($config);
         });
         // 蜂鸟配送
-        $this->app->singleton('fengniao', function () {
-            $config = config('ps.fengniao');
-            return new Fengniao($config);
-        });
+        // $this->app->singleton('fengniao', function () {
+        //     $config = config('ps.fengniao');
+        //     return new Fengniao($config);
+        // });
         // 闪送配送
         $this->app->singleton('shansong', function () {
             $config = config('ps.shansong');
@@ -69,15 +69,15 @@ class AppServiceProvider extends ServiceProvider
             return new Yaogui($config);
         });
         // 药及特
-        $this->app->singleton('yaojite', function () {
-            $config = config('ps.yaojite');
-            return new MeiTuan($config);
-        });
+        // $this->app->singleton('yaojite', function () {
+        //     $config = config('ps.yaojite');
+        //     return new MeiTuan($config);
+        // });
         // 毛绒熊
-        $this->app->singleton('mrx', function () {
-            $config = config('ps.mrx');
-            return new MeiTuan($config);
-        });
+        // $this->app->singleton('mrx', function () {
+        //     $config = config('ps.mrx');
+        //     return new MeiTuan($config);
+        // });
         // 洁爱眼
         $this->app->singleton('jay', function () {
             $config = config('ps.jay');
@@ -89,15 +89,15 @@ class AppServiceProvider extends ServiceProvider
             return new MeiTuan($config);
         });
         // 民康
-        $this->app->singleton('jilin', function () {
-            $config = config('ps.jilin');
-            return new MeiTuan($config);
-        });
+        // $this->app->singleton('jilin', function () {
+        //     $config = config('ps.jilin');
+        //     return new MeiTuan($config);
+        // });
         // 寝趣
-        $this->app->singleton('qinqu', function () {
-            $config = config('ps.qinqu');
-            return new MeiTuan($config);
-        });
+        // $this->app->singleton('qinqu', function () {
+        //     $config = config('ps.qinqu');
+        //     return new MeiTuan($config);
+        // });
         // 美全服务商
         $this->app->singleton('meiquan', function () {
             $config = config('ps.meiquan');
@@ -135,8 +135,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton('mtkf', function () {
-            return new MeiTuanKaiFang(['app_id' => 106791, 'app_key' => 'lq1gtktmr3ofrjny', 'url' => 'https://api-open-cater.meituan.com/']);
-            // return new MeiTuanKaiFang(['app_id' => 106792, 'app_key' => '36cvt5p8joq0jiiw', 'url' => 'https://api-open-cater.meituan.com/']);
+            $config_meituan_open = config('ps.meituan_open');
+            return new MeiTuanKaiFang($config_meituan_open);
         });
 
         // 阿里云OSS
