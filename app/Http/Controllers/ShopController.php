@@ -1216,8 +1216,16 @@ class ShopController extends Controller
             return $this->error('参数错误');
         }
 
-        if (!Shop::find($shop_id)) {
+        if (!$shop = Shop::select('id', 'waimai_mt', 'mtwm')->find($shop_id)) {
             return $this->error('门店不存在');
+        }
+
+        if (!$shop->waimai_mt) {
+            return $this->error('该门店已绑定');
+        }
+
+        if (!$shop->mtwm) {
+            return $this->error('请先录入美团ID后再操作');
         }
 
         $type = $request->get("type");
