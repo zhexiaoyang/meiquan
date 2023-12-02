@@ -2833,23 +2833,25 @@ class OrderController extends Controller
             }
         }
         if ($shop->shop_id_fn) {
-            $result['fn_type'] = 1;
-            $result['fn_error'] = 0;
-            if ($fn_switch) {
-                $fengniao = app("fengniao");
-                $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
-                $check_fn = json_decode($check_fn_res['business_data'], true);
-                if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
-                    $result['fn'] = $shop->shop_id_fn;
-                    $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
-                } else {
-                    $result['fn_error'] = 1;
-                    $result['fn_msg'] = $check_fn['msg'] ?? '无法发单';;
-                }
-            } else {
-                $result['fn_error'] = 1;
-                $result['fn_msg'] = '已关闭';
-            }
+            // $result['fn_type'] = 1;
+            // $result['fn_error'] = 0;
+            // if ($fn_switch) {
+            //     $fengniao = app("fengniao");
+            //     $check_fn_res = $fengniao->preCreateOrderNew($shop, $order);
+            //     $check_fn = json_decode($check_fn_res['business_data'], true);
+            //     if (isset($check_fn['goods_infos'][0]['actual_delivery_amount_cent']) && $check_fn['goods_infos'][0]['actual_delivery_amount_cent'] > 0) {
+            //         $result['fn'] = $shop->shop_id_fn;
+            //         $result['fn_money'] = (($check_fn['goods_infos'][0]['actual_delivery_amount_cent'] ?? 0) + ($add_money * 100) ) / 100;
+            //     } else {
+            //         $result['fn_error'] = 1;
+            //         $result['fn_msg'] = $check_fn['msg'] ?? '无法发单';;
+            //     }
+            // } else {
+            //     $result['fn_error'] = 1;
+            //     $result['fn_msg'] = '已关闭';
+            // }
+            $result['fn_error'] = 1;
+            $result['fn_msg'] = '暂时无法发单';
         }
         if ($shop->shop_id_ss) {
             $result['ss_type'] = 1;
@@ -2888,22 +2890,24 @@ class OrderController extends Controller
             }
         }
         if ($shop->shop_id_mqd) {
-            $result['mqd_error'] = 0;
-            $result['mqd_type'] = 1;
-            if ($mqd_switch) {
-                $meiquanda = app('meiquanda');
-                $check_mqd = $meiquanda->orderCalculate($shop, $order);
-                if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
-                    $result['mqd'] = $shop->shop_id_mqd;
-                    $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
-                } else {
-                    $result['mqd_error'] = 1;
-                    $result['mqd_msg'] = $check_mqd['message'] ?? '无法发单';;
-                }
-            } else {
-                $result['mqd_error'] = 1;
-                $result['mqd_msg'] = '已关闭';
-            }
+            $result['mqd_error'] = 1;
+            $result['mqd_msg'] = '暂时无法发单';
+            // $result['mqd_error'] = 0;
+            // $result['mqd_type'] = 1;
+            // if ($mqd_switch) {
+            //     $meiquanda = app('meiquanda');
+            //     $check_mqd = $meiquanda->orderCalculate($shop, $order);
+            //     if (isset($check_mqd['data']['pay_fee']) && $check_mqd['data']['pay_fee'] > 0) {
+            //         $result['mqd'] = $shop->shop_id_mqd;
+            //         $result['mqd_money'] = $check_mqd['data']['pay_fee'] + $add_money;
+            //     } else {
+            //         $result['mqd_error'] = 1;
+            //         $result['mqd_msg'] = $check_mqd['message'] ?? '无法发单';;
+            //     }
+            // } else {
+            //     $result['mqd_error'] = 1;
+            //     $result['mqd_msg'] = '已关闭';
+            // }
         }
         if ($shop->shop_id_uu) {
             $result['uu_error'] = 0;
