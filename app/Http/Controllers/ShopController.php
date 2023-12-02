@@ -1220,7 +1220,7 @@ class ShopController extends Controller
             return $this->error('门店不存在');
         }
 
-        if (!$shop->waimai_mt) {
+        if ($shop->waimai_mt) {
             return $this->error('该门店已绑定');
         }
 
