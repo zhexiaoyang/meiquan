@@ -42,7 +42,7 @@ class Request
         // $params['sign'] = Tool::get_sign($params, $this->app_key);
         $sign = Tool::get_sign($params, $this->app_key);
         $params['sign'] = $sign;
-        $url = $this->url . $method."?sign=".$sign."&".Tool::concat_params($params);
+        $url = $this->url . $method;
 
         $http = $this->getHttp();
 
