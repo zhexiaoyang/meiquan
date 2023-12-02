@@ -98,6 +98,12 @@ return [
         "secret" => env("MEIQUAN_SECRET", ""),
         "url" => "https://waimaiopen.meituan.com/api/"
     ],
+    // 美团外卖-美全服务商
+    "meituan_open" => [
+        "app_id" => env("MEITUAN_OPEN_APP_ID", ""),
+        "app_key" => env("MEITUAN_OPEN_APP_KEY", ""),
+        "url" => "https://api-open-cater.meituan.com/"
+    ],
     // 药柜
     "yaogui" => [
         "app_key" => env("YAOGUI_APP_KEY", ""),
