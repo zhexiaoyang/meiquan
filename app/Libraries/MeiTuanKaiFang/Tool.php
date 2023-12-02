@@ -2,6 +2,7 @@
 
 namespace App\Libraries\MeiTuanKaiFang;
 
+use App\Models\MeituanOpenToken;
 use Illuminate\Support\Facades\Cache;
 
 class Tool
@@ -62,16 +63,23 @@ class Tool
         // 106792
         // 36cvt5p8joq0jiiw
         $key = 'meituan:open:token:' . $shop_id;
+        $token = Cache::get($key);
+        if (!$token) {
+            if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
+                $token = $token_data->token;
+                Cache::put($key, $token);
+            }
+        }
         $params = [
-            // 'appAuthToken' => Cache::get($key),
+            'appAuthToken' => Cache::get($key),
             'developerId' => config('ps.meituan_open.app_id'),
             'businessId' => 16,
             'timestamp' => time(),
-            'ePoiId' => $shop_id,
-            'charset' => 'UTF-8'
+            // 'ePoiId' => $shop_id,
+            // 'charset' => 'UTF-8'
         ];
         $params['sign'] = self::get_sign($params, config('ps.meituan_open.app_key'));
 
-        return 'https://open-erp.meituan.com/general/unauth?' . Tool::concat_params($params);
+        return 'https://open-erp.meituan.com/releasebinding?' . Tool::concat_params($params);
     }
 }
