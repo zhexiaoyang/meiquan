@@ -1231,9 +1231,9 @@ class ShopController extends Controller
         $type = $request->get("type");
 
         if ($type == 2) {
-            $url = Tool::releasebinding($shop_id);
+            $url = Tool::releasebinding($shop->mtwm);
         } else {
-            $url = Tool::binding($shop_id);
+            $url = Tool::binding($shop->mtwm);
         }
 
 
