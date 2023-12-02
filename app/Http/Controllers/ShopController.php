@@ -153,70 +153,70 @@ class ShopController extends Controller
                 $tmp['print_auto'] = $shop->print_auto;
 
                 // ------------------------------- 查询门店状态 -------------------------------
-                // if ($shop->waimai_mt) {
-                //     if ($shop->meituan_bind_platform === 4) {
-                //         if (!$minkang) {
-                //             $minkang = app('minkang');
-                //         }
-                //         $shop_status_params = ['app_poi_codes' => $shop->waimai_mt];
-                //         $mt_res = $minkang->getShopInfoByIds($shop_status_params);
-                //         if (isset($mt_res['data'][0])) {
-                //             // \Log::info('aaa', $mt_res['data'][0]);
-                //             $tmp['mt_name'] = $mt_res['data'][0]['name'];
-                //             $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
-                //             $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
-                //             $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
-                //         } else {
-                //             $tmp['mt_shipping_time'] = '未获取到门店信息';
-                //         }
-                //     } else if ($shop->meituan_bind_platform === 31) {
-                //         if (!$meiquan) {
-                //             $meiquan = app('meiquan');
-                //         }
-                //         $shop_status_params = ['app_poi_codes' => $shop->waimai_mt, 'access_token' => $meiquan->getShopToken($shop->waimai_mt)];
-                //         $mt_res = $meiquan->getShopInfoByIds($shop_status_params);
-                //         // \Log::info('aaaaaaaaa', $mt_res);
-                //         if (isset($mt_res['data'][0])) {
-                //             $tmp['mt_name'] = $mt_res['data'][0]['name'];
-                //             $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
-                //             $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
-                //             $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
-                //         } else {
-                //             $tmp['mt_shipping_time'] = '未获取到门店信息';
-                //         }
-                //     } else if ($shop->meituan_bind_platform === 25) {
-                //         if (!$canyin) {
-                //             $canyin = app('mtkf');
-                //         }
-                //         $shop_status_params = ['epoiIds' => $shop->waimai_mt];
-                //         $mt_res = $canyin->poi_mget($shop_status_params, $shop->waimai_mt);
-                //         // \Log::info('bbbbbbbbbbbb', $mt_res);
-                //         if (isset($mt_res['data'][0])) {
-                //             $tmp['mt_name'] = $mt_res['data'][0]['name'];
-                //             $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
-                //             $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
-                //             $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
-                //         } else {
-                //             $tmp['mt_shipping_time'] = '未获取到门店信息';
-                //         }
-                //     }
-                // }
-                // if ($shop->waimai_ele) {
-                //     if (!$ele) {
-                //         $ele = app('ele');
-                //     }
-                //     $ele_res = $ele->shopInfo($shop->waimai_ele);
-                //     $ele_res2 = $ele->shopBusstatus($shop->waimai_ele);
-                //     // \Log::info('cccccc', [$ele_res]);
-                //     if (!empty($ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'])) {
-                //         $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'];
-                //         if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
-                //             $tmp['ele_name'] = $ele_res['body']['data']['supplier_name'];
-                //             $tmp['ele_shipping_time'] = $ele_time_list['ranges'][0]['start_time'] . '-' . $ele_time_list['ranges'][0]['end_time'];
-                //             $tmp['ele_open'] = $ele_res2['body']['data']['shop_busstatus'] ?? 1;
-                //         }
-                //     }
-                // }
+                if ($shop->waimai_mt) {
+                    if ($shop->meituan_bind_platform === 4) {
+                        if (!$minkang) {
+                            $minkang = app('minkang');
+                        }
+                        $shop_status_params = ['app_poi_codes' => $shop->waimai_mt];
+                        $mt_res = $minkang->getShopInfoByIds($shop_status_params);
+                        if (isset($mt_res['data'][0])) {
+                            // \Log::info('aaa', $mt_res['data'][0]);
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
+                        } else {
+                            $tmp['mt_shipping_time'] = '未获取到门店信息';
+                        }
+                    } else if ($shop->meituan_bind_platform === 31) {
+                        if (!$meiquan) {
+                            $meiquan = app('meiquan');
+                        }
+                        $shop_status_params = ['app_poi_codes' => $shop->waimai_mt, 'access_token' => $meiquan->getShopToken($shop->waimai_mt)];
+                        $mt_res = $meiquan->getShopInfoByIds($shop_status_params);
+                        // \Log::info('aaaaaaaaa', $mt_res);
+                        if (isset($mt_res['data'][0])) {
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
+                        } else {
+                            $tmp['mt_shipping_time'] = '未获取到门店信息';
+                        }
+                    } else if ($shop->meituan_bind_platform === 25) {
+                        if (!$canyin) {
+                            $canyin = app('mtkf');
+                        }
+                        $shop_status_params = ['epoiIds' => $shop->waimai_mt];
+                        $mt_res = $canyin->poi_mget($shop_status_params, $shop->waimai_mt);
+                        // \Log::info('bbbbbbbbbbbb', $mt_res);
+                        if (isset($mt_res['data'][0])) {
+                            $tmp['mt_name'] = $mt_res['data'][0]['name'];
+                            $tmp['mt_shipping_time'] = $mt_res['data'][0]['shipping_time'];
+                            $tmp['mt_open'] = $mt_res['data'][0]['open_level'];
+                            $tmp['mt_online'] = $mt_res['data'][0]['is_online'];
+                        } else {
+                            $tmp['mt_shipping_time'] = '未获取到门店信息';
+                        }
+                    }
+                }
+                if ($shop->waimai_ele) {
+                    if (!$ele) {
+                        $ele = app('ele');
+                    }
+                    $ele_res = $ele->shopInfo($shop->waimai_ele);
+                    $ele_res2 = $ele->shopBusstatus($shop->waimai_ele);
+                    // \Log::info('cccccc', [$ele_res]);
+                    if (!empty($ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'])) {
+                        $ele_time_list = $ele_res['body']['data']['business_time2']['normal_business_time_list'][0]['business_hour'];
+                        if (isset($ele_time_list['type']) && !empty($ele_time_list['ranges'])) {
+                            $tmp['ele_name'] = $ele_res['body']['data']['supplier_name'];
+                            $tmp['ele_shipping_time'] = $ele_time_list['ranges'][0]['start_time'] . '-' . $ele_time_list['ranges'][0]['end_time'];
+                            $tmp['ele_open'] = $ele_res2['body']['data']['shop_busstatus'] ?? 1;
+                        }
+                    }
+                }
                 // ------------------------------- 查询门店状态 -------------------------------
 
                 // 跑腿平台
@@ -1231,7 +1231,7 @@ class ShopController extends Controller
         }
 
         if ($type == 2) {
-            $url = Tool::releasebinding($shop_id);
+            $url = Tool::releasebinding($shop->mtwm);
         } else {
             $url = Tool::binding($shop->mtwm);
         }
