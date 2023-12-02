@@ -51,7 +51,7 @@ class ShopController extends Controller
         $shop_id = $request->get("ePoiId", "");
 
         if ($shop_id) {
-            if ($shop = Shop::where('waimai_mt',$shop_id)) {
+            if ($shop = Shop::where('waimai_mt',$shop_id)->first()) {
                 $shop->waimai_mt = '';
                 $shop->save();
                 $this->log('全部参数', $request->all());
