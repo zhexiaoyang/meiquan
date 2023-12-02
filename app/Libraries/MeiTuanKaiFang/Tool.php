@@ -45,12 +45,12 @@ class Tool
         // 106792
         // 36cvt5p8joq0jiiw
         $params = [
-            'developerId' => '106791',
+            'developerId' => config('ps.meituan_open.app_id'),
             'businessId' => 16,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
         ];
-        $params['sign'] = self::get_sign($params, 'lq1gtktmr3ofrjny');
+        $params['sign'] = self::get_sign($params, config('ps.meituan_open.app_key'));
 
         return 'https://open-erp.meituan.com/storemap?' . Tool::concat_params($params);
     }
@@ -63,14 +63,15 @@ class Tool
         // 36cvt5p8joq0jiiw
         $key = 'meituan:open:token:' . $shop_id;
         $params = [
-            'appAuthToken' => Cache::get($key),
-            'developerId' => '106791',
+            // 'appAuthToken' => Cache::get($key),
+            'developerId' => config('ps.meituan_open.app_id'),
             'businessId' => 16,
             'timestamp' => time(),
             'ePoiId' => $shop_id,
+            'charset' => 'UTF-8'
         ];
-        $params['sign'] = self::get_sign($params, 'lq1gtktmr3ofrjny');
+        $params['sign'] = self::get_sign($params, config('ps.meituan_open.app_key'));
 
-        return 'https://open-erp.meituan.com/releasebinding?' . Tool::concat_params($params);
+        return 'https://open-erp.meituan.com/general/unauth?' . Tool::concat_params($params);
     }
 }
