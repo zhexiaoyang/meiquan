@@ -21,7 +21,7 @@ class ShopController extends Controller
 
         if ($token && $shop_id) {
             $this->log('全部参数', $request->all());
-            if ($shop = Shop::find($shop_id)) {
+            if ($shop = Shop::where('mtwm', $shop_id)->first()) {
                 $shop->meituan_bind_platform = 25;
                 $shop->waimai_mt = $shop_id;
                 $shop->bind_date = date("Y-m-d H:i:s");
@@ -51,7 +51,7 @@ class ShopController extends Controller
         $shop_id = $request->get("ePoiId", "");
 
         if ($shop_id) {
-            if ($shop = Shop::find($shop_id)) {
+            if ($shop = Shop::where('waimai_mt',$shop_id)) {
                 $shop->waimai_mt = '';
                 $shop->save();
                 $this->log('全部参数', $request->all());
