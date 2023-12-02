@@ -26,10 +26,10 @@ class RetailImport implements ToCollection, WithHeadingRow, WithValidation, With
         }
 
         foreach ($row as $item) {
-            $name = $item['商品名称'] ?? 0;
+            // $name = $item['商品名称'] ?? 0;
             $cost = $item['成本价格'] ?? 0;
             $id = $item['ID'] ?? 0;
-            \Log::info("$name|$cost|$id");
+            // \Log::info("$name|$cost|$id");
             if ($id && $cost) {
                 $sku = WmRetailSku::find($id);
                 if ($sku->shop_id == $this->shop_id) {

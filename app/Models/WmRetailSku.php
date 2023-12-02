@@ -15,6 +15,11 @@ class WmRetailSku extends Model
         'guidance_price' => 'double'
     ];
 
+    public function retail()
+    {
+        return $this->belongsTo(WmRetail::class, 'retail_id', 'id');
+    }
+
     protected static function boot()
     {
         parent::boot();

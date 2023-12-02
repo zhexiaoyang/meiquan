@@ -33,22 +33,24 @@ class WmRetailExport extends DefaultValueBinder implements  WithStrictNullCompar
 
     public function query()
     {
-        $query = WmRetailSku::where('shop_id', $this->shop_id);
+        $query = WmRetailSku::with('retail')->where('shop_id', $this->shop_id);
 
         return $query;
     }
 
-    public function map($medicine): array
+    public function map($row): array
     {
         return [
-            $medicine->id,
-            $medicine->name,
-            $medicine->spec,
-            $medicine->price,
-            $medicine->down_price,
-            $medicine->guidance_price,
-            $medicine->gpm,
-            $medicine->down_gpm,
+            $row->id,
+            $row->retail->store_id,
+            $row->sku_id,
+            $row->name,
+            $row->spec,
+            $row->price,
+            $row->down_price,
+            $row->guidance_price,
+            $row->gpm,
+            $row->down_gpm,
         ];
     }
 
@@ -56,7 +58,9 @@ class WmRetailExport extends DefaultValueBinder implements  WithStrictNullCompar
     {
         return [
             'ID',
+            '商品ID',
             '商品名称',
+            '店内码(SKU_ID)',
             '规格',
             '线上价格',
             '线下价格',
