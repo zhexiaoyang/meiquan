@@ -278,7 +278,7 @@ class MtLogisticsSync implements ShouldQueue
             }elseif ($this->order->status == 70) {
                 $status = 40;
             }
-            if ($shop->mt_shop_id) {
+            if ($shop->waimai_mt) {
                 $params = [
                     "order_id" => $this->order->order_id,
                     "courier_name" => $this->order->courier_name,
