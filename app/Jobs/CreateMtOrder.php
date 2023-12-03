@@ -585,44 +585,44 @@ class CreateMtOrder implements ShouldQueue
         // ******************************  美  团  跑  腿  ***********************************
         // **********************************************************************************
         // 判断美团是否可以接单、并加入数组(美团美的ID，设置是否打开，没用失败信息)
-        // if (true) {
-        //     $order->fail_mt = "公司关闭美团跑腿";
-        //     $this->log("公司关闭「美团」跑腿，停止「美团」派单");
-        // }elseif ($order->fail_mt) {
-        //     $this->log("已经有「美团」失败信息：{$order->fail_mt}，停止「美团」派单");
-        // } elseif ($order->mt_status != 0) {
-        //     $this->log("订单状态[{$order->dd_status}]不是0，停止「美团」派单");
-        // } elseif (!$shop->shop_id) {
-        //     $order->fail_mt = "门店不支持美团跑腿";
-        //     $this->log("门店不支持「美团」跑腿，停止「美团」派单");
-        // } elseif (!$mt_switch) {
-        //     $order->fail_mt = "门店关闭美团跑腿";
-        //     $this->log("门店关闭「美团」跑腿，停止「美团」派单");
-        // } else {
-        //     $meituan = app("meituan");
-        //     $check_mt = $meituan->preCreateByShop($shop, $this->order);
-        //     $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
-        //     $money_mt += $add_money;
-        //     $this->log("「美团」金额：{$money_mt}");
-        //     if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
-        //         // 判断用户金额是否满足美团订单
-        //         if ($user->money < ($money_mt + $use_money)) {
-        //             if ($order->status < 20) {
-        //                 DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
-        //             }
-        //             // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
-        //             dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
-        //             $this->log("用户金额不足发「美团」单，停止派单");
-        //             return;
-        //         }
-        //         $order->money_mt = $money_mt;
-        //         $this->services['meituan'] = $money_mt;
-        //     } else {
-        //         $mt_error_msg = $check_mt['message'] ?? "美团校验订单失败";
-        //         $order->fail_mt = $mt_error_msg;
-        //         $this->log("「美团」校验订单失败:{$mt_error_msg}，停止「美团」派单");
-        //     }
-        // }
+        if (isset($this->services['zhongbao'])) {
+            $order->fail_mt = "开通众包，不发美团跑腿";
+            $this->log("开通众包，不发美团跑腿");
+        }elseif ($order->fail_mt) {
+            $this->log("已经有「美团」失败信息：{$order->fail_mt}，停止「美团」派单");
+        } elseif ($order->mt_status != 0) {
+            $this->log("订单状态[{$order->dd_status}]不是0，停止「美团」派单");
+        } elseif (!$shop->shop_id) {
+            $order->fail_mt = "门店不支持美团跑腿";
+            $this->log("门店不支持「美团」跑腿，停止「美团」派单");
+        } elseif (!$mt_switch) {
+            $order->fail_mt = "门店关闭美团跑腿";
+            $this->log("门店关闭「美团」跑腿，停止「美团」派单");
+        } else {
+            $meituan = app("meituan");
+            $check_mt = $meituan->preCreateByShop($shop, $this->order);
+            $money_mt = $check_mt['data']['delivery_fee'] ?? 0;
+            $money_mt += $add_money;
+            $this->log("「美团」金额：{$money_mt}");
+            if (isset($check_mt['code']) && ($check_mt['code'] === 0) && $money_mt > 1) {
+                // 判断用户金额是否满足美团订单
+                if ($user->money < ($money_mt + $use_money)) {
+                    if ($order->status < 20) {
+                        DB::table('orders')->where('id', $order->id)->update(['status' => 5, 'cancel_at' => date("Y-m-d H:i:s")]);
+                    }
+                    // dispatch(new SendSms($user->phone, "SMS_186380293", [$user->phone, $money_mt + $use_money]));
+                    dispatch(new SendSmsNew($user->phone, "SMS_276395537", ['number' =>5]));
+                    $this->log("用户金额不足发「美团」单，停止派单");
+                    return;
+                }
+                $order->money_mt = $money_mt;
+                $this->services['meituan'] = $money_mt;
+            } else {
+                $mt_error_msg = $check_mt['message'] ?? "美团校验订单失败";
+                $order->fail_mt = $mt_error_msg;
+                $this->log("「美团」校验订单失败:{$mt_error_msg}，停止「美团」派单");
+            }
+        }
 
         // **********************************************************************************
         // ******************************  蜂  鸟  跑  腿  ***********************************
@@ -1339,27 +1339,16 @@ class CreateMtOrder implements ShouldQueue
     public function meituan()
     {
         $order = Order::find($this->order->id);
-
         if ($order->status > 30) {
             $this->log("不能发送「美团」订单，订单状态：{$order->status},大于30，停止派单");
         }
-
         if ($order->fail_mt) {
             $this->log("已有「美团」错误信息，停止派单");
             return false;
         }
         $shop_id = $order->warehouse_id ?: $order->shop_id;
         $shop = Shop::find($shop_id);
-        // $shop = Shop::find($this->order->shop_id);
-
         $meituan = app("meituan");
-        // $distance = distanceMoney($this->order->distance);
-        // $base = baseMoney($shop->city_level ?: 9);
-        // $time_money = timeMoney();
-        // $date_money = dateMoney();
-        // $weight_money = weightMoney($this->order->goods_weight);
-
-        // $money = $base + $time_money + $date_money + $distance + $weight_money;
         // 发送美团订单
         $result_mt = $meituan->createByShop($shop, $this->order);
         if ($result_mt['code'] === 0) {
