@@ -624,33 +624,33 @@ class ShopController extends Controller
                     $resrange[] = $_range;
                 }
             }
-            if ($shop->shop_id_fn) {
-                if (!$shop->range->range_fn) {
-                    $fengniao = app("fengniao");
-                    $resfn = $fengniao->getArea($shop->shop_id_fn);
-                    if (isset($resfn['data']['range_list'][0]['ranges'])) {
-                        $scope = [];
-                        // $range = json_decode($res['data']['scope'], true);
-                        if (!empty($resfn['data']['range_list'][0]['ranges'])) {
-                            foreach ($resfn['data']['range_list'][0]['ranges'] as $k => $v) {
-                                $tmp[] = (float) $v['longitude'];
-                                $tmp[] = (float) $v['latitude'];
-                                $scope[] = $tmp;
-                                unset($tmp);
-                            }
-                        }
-                        $shop->range->range_fn = json_encode($scope);
-                        $shop->range->save();
-                        $_range['name'] = '蜂鸟';
-                        $_range['range'] = $scope;
-                        $resrange[] = $_range;
-                    }
-                } else {
-                    $_range['name'] = '蜂鸟';
-                    $_range['range'] = json_decode($shop->range->range_fn);
-                    $resrange[] = $_range;
-                }
-            }
+            // if ($shop->shop_id_fn) {
+            //     if (!$shop->range->range_fn) {
+            //         $fengniao = app("fengniao");
+            //         $resfn = $fengniao->getArea($shop->shop_id_fn);
+            //         if (isset($resfn['data']['range_list'][0]['ranges'])) {
+            //             $scope = [];
+            //             // $range = json_decode($res['data']['scope'], true);
+            //             if (!empty($resfn['data']['range_list'][0]['ranges'])) {
+            //                 foreach ($resfn['data']['range_list'][0]['ranges'] as $k => $v) {
+            //                     $tmp[] = (float) $v['longitude'];
+            //                     $tmp[] = (float) $v['latitude'];
+            //                     $scope[] = $tmp;
+            //                     unset($tmp);
+            //                 }
+            //             }
+            //             $shop->range->range_fn = json_encode($scope);
+            //             $shop->range->save();
+            //             $_range['name'] = '蜂鸟';
+            //             $_range['range'] = $scope;
+            //             $resrange[] = $_range;
+            //         }
+            //     } else {
+            //         $_range['name'] = '蜂鸟';
+            //         $_range['range'] = json_decode($shop->range->range_fn);
+            //         $resrange[] = $_range;
+            //     }
+            // }
         }
 
         $data = [
