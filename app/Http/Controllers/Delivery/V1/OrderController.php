@@ -3146,11 +3146,57 @@ class OrderController extends Controller
         if ($order->status != 60) {
             return $this->error('该订单不能完成');
         }
+        $over_at = date("Y-m-d H:i:s");
         $order->status = 70;
-        $order->over_at = date("Y-m-d H:i:s");
+        $order->over_at = $over_at;
         $order->courier_lng = $order->receiver_lng;
         $order->courier_lat = $order->receiver_lat;
-        $order->save();
+        if ( $order->save() ) {
+            Log::info("{点击送达|自配送订单:$order->order_id}|操作人：{$request->user()->id}}");
+            DB::table('order_logs')->insert([
+                'ps' => 200,
+                'order_id' => $order->id,
+                'des' => '「自配送」完成订单',
+                'created_at' => $over_at,
+                'updated_at' => $over_at,
+            ]);
+            $delivery = OrderDelivery::where('order_id', $order->id)->where('platform', 200)->where('status', '<=', 70)->orderByDesc('id')->first();
+            // 写入完成足迹
+            if ($delivery) {
+                try {
+                    $delivery->update([
+                        'delivery_lng' => $order->receiver_lng,
+                        'delivery_lat' => $order->receiver_lat,
+                        'status' => 70,
+                        'finished_at' => date("Y-m-d H:i:s"),
+                        'track' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                    ]);
+                    OrderDeliveryTrack::firstOrCreate(
+                        [
+                            'delivery_id' => $delivery->id,
+                            'status' => 70,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'delivery_name' => $delivery->delivery_name,
+                            'delivery_phone' => $delivery->delivery_phone,
+                        ], [
+                            'order_id' => $delivery->order_id,
+                            'wm_id' => $delivery->wm_id,
+                            'delivery_id' => $delivery->id,
+                            'status' => 70,
+                            'status_des' => OrderDeliveryTrack::TRACK_STATUS_FINISH,
+                            'delivery_name' => $delivery->delivery_name,
+                            'delivery_phone' => $delivery->delivery_phone,
+                            'delivery_lng' => $order->receiver_lng,
+                            'delivery_lat' => $order->receiver_lat,
+                            'description' => OrderDeliveryTrack::TRACK_DESCRIPTION_FINISH,
+                        ]
+                    );
+                } catch (\Exception $exception) {
+                    Log::info("自配送-送达回调-写入新数据出错", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
+                    $this->ding_error("自配送-送达回调-写入新数据出错|{$order->order_id}|" . date("Y-m-d H:i:s"));
+                }
+            }
+        }
         // 跑腿运力完成
         OrderDelivery::finish_log($order->id, 200, 'APP操作');
         dispatch(new MtLogisticsSync($order));
