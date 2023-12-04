@@ -41,7 +41,7 @@ class MedicineController extends Controller
                 $shop_select = Shop::select('id', 'shop_name', 'erp_status')->find($select_shops->shop_id);
                 $shops->prepend($shop_select);
             } else {
-                $shops = $query->orderBy('id')->limit(15)->get();
+                $shops = $query->orderBy('id')->limit(50)->get();
             }
         }
 
@@ -163,6 +163,9 @@ class MedicineController extends Controller
             $excep = intval($excep);
             if ($excep === 2) {
                 $query->whereColumn('guidance_price', '>=', 'price');
+            }
+            if ($excep === 3) {
+                $query->whereColumn('price', '<=', 'down_price');
             }
         }
 
