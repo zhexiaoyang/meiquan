@@ -128,6 +128,7 @@ function tranTime($time) {
 
 // 正常
 function formetTime($time) {
+    $str = '';
     $time = ($time + 86400) - time();
     if ($time < 60)
     {
