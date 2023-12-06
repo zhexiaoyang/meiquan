@@ -65,6 +65,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
             $type[$medicine->ele_status],
             $medicine->ele_status !== 2 ? '' : $medicine->ele_error,
             $online_type[$medicine->online_ele],
+            $medicine->price > $medicine->guidance_price ? '正常' : '异常',
         ];
     }
 
@@ -86,6 +87,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
             '饿了么状态',
             '饿了么异常',
             '饿了么上下架',
+            '价格异常',
         ];
     }
 
@@ -97,7 +99,7 @@ class WmMedicineExport extends DefaultValueBinder implements  WithStrictNullComp
     public function bindValue(Cell $cell, $value)
     {
         $column = $cell->getColumn();
-        if (in_array( $column, ['A', 'B', 'E', 'F', 'G', 'H'])) {
+        if (in_array( $column, ['A', 'B', 'C'])) {
             $cell->setValueExplicit($value, DataType::TYPE_STRING);
             return true;
         }
