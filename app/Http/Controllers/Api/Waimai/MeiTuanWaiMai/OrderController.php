@@ -1136,7 +1136,7 @@ class OrderController
                 // 门店
                 $shop = Shop::find($order->shop_id);
                 if ($shop->yunying_status) {
-                    $this->ding_error("代运营服务费扣款事件触发");
+                    // $this->ding_error("代运营服务费扣款事件触发");
                     OperateServiceFeeDeductionJob::dispatch($order->id);
                 }
             } else {
