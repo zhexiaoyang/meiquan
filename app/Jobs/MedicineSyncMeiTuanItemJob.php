@@ -125,6 +125,7 @@ class MedicineSyncMeiTuanItemJob implements ShouldQueue
                     // $error_msg = substr($error_msg, 0, 200);
                     // \Log::info('$error_msg', [$error_msg]);
                     if ((strstr($error_msg, '已存在') !== false) || (strstr($error_msg, '已经存在') !== false)) {
+                        $meituan->medicineUpdate($this->params);
                         \Log::info('true' . $error_msg);
                         $update_data = ['mt_status' => 1];
                         // 库存大于0 为上架状态
