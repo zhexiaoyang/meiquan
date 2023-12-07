@@ -376,10 +376,10 @@ class ShopController extends Controller
         $shop->shop_lat = $shop_lat;
 
         if ($shop->save()) {
-            if ($shop->shop_id_fn) {
-                $fengniao = app("fengniao");
-                $fengniao->updateShop($shop);
-            }
+            // if ($shop->shop_id_fn) {
+            //     $fengniao = app("fengniao");
+            //     $fengniao->updateShop($shop);
+            // }
             if ($shop->shop_id) {
                 $meituan = app("meituan");
                 $meituan->shopUpdate($shop);
