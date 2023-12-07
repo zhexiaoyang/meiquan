@@ -283,7 +283,7 @@ class MedicineSyncJob implements ShouldQueue
                         'stock' => $medicine->stock,
                         'category_name' => implode(',', $medicine_category),
                         'sequence' => $medicine->sequence,
-                        'is_sold_out' => 0,
+                        'is_sold_out' => $medicine->online_mt ? 0 : 1,
                     ];
                     if ($this->shop->meituan_bind_platform == 31) {
                         $medicine_data['access_token'] = $meituan->getShopToken($this->shop->waimai_mt);
