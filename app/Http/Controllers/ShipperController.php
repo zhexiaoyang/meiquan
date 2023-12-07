@@ -91,24 +91,25 @@ class ShipperController extends Controller
      */
     public function add_fengniao(Shop $shop)
     {
-        if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 2)->first()) {
-            $shop->shop_id_fn = $shipper->three_id;
-            $shop->save();
-            return $this->success();
-        }
-        $fengniao = app("fengniao");
-        $res = $fengniao->getShop($shop->id);
-        if (isset($res['data']) && count($res['data']) > 0) {
-            $shop->shop_id_fn = $shop->id;
-            $shop->save();
-            return $this->success();
-        }
-        $result = $fengniao->createShop($shop);
-        if (isset($result['code']) && $result['code'] == 200) {
-            return $this->success('创建成功，等待审核');
-        }
-        \Log::info("创建门店失败-蜂鸟", [$result]);
-        return $this->error($result['msg'] ?? '添加失败');
+        // if ($shipper = ShopShipperUnbound::where('shop_id', $shop->id)->where('platform', 2)->first()) {
+        //     $shop->shop_id_fn = $shipper->three_id;
+        //     $shop->save();
+        //     return $this->success();
+        // }
+        // $fengniao = app("fengniao");
+        // $res = $fengniao->getShop($shop->id);
+        // if (isset($res['data']) && count($res['data']) > 0) {
+        //     $shop->shop_id_fn = $shop->id;
+        //     $shop->save();
+        //     return $this->success();
+        // }
+        // $result = $fengniao->createShop($shop);
+        // if (isset($result['code']) && $result['code'] == 200) {
+        //     return $this->success('创建成功，等待审核');
+        // }
+        // \Log::info("创建门店失败-蜂鸟", [$result]);
+        // return $this->error($result['msg'] ?? '添加失败');
+        return $this->error('蜂鸟运力正在对接中');
     }
 
     /**
