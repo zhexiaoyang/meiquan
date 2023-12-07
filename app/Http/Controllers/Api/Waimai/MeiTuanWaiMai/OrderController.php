@@ -718,7 +718,7 @@ class OrderController
                     }
                     // 服务费
                     $service_fee = 0.1;
-                    if ($pt_order->zb_money === 0) {
+                    if ($pt_order->money_zb == 0) {
                         $service_fee = 0;
                         $this->log_info("美团后台呼叫众包，不收取服务费");
                     }
@@ -746,22 +746,24 @@ class OrderController
                     ]);
                     $this->log_info('配送完成，更改信息成功');
                     // dispatch(new MtLogisticsSync($order));
-                    // 查找扣款用户，为了记录余额日志
-                    $current_user = DB::table('users')->find($pt_order->user_id);
-                    // 减去用户配送费
-                    DB::table('users')->where('id', $pt_order->user_id)->decrement('money', $service_fee);
-                    // 用户余额日志
-                    UserMoneyBalance::create([
-                        "user_id" => $pt_order->user_id,
-                        "money" => $service_fee,
-                        "type" => 2,
-                        "before_money" => $current_user->money,
-                        "after_money" => ($current_user->money - $service_fee),
-                        "description" => "美团众包订单服务费：" . $pt_order->order_id,
-                        "tid" => $pt_order->id
-                    ]);
-                    $this->log_info('配送完成，扣款成功');
-                    WmOrder::where('id', $order->id)->update(['running_fee' => $pt_order->money, 'running_service_fee' => $service_fee]);
+                    if ($service_fee > 0) {
+                        // 查找扣款用户，为了记录余额日志
+                        $current_user = DB::table('users')->find($pt_order->user_id);
+                        // 减去用户配送费
+                        DB::table('users')->where('id', $pt_order->user_id)->decrement('money', $service_fee);
+                        // 用户余额日志
+                        UserMoneyBalance::create([
+                            "user_id" => $pt_order->user_id,
+                            "money" => $service_fee,
+                            "type" => 2,
+                            "before_money" => $current_user->money,
+                            "after_money" => ($current_user->money - $service_fee),
+                            "description" => "美团众包订单服务费：" . $pt_order->order_id,
+                            "tid" => $pt_order->id
+                        ]);
+                        $this->log_info('配送完成，扣款成功');
+                        WmOrder::where('id', $order->id)->update(['running_fee' => $pt_order->money, 'running_service_fee' => $service_fee]);
+                    }
                     event(new OrderComplete($order->id, $order->user_id, $pt_order->shop_id, date("Y-m-d", strtotime($pt_order->created_at))));
                 } elseif ($status === 100) {
                     // 写入足迹
