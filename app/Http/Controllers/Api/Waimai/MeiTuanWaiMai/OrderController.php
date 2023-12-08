@@ -284,7 +284,7 @@ class OrderController
                 } elseif ($status === 0 && ($pt_order->zb_status < 20 || $pt_order->zb_status > 80)) {
                     $shop = Shop::select('id', 'shop_id_zb')->find($pt_order->shop_id);
                     if ($shop && $shop->shop_id_zb) {
-                        $this->ding_error("美团后台操作发单:{$order_id}");
+                        // $this->ding_error("美团后台操作发单:{$order_id}");
                         $pt_order->status = 20;
                         $pt_order->zb_status = 20;
                         $pt_order->save();
