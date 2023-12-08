@@ -86,7 +86,7 @@ class StoreRestJob implements ShouldQueue
                     if (isset($rest_shop['data']) && $rest_shop['data'] === 'ok') {
                         $data['status'] = 1;
                         ShopRestLog::create($data);
-                        $this->ding_error("门店:{$shop->shop_name},ID:{$shop->waimai_mt}，休息成功");
+                        // $this->ding_error("门店:{$shop->shop_name},ID:{$shop->waimai_mt}，休息成功");
                         if ($this->type === 1) {
                             if ($user = User::find($shop->user_id)) {
                                 $this->restShopSms($user->phone, $user->operate_money);
@@ -107,11 +107,11 @@ class StoreRestJob implements ShouldQueue
                     if (isset($rest_shop['data']) && $rest_shop['data'] === 'ok') {
                         $data['status'] = 1;
                         ShopRestLog::create($data);
-                        $this->ding_error("门店:{$shop->shop_name},ID:{$shop->waimai_mt}，营业成功");
+                        // $this->ding_error("门店:{$shop->shop_name},ID:{$shop->waimai_mt}，营业成功");
                         return ;
                     } else {
                         $data['error'] = $online_shop['msg'] ?? '操作失败';
-                        \Log::info('自动置休门店-置休失败', [$online_shop]);
+                        \Log::info('自动营业门店-营业失败', [$online_shop]);
                         ShopRestLog::create($data);
                     }
                 }
