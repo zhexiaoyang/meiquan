@@ -1415,13 +1415,13 @@ class MedicineController extends Controller
                     Medicine::where('shop_id', $shop_id)->update([
                         'mt_status' => 0,
                         'mt_error' => '',
-                        'online_mt' => 0,
+                        'online_mt' => 1,
                     ]);
                 } else {
                     Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->update([
                         'mt_status' => 0,
                         'mt_error' => '',
-                        'online_mt' => 0,
+                        'online_mt' => 1,
                     ]);
                 }
             }
@@ -1433,13 +1433,13 @@ class MedicineController extends Controller
                     Medicine::where('shop_id', $shop_id)->update([
                         'ele_status' => 0,
                         'ele_error' => '',
-                        'online_ele' => 0,
+                        'online_ele' => 1,
                     ]);
                 } else {
                     Medicine::whereIn('id', $product_ids)->where('shop_id', $shop_id)->update([
                         'ele_status' => 0,
                         'ele_error' => '',
-                        'online_ele' => 0,
+                        'online_ele' => 1,
                     ]);
                 }
             }
