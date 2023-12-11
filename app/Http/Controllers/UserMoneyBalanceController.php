@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\MoneyBalanceExport;
 use App\Models\UserMoneyBalance;
 use Illuminate\Http\Request;
 
@@ -52,5 +53,10 @@ class UserMoneyBalanceController extends Controller
         $data = $query->orderBy("id", "desc")->paginate($page_size);
 
         return $this->page($data);
+    }
+
+    public function export(Request $request, MoneyBalanceExport $balanceExport)
+    {
+        return $balanceExport->withRequest($request);
     }
 }
