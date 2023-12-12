@@ -584,9 +584,15 @@ class UserController extends Controller
             return $this->error('用户不存在');
         }
 
-        $user->password = bcrypt(123456);
+        $str = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        $password = '';
+        for ($i = 0; $i < 6; $i++) {
+            $password .= $str[rand(0, 61)];
+        }
+
+        $user->password = bcrypt($password);
         $user->save();
 
-        return $this->success();
+        return $this->success(['password' => $password]);
     }
 }
