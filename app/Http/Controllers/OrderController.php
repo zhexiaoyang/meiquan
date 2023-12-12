@@ -1136,7 +1136,7 @@ class OrderController extends Controller
                     $dada = app("dada");
                 }
                 $result = $dada->orderCancel($order->order_id);
-                if ($result['code'] == 0) {
+                if ($result['code'] == 0 || $result['msg'] == '订单已取消,无法重复取消') {
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 5, '美团外卖');
                     try {
@@ -1985,7 +1985,7 @@ class OrderController extends Controller
                     $dada = app("dada");
                 }
                 $result = $dada->orderCancel($order->order_id);
-                if ($result['code'] == 0) {
+                if ($result['code'] == 0 || $result['msg'] == '订单已取消,无法重复取消') {
                     // 跑腿运力取消
                     OrderDelivery::cancel_log($order->id, 5, '中台操作');
                     try {
