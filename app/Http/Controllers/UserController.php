@@ -131,14 +131,11 @@ class UserController extends Controller
         if (!empty($users)) {
             $date = date("Y-m-d", strtotime($date) + 86400);
             foreach ($users as $user) {
-                $frozen = UserFrozenBalance::query()
-                    ->where("user_id", $user->id)
+                $frozen = UserFrozenBalance::where("user_id", $user->id)
                     ->where("created_at", "<", $date)->orderByDesc("id")->first();
-                $money = UserMoneyBalance::query()
-                    ->where("user_id", $user->id)
+                $money = UserMoneyBalance::where("user_id", $user->id)
                     ->where("created_at", "<", $date)->orderByDesc("id")->first();
-                $operate = UserOperateBalance::query()
-                    ->where("user_id", $user->id)
+                $operate = UserOperateBalance::where("user_id", $user->id)
                     ->where("created_at", "<", $date)->orderByDesc("id")->first();
                 if ($money) {
                     $user->after_money = $money->after_money;
@@ -163,7 +160,7 @@ class UserController extends Controller
 
     public function chain(Request $request)
     {
-        if (!$user = User::query()->find(intval($request->get("id", 0)))) {
+        if (!$user = User::find(intval($request->get("id", 0)))) {
             return $this->error("用户不存在");
         }
 
