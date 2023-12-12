@@ -686,6 +686,8 @@ Route::middleware(["force-json"])->group(function() {
             /**
              * 用户
              */
+            // 用户管理-重置密码
+            Route::post("/user/password", "UserController@resetPassword");
             // IM用户-列表
             Route::get("/user/im", "UserController@im_index");
             // IM用户-更新

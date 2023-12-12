@@ -573,4 +573,20 @@ class UserController extends Controller
 
         return $this->success('操作成功');
     }
+
+    public function resetPassword(Request $request)
+    {
+        if (!$request->user()->hasRole('super_admin')) {
+            return $this->error('请求错误');
+        }
+
+        if (!$user = User::find($request->get('id'))) {
+            return $this->error('用户不存在');
+        }
+
+        $user->password = bcrypt(123456);
+        $user->save();
+
+        return $this->success();
+    }
 }
