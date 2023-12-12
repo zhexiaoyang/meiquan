@@ -47,6 +47,8 @@ class OperateServiceFeeDeductionJob implements ShouldQueue
 
         DB::transaction(function () use ($order) {
             $money = $order->operate_service_fee;
+            $refund_operate_service_fee = $order->refund_operate_service_fee;
+            $money = $money + $refund_operate_service_fee;
             $user_id = $order->user_id;
             // 修改外卖订单扣运营服务费状态
             DB::table('wm_orders')->where('id', $order->id)->where('operate_service_fee_status', 0)->update([
