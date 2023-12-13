@@ -1501,7 +1501,7 @@ class MedicineController extends Controller
         }
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
             // \Log::info("没有全部门店权限");
-            if (!in_array($shop_id, $request->user()->shops()->pluck('id'))) {
+            if (!in_array($shop_id, $request->user()->shops()->pluck('id')->toArray())) {
                 // 非管理员判断
                 return $this->error('门店不存在!');
             }
