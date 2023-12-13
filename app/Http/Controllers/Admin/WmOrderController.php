@@ -34,7 +34,8 @@ class WmOrderController extends Controller
             $query->select('id', 'shop_lng', 'shop_lat');
         }])->select('id','platform','day_seq','shop_id','is_prescription','order_id','delivery_time','estimate_arrival_time',
             'status','recipient_name','recipient_phone','is_poi_first_order','way','recipient_address_detail','wm_shop_name',
-            'ctime','caution','print_number','poi_receive','vip_cost','running_fee','prescription_fee','operate_service_fee','operate_service_fee_status')
+            'ctime','caution','print_number','poi_receive','vip_cost','running_fee','prescription_fee','operate_service_fee',
+            'operate_service_fee_status','refund_operate_service_fee')
             ->where('shop_id', '>', 0);
 
         // $query->whereIn('shop_id', $request->user()->shops()->pluck('id'));
@@ -76,6 +77,12 @@ class WmOrderController extends Controller
         }
 
         $data = $query->orderByDesc('id')->paginate($page_size);
+
+        if (!empty($data)) {
+            foreach ($data as $order) {
+                $order->operate_service_fee = (float) sprintf("%.2f", $order->operate_service_fee + $order->refund_operate_service_fee);
+            }
+        }
 
         return $this->page($data);
     }
