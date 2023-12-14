@@ -143,10 +143,10 @@ class MedicineUpdateImport implements ToCollection, WithHeadingRow, WithValidati
             if (in_array(trim($item['售卖状态']), [0, 1])) {
                 $online_status = trim($item['售卖状态']);
                 if ($online_status == 0) {
-                    $medicine_data['online_mt'] = 1;
+                    $medicine_data['online_mt'] = 0;
                     $medicine_data['online_ele'] = 1;
                 } else {
-                    $medicine_data['online_mt'] = 0;
+                    $medicine_data['online_mt'] = 1;
                     $medicine_data['online_ele'] = 0;
                 }
             }
