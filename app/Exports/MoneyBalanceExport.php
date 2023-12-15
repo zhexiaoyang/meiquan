@@ -41,7 +41,9 @@ class MoneyBalanceExport implements WithStrictNullComparison, Responsable, FromQ
         } else if ($type == 2) {
             $query = UserFrozenBalance::query();
         } else {
-            $query = UserOperateBalance::query();
+            $query = UserOperateBalance::with(['shop' => function ($query) {
+                $query->select('id', 'shop_name', 'mt_shop_name', 'waimai_mt');
+            }]);
         }
 
         if ($start_date) {
@@ -59,7 +61,15 @@ class MoneyBalanceExport implements WithStrictNullComparison, Responsable, FromQ
 
     public function map($balance): array
     {
+        $mt_id = '';
+        $mt_name = '';
+        if (isset($balance->shop)) {
+            $mt_id = $balance->shop->waimai_mt;
+            $mt_name = $balance->shop->mt_shop_name ?: $balance->shop->shop_name;
+        }
         return [
+            $mt_id,
+            $mt_name,
             $balance->created_at,
             $balance->description,
             $balance->money,
@@ -70,6 +80,8 @@ class MoneyBalanceExport implements WithStrictNullComparison, Responsable, FromQ
     public function headings(): array
     {
         return [
+            '美团门店ID',
+            '美团门店名称',
             '时间',
             '描述',
             '金额',
