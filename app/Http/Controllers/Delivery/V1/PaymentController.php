@@ -120,7 +120,7 @@ class PaymentController extends Controller
                 //     'timestamp' => '',
                 //     'sign' => '',
                 // ];
-                return $this->success($wechatOrder);
+                return $this->success(json_decode($wechatOrder, JSON_UNESCAPED_UNICODE));
             }
         } else {
             // PC充值
