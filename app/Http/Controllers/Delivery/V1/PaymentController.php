@@ -112,16 +112,16 @@ class PaymentController extends Controller
                 ];
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->app($order)->getContent();
                 $wechatOrder = json_decode($wechatOrder, JSON_UNESCAPED_UNICODE);
-                $result = [
-                    'appId' => $wechatOrder['appid'] ?? '',
-                    'nonceStr' => $wechatOrder['noncestr'] ?? '',
-                    'package' => $wechatOrder['package'] ?? '',
-                    'partnerId' => $wechatOrder['partnerid'] ?? '',
-                    'prepayId' => $wechatOrder['prepayid'] ?? '',
-                    'timeStamp' => $wechatOrder['timestamp'] ?? '',
-                    'sign' => $wechatOrder['sign'] ?? '',
-                ];
-                return $this->success($result);
+                // $result = [
+                //     'appId' => $wechatOrder['appid'] ?? '',
+                //     'nonceStr' => $wechatOrder['noncestr'] ?? '',
+                //     'package' => $wechatOrder['package'] ?? '',
+                //     'partnerId' => $wechatOrder['partnerid'] ?? '',
+                //     'prepayId' => $wechatOrder['prepayid'] ?? '',
+                //     'timeStamp' => $wechatOrder['timestamp'] ?? '',
+                //     'sign' => $wechatOrder['sign'] ?? '',
+                // ];
+                return $this->success($wechatOrder);
             }
         } else {
             // PC充值
