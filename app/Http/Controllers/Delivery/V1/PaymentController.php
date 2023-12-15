@@ -91,21 +91,26 @@ class PaymentController extends Controller
         // 写入数据库
         $deposit->save();
 
-        $order = [
-            'out_trade_no' => $deposit->no,
-            'total_amount' => $deposit->amount,
-            'subject' => '美全配送充值',
-        ];
-
         $result = [];
         if ($channel === 1) {
             // APP充值
             if ($method === 1) {
+                $order = [
+                    'out_trade_no' => $deposit->no,
+                    'total_amount' => $deposit->amount,
+                    'subject' => '美全配送充值',
+                ];
                 $config = config("pay.alipay");
                 $config['notify_url'] = $config['app_notify_url'];
                 $order_info = Pay::alipay($config)->app($order)->getContent();
                 $result = ['order_info' => $order_info];
             } elseif ($method === 2) {
+                $order = [
+                    'out_trade_no'  => $deposit->no,
+                    'body'          => '美全配送充值',
+                    'total_fee'     => $deposit->amount * 100
+                ];
+                $wechatOrder = Pay::wechat(config("pay.wechat"))->app($order);
                 $result = [
                     'appid' => '',
                     'noncestr' => '',
@@ -115,6 +120,7 @@ class PaymentController extends Controller
                     'timestamp' => '',
                     'sign' => '',
                 ];
+                return $this->success($wechatOrder);
             }
         } else {
             // PC充值
@@ -131,7 +137,7 @@ class PaymentController extends Controller
                     'body'          => '美全配送充值',
                     'total_fee'     => $deposit->amount * 100
                 ];
-                $wechatOrder = Pay::wechat(config("pay.wechat_supplier_money"))->scan($order);
+                $wechatOrder = Pay::wechat(config("pay.wechat"))->scan($order);
                 $data = [
                     'code_url' => $wechatOrder->code_url,
                     'amount'  => $deposit->amount,
