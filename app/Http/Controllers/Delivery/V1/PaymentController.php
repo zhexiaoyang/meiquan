@@ -111,16 +111,17 @@ class PaymentController extends Controller
                     'total_fee'     => $deposit->amount * 100
                 ];
                 $wechatOrder = Pay::wechat(config("pay.wechat"))->app($order)->getContent();
-                // $result = [
-                //     'appid' => '',
-                //     'noncestr' => '',
-                //     'package' => '',
-                //     'partnerid' => '',
-                //     'prepayid' => '',
-                //     'timestamp' => '',
-                //     'sign' => '',
-                // ];
-                return $this->success(json_decode($wechatOrder, JSON_UNESCAPED_UNICODE));
+                $wechatOrder = json_decode($wechatOrder, JSON_UNESCAPED_UNICODE);
+                $result = [
+                    'appId' => $wechatOrder['appid'] ?? '',
+                    'nonceStr' => $wechatOrder['noncestr'] ?? '',
+                    'package' => $wechatOrder['package'] ?? '',
+                    'partnerId' => $wechatOrder['partnerid'] ?? '',
+                    'prepayId' => $wechatOrder['prepayid'] ?? '',
+                    'timeStamp' => $wechatOrder['timestamp'] ?? '',
+                    'sign' => $wechatOrder['sign'] ?? '',
+                ];
+                return $this->success($result);
             }
         } else {
             // PC充值
