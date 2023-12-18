@@ -51,6 +51,7 @@ class PrescriptionImport implements ToArray
                 }
                 $platform = $item[0] == '美团' ? 1 : 2;
                 $shop_id = trim($item[1]);
+                Log::info($shop_id);
                 $_tmp = [
                     'money' => floatval($item[5]),
                     // 'expend' => $this->expend,
@@ -74,7 +75,13 @@ class PrescriptionImport implements ToArray
                 if (isset($shops[$shop_id])) {
                     $shop = $shops[$shop_id];
                 } else {
-                    if ($shop = Shop::select('id','user_id')->where('chufang_mt', $shop_id)->orderByDesc('id')->first()) {
+                    $shop = null;
+                    if ($platform === 1) {
+                        $shop = Shop::select('id','user_id')->where('chufang_mt', $shop_id)->orderByDesc('id')->first();
+                    } else {
+                        $shop = Shop::select('id','user_id')->where('chufang_ele', $shop_id)->orderByDesc('id')->first();
+                    }
+                    if ($shop) {
                         $shops[$shop_id] = $shop;
                     } else {
                         // throw new InvalidRequestException("第{$line}行，门店不存在");
