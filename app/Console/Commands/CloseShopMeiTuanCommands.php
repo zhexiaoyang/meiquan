@@ -99,7 +99,7 @@ class CloseShopMeiTuanCommands extends Command
             } else {
                 $rest_shop = $shangou->shopClose($shop['mtid'], true);
             }
-            \Log::info('1分钟置休返回结果：' . json_encode($rest_shop, JSON_UNESCAPED_UNICODE));
+            \Log::info($shop['mtid'] . '|1分钟置休返回结果：' . json_encode($rest_shop, JSON_UNESCAPED_UNICODE));
         }
     }
 }
