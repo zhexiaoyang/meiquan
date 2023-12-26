@@ -4,6 +4,7 @@ namespace App\Libraries\MeiTuanKaiFang\Api;
 
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\MeituanOpenToken;
+use App\Models\Shop;
 use App\Models\WmOrder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
@@ -138,6 +139,57 @@ class Api extends Request
     }
 
     /**
+     * 创建或者更新商品
+     * @data 2023/12/3 5:19 下午
+     */
+    public function food_init_data($shop_id, $params)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params, JSON_UNESCAPED_UNICODE)
+        ];
+        return $this->post('wmoper/ng/foodop/food/initdata', $data, 16);
+    }
+
+    /**
+     * 批量创建商品
+     * @data 2023/12/3 5:19 下午
+     */
+    public function food_batchbulksave($shop_id, $params)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/foodop/food/batchbulksave', $data, 16);
+    }
+
+    /**
+     * 分类列表
+     * @data 2023/12/3 4:15 下午
+     */
+    public function wmoper_food_category_list($shop_id)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id)
+        ];
+        return $this->post('wmoper/ng/food/queryFoodCatList', $data, 16);
+    }
+
+    /**
+     * 创建分类
+     * @data 2023/12/3 5:01 下午
+     */
+    public function food_cat_update($shop_id, $params)
+    {
+        $data = [
+            'appAuthToken' => $this->get_token($shop_id),
+            'biz' => json_encode($params)
+        ];
+        return $this->post('wmoper/ng/foodop/foodCat/update', $data, 16);
+    }
+
+    /**
      * 根据名称和规格更新店内码
      * @param $shop_id
      * @param $params
@@ -149,7 +201,7 @@ class Api extends Request
     {
         $data = [
             'appAuthToken' => $this->get_token($shop_id),
-            'biz' => json_encode($params)
+            'biz' => json_encode($params, JSON_UNESCAPED_UNICODE)
         ];
         return $this->post('wmoper/ng/foodop/food/updateAppFoodCodeByNameAndSpec', $data, 16);
     }
@@ -266,8 +318,15 @@ class Api extends Request
             if ($token_data = MeituanOpenToken::where('shop_id', $shop_id)->first()) {
                 $token = $token_data->token;
                 // $key = 'meituan:open:token:' . $shop_id;
-                Cache::put($key, $token);
+            } else {
+                if ($shop = Shop::select('id', 'waimai_mt')->find($shop_id)) {
+                    if ($token_data = MeituanOpenToken::where('shop_id', $shop->waimai_mt)->first()) {
+                        $token = $token_data->token;
+                        // $key = 'meituan:open:token:' . $shop_id;
+                    }
+                }
             }
+            Cache::put($key, $token);
         }
         if (!$token) {
             $dingding = new DingTalkRobotNotice("6b2970a007b44c10557169885adadb05bb5f5f1fbe6d7485e2dcf53a0602e096");
