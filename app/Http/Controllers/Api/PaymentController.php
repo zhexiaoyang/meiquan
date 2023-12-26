@@ -6,6 +6,7 @@ use App\Jobs\StoreRestJob;
 use App\Models\ContractOrder;
 use App\Models\Deposit;
 use App\Models\Shop;
+use App\Models\ShopRestLog;
 use App\Models\SupplierOrder;
 use App\Models\User;
 use App\Models\UserFrozenBalance;
@@ -310,8 +311,9 @@ class PaymentController
         if ($user && $user->operate_money > 0) {
             $shops = Shop::select('id', 'user_id', 'yunying_status')->where('user_id', $user->id)->get();
             if (!empty($shops)) {
+                $date = date("Y-m-d H:i:s", time() - 86400);
                 foreach ($shops as $shop) {
-                    if ($shop->yunying_status) {
+                    if ($shop->yunying_status && ShopRestLog::where('shop_id', $shop->id)->where('created_at', '>', $date)->count()) {
                         StoreRestJob::dispatch($shop->id, 2);
                     }
                 }
