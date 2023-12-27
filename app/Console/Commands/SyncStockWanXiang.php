@@ -227,7 +227,7 @@ class SyncStockWanXiang extends Command
             } catch (\Exception $exception) {
                 $data = [];
                 $this->info("门店「{$name}}:{$mt_id}」数据查询报错......");
-                Log::info("门店「{$name}}:{$mt_id}」数据查询报错......");
+                Log::info("门店「{$name}}:{$mt_id}」数据查询报错......", [$exception->getFile(),$exception->getLine(),$exception->getMessage(),$exception->getCode()]);
             }
             if (!empty($data)) {
                 $data = array_chunk($data, 50);
