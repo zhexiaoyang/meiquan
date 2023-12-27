@@ -150,7 +150,7 @@ class SyncStockHaoXinRen extends Command
             $meiquan = app("meiquan");
             try {
                 $data = DB::connection('haoxinren')
-                    ->select("SELECT 商品编号 as id,条形码 as upc,库存总数量 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [upc] <> '' AND [upc] IS NOT NULL GROUP BY [upc],[药品ID],[库存]");
+                    ->select("SELECT 商品编号 as id,条形码 as upc,库存总数量 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'{$shop_id}' AND [条形码] <> '' AND [条形码] IS NOT NULL GROUP BY [条形码],[商品编号]");
             } catch (\Exception $exception) {
                 $data = [];
                 $this->info("门店「{$name}}:{$mt_id}」数据查询报错......");
