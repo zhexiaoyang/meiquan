@@ -362,6 +362,8 @@ Route::middleware(["force-json"])->group(function() {
         Route::get("shop/create", "ShopCreateController@info")->name("shop.create.info");
         // 外卖建店-保存
         Route::post("shop/create", "ShopCreateController@save")->name("shop.create.save");
+        // *门店列表-修改药师签名
+        Route::post("shop/update/pharmacist", "ShopController@pharmacistUpdate")->name("shop.update.three.id");
         // *门店列表-修改三方门店ID
         Route::post("shop/update/three", "ShopController@update_three_id")->name("shop.update.three.id");
         // *门店地址加配送范围信息

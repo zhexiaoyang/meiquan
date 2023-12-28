@@ -244,6 +244,7 @@ class PrescriptionController extends Controller
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
         $platform = $request->get('platform', '');
+        $sign = $request->get('sign', '');
 
         if ($shop_id) {
             if (!$shop = Shop::find($shop_id)) {
@@ -278,7 +279,7 @@ class PrescriptionController extends Controller
                 'sdate' => $sdate,
                 'edate' => $edate,
             ]);
-            PrescriptionPictureExportJob::dispatch($orders, $log->id, $log->title);
+            PrescriptionPictureExportJob::dispatch($orders, $log->id, $log->title, $sign);
             return $this->message('创建下载任务成功');
         }
         return $this->error('选择数据中无处方图片', 422);

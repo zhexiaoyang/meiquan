@@ -124,6 +124,7 @@ class PrescriptionController extends Controller
         $order_id = $request->get('order_id', '');
         $shop_id = $request->get('shop_id', '');
         $platform = $request->get('platform', '');
+        $sign = $request->get('sign', '');
         $sdate = $request->get('sdate', '');
         $edate = $request->get('edate', '');
         if ((strtotime($edate) - strtotime($sdate)) >= 86400 * 31) {
@@ -137,7 +138,7 @@ class PrescriptionController extends Controller
                 return $this->error('门店不存在');
             }
         }
-        $query = WmOrder::select('id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
+        $query = WmOrder::select('id', 'shop_id', 'order_id', 'wm_shop_name', 'status', 'platform', 'rp_picture', 'ctime')
             // ->where('shop_id', $shop_id)
             ->where('is_prescription', 1)
             ->where('rp_picture', '<>', '')
@@ -165,7 +166,7 @@ class PrescriptionController extends Controller
                 'sdate' => $sdate,
                 'edate' => $edate,
             ]);
-            PrescriptionPictureExportJob::dispatch($orders, $log->id, $log->title);
+            PrescriptionPictureExportJob::dispatch($orders, $log->id, $log->title, $sign);
             return $this->message('创建下载任务成功');
         }
         return $this->error('选择数据中无处方图片', 422);

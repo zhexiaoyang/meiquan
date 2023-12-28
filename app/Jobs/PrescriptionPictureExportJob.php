@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Redis;
 
 class PrescriptionPictureExportJob implements ShouldQueue
 {
@@ -19,17 +20,19 @@ class PrescriptionPictureExportJob implements ShouldQueue
     public $orders;
     public $log_id;
     public $title;
+    public $sign;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($orders, $log_id, $title)
+    public function __construct($orders, $log_id, $title, $sign = '')
     {
         $this->orders = $orders;
         $this->log_id = $log_id;
         $this->title = $title;
+        $this->sign = $sign;
     }
 
     /**
@@ -49,12 +52,34 @@ class PrescriptionPictureExportJob implements ShouldQueue
             $zip = new \ZipArchive;
             if ($zip->open($zip_file, \ZipArchive::CREATE) === TRUE)
             {
+                $redis_key = 'shop_pharmacists';
                 // 批量写入文件
                 foreach ($orders as $order) {
                     if ($order->rp_picture) {
                         $name = substr($order->rp_picture, strripos($order->rp_picture, '/') + 1);
                         try {
-                            $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                            if ($this->sign && $text = Redis::hget($redis_key, $order->shop_id)) {
+                                if ($order->platform == 1) {
+                                    $imageData = file_get_contents($order->rp_picture);
+                                    $imageResource = imagecreatefromstring($imageData);
+                                    // 设置文字内容和字体样式
+                                    $font = storage_path('font.ttf');
+                                    // 设置文字颜色为黑色
+                                    $textColor = imagecolorallocate($imageResource, 0, 0, 0);
+                                    // 在画布上绘制文字
+                                    imagettftext($imageResource, 20, 0, 177, 870, $textColor, $font, $text);
+                                    $file_name = '/tmp/circle' . rand(1000000, 9999999) . '.png';
+                                    imagepng($imageResource, $file_name);
+                                    $zip->addFromString('处方图片/' . $name, file_get_contents($file_name));
+                                    // 释放资源
+                                    unlink($file_name);
+                                    imagedestroy($imageResource);
+                                } else if ($order->platform == 2) {
+                                    $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                                }
+                            } else {
+                                $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                            }
                         } catch (\Exception $exception) {
                             $error_data = [
                                 'message' => $exception->getMessage(),

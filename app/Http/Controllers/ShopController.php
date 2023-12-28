@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Redis;
 
 class ShopController extends Controller
 {
@@ -151,6 +152,7 @@ class ShopController extends Controller
                 $tmp['ele_open'] = $shop->ele_open;
                 $tmp['mt_jie'] = $shop->mt_jie;
                 $tmp['print_auto'] = $shop->print_auto;
+                $tmp['prescription_sign'] = $shop->prescription_sign;
 
                 // ------------------------------- 查询门店状态 -------------------------------
                 if ($shop->waimai_mt) {
@@ -1268,6 +1270,41 @@ class ShopController extends Controller
         $shop->mt_jie = $mt_auto;
         $shop->print_auto = $print_auto;
         $shop->save();
+        return $this->success();
+    }
+
+    /**
+     * 药师录入
+     * @param Request $request
+     * @return mixed
+     * @author zhangzhen
+     * @data 2023/12/28 10:08 上午
+     */
+    public function pharmacistUpdate(Request $request)
+    {
+        if (!$id = $request->get('id')) {
+            return $this->error('门店不存在');
+        }
+        $pharmacist = $request->get('prescription_sign');
+        if (!$shop = Shop::find(intval($id))) {
+            return $this->error('门店不存在');
+        }
+        $user = $request->user();
+        if (!$request->user()->hasPermissionTo('currency_shop_all')) {
+            if ( !in_array($id, $user->shops()->pluck('id')) ) {
+                if ($shop->user_id != $user->id) {
+                    return $this->error('门店不存在!');
+                }
+            }
+        }
+        $shop->prescription_sign = $pharmacist;
+        $shop->save();
+        $redis_key = 'shop_pharmacists';
+        if ($pharmacist) {
+            Redis::hset($redis_key, $shop->id, $pharmacist);
+        } else {
+            Redis::hdel($redis_key, $shop->id);
+        }
         return $this->success();
     }
 }
