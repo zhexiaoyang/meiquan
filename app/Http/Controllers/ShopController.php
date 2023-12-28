@@ -153,6 +153,9 @@ class ShopController extends Controller
                 $tmp['mt_jie'] = $shop->mt_jie;
                 $tmp['print_auto'] = $shop->print_auto;
                 $tmp['prescription_sign'] = $shop->prescription_sign;
+                $tmp['tiaoji'] = $shop->tiaoji;
+                $tmp['hedui'] = $shop->hedui;
+                $tmp['fayao'] = $shop->fayao;
 
                 // ------------------------------- 查询门店状态 -------------------------------
                 if ($shop->waimai_mt) {
@@ -1286,6 +1289,9 @@ class ShopController extends Controller
             return $this->error('门店不存在');
         }
         $pharmacist = $request->get('prescription_sign');
+        $tiaoji = $request->get('tiaoji');
+        $hedui = $request->get('hedui');
+        $fayao = $request->get('fayao');
         if (!$shop = Shop::find(intval($id))) {
             return $this->error('门店不存在');
         }
@@ -1298,12 +1304,33 @@ class ShopController extends Controller
             }
         }
         $shop->prescription_sign = $pharmacist;
+        $shop->tiaoji = $tiaoji;
+        $shop->hedui = $hedui;
+        $shop->fayao = $fayao;
         $shop->save();
-        $redis_key = 'shop_pharmacists';
+        $redis_shenhe = 'shop_pharmacists';
+        $redis_tiaoji = 'shop_pharmacists_tiaoji';
+        $redis_hedui = 'shop_pharmacists_hedui';
+        $redis_fayao = 'shop_pharmacists_fayao';
         if ($pharmacist) {
-            Redis::hset($redis_key, $shop->id, $pharmacist);
+            Redis::hset($redis_shenhe, $shop->id, $pharmacist);
         } else {
-            Redis::hdel($redis_key, $shop->id);
+            Redis::hdel($redis_shenhe, $shop->id);
+        }
+        if ($tiaoji) {
+            Redis::hset($redis_tiaoji, $shop->id, $tiaoji);
+        } else {
+            Redis::hdel($redis_tiaoji, $shop->id);
+        }
+        if ($hedui) {
+            Redis::hset($redis_hedui, $shop->id, $hedui);
+        } else {
+            Redis::hdel($redis_hedui, $shop->id);
+        }
+        if ($fayao) {
+            Redis::hset($redis_fayao, $shop->id, $fayao);
+        } else {
+            Redis::hdel($redis_fayao, $shop->id);
         }
         return $this->success();
     }
