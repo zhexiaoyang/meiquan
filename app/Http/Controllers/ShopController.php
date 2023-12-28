@@ -1291,7 +1291,7 @@ class ShopController extends Controller
         }
         $user = $request->user();
         if (!$request->user()->hasPermissionTo('currency_shop_all')) {
-            if ( !in_array($id, $user->shops()->pluck('id')) ) {
+            if ( !in_array($id, $user->shops()->pluck('id')->toArray()) ) {
                 if ($shop->user_id != $user->id) {
                     return $this->error('门店不存在!');
                 }
