@@ -52,13 +52,21 @@ class PrescriptionPictureExportJob implements ShouldQueue
             $zip = new \ZipArchive;
             if ($zip->open($zip_file, \ZipArchive::CREATE) === TRUE)
             {
-                $redis_key = 'shop_pharmacists';
+                // $redis_key = 'shop_pharmacists';
+                $redis_shenhe = 'shop_pharmacists';
+                $redis_tiaoji = 'shop_pharmacists_tiaoji';
+                $redis_hedui = 'shop_pharmacists_hedui';
+                $redis_fayao = 'shop_pharmacists_fayao';
                 // 批量写入文件
                 foreach ($orders as $order) {
                     if ($order->rp_picture) {
                         $name = substr($order->rp_picture, strripos($order->rp_picture, '/') + 1);
+                        $shenhe = Redis::hget($redis_shenhe, $order->shop_id);
+                        $tiaoji = Redis::hget($redis_tiaoji, $order->shop_id);
+                        $hedui = Redis::hget($redis_hedui, $order->shop_id);
+                        $fayao = Redis::hget($redis_fayao, $order->shop_id);
                         try {
-                            if ($this->sign && $text = Redis::hget($redis_key, $order->shop_id)) {
+                            if ($this->sign && ($shenhe || $tiaoji || $hedui || $fayao)) {
                                 if ($order->platform == 1) {
                                     $imageData = file_get_contents($order->rp_picture);
                                     $imageResource = imagecreatefromstring($imageData);
@@ -67,7 +75,18 @@ class PrescriptionPictureExportJob implements ShouldQueue
                                     // 设置文字颜色为黑色
                                     $textColor = imagecolorallocate($imageResource, 0, 0, 0);
                                     // 在画布上绘制文字
-                                    imagettftext($imageResource, 20, 0, 177, 870, $textColor, $font, $text);
+                                    if ($shenhe) {
+                                        imagettftext($imageResource, 20, 0, 177, 870, $textColor, $font, $shenhe);
+                                    }
+                                    if ($tiaoji) {
+                                        imagettftext($imageResource, 20, 0, 345, 870, $textColor, $font, $tiaoji);
+                                    }
+                                    if ($hedui) {
+                                        imagettftext($imageResource, 20, 0, 534, 870, $textColor, $font, $hedui);
+                                    }
+                                    if ($fayao) {
+                                        imagettftext($imageResource, 20, 0, 720, 870, $textColor, $font, $fayao);
+                                    }
                                     $file_name = '/tmp/circle' . rand(1000000, 9999999) . '.png';
                                     imagepng($imageResource, $file_name);
                                     $zip->addFromString('处方图片/' . $name, file_get_contents($file_name));
@@ -98,7 +117,7 @@ class PrescriptionPictureExportJob implements ShouldQueue
             }
             $oss = app('oss');
             $dir = 'prescription-zip/' . date('Ym/d/');
-            $name = ($this->title ?: time()) . '.zip';
+            $name = ($this->title ? $this->title . time() : '处方图片' . time()) . '.zip';
             $res = $oss->putObject('meiquan-file', $dir.$name, file_get_contents($zip_file));
             if (isset($res['info']['url'])) {
                 WmPrescriptionDown::where('id', $log_id)->update(['status' => 2, 'url' => $res['info']['url']]);
