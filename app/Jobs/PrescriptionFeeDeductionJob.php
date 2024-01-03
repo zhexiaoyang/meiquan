@@ -49,7 +49,7 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
             return;
         }
         if (($order->platform == 1) && ($shop->prescription_channel == 4)) {
-            $this->log("{$shop->id}|{$shop->shop_name}|美团不审方：不扣款、不处理");
+            $this->log("美团不审方：不扣款、不处理|{$order->order_id}|{$shop->id}|{$shop->shop_name}|");
             return;
         }
         // if ($order->platform == 2 && $shop->prescription_channel_ele == 4) {
