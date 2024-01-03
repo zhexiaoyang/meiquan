@@ -26,13 +26,14 @@ class MedicineSyncEleItemJob implements ShouldQueue
     public $depot_id;
     public $name;
     public $upc;
+    public $status;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct(string $key, array $params, $shop_id, $shop_name, $medicine_id, $depot_id = 0, $name = '', $upc = '')
+    public function __construct(string $key, array $params, $shop_id, $shop_name, $medicine_id, $depot_id = 0, $name = '', $upc = '', $status = false)
     {
         // 日志ID
         $this->key = $key;
@@ -49,6 +50,10 @@ class MedicineSyncEleItemJob implements ShouldQueue
         $this->name = $name;
         // 药品条码
         $this->upc = $upc;
+        // 药品条码
+        $this->upc = $upc;
+        // 药品条码
+        $this->status = $status;
     }
 
     /**
@@ -63,15 +68,32 @@ class MedicineSyncEleItemJob implements ShouldQueue
             // $this->log('创建药品参数', $this->params);
             // $res = $ele->add_product($this->params);
             // $this->log('创建药品返回', [$res]);
-            $res = $ele->add_product($this->params);
+            if ($this->status) {
+                $update_params = [
+                    'custom_sku_id' => $this->params['custom_sku_id'],
+                    'sale_price' => $this->params['sale_price'],
+                    'left_num' => $this->params['left_num'],
+                ];
+                $res = $ele->skuUpdate($update_params);
+            } else {
+                $res = $ele->add_product($this->params);
+            }
             if ($res['body']['error'] === 'success') {
-                if (Medicine::where('id', $this->medicine_id)->update(['ele_status' => 1])) {
+                $update_data = ['ele_status' => 1];
+                if ($this->status == false && !empty($res['body']['data']['sku_id'])) {
+                    $update_data = ['ele_sku_id' => $res['body']['data']['sku_id']];
+                }
+                if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
                     $status = true;
                 }
             } else {
                 $error_msg = $res['body']['error'] ?? '';
                 if ((strpos($error_msg, '已存在') !== false) || (strpos($error_msg, '已经存在') !== false)) {
                     $update_data = ['ele_status' => 1];
+                    $ele_id = substr($error_msg, stripos($error_msg, ':') + 1);
+                    if ($this->status == false && !empty($ele_id) && is_numeric($ele_id)) {
+                        $update_data = ['ele_sku_id' => substr($error_msg, stripos($error_msg, ':') + 1)];
+                    }
                     // 库存大于0 为上架状态
                     // if ($this->params['left_num'] > 0) {
                     //     $update_data['online_ele'] = 1;
