@@ -90,6 +90,15 @@ class Api extends Request
         return $this->post('order.get', $data);
     }
 
+    public function deliveryGet	($order_id)
+    {
+        $data = [
+            'order_id' => $order_id
+        ];
+
+        return $this->post('order.delivery.get	', $data);
+    }
+
     public function rpPictureList($order_id)
     {
         $data = [
@@ -189,6 +198,11 @@ class Api extends Request
     public function skuUpdate($data)
     {
         return $this->post('sku.update', $data);
+    }
+
+    public function shopCustomSkuMap($data)
+    {
+        return $this->post('sku.shop.customsku.map', $data);
     }
 
     public function skuDelete($data)
