@@ -55,7 +55,7 @@ class PaymentController extends Controller
         } else {
             $result = [
                 // ['method' => 1, 'text' => '支付宝', 'checked' => 1],
-                // ['method' => 2, 'text' => '微信', 'checked' => 0],
+                ['method' => 2, 'text' => '微信', 'checked' => 1],
             ];
         }
         return $this->success($result);
@@ -182,28 +182,27 @@ class PaymentController extends Controller
 
         $result = [];
         if ($channel === 1) {
-            // // APP充值
-            // $order = [
-            //     'out_trade_no' => $deposit->no,
-            //     'total_amount' => $deposit->amount,
-            //     'subject' => '美全运营充值',
-            // ];
-            // if ($method === 1) {
-            //     $config = config("pay.alipay");
-            //     $config['notify_url'] = $config['app_notify_url'];
-            //     $order_info = Pay::alipay($config)->app($order)->getContent();
-            //     $result = ['order_info' => $order_info];
-            // } elseif ($method === 2) {
-            //     $result = [
-            //         'appid' => '',
-            //         'noncestr' => '',
-            //         'package' => '',
-            //         'partnerid' => '',
-            //         'prepayid' => '',
-            //         'timestamp' => '',
-            //         'sign' => '',
-            //     ];
-            // }
+            // APP充值
+            if ($method === 1) {
+                // $order = [
+                //     'out_trade_no' => $deposit->no,
+                //     'total_amount' => $deposit->amount,
+                //     'subject' => '美全配送充值',
+                // ];
+                // $config = config("pay.alipay");
+                // $config['notify_url'] = $config['app_notify_url'];
+                // $order_info = Pay::alipay($config)->app($order)->getContent();
+                // $result = ['order_info' => $order_info];
+            } elseif ($method === 2) {
+                $order = [
+                    'out_trade_no'  => $deposit->no,
+                    'body'          => '美全运营充值',
+                    'total_fee'     => $deposit->amount * 100
+                ];
+                $wechatOrder = Pay::wechat(config("pay.wechat_operate_money"))->app($order)->getContent();
+                $wechatOrder = json_decode($wechatOrder, JSON_UNESCAPED_UNICODE);
+                return $this->success($wechatOrder);
+            }
         } else {
             // PC充值
             if ($method == 1) {
