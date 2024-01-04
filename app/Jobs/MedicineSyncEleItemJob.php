@@ -82,10 +82,13 @@ class MedicineSyncEleItemJob implements ShouldQueue
             if ($res['body']['error'] === 'success') {
                 $update_data = ['ele_status' => 1];
                 if ($this->status == false && !empty($res['body']['data']['sku_id'])) {
-                    $update_data = ['ele_sku_id' => $res['body']['data']['sku_id']];
+                    $update_data['ele_sku_id'] = $res['body']['data']['sku_id'];
                 }
                 if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
                     $status = true;
+                } else {
+                    $status = false;
+                    $error_msg = '饿了么新增成功，中台更改状态失败';
                 }
             } else {
                 $error_msg = $res['body']['error'] ?? '';
@@ -93,7 +96,7 @@ class MedicineSyncEleItemJob implements ShouldQueue
                     $update_data = ['ele_status' => 1];
                     $ele_id = substr($error_msg, stripos($error_msg, ':') + 1);
                     if ($this->status == false && !empty($ele_id) && is_numeric($ele_id)) {
-                        $update_data = ['ele_sku_id' => substr($error_msg, stripos($error_msg, ':') + 1)];
+                        $update_data['ele_sku_id'] = substr($error_msg, stripos($error_msg, ':') + 1);
                     }
                     // 库存大于0 为上架状态
                     // if ($this->params['left_num'] > 0) {
@@ -101,6 +104,9 @@ class MedicineSyncEleItemJob implements ShouldQueue
                     // }
                     if (Medicine::where('id', $this->medicine_id)->update($update_data)) {
                         $status = true;
+                    } else {
+                        $status = false;
+                        $error_msg = '饿了么更新成功，中台更改状态失败';
                     }
                     // if ($medicine->depot_id === 0) {
                     //     $this->add_depot($medicine);
@@ -112,6 +118,9 @@ class MedicineSyncEleItemJob implements ShouldQueue
                     ])) {
                         // MedicineSyncLog::where('id', $this->key)->increment('fail');$res['body']['error']
                         $status = false;
+                    } else {
+                        $status = false;
+                        $error_msg = '饿了么失败';
                     }
                 }
             }
