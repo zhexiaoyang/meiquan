@@ -237,6 +237,15 @@ class Api extends Request
         return $this->post('sku.list', $data);
     }
 
+    public function skuList2($shop_id, $page = 1, $page_size = 100)
+    {
+        $data['shop_id'] = $shop_id;
+        $data['page'] = $page;
+        $data['pagesize'] = $page_size;
+
+        return $this->post('sku.list', $data);
+    }
+
     public function getSkuList($shop_id, $page, $page_size, $upc = '')
     {
         $data['shop_id'] = $shop_id;
