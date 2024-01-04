@@ -360,7 +360,7 @@ class MedicineController extends Controller
                         'name' => $medicine->name,
                         'upc' => $medicine->upc,
                         'custom_sku_id' => $medicine->store_id ?: $medicine->upc,
-                        'sale_price' => (int) ($medicine->price * 100),
+                        'sale_price' => ceil($medicine->price * 100),
                         'left_num' => $medicine->stock,
                         'category_list' => $medicine_category,
                         // 'sequence' => $medicine->sequence,
