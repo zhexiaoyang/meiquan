@@ -424,9 +424,9 @@ class DeliveryController extends Controller
                     }
                     $shop_info_res = $sf->getShopInfo($shipper->three_id);
                     if (isset($shop_info_res['result']['level_info']) && is_array($shop_info_res['result']['level_info'])) {
-                        $level_url = $shop_info_res['result']['level_info']['level_info_h5'];
-                        $level_point = $shop_info_res['result']['level_info']['level_points'];
-                        $level_desc = $shop_info_res['result']['level_info']['level_desc'];
+                        $level_url = $shop_info_res['result']['level_info']['level_info_h5'] ?? '';
+                        $level_point = $shop_info_res['result']['level_info']['level_points'] ?? '';
+                        $level_desc = $shop_info_res['result']['level_info']['level_desc'] ?? '';
                     }
                     $recharge_url = $sf->getH5Recharge($shipper->three_id);
                 }
