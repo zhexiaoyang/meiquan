@@ -65,7 +65,7 @@ class MoneyBalanceExport implements WithStrictNullComparison, Responsable, FromQ
         $mt_name = '';
         if (isset($balance->shop)) {
             $mt_id = $balance->shop->waimai_mt;
-            $mt_name = $balance->shop->mt_shop_name ?: $balance->shop->shop_name;
+            $mt_name = $balance->shop->shop_name;
         }
         return [
             $mt_id,
@@ -81,7 +81,7 @@ class MoneyBalanceExport implements WithStrictNullComparison, Responsable, FromQ
     {
         return [
             '美团门店ID',
-            '美团门店名称',
+            '门店名称',
             '时间',
             '描述',
             '金额',
