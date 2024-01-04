@@ -70,6 +70,7 @@ class MedicineSyncEleItemJob implements ShouldQueue
             // $this->log('创建药品返回', [$res]);
             if ($this->status) {
                 $update_params = [
+                    'shop_id' => $this->params['shop_id'],
                     'custom_sku_id' => $this->params['custom_sku_id'],
                     'sale_price' => $this->params['sale_price'],
                     'left_num' => $this->params['left_num'],
