@@ -313,15 +313,6 @@ class MedicineController extends Controller
                     'error' => 0,
                 ]);
                 foreach ($medicine_list as $medicine) {
-                    if ($medicine->ele_status === 1) {
-                        $fail++;
-                        MedicineSyncLogItem::create([
-                            'log_id' => $log->id,
-                            'name' => $medicine->name,
-                            'upc' => $medicine->upc,
-                            'msg' => '失败：已经通过过了，不能在同步',
-                        ]);
-                    }
                     if ($medicine->price <= 0) {
                         $fail++;
                         MedicineSyncLogItem::create([
@@ -340,9 +331,18 @@ class MedicineController extends Controller
                     }
                 }
                 foreach ($medicine_list as $medicine) {
-                    if ($medicine->ele_status === 1) {
-                        continue;
-                    }
+                    // if ($medicine->ele_status === 1) {
+                    //     continue;
+                    // }
+                    // if ($medicine->ele_status === 1) {
+                    //     $fail++;
+                    //     MedicineSyncLogItem::create([
+                    //         'log_id' => $log->id,
+                    //         'name' => $medicine->name,
+                    //         'upc' => $medicine->upc,
+                    //         'msg' => '失败：已经通过过了，不能在同步',
+                    //     ]);
+                    // }
                     if ($medicine->price <= 0) {
                         continue;
                     }
@@ -382,7 +382,8 @@ class MedicineController extends Controller
                         $medicine->id,
                         $medicine->depot_id,
                         $medicine->name,
-                        $medicine->upc
+                        $medicine->upc,
+                        $medicine->ele_status === 1
                     )->onQueue('medicine');
                 }
             }
