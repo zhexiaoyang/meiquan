@@ -453,6 +453,7 @@ class MedicineController extends Controller
                         $mt_res = substr($mt_res, 0, 200);
                     }
                 }
+                $mt_status = 1;
             } else {
                 // 未同步过
                 // 已经同步过做更新
@@ -561,6 +562,7 @@ class MedicineController extends Controller
                 ];
                 $ele->skuUpdate($params);
                 $ele_res = '饿了么更新成功';
+                $ele_status = 1;
             } else {
                 $ele = app('ele');
                 // 创建药品分类
