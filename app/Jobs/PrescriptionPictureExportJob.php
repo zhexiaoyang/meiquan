@@ -139,7 +139,7 @@ class PrescriptionPictureExportJob implements ShouldQueue
                                         }
                                         $file_name = storage_path("prescription/" . rand(1000000, 99999999) . ".png");
                                         imagepng($imageResource, $file_name);
-                                        $zip->addFromString('处方图片/' . $name, file_get_contents($file_name));
+                                        $zip->addFromString('处方图片/' . str_replace('pdf', 'png', $name), file_get_contents($file_name));
                                         // 释放资源
                                         unlink($file_name);
                                         unlink($tmp_file_name);
