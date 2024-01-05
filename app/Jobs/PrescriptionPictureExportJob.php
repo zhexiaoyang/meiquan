@@ -114,10 +114,6 @@ class PrescriptionPictureExportJob implements ShouldQueue
                                         $blankPage->writeImage($tmp_file_name);
                                         $blankPage->destroy();
                                         // 写入签名
-                                        $shenhe = '张一';
-                                        $tiaoji = '张二';
-                                        $hedui = '张三';
-                                        $fayao = '张四';
                                         $imageData = file_get_contents($tmp_file_name);
                                         $imageResource = imagecreatefromstring($imageData);
                                         // 设置文字内容和字体样式
