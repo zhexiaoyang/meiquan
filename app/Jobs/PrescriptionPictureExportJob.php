@@ -57,7 +57,7 @@ class PrescriptionPictureExportJob implements ShouldQueue
                 $redis_tiaoji = 'shop_pharmacists_tiaoji';
                 $redis_hedui = 'shop_pharmacists_hedui';
                 $redis_fayao = 'shop_pharmacists_fayao';
-                // 批量写入文件
+                // 批量写入文件t
                 foreach ($orders as $order) {
                     if ($order->rp_picture) {
                         $name = substr($order->rp_picture, strripos($order->rp_picture, '/') + 1);
@@ -94,7 +94,63 @@ class PrescriptionPictureExportJob implements ShouldQueue
                                     unlink($file_name);
                                     imagedestroy($imageResource);
                                 } else if ($order->platform == 2) {
-                                    $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
+                                    $pdf_file = $order->rp_picture;
+                                    $im = new \Imagick();
+                                    //设置分辨率
+                                    $im->setResolution(150, 150);
+                                    //设置压缩质量，1-100,100为最高
+                                    $im->setCompressionQuality(100);
+                                    //读取文件
+                                    $im->readImage($pdf_file);
+                                    foreach ($im as $Var) {
+                                        $blankPage = new \Imagick();
+                                        //一张白纸，作为背景
+                                        $blankPage->newPseudoImage(840, 980, "canvas:white");
+                                        $blankPage->addImage($Var);
+                                        $blankPage = $blankPage->mergeImageLayers(11);
+                                        //设置图片格式
+                                        $blankPage->setImageFormat('png');
+                                        $tmp_file_name = storage_path("prescription/" . rand(1000, 9999) . ".png");
+                                        $blankPage->writeImage($tmp_file_name);
+                                        $blankPage->destroy();
+                                        // 写入签名
+                                        $shenhe = '张一';
+                                        $tiaoji = '张二';
+                                        $hedui = '张三';
+                                        $fayao = '张四';
+                                        $imageData = file_get_contents($tmp_file_name);
+                                        $imageResource = imagecreatefromstring($imageData);
+                                        // 设置文字内容和字体样式
+                                        $font = storage_path('font.ttf');
+                                        // 设置文字颜色为黑色
+                                        $textColor = imagecolorallocate($imageResource, 0, 0, 0);
+                                        // 在画布上绘制文字
+                                        if ($shenhe) {
+                                            imagettftext($imageResource, 20, 0, 700, 990, $textColor, $font, $shenhe);
+                                        }
+                                        if ($tiaoji) {
+                                            imagettftext($imageResource, 20, 0, 215, 990, $textColor, $font, $tiaoji);
+                                        }
+                                        if ($hedui && $fayao) {
+                                            imagettftext($imageResource, 20, 0, 466, 990, $textColor, $font, $hedui . '/' . $fayao);
+                                        } else {
+                                            if ($hedui) {
+                                                imagettftext($imageResource, 20, 0, 466, 990, $textColor, $font, $hedui);
+                                            }
+                                            if ($fayao) {
+                                                imagettftext($imageResource, 20, 0, 466, 990, $textColor, $font, $fayao);
+                                            }
+                                        }
+                                        $file_name = storage_path("prescription/" . rand(1000000, 99999999) . ".png");
+                                        imagepng($imageResource, $file_name);
+                                        $zip->addFromString('处方图片/' . $name, file_get_contents($file_name));
+                                        // 释放资源
+                                        unlink($file_name);
+                                        unlink($tmp_file_name);
+                                        imagedestroy($imageResource);
+
+                                    }
+                                    $im->destroy();
                                 }
                             } else {
                                 $zip->addFromString('处方图片/' . $name, file_get_contents($order->rp_picture));
