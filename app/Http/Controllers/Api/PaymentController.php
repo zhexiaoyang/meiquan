@@ -442,6 +442,87 @@ class PaymentController
         return '';
     }
 
+    /**
+     * 支付宝运营充值回调
+     * @data 2024/1/5 3:50 下午
+     */
+    public function alipayNotifyOperate(Request $request)
+    {
+        \Log::info("支付宝运营支付回调全部参数", $request->all());
+        // 校验输入参数
+        $data  = Pay::alipay(config("pay.mqjk_alipay"))->verify($request->all());
+        // 如果订单状态不是成功或者结束，则不走后续的逻辑
+        if(!in_array($data->trade_status, ['TRADE_SUCCESS', 'TRADE_FINISHED'])) {
+            return $this->alipay();
+        }
+        // $data->out_trade_no 拿到订单流水号，并在数据库中查询
+        $order = Deposit::where('no', $data->out_trade_no)->where("status", 0)->first();
+
+        // 订单不存在
+        if (!$order) {
+            return $this->alipay();
+        }
+
+        // 订单已支付
+        if ($order->status == 1) {
+            return $this->alipay();
+        }
+
+        $status = DB::transaction(function () use ($data, $order) {
+            // 将订单标记为已支付
+            \Log::info("将订单标记为已支付开始");
+            DB::table('deposits')->where("id", $order->id)->update([
+                'paid_at'       => date('Y-m-d H:i:s'),
+                'pay_method'    => 1,
+                'status'        => 1,
+                'pay_no'        => $data->trade_no,
+                'amount'        => $data->total_amount,
+            ]);
+            \Log::info("将订单标记为已支付结束");
+            $user = User::find($order->user_id);
+            if ($order->type === 3) {
+                \Log::info("运营余额充值-增加运营余额");
+                DB::table('users')->where("id", $order->user_id)->increment('operate_money', $order->amount);
+                \Log::info("记录运营余额日志");
+                $logs = new UserOperateBalance([
+                    "user_id" => $user->id,
+                    "money" => $order->amount,
+                    "type" => 1,
+                    "before_money" => $user->operate_money,
+                    "after_money" => ($user->operate_money * 100 + $order->amount * 100) / 100,
+                    "description" => "支付宝充值：{$data->transaction_id}",
+                    "tid" => $order->id
+                ]);
+                $logs->save();
+                \Log::info("日志保存结束");
+            }
+            return true;
+        });
+
+        $user = DB::table('users')->find($order->user_id);
+        if ($user && $user->operate_money >= config('ps.sms_operate_remind.max')) {
+            DB::table('send_sms_logs')->where('phone', $user->phone)->where('type', 2)->limit(1)->delete();
+        }
+        if ($user && $user->operate_money > 0) {
+            $shops = Shop::select('id', 'user_id', 'yunying_status')->where('user_id', $user->id)->get();
+            if (!empty($shops)) {
+                $date = date("Y-m-d H:i:s", time() - 86400);
+                foreach ($shops as $shop) {
+                    if ($shop->yunying_status && ShopRestLog::where('shop_id', $shop->id)->where('created_at', '>', $date)->count()) {
+                        StoreRestJob::dispatch($shop->id, 2);
+                    }
+                }
+            }
+        }
+
+        if ($status) {
+
+            return $this->alipay();
+        }
+
+        return '';
+    }
+
     public function wechatSupplierNotify(Request $request)
     {
         // \Log::info('订单支付回调', $request->all());

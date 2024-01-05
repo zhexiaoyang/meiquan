@@ -984,8 +984,10 @@ Route::group(["namespace" => "Api"], function () {
     Route::post("payment/wechat/supplier/refund", "PaymentController@supplierRefund");
     Route::post("payment/wechat/notify_supplier", "PaymentController@wechatSupplierNotify");
     Route::post("payment/alipay/notify", "PaymentController@alipayNotify");
-    // 运营充值回调
+    // 运营充值回调-微信
     Route::post("payment/wechat/notify/operate", "PaymentController@wechatNotifyOperate");
+    // 运营充值回调-支付宝
+    Route::post("payment/alipay/notify/operate", "PaymentController@alipayNotifyOperate");
 });
 
 /**
