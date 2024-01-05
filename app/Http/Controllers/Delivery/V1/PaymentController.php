@@ -184,15 +184,15 @@ class PaymentController extends Controller
         if ($channel === 1) {
             // APP充值
             if ($method === 1) {
-                // $order = [
-                //     'out_trade_no' => $deposit->no,
-                //     'total_amount' => $deposit->amount,
-                //     'subject' => '美全配送充值',
-                // ];
-                // $config = config("pay.alipay");
-                // $config['notify_url'] = $config['app_notify_url'];
-                // $order_info = Pay::alipay($config)->app($order)->getContent();
-                // $result = ['order_info' => $order_info];
+                $order = [
+                    'out_trade_no' => $deposit->no,
+                    'total_amount' => $deposit->amount,
+                    'subject' => '美全运营充值',
+                ];
+                $config = config("pay.mqjk_alipay");
+                $config['notify_url'] = $config['app_notify_url'];
+                $order_info = Pay::alipay($config)->app($order)->getContent();
+                $result = ['order_info' => $order_info];
             } elseif ($method === 2) {
                 $order = [
                     'out_trade_no'  => $deposit->no,
@@ -206,12 +206,12 @@ class PaymentController extends Controller
         } else {
             // PC充值
             if ($method == 1) {
-                // $order = [
-                //     'out_trade_no' => $deposit->no,
-                //     'total_amount' => $deposit->amount,
-                //     'subject' => '美全配送充值',
-                // ];
-                // return $this->success(['html' => Pay::alipay(config("pay.alipay"))->web($order)->getContent()]);
+                $order = [
+                    'out_trade_no' => $deposit->no,
+                    'total_amount' => $deposit->amount,
+                    'subject' => '美全运营充值',
+                ];
+                return $this->success(['html' => Pay::alipay(config("pay.mqjk_alipay"))->web($order)->getContent()]);
             } else if ($method == 2) {
                 $order = [
                     'out_trade_no'  => $deposit->no,
