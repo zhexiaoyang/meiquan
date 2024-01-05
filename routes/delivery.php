@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
  */
 Route::middleware(['force-json'])->prefix("app")->namespace("Delivery\V1")->group(function() {
     Route::get("test", "TestController@test");
-    // 支付宝APP支付回调
+    // 支付宝APP支付回调-跑腿
     Route::post("pay/notify/alipay", "PaymentController@alipay_notify");
     // 版本更新
     Route::prefix('version')->group(function () {
