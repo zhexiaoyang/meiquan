@@ -32,21 +32,21 @@ return [
     ],
     'mqjk_alipay' => [
         // 支付宝分配的 APPID
-        'app_id' => env('ALI_ALI_APP_ID', ''),
+        'app_id' => env('MQJK_ALI_APP_ID', ''),
 
         // 支付宝异步通知地址-中台
-        'notify_url' => env('ALI_ALI_NOTIFY_URL', ''),
+        'notify_url' => env('MQJK_ALI_NOTIFY_URL', ''),
         // 支付宝异步通知地址-中台
-        'app_notify_url' => env('ALI_ALI_APP_NOTIFY_URL', ''),
+        'app_notify_url' => env('MQJK_ALI_APP_NOTIFY_URL', ''),
 
         // 支付成功后同步通知地址
         'return_url' => '',
 
         // 阿里公共密钥，验证签名时使用
-        'ali_public_key' => env('ALI_ALI_PUBLIC_KEY', ''),
+        'ali_public_key' => env('MQJK_ALI_PUBLIC_KEY', ''),
 
         // 自己的私钥，签名时使用
-        'private_key' => env('ALI_ALI_PRIVATE_KEY', ''),
+        'private_key' => env('MQJK_ALI_PRIVATE_KEY', ''),
 
         // optional，默认 warning；日志路径为：sys_get_temp_dir().'/logs/yansongda.pay.log'
         'log' => [
