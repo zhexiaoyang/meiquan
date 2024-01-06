@@ -43,14 +43,15 @@ class DeliveryAccountCheck extends Command
         // $dingding = app("ding");
         // $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
-        if ($h >= 7 && $h <= 22) {
+        if ($h >= 7 && $h <= 21) {
             // 闪送余额
             $ss = app("shansong");
             $ss_res = $ss->getUserAccount();
             if (isset($ss_res['data']['balance'])) {
                 $ss_money = $ss_res['data']['balance'] / 100;
+                \Log::info("[检查余额任务]-闪送余额：{$ss_money}");
                 if ($ss_money < 1000) {
-                    //sendTextMessageWeChat("闪送跑腿余额：{$ss_money}，已不足1000元");
+                    sendTextMessageWeChat("闪送跑腿余额：{$ss_money}，已不足1000元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_218028146',
                     //     'data' => [
@@ -66,7 +67,7 @@ class DeliveryAccountCheck extends Command
                 $dd_money = $dd_res['result']['deliverBalance'];
                 \Log::info("[检查余额任务]-达达余额：{$dd_money}");
                 if ($dd_money < 1000) {
-                    //sendTextMessageWeChat("达达跑腿余额：{$dd_money}，已不足1000元");
+                    sendTextMessageWeChat("达达跑腿余额：{$dd_money}，已不足1000元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_218028204',
                     //     'data' => [
@@ -82,7 +83,7 @@ class DeliveryAccountCheck extends Command
                 $uu_money = (float) $uu_res['AccountMoney'];
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
                 if ($uu_money < 500) {
-                    //sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                    sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_227743960',
                     //     'data' => [
@@ -95,10 +96,10 @@ class DeliveryAccountCheck extends Command
             $sf = app("shunfeng");
             $sf_res = $sf->getshopaccountbalance();
             if (isset($sf_res['result']['supplier_balance'])) {
-                $sf_money = (float) $sf_res['result']['supplier_balance'];
+                $sf_money = (float) $sf_res['result']['supplier_balance'] / 100;
                 \Log::info("[检查余额任务]-顺丰余额：{$sf_money}");
                 if ($sf_money < 1000) {
-                    //sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                    sendTextMessageWeChat("顺丰跑腿余额：{$sf_money}，已不足1000元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_227743960',
                     //     'data' => [
