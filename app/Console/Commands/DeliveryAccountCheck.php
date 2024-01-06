@@ -43,7 +43,7 @@ class DeliveryAccountCheck extends Command
         // $dingding = app("ding");
         // $dingding->sendMarkdownMsgArray("执行检查余额任务");
 
-        if ($h >= 7 && $h <= 21) {
+        if ($h >= 7 && $h <= 22) {
             // 闪送余额
             $ss = app("shansong");
             $ss_res = $ss->getUserAccount();
@@ -82,6 +82,22 @@ class DeliveryAccountCheck extends Command
                 $uu_money = (float) $uu_res['AccountMoney'];
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
                 if ($uu_money < 500) {
+                    //sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                    // app('easysms')->send('13843209606', [
+                    //     'template' => 'SMS_227743960',
+                    //     'data' => [
+                    //         'money' => $uu_money
+                    //     ],
+                    // ]);
+                }
+            }
+            // 顺丰
+            $sf = app("shunfeng");
+            $sf_res = $sf->getshopaccountbalance();
+            if (isset($sf_res['result']['supplier_balance'])) {
+                $sf_money = (float) $sf_res['result']['supplier_balance'];
+                \Log::info("[检查余额任务]-顺丰余额：{$sf_money}");
+                if ($sf_money < 1000) {
                     //sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_227743960',
