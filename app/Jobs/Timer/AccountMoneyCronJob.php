@@ -17,7 +17,7 @@ class AccountMoneyCronJob extends CronJob
     public function isImmediate()
     {
         // 是否立即执行第一次，false则等待间隔时间后执行第一次
-        return true;
+        return false;
     }
     // --- 重载对应的方法来返回配置：结束
     public function run()
@@ -35,7 +35,7 @@ class AccountMoneyCronJob extends CronJob
             if (isset($ss_res['data']['balance'])) {
                 $ss_money = $ss_res['data']['balance'] / 100;
                 if ($ss_money < 1000) {
-                    sendTextMessageWeChat("闪送跑腿余额：{$ss_money}，已不足1000元");
+                    //sendTextMessageWeChat("闪送跑腿余额：{$ss_money}，已不足1000元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_218028146',
                     //     'data' => [
@@ -51,7 +51,7 @@ class AccountMoneyCronJob extends CronJob
                 $dd_money = $dd_res['result']['deliverBalance'];
                 \Log::info("[检查余额任务]-达达余额：{$dd_money}");
                 if ($dd_money < 1000) {
-                    sendTextMessageWeChat("达达跑腿余额：{$dd_money}，已不足1000元");
+                    //sendTextMessageWeChat("达达跑腿余额：{$dd_money}，已不足1000元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_218028204',
                     //     'data' => [
@@ -67,7 +67,7 @@ class AccountMoneyCronJob extends CronJob
                 $uu_money = (float) $uu_res['AccountMoney'];
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
                 if ($uu_money < 500) {
-                    sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                    //sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_227743960',
                     //     'data' => [
