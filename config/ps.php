@@ -318,5 +318,8 @@ return [
     ],
     'sms_operate_remind' => [
         'max' => 100
-    ]
+    ],
+    'wechat_boot' => [
+        'notice' => env('WeChat_BOOT_NOTICE')
+    ],
 ];

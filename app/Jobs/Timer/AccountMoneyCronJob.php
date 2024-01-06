@@ -34,14 +34,14 @@ class AccountMoneyCronJob extends CronJob
             $ss_res = $ss->getUserAccount();
             if (isset($ss_res['data']['balance'])) {
                 $ss_money = $ss_res['data']['balance'] / 100;
-                \Log::info("[检查余额任务]-闪送余额：{$ss_money}");
-                if ($ss_money < 2000) {
-                    app('easysms')->send('13843209606', [
-                        'template' => 'SMS_218028146',
-                        'data' => [
-                            'money' => $ss_money
-                        ],
-                    ]);
+                if ($ss_money < 1000) {
+                    sendTextMessageWeChat("闪送跑腿余额：{$ss_money}，已不足1000元");
+                    // app('easysms')->send('13843209606', [
+                    //     'template' => 'SMS_218028146',
+                    //     'data' => [
+                    //         'money' => $ss_money
+                    //     ],
+                    // ]);
                 }
             }
             // 达达余额
@@ -50,13 +50,14 @@ class AccountMoneyCronJob extends CronJob
             if (isset($dd_res['result']['deliverBalance'])) {
                 $dd_money = $dd_res['result']['deliverBalance'];
                 \Log::info("[检查余额任务]-达达余额：{$dd_money}");
-                if ($dd_money < 300) {
-                    app('easysms')->send('13843209606', [
-                        'template' => 'SMS_218028204',
-                        'data' => [
-                            'money' => $dd_money
-                        ],
-                    ]);
+                if ($dd_money < 1000) {
+                    sendTextMessageWeChat("达达跑腿余额：{$dd_money}，已不足1000元");
+                    // app('easysms')->send('13843209606', [
+                    //     'template' => 'SMS_218028204',
+                    //     'data' => [
+                    //         'money' => $dd_money
+                    //     ],
+                    // ]);
                 }
             }
             // UU余额
@@ -66,14 +67,16 @@ class AccountMoneyCronJob extends CronJob
                 $uu_money = (float) $uu_res['AccountMoney'];
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
                 if ($uu_money < 500) {
-                    app('easysms')->send('13843209606', [
-                        'template' => 'SMS_227743960',
-                        'data' => [
-                            'money' => $uu_money
-                        ],
-                    ]);
+                    sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                    // app('easysms')->send('13843209606', [
+                    //     'template' => 'SMS_227743960',
+                    //     'data' => [
+                    //         'money' => $uu_money
+                    //     ],
+                    // ]);
                 }
             }
         }
     }
+
 }

@@ -1,5 +1,25 @@
 <?php
 
+// 发送文本消息到企业微信
+function sendTextMessageWeChat($text) {
+    $webhook = config("ps.wechat_boot.notice");
+    // 构建消息数据
+    $data = [
+        'msgtype' => 'text',
+        'text' => [
+            'content' => $text
+        ]
+    ];
+    // 发送POST请求到企业微信机器人
+    $ch = curl_init($webhook);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_POST, 1);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch,CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+    curl_exec($ch);
+    curl_close($ch);
+}
+
 function amap_address_search ($key, $city, $lng, $lat) {
     $url = "https://restapi.amap.com/v3/assistant/inputtips?key=".config('ps.amap.AMAP_APP_KEY1')."&keywords={$key}&type=&location={$lng},{$lat}&city={$city}&datatype=all";
     $str = file_get_contents($url);
