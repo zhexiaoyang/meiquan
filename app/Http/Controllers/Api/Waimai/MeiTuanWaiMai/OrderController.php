@@ -135,6 +135,13 @@ class OrderController
                 if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
                     return json_encode(['data' => 'ok']);
                 }
+                WmOrderRefund::create([
+                    'order_id' => $order_id,
+                    'refund_id' => $refund_id,
+                    'ctime' => $request->get('ctime'),
+                    'reason' => $request->get('reason'),
+                    'money' => $request->get('money'),
+                ]);
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // if ($order->status != 18) {
                     //     $this->ding_error("订单未完成，部分退款");
