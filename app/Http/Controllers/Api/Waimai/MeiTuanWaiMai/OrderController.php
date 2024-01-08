@@ -87,13 +87,16 @@ class OrderController
                     'money' => 0,
                     'refund_type' => 1,
                 ]);
+                $this->log_info("添加记录完毕，查找订单");
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    $this->log_info("找到订单：{$order->id}");
                     if ($notify_type == 'apply') {
                         if ($shop = Shop::find($order->shop_id)) {
                             Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
                             return json_encode(['data' => 'ok']);
                         }
                     } elseif ($notify_type == 'agree') {
+                        $this->log_info("找到订单：{$order->id}|退款类型：agree");
                         // 更改订单信息
                         WmOrder::where('id', $order->id)->update([
                             'refund_status' => 1,
@@ -102,19 +105,24 @@ class OrderController
                             'refund_operate_service_fee' => $order->operate_service_fee * -1,
                             'refund_at' => date("Y-m-d H:i:s"),
                         ]);
+                        $this->log_info("找到订单：{$order->id}|更改订单表信息完毕");
                         // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
                         // *********************
                         // *** 代运营服务费返款 ***
                         // *********************
                         // 1. 查询改订单代运营服务费-扣费记录
                         if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
+                            $this->log_info("找到服务费支付记录：{$decr_log->id}");
                             // 2. 查询改订单代运营服务费-退款总和
                             $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
+                            $this->log_info("找到服务费退款总和：{$incr_total}");
                             // 3. 计算退款金额
                             $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
+                            $this->log_info("计算出退款金额：{$refund_money}");
                             // 4. 操作退款
                             if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
-                                $description = "{$order->order_id}订单，代运营服务费返还";
+                                $this->log_info("开始退款", [$refund_money, $refund_money, $order->operate_service_fee]);
+                                $description = "{$order->order_id}订单，全额退款代运营服务费返还";
                                 $tui_res = $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
                                 $this->log_info("退款状态", [$tui_res]);
                             }
