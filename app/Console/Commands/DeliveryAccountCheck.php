@@ -82,8 +82,8 @@ class DeliveryAccountCheck extends Command
             if (isset($uu_res['AccountMoney'])) {
                 $uu_money = (float) $uu_res['AccountMoney'];
                 \Log::info("[检查余额任务]-UU余额：{$uu_money}");
-                if ($uu_money < 500) {
-                    sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足500元");
+                if ($uu_money < 100) {
+                    sendTextMessageWeChat("UU跑腿余额：{$uu_money}，已不足100元");
                     // app('easysms')->send('13843209606', [
                     //     'template' => 'SMS_227743960',
                     //     'data' => [
