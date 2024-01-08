@@ -134,13 +134,13 @@ class OrderController
             $notify_type = $request->get('notify_type');
             $refund_id = $request->get('refund_id');
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
-            if (($notify_type == 'agree' || $notify_type == 'apply') && ($money > 0)) {
+            if (($notify_type == 'agree' || $notify_type == 'part') && ($money > 0)) {
                 $this->log_info('全部参数', $request->all());
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // 查找门店
                     $shop = Shop::find($order->shop_id);
                     // 如果是申请退款，播放声音后，返回结果
-                    if ($notify_type == 'apply') {
+                    if ($notify_type == 'part') {
                         if ($shop) {
                             Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
                         }
