@@ -316,7 +316,7 @@ class OrderController extends Controller
         $order_source = (int) $request->get('order_source', 0);
         // 新订单( 10 new)、待抢单(20 pending)、待取货(30 receiving)、配送中(40 delivering)、配送异常(50 exceptional)、取消/退款(60 refund)、催单(70 remind)
         $status = (int) $request->get('status', '');
-        if (!in_array($status, [10,20,30,40,50,60,70,80])) {
+        if ($status != '' && !in_array($status, [10,20,30,40,50,60,70,80])) {
             $status = 10;
         }
 
