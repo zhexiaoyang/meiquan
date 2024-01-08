@@ -17,14 +17,17 @@ use App\Models\OrderDeliveryTrack;
 use App\Models\OrderLog;
 use App\Models\Shop;
 use App\Models\UserMoneyBalance;
+use App\Models\UserOperateBalance;
 use App\Models\VipBillItem;
 use App\Models\VipProduct;
 use App\Models\WmOrder;
 use App\Models\WmOrderItem;
+use App\Models\WmOrderRefund;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\LogTool;
 use App\Traits\NoticeTool;
 use App\Traits\RiderOrderCancel;
+use App\Traits\UserMoneyAction;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\Request;
@@ -34,7 +37,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController
 {
-    use RiderOrderCancel;
+    use RiderOrderCancel, UserMoneyAction;
 
     public $prefix_title = '[美团外卖回调&###]';
     // 部分扣款，退款商品成本价
@@ -68,18 +71,49 @@ class OrderController
     {
         if ($order_id = $request->get("order_id", "")) {
             $notify_type = $request->get('notify_type');
+            $refund_id = $request->get('refund_id');
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&全部退款|订单号:{$order_id},类型:{$notify_type}", $this->prefix_title);
             if ($notify_type == 'agree') {
+                // 查看退款是否有过记录
+                if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
+                    return json_encode(['data' => 'ok']);
+                }
+                WmOrderRefund::create([
+                    'order_id' => $order_id,
+                    'refund_id' => $refund_id,
+                    'ctime' => $request->get('ctime'),
+                    'reason' => $request->get('reason'),
+                    'money' => $request->get('money'),
+                    'refund_type' => 1,
+                ]);
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    // 更改订单信息
                     WmOrder::where('id', $order->id)->update([
                         'refund_status' => 1,
+                        'operate_service_fee' => 0,
                         'refund_fee' => $order->total,
-                        'refund_at' => date("Y-m-d H:i:s")
+                        'refund_at' => date("Y-m-d H:i:s"),
                     ]);
                     if ($shop = Shop::find($order->shop_id)) {
                         Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
                     }
                     // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                    // *********************
+                    // *** 代运营服务费返款 ***
+                    // *********************
+                    // 1. 查询改订单代运营服务费-扣费记录
+                    if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
+                        // 2. 查询改订单代运营服务费-退款总和
+                        $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
+                        // 3. 计算退款金额
+                        $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
+                        // 4. 操作退款
+                        if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
+                            $description = "{$order->order_id}订单，代运营服务费返还";
+                            $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
+                        }
+                    }
+
                 }
                 $this->log_info('全部参数', $request->all());
             }
@@ -94,8 +128,13 @@ class OrderController
             $shop = null;
             $money = $request->get('money');
             $notify_type = $request->get('notify_type');
+            $refund_id = $request->get('refund_id');
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
             if (($notify_type == 'agree') && ($money > 0)) {
+                // 查看退款是否有过记录
+                if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
+                    return json_encode(['data' => 'ok']);
+                }
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // if ($order->status != 18) {
                     //     $this->ding_error("订单未完成，部分退款");
@@ -111,10 +150,14 @@ class OrderController
                     }
                     $refund_settle_amount = 0;
                     $refund_platform_charge_fee = 0;
+                    $current_refund_operate_service_fee = 0;
                     if (!empty($res['data']) && is_array($res['data'])) {
                         foreach ($res['data'] as $v) {
                             $refund_settle_amount += $v['refund_partial_estimate_charge']['settle_amount'];
                             $refund_platform_charge_fee += $v['refund_partial_estimate_charge']['platform_charge_fee'];
+                            if ($v['refund_id'] = $refund_id) {
+                                $current_refund_operate_service_fee = $v['refund_partial_estimate_charge']['settle_amount'] * $order->operate_service_rate / 100;
+                            }
                         }
                     } else {
                         $this->log_info('未获取到退款详情', [$res ?? '']);
@@ -218,6 +261,19 @@ class OrderController
                                 } else {
                                     $this->ding_error('部分退款未获取到退款结算金额');
                                 }
+                            }
+                        }
+                    }
+                    // 操作退款（订单是已完成状态才能退款。因为扣代运营服务费，是在订单完成时扣的）
+                    if ($order->status == 18 && $current_refund_operate_service_fee > 0) {
+                        // 1. 查询改订单代运营服务费-扣费记录。有扣款记录才能退款
+                        if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
+                            // 2. 查询改订单代运营服务费-退款总和
+                            $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
+                            // 3. 操作退款|判断退款金额 + 已退款金额 是否大于 已支付金额
+                            if ($decr_log->money >= ($incr_total + $current_refund_operate_service_fee)) {
+                                $description = "{$order->order_id}订单，部分退款代运营服务费返还";
+                                $this->operateIncrement($order->user_id, $current_refund_operate_service_fee, $description, $order->shop_id, $order->id, 3, $order->id);
                             }
                         }
                     }
