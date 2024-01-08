@@ -162,7 +162,7 @@ class OrderController
                         foreach ($res['data'] as $v) {
                             $refund_settle_amount += $v['refund_partial_estimate_charge']['settle_amount'];
                             $refund_platform_charge_fee += $v['refund_partial_estimate_charge']['platform_charge_fee'];
-                            if ($v['refund_id'] = $refund_id) {
+                            if ($v['refund_id'] == $refund_id) {
                                 $current_refund_operate_service_fee = $v['refund_partial_estimate_charge']['settle_amount'] * $order->operate_service_rate / 100;
                             }
                         }
