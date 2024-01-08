@@ -114,7 +114,8 @@ class OrderController
                             // 4. 操作退款
                             if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
                                 $description = "{$order->order_id}订单，代运营服务费返还";
-                                $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
+                                $tui_res = $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
+                                $this->log_info("退款状态", [$tui_res]);
                             }
                         }
                     }
