@@ -41,7 +41,8 @@ class OrderController extends Controller
     {
         $shop_id = $request->get('shop_id', '');
         $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
-        $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
+        // $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
+        $refund_order_where = [['refund_at', '>=', date('Y-m-d')]];
         $finish_order_where = [['over_at', '>', date('Y-m-d')], ['status', '>=', 70], ['status', '<=', 75]];
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
@@ -51,9 +52,9 @@ class OrderController extends Controller
             $order_where[] = [function ($query) use ($request) {
                 $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
             }];
-            $wm_order_where[] = [function ($query) use ($request) {
-                $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
-            }];
+            // $wm_order_where[] = [function ($query) use ($request) {
+            //     $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
+            // }];
             $finish_order_where[] = [function ($query) use ($request) {
                 $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
             }];
@@ -62,7 +63,7 @@ class OrderController extends Controller
         }
         if ($shop_id) {
             $order_where[] = ['shop_id', '=', $shop_id];
-            $wm_order_where[] = ['shop_id', '=', $shop_id];
+            // $wm_order_where[] = ['shop_id', '=', $shop_id];
             $finish_order_where[] = ['shop_id', '=', $shop_id];
         }
         $result = [
@@ -71,7 +72,7 @@ class OrderController extends Controller
             'receiving' => Order::select('id')->where($order_where)->where('status', 50)->count(),
             'delivering' => Order::select('id')->where($order_where)->where('status', 60)->count(),
             'exceptional' => Order::select('id')->where($order_where)->whereIn('status', [10, 5])->count(),
-            'refund' => WmOrder::select('id')->where($wm_order_where)->where('status', 30)->count(),
+            'refund' => WmOrder::select('id')->where($refund_order_where)->where('status', 30)->count(),
             'remind' => Order::select('id')->where($order_where)->where('status', '>', 70)->where('remind_num', '>', 0)->count(),
             'finish' => Order::select('id')->where($finish_order_where)->count(),
         ];
