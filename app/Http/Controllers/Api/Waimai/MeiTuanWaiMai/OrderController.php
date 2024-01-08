@@ -83,7 +83,7 @@ class OrderController
                     'refund_id' => $refund_id,
                     'ctime' => $request->get('ctime'),
                     'reason' => $request->get('reason'),
-                    'money' => $request->get('money'),
+                    'money' => $request->get('money') ?? 0,
                     'refund_type' => 1,
                 ]);
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
@@ -140,7 +140,7 @@ class OrderController
                     'refund_id' => $refund_id,
                     'ctime' => $request->get('ctime'),
                     'reason' => $request->get('reason'),
-                    'money' => $request->get('money'),
+                    'money' => $request->get('money') ?? 0,
                 ]);
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // if ($order->status != 18) {
