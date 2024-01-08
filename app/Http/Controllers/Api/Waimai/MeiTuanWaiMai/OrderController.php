@@ -169,6 +169,7 @@ class OrderController
                             $minkang = app('meiquan');
                             $res = $minkang->getOrderRefundDetail($order_id, false, $order->app_poi_code);
                         }
+                        $refund_money = 0;
                         $refund_settle_amount = 0;
                         $refund_platform_charge_fee = 0;
                         $current_refund_operate_service_fee = 0;
@@ -177,6 +178,7 @@ class OrderController
                             foreach ($res['data'] as $v) {
                                 $refund_settle_amount += $v['refund_partial_estimate_charge']['settle_amount'];
                                 $refund_platform_charge_fee += $v['refund_partial_estimate_charge']['platform_charge_fee'];
+                                $refund_money += $v['money'];
                                 $this->log_info("所有退款ID：" . $v['refund_id']);
                                 if ($v['refund_id'] == $refund_id) {
                                     $this->log_info("找到退款ID：{$refund_id}");
@@ -190,7 +192,7 @@ class OrderController
                         // 更改订单退款信息
                         WmOrder::where('id', $order->id)->update([
                             'refund_status' => 2,
-                            'refund_fee' => $money,
+                            'refund_fee' => $refund_money,
                             'refund_settle_amount' => $refund_settle_amount,
                             'refund_platform_charge_fee' => $refund_platform_charge_fee,
                             'refund_operate_service_fee' => $refund_settle_amount * $order->operate_service_rate / 100,
