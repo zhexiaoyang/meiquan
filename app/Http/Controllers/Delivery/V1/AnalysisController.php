@@ -671,13 +671,15 @@ class AnalysisController extends Controller
             foreach ($data as $v) {
                 $total_order_number += $v->order_effective_number;
                 if (isset($result[$v->platform])) {
+                    $result[$v->platform]['profit'] += $v->profit;
                     $result[$v->platform]['order_receipts'] += $v->order_receipts;
                     $result[$v->platform]['order_effective_number'] += $v->order_effective_number;
                     if (isset($result[$v->platform]['shops'][$v->shop_id])) {
                         $result[$v->platform]['shops'][$v->shop_id]['order_receipts'] = (float) sprintf("%.2f", $v->order_receipts + $result[$v->platform]['shops'][$v->shop_id]['order_receipts']);
                         $result[$v->platform]['shops'][$v->shop_id]['order_effective_number'] = (float) sprintf("%.2f", $v->order_effective_number + $result[$v->platform]['shops'][$v->shop_id]['order_effective_number']);
                         $result[$v->platform]['shops'][$v->shop_id]['sales_volume'] = (float) sprintf("%.2f", $v->sales_volume + $result[$v->platform]['shops'][$v->shop_id]['sales_volume']);
-                        $result[$v->platform]['shops'][$v->shop_id]['service_fee'] = (float) sprintf("%.2f", $v->service_fee + $result[$v->platform]['shops'][$v->shop_id]['service_fee']);
+                        $result[$v->platform]['shops'][$v->shop_id]['product_cost'] = (float) sprintf("%.2f", $v->product_cost + $result[$v->platform]['shops'][$v->shop_id]['product_cost']);
+                        $result[$v->platform]['shops'][$v->shop_id]['profit'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['profit']);
                     } else {
                         $result[$v->platform]['shops'][$v->shop_id] = [
                             'shop_id' => $v->shop_id,
@@ -685,7 +687,9 @@ class AnalysisController extends Controller
                             'order_receipts' => (float) $v->order_receipts,
                             'order_effective_number' => $v->order_effective_number,
                             'sales_volume' => (float) $v->sales_volume,
-                            'service_fee' => (float) $v->service_fee,
+                            'service_fee' => 0,
+                            'product_cost' => (float) $v->product_cost,
+                            'profit' => (float) $v->profit,
                         ];
                     }
                 } else {
@@ -696,6 +700,7 @@ class AnalysisController extends Controller
                         'order_effective_number' => $v->order_effective_number,
                         'unit_price' => 0,
                         'proportion' => 0,
+                        'profit' => 0,
                         'shops' => [
                             $v->shop_id => [
                                 'shop_id' => $v->shop_id,
@@ -703,7 +708,9 @@ class AnalysisController extends Controller
                                 'order_receipts' => (float) $v->order_receipts,
                                 'order_effective_number' => $v->order_effective_number,
                                 'sales_volume' => (float) $v->sales_volume,
-                                'service_fee' => (float) $v->service_fee,
+                                'service_fee' => 0,
+                                'product_cost' => (float) $v->product_cost,
+                                'profit' => (float) $v->profit,
                             ]
                         ],
                     ];
@@ -713,6 +720,7 @@ class AnalysisController extends Controller
         if (!empty($result)) {
             foreach ($result as $k => $v) {
                 $result[$k]['proportion'] = ceil($v['order_effective_number'] / $total_order_number * 100);
+                $result[$k]['profit'] = (float) sprintf("%.2f", $v['profit']);
                 $result[$k]['order_receipts'] = (float) sprintf("%.2f", $v['order_receipts']);
                 $result[$k]['unit_price'] = (float) sprintf("%.2f", $v['order_receipts'] / $v['order_effective_number']);
                 if (!empty($v['shops'])) {
