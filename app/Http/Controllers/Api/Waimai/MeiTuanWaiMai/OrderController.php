@@ -73,64 +73,8 @@ class OrderController
             $notify_type = $request->get('notify_type');
             $refund_id = $request->get('refund_id');
             $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&全部退款|订单号:{$order_id},类型:{$notify_type}", $this->prefix_title);
-            if ($notify_type == 'agree') {
-                // 查看退款是否有过记录
-                if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
-                    return json_encode(['data' => 'ok']);
-                }
-                WmOrderRefund::create([
-                    'order_id' => $order_id,
-                    'refund_id' => $refund_id,
-                    'ctime' => $request->get('ctime'),
-                    'reason' => $request->get('reason'),
-                    'money' => $request->get('money') ?? 0,
-                    'refund_type' => 1,
-                ]);
-                if ($order = WmOrder::where('order_id', $order_id)->first()) {
-                    // 更改订单信息
-                    WmOrder::where('id', $order->id)->update([
-                        'refund_status' => 1,
-                        'operate_service_fee' => 0,
-                        'refund_fee' => $order->total,
-                        'refund_at' => date("Y-m-d H:i:s"),
-                    ]);
-                    if ($shop = Shop::find($order->shop_id)) {
-                        Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
-                    }
-                    // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
-                    // *********************
-                    // *** 代运营服务费返款 ***
-                    // *********************
-                    // 1. 查询改订单代运营服务费-扣费记录
-                    if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
-                        // 2. 查询改订单代运营服务费-退款总和
-                        $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
-                        // 3. 计算退款金额
-                        $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
-                        // 4. 操作退款
-                        if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
-                            $description = "{$order->order_id}订单，代运营服务费返还";
-                            $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
-                        }
-                    }
-
-                }
+            if ($notify_type == 'agree' || $notify_type == 'apply') {
                 $this->log_info('全部参数', $request->all());
-            }
-        }
-
-        return json_encode(['data' => 'ok']);
-    }
-
-    public function partrefund(Request $request, $platform)
-    {
-        if ($order_id = $request->get("order_id", "")) {
-            $shop = null;
-            $money = $request->get('money');
-            $notify_type = $request->get('notify_type');
-            $refund_id = $request->get('refund_id');
-            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
-            if (($notify_type == 'agree') && ($money > 0)) {
                 // 查看退款是否有过记录
                 if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
                     return json_encode(['data' => 'ok']);
@@ -141,151 +85,227 @@ class OrderController
                     'ctime' => $request->get('ctime'),
                     'reason' => $request->get('reason'),
                     'money' => 0,
+                    'refund_type' => 1,
                 ]);
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
-                    // if ($order->status != 18) {
-                    //     $this->ding_error("订单未完成，部分退款");
-                    // }
-                    $this->log_info('全部参数', $request->all());
-                    // 退款记录
-                    if ($platform == 4) {
-                        $minkang = app('minkang');
-                        $res = $minkang->getOrderRefundDetail($order_id);
-                    } elseif ($platform == 31) {
-                        $minkang = app('meiquan');
-                        $res = $minkang->getOrderRefundDetail($order_id, false, $order->app_poi_code);
-                    }
-                    $refund_settle_amount = 0;
-                    $refund_platform_charge_fee = 0;
-                    $current_refund_operate_service_fee = 0;
-                    if (!empty($res['data']) && is_array($res['data'])) {
-                        foreach ($res['data'] as $v) {
-                            $refund_settle_amount += $v['refund_partial_estimate_charge']['settle_amount'];
-                            $refund_platform_charge_fee += $v['refund_partial_estimate_charge']['platform_charge_fee'];
-                            if ($v['refund_id'] == $refund_id) {
-                                $current_refund_operate_service_fee = $v['refund_partial_estimate_charge']['settle_amount'] * $order->operate_service_rate / 100;
-                            }
+                    if ($notify_type == 'apply') {
+                        if ($shop = Shop::find($order->shop_id)) {
+                            Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                            return json_encode(['data' => 'ok']);
                         }
-                    } else {
-                        $this->log_info('未获取到退款详情', [$res ?? '']);
-                    }
-                    // 更改订单退款信息
-                    WmOrder::where('id', $order->id)->update([
-                        'refund_status' => 2,
-                        'refund_fee' => $money,
-                        'refund_settle_amount' => $refund_settle_amount,
-                        'refund_platform_charge_fee' => $refund_platform_charge_fee,
-                        'refund_operate_service_fee' => $refund_settle_amount * $order->operate_service_rate / 100,
-                        'refund_at' => date("Y-m-d H:i:s"),
-                    ]);
-                    $food_str = $request->get('food');
-                    $foods = json_decode($food_str, true);
-                    if (!empty($foods)) {
-                        $shop = Shop::find($order->shop_id);
-                        DB::transaction(function () use ($order, $foods, $shop) {
-                            $vip = $order->is_vip;
-                            $dec_cost = 0;
-                            $where['order_id'] = $order->id;
-                            foreach ($foods as $food) {
-                                $where['upc'] = $food['upc'];
-                                $count = $food['count'];
-                                if ($item = WmOrderItem::where($where)->where('quantity', '>', 0)->first()) {
-                                    WmOrderItem::where('id', $item->id)->update([
-                                        'quantity' => $item->quantity - $count,
-                                        'refund_quantity' => $count,
-                                    ]);
-                                }
-                                if ($vip && (strtotime($shop->vip_at) < strtotime('2022-11-25'))) {
-                                    $cost = VipProduct::select('cost')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
-                                    if (isset($cost->cost)) {
-                                        $dec_cost += ($cost->cost ?? 0);
-                                    } else {
-                                        $this->log_info("成本价不存在，订单ID:{$order->order_id}");
-                                    }
-                                } else {
-                                    $cost = Medicine::select('guidance_price')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
-                                    if (isset($cost->guidance_price)) {
-                                        $dec_cost += ($cost->guidance_price ?? 0);
-                                    } else {
-                                        $this->log_info("成本价不存在，订单ID:{$order->order_id}");
-                                    }
-                                }
-                            }
-                            $this->dec_cost = $dec_cost;
-                            $vip_cost = $order->vip_cost - $dec_cost;
-                            WmOrder::where('id', $order->id)->update(['vip_cost' => $vip_cost > 0 ? $vip_cost : 0]);
-                        });
-                    }
-                    if ($order->is_vip) {
-                        // 如果是VIP订单，触发结算JOB
-                        // dispatch(new VipOrderSettlement($order));
-                        if (!empty($res['data']) && is_array($res['data'])) {
-                            // VIP门店各方利润百分比
-                            $commission = $shop->vip_commission;
-                            $commission_manager = $shop->vip_commission_manager;
-                            $commission_operate = $shop->vip_commission_operate;
-                            $commission_internal = $shop->vip_commission_internal;
-                            $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
-                            foreach ($res['data'] as $v) {
-                                $poi_receive = $v['refund_partial_estimate_charge']['settle_amount'];
-                                if ($poi_receive) {
-                                    $total = $poi_receive + $this->dec_cost;
-                                    $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
-                                    $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
-                                    $vip_internal = sprintf("%.2f",$total * $commission_internal / 100);
-                                    $vip_business = sprintf("%.2f",$total * $business / 100);
-                                    $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
-                                    $item = [
-                                        'order_id' => $order->id,
-                                        'shop_id' => $order->shop_id,
-                                        'order_no' => $order->order_id,
-                                        'platform' => $order->platform,
-                                        'app_poi_code' => $order->app_poi_code,
-                                        'wm_shop_name' => $order->wm_shop_name,
-                                        'day_seq' => $order->day_seq,
-                                        'trade_type' => 3,
-                                        'status' => $order->status,
-                                        'order_at' => $order->created_at,
-                                        'finish_at' => $order->finish_at,
-                                        'bill_date' => date("Y-m-d"),
-                                        'vip_settlement' => $poi_receive,
-                                        'vip_cost' => $this->dec_cost,
-                                        'vip_permission' => 0,
-                                        'vip_total' => $total,
-                                        'vip_commission_company' => $commission,
-                                        'vip_commission_manager' => $commission_manager,
-                                        'vip_commission_operate' => $commission_operate,
-                                        'vip_commission_internal' => $commission_internal,
-                                        'vip_commission_business' => $business,
-                                        'vip_company' => $vip_company,
-                                        'vip_city' => $vip_city,
-                                        'vip_operate' => $vip_operate,
-                                        'vip_internal' => $vip_internal,
-                                        'vip_business' => $vip_business,
-                                    ];
-                                    VipBillItem::create($item);
-                                    \Log::info("VIP订单结算处理，部分退款订单结算成功");
-                                } else {
-                                    $this->ding_error('部分退款未获取到退款结算金额');
-                                }
-                            }
-                        }
-                    }
-                    // 操作退款（订单是已完成状态才能退款。因为扣代运营服务费，是在订单完成时扣的）
-                    if ($order->status == 18 && $current_refund_operate_service_fee > 0) {
-                        // 1. 查询改订单代运营服务费-扣费记录。有扣款记录才能退款
+                    } elseif ($notify_type == 'agree') {
+                        // 更改订单信息
+                        WmOrder::where('id', $order->id)->update([
+                            'refund_status' => 1,
+                            'operate_service_fee' => 0,
+                            'refund_fee' => $order->total,
+                            'refund_at' => date("Y-m-d H:i:s"),
+                        ]);
+                        // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
+                        // *********************
+                        // *** 代运营服务费返款 ***
+                        // *********************
+                        // 1. 查询改订单代运营服务费-扣费记录
                         if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
                             // 2. 查询改订单代运营服务费-退款总和
                             $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
-                            // 3. 操作退款|判断退款金额 + 已退款金额 是否大于 已支付金额
-                            if ($decr_log->money >= ($incr_total + $current_refund_operate_service_fee)) {
-                                $description = "{$order->order_id}订单，部分退款代运营服务费返还";
-                                $this->operateIncrement($order->user_id, $current_refund_operate_service_fee, $description, $order->shop_id, $order->id, 3, $order->id);
+                            // 3. 计算退款金额
+                            $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
+                            // 4. 操作退款
+                            if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
+                                $description = "{$order->order_id}订单，代运营服务费返还";
+                                $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
                             }
                         }
                     }
-                    if ($shop) {
-                        Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                }
+            }
+        }
+
+        return json_encode(['data' => 'ok']);
+    }
+
+    public function partrefund(Request $request, $platform)
+    {
+        if ($order_id = $request->get("order_id", "")) {
+            $money = $request->get('money');
+            $notify_type = $request->get('notify_type');
+            $refund_id = $request->get('refund_id');
+            $this->log_tool2_prefix = str_replace('###', get_meituan_develop_platform($platform) . "&部分退款|订单号:{$order_id},类型:{$notify_type},金额:{$money}", $this->prefix_title);
+            if (($notify_type == 'agree' || $notify_type == 'apply') && ($money > 0)) {
+                $this->log_info('全部参数', $request->all());
+                if ($order = WmOrder::where('order_id', $order_id)->first()) {
+                    // 查看退款是否有过记录
+                    if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
+                        return json_encode(['data' => 'ok']);
+                    }
+                    // 添加退款日志记录
+                    WmOrderRefund::create([
+                        'order_id' => $order_id,
+                        'refund_id' => $refund_id,
+                        'ctime' => $request->get('ctime'),
+                        'reason' => $request->get('reason'),
+                        'money' => $request->get('money') ?? 0,
+                    ]);
+                    // 查找门店
+                    $shop = Shop::find($order->shop_id);
+                    // 如果是申请退款，播放声音后，返回结果
+                    if ($notify_type == 'apply') {
+                        if ($shop) {
+                            Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $shop->account_id ?: $shop->user_id), true);
+                        }
+                        return json_encode(['data' => 'ok']);
+                    } elseif ($notify_type == 'agree') {
+                        // 同意退款流程
+                        // if ($order->status != 18) {
+                        //     $this->ding_error("订单未完成，部分退款");
+                        // }
+                        // 退款记录
+                        if ($platform == 4) {
+                            $minkang = app('minkang');
+                            $res = $minkang->getOrderRefundDetail($order_id);
+                        } elseif ($platform == 31) {
+                            $minkang = app('meiquan');
+                            $res = $minkang->getOrderRefundDetail($order_id, false, $order->app_poi_code);
+                        }
+                        $refund_settle_amount = 0;
+                        $refund_platform_charge_fee = 0;
+                        $current_refund_operate_service_fee = 0;
+                        $this->log_info("退款ID：{$refund_id}");
+                        if (!empty($res['data']) && is_array($res['data'])) {
+                            foreach ($res['data'] as $v) {
+                                $refund_settle_amount += $v['refund_partial_estimate_charge']['settle_amount'];
+                                $refund_platform_charge_fee += $v['refund_partial_estimate_charge']['platform_charge_fee'];
+                                $this->log_info("所有退款ID：" . $v['refund_id']);
+                                if ($v['refund_id'] == $refund_id) {
+                                    $this->log_info("找到退款ID：{$refund_id}");
+                                    $current_refund_operate_service_fee = sprintf("%.2f",$v['refund_partial_estimate_charge']['settle_amount'] * $order->operate_service_rate / 100 * -1);
+                                    $this->log_info("退款金额：{$current_refund_operate_service_fee}");
+                                }
+                            }
+                        } else {
+                            $this->log_info('未获取到退款详情', [$res ?? '']);
+                        }
+                        // 更改订单退款信息
+                        WmOrder::where('id', $order->id)->update([
+                            'refund_status' => 2,
+                            'refund_fee' => $money,
+                            'refund_settle_amount' => $refund_settle_amount,
+                            'refund_platform_charge_fee' => $refund_platform_charge_fee,
+                            'refund_operate_service_fee' => $refund_settle_amount * $order->operate_service_rate / 100,
+                            'refund_at' => date("Y-m-d H:i:s"),
+                        ]);
+                        $food_str = $request->get('food');
+                        $foods = json_decode($food_str, true);
+                        if (!empty($foods)) {
+                            DB::transaction(function () use ($order, $foods, $shop) {
+                                $vip = $order->is_vip;
+                                $dec_cost = 0;
+                                $where['order_id'] = $order->id;
+                                foreach ($foods as $food) {
+                                    $where['upc'] = $food['upc'];
+                                    $count = $food['count'];
+                                    if ($item = WmOrderItem::where($where)->where('quantity', '>', 0)->first()) {
+                                        WmOrderItem::where('id', $item->id)->update([
+                                            'quantity' => $item->quantity - $count,
+                                            'refund_quantity' => $count,
+                                        ]);
+                                    }
+                                    if ($vip && (strtotime($shop->vip_at) < strtotime('2022-11-25'))) {
+                                        $cost = VipProduct::select('cost')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
+                                        if (isset($cost->cost)) {
+                                            $dec_cost += ($cost->cost ?? 0);
+                                        } else {
+                                            $this->log_info("成本价不存在，订单ID:{$order->order_id}");
+                                        }
+                                    } else {
+                                        $cost = Medicine::select('guidance_price')->where(['upc' => $food['upc'], 'shop_id' => $order->shop_id])->first();
+                                        if (isset($cost->guidance_price)) {
+                                            $dec_cost += ($cost->guidance_price ?? 0);
+                                        } else {
+                                            $this->log_info("成本价不存在，订单ID:{$order->order_id}");
+                                        }
+                                    }
+                                }
+                                $this->dec_cost = $dec_cost;
+                                $vip_cost = $order->vip_cost - $dec_cost;
+                                WmOrder::where('id', $order->id)->update(['vip_cost' => $vip_cost > 0 ? $vip_cost : 0]);
+                            });
+                        }
+                        if ($order->is_vip) {
+                            // 如果是VIP订单，触发结算JOB
+                            // dispatch(new VipOrderSettlement($order));
+                            if (!empty($res['data']) && is_array($res['data'])) {
+                                // VIP门店各方利润百分比
+                                $commission = $shop->vip_commission;
+                                $commission_manager = $shop->vip_commission_manager;
+                                $commission_operate = $shop->vip_commission_operate;
+                                $commission_internal = $shop->vip_commission_internal;
+                                $business = 100 - $commission - $commission_manager - $commission_operate - $commission_internal;
+                                foreach ($res['data'] as $v) {
+                                    $poi_receive = $v['refund_partial_estimate_charge']['settle_amount'];
+                                    if ($poi_receive) {
+                                        $total = $poi_receive + $this->dec_cost;
+                                        $vip_city = sprintf("%.2f",$total * $commission_manager / 100);
+                                        $vip_operate = sprintf("%.2f", $total * $commission_operate / 100);
+                                        $vip_internal = sprintf("%.2f",$total * $commission_internal / 100);
+                                        $vip_business = sprintf("%.2f",$total * $business / 100);
+                                        $vip_company = sprintf("%.2f",$total - $vip_operate - $vip_city - $vip_internal - $vip_business);
+                                        $item = [
+                                            'order_id' => $order->id,
+                                            'shop_id' => $order->shop_id,
+                                            'order_no' => $order->order_id,
+                                            'platform' => $order->platform,
+                                            'app_poi_code' => $order->app_poi_code,
+                                            'wm_shop_name' => $order->wm_shop_name,
+                                            'day_seq' => $order->day_seq,
+                                            'trade_type' => 3,
+                                            'status' => $order->status,
+                                            'order_at' => $order->created_at,
+                                            'finish_at' => $order->finish_at,
+                                            'bill_date' => date("Y-m-d"),
+                                            'vip_settlement' => $poi_receive,
+                                            'vip_cost' => $this->dec_cost,
+                                            'vip_permission' => 0,
+                                            'vip_total' => $total,
+                                            'vip_commission_company' => $commission,
+                                            'vip_commission_manager' => $commission_manager,
+                                            'vip_commission_operate' => $commission_operate,
+                                            'vip_commission_internal' => $commission_internal,
+                                            'vip_commission_business' => $business,
+                                            'vip_company' => $vip_company,
+                                            'vip_city' => $vip_city,
+                                            'vip_operate' => $vip_operate,
+                                            'vip_internal' => $vip_internal,
+                                            'vip_business' => $vip_business,
+                                        ];
+                                        VipBillItem::create($item);
+                                        \Log::info("VIP订单结算处理，部分退款订单结算成功");
+                                    } else {
+                                        $this->ding_error('部分退款未获取到退款结算金额');
+                                    }
+                                }
+                            }
+                        }
+                        $this->log_info("操作退款", [$order->status, $current_refund_operate_service_fee]);
+                        // 操作退款（订单是已完成状态才能退款。因为扣代运营服务费，是在订单完成时扣的）
+                        if ($order->status == 18 && $current_refund_operate_service_fee > 0) {
+                            // 1. 查询改订单代运营服务费-扣费记录。有扣款记录才能退款
+                            if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
+                                $this->log_info("支付记录", [$decr_log]);
+                                // 2. 查询改订单代运营服务费-退款总和
+                                $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
+                                // 3. 操作退款|判断退款金额 + 已退款金额 是否大于 已支付金额
+                                $this->log_info("支付记录金额", [$decr_log->money, $incr_total, $current_refund_operate_service_fee]);
+                                if ($decr_log->money >= ($incr_total + $current_refund_operate_service_fee)) {
+                                    $description = "{$order->order_id}订单，部分退款代运营服务费返还";
+                                    $this->log_info("去退款", [$order->user_id, $current_refund_operate_service_fee, $description, $order->shop_id, $order->id, 3, $order->id]);
+                                    $tui_res = $this->operateIncrement($order->user_id, $current_refund_operate_service_fee, $description, $order->shop_id, $order->id, 3, $order->id);
+                                    $this->log_info("退款结果", [$tui_res]);
+
+                                }
+                            }
+                        }
                     }
                 }
             }
