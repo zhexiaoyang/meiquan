@@ -31,7 +31,7 @@ trait UserMoneyAction
             // 查找扣款用户，为了记录余额日志
             $current_user = DB::table('users')->find($user_id);
             // 操作减余额
-            DB::table('users')->where('id', $user_id)->decrement('money', $money);
+            DB::table('users')->where('id', $user_id)->decrement('operate_money', $money);
             // 创建余额记录
             UserMoneyBalance::create([
                 "user_id" => $user_id,
@@ -87,7 +87,7 @@ trait UserMoneyAction
             // 查找扣款用户，为了记录余额日志
             $current_user = DB::table('users')->find($user_id);
             // 操作减余额
-            DB::table('users')->where('id', $user_id)->increment('money', $money);
+            DB::table('users')->where('id', $user_id)->increment('operate_money', $money);
             // 创建余额记录
             UserMoneyBalance::create([
                 "user_id" => $user_id,
