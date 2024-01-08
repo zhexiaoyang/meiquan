@@ -136,17 +136,17 @@ class OrderController
                 $this->log_info('全部参数', $request->all());
                 if ($order = WmOrder::where('order_id', $order_id)->first()) {
                     // 查看退款是否有过记录
-                    if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
-                        return json_encode(['data' => 'ok']);
-                    }
-                    // 添加退款日志记录
-                    WmOrderRefund::create([
-                        'order_id' => $order_id,
-                        'refund_id' => $refund_id,
-                        'ctime' => $request->get('ctime'),
-                        'reason' => $request->get('reason'),
-                        'money' => $request->get('money') ?? 0,
-                    ]);
+                    // if (WmOrderRefund::where('order_id', $order_id)->where('refund_id', $refund_id)->first()) {
+                    //     return json_encode(['data' => 'ok']);
+                    // }
+                    // // 添加退款日志记录
+                    // WmOrderRefund::create([
+                    //     'order_id' => $order_id,
+                    //     'refund_id' => $refund_id,
+                    //     'ctime' => $request->get('ctime'),
+                    //     'reason' => $request->get('reason'),
+                    //     'money' => $request->get('money') ?? 0,
+                    // ]);
                     // 查找门店
                     $shop = Shop::find($order->shop_id);
                     // 如果是申请退款，播放声音后，返回结果

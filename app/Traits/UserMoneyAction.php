@@ -6,6 +6,7 @@ namespace App\Traits;
 
 use App\Libraries\DingTalk\DingTalkRobotNotice;
 use App\Models\UserMoneyBalance;
+use App\Models\UserOperateBalance;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -33,13 +34,13 @@ trait UserMoneyAction
             // 操作减余额
             DB::table('users')->where('id', $user_id)->decrement('operate_money', $money);
             // 创建余额记录
-            UserMoneyBalance::create([
+            UserOperateBalance::create([
                 "user_id" => $user_id,
                 "money" => $money,
                 "type" => 2,
                 "type2" => $type2,
-                "before_money" => $current_user->money,
-                "after_money" => ($current_user->money - $money),
+                "before_money" => $current_user->operate_money,
+                "after_money" => ($current_user->operate_money - $money),
                 "description" => $description,
                 "shop_id" => $shop_id,
                 "order_id" => $order_id,
@@ -89,13 +90,13 @@ trait UserMoneyAction
             // 操作减余额
             DB::table('users')->where('id', $user_id)->increment('operate_money', $money);
             // 创建余额记录
-            UserMoneyBalance::create([
+            UserOperateBalance::create([
                 "user_id" => $user_id,
                 "money" => $money,
                 "type" => 1,
                 "type2" => $type2,
-                "before_money" => $current_user->money,
-                "after_money" => ($current_user->money + $money),
+                "before_money" => $current_user->operate_money,
+                "after_money" => ($current_user->operate_money + $money),
                 "description" => $description,
                 "shop_id" => $shop_id,
                 "order_id" => $order_id,
