@@ -102,6 +102,7 @@ class TakeoutShopController extends Controller
         }
 
         $ele = app('ele');
+        $ele_res = null;
 
         if ($shop->ele_open == 3) {
             $ele_res = $ele->shopClose($shop->waimai_ele);
@@ -109,10 +110,11 @@ class TakeoutShopController extends Controller
             $ele_res = $ele->shopOpen($shop->waimai_ele);
         }
 
-        if ($ele_res['body']['errno'] == 0) {
+        if (isset($ele_res['body']['errno']) && $ele_res['body']['errno'] == 0) {
             $shop->ele_open = $shop->ele_open == 1 ? 3 : 1;
             $shop->save();
         } else {
+            \Log::info('update_ele_status操作失败', [$shop->ele_open, $ele_res]);
             return $this->error('操作失败');
         }
 
