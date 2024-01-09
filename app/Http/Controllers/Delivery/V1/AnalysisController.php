@@ -474,8 +474,8 @@ class AnalysisController extends Controller
                     isset($data_shop_id[$datum->shop_id]['order_effective_number']) || $data_shop_id[$datum->shop_id]['order_effective_number'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['order_cancel_number']) || $data_shop_id[$datum->shop_id]['order_cancel_number'] = 0;
                     isset($data_shop_id[$datum->shop_id]['product_cost']) || $data_shop_id[$datum->shop_id]['product_cost'] = 0;
-                    // isset($data_shop_id[$datum->shop_id]['running_money']) || $data_shop_id[$datum->shop_id]['running_money'] = 0;
-                    // isset($data_shop_id[$datum->shop_id]['prescription']) || $data_shop_id[$datum->shop_id]['prescription'] = 0;
+                    isset($data_shop_id[$datum->shop_id]['running_money']) || $data_shop_id[$datum->shop_id]['running_money'] = 0;
+                    isset($data_shop_id[$datum->shop_id]['prescription']) || $data_shop_id[$datum->shop_id]['prescription'] = 0;
                     isset($data_shop_id[$datum->shop_id]['profit']) || $data_shop_id[$datum->shop_id]['profit'] = 0;
                     // isset($data_shop_id[$datum->shop_id]['operate_service']) || $data_shop_id[$datum->shop_id]['operate_service'] = 0;
                     $data_shop_id[$datum->shop_id]['sales_volume'] += $datum->sales_volume * 100;
