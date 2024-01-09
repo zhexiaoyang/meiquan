@@ -43,6 +43,7 @@ class OrderController extends Controller
         $order_where = [['ignore', '=', 0], ['created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day'))],];
         // $wm_order_where = [['created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day'))],];
         $refund_order_where = [];
+        $exception_order_where = [['ignore', '=', 0], ['created_at', '>=', date('Y-m-d')]];
         $finish_order_where = [['over_at', '>', date('Y-m-d')], ['status', '>=', 70], ['status', '<=', 75]];
         // $order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
         // $wm_order_where[] = ['shop_id', 'in', $request->user()->shops()->pluck('id')->toArray()];
@@ -50,6 +51,9 @@ class OrderController extends Controller
         // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
         if (true) {
             $order_where[] = [function ($query) use ($request) {
+                $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
+            }];
+            $exception_order_where[] = [function ($query) use ($request) {
                 $query->whereIn('shop_id', $request->user()->shops()->pluck('id')->toArray());
             }];
             // $wm_order_where[] = [function ($query) use ($request) {
@@ -66,6 +70,7 @@ class OrderController extends Controller
         }
         if ($shop_id) {
             $order_where[] = ['shop_id', '=', $shop_id];
+            $exception_order_where[] = ['shop_id', '=', $shop_id];
             // $wm_order_where[] = ['shop_id', '=', $shop_id];
             $finish_order_where[] = ['shop_id', '=', $shop_id];
             $refund_order_where[] = ['shop_id', '=', $shop_id];
@@ -75,7 +80,7 @@ class OrderController extends Controller
             'pending' => Order::select('id')->where($order_where)->where('status', 20)->count(),
             'receiving' => Order::select('id')->where($order_where)->where('status', 50)->count(),
             'delivering' => Order::select('id')->where($order_where)->where('status', 60)->count(),
-            'exceptional' => Order::select('id')->where($order_where)->whereIn('status', [10, 5, 99])->count(),
+            'exceptional' => Order::select('id')->where($exception_order_where)->whereIn('status', [10, 5, 99])->count(),
             'refund' => WmOrder::select('id')->where(function ($query) {
                 $query->where('refund_at', '>=', date('Y-m-d'))->orWhere('cancel_at', '>=', date('Y-m-d'));
             })->where($refund_order_where)->count(),
@@ -115,8 +120,12 @@ class OrderController extends Controller
         }])->select('id','order_id','wm_id','shop_id','wm_poi_name','receiver_name','receiver_phone','receiver_address','receiver_lng','receiver_lat',
             'caution','day_seq','platform','status','created_at', 'ps as logistic_type','push_at','receive_at','take_at','over_at','cancel_at',
             'courier_name', 'courier_phone','courier_lng','courier_lat','poi_receive','send_at','ps_type','cancel_at')
-            ->where('ignore', 0)
-            ->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
+            ->where('ignore', 0);
+        if ($status === 50) {
+            $query->where('created_at', '>=', date('Y-m-d'));
+        } else {
+            $query->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-2 day')));
+        }
         // 判断权限
         // if (!$request->user()->hasPermissionTo('currency_shop_all')) {
         if (true) {
