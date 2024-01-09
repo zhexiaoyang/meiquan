@@ -97,7 +97,7 @@ class OrderController
                         // 更改订单信息
                         WmOrder::where('id', $order->id)->update([
                             'refund_status' => 1,
-                            'operate_service_fee' => 0,
+                            // 'operate_service_fee' => 0,
                             'refund_fee' => $order->total,
                             'refund_operate_service_fee' => $order->operate_service_fee * -1,
                             'refund_at' => date("Y-m-d H:i:s"),
