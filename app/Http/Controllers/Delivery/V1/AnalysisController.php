@@ -161,13 +161,13 @@ class AnalysisController extends Controller
             foreach ($orders2 as $order) {
                 $running_money = 0;
                 if ($order->status == 18 && (strtotime($order->finish_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
-                    $res2['order_complete_number']++;
                     $res2['order_total_number']++;
+                    $res2['order_complete_number']++;
                 } elseif ($order->status > 18 && (strtotime($order->cancel_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
                     $res2['order_cancel_number']++;
                 } else {
-                    $res2['order_ongoing_number']++;
                     $res2['order_total_number']++;
+                    $res2['order_ongoing_number']++;
                 }
                 if ($order->status <= 18) {
                     $res2['sales_volume'] += $order->original_price * 100;
