@@ -387,7 +387,7 @@ class AnalysisController extends Controller
                 $query->select('id', 'wm_id', 'status', 'money');
             }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost',
                 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee','prescription_fee')
-                ->where('status', 18)->where('created_at','>=',date('Y-m-d'));
+                ->where('status', '<=', 18)->where('created_at','>=',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
@@ -405,25 +405,29 @@ class AnalysisController extends Controller
                         }
                     }
                     if (isset($result_tmp[$order->shop_id])) {
-                        $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
-                        $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
                         $result_tmp[$order->shop_id]['order_number']++;
-                        $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
-                        $result_tmp[$order->shop_id]['product_cost'] += $order->vip_cost;
-                        // 处方费
-                        $result_tmp[$order->shop_id]['prescription'] += $order->prescription_fee;
-                        // 配送费
-                        $result_tmp[$order->shop_id]['running_money'] += $running_money;
+                        if ($order->status === 18) {
+                            $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
+                            $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
+                            $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                            $result_tmp[$order->shop_id]['product_cost'] += $order->vip_cost;
+                            // 处方费
+                            $result_tmp[$order->shop_id]['prescription'] += $order->prescription_fee;
+                            // 配送费
+                            $result_tmp[$order->shop_id]['running_money'] += $running_money;
+                        }
                     } else {
-                        $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
-                        $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
                         $result_tmp[$order->shop_id]['order_number'] = 1;
-                        $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
-                        $result_tmp[$order->shop_id]['product_cost'] = $order->vip_cost;
-                        // 处方费
-                        $result_tmp[$order->shop_id]['prescription'] = $order->prescription_fee;
-                        // 配送费
-                        $result_tmp[$order->shop_id]['running_money'] = $running_money;
+                        if ($order->status === 18) {
+                            $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
+                            $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
+                            $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                            $result_tmp[$order->shop_id]['product_cost'] = $order->vip_cost;
+                            // 处方费
+                            $result_tmp[$order->shop_id]['prescription'] = $order->prescription_fee;
+                            // 配送费
+                            $result_tmp[$order->shop_id]['running_money'] = $running_money;
+                        }
                     }
                 }
                 foreach ($user_shops as $v) {
