@@ -382,7 +382,10 @@ class AnalysisController extends Controller
         $user_shop_ids = $user_shops->pluck('id')->toArray();
         if ($date_type === 10) {
             // 今日数据
-            $query = WmOrder::select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost', 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee')
+            $query = WmOrder::with(['running' => function($query) {
+                $query->select('id', 'wm_id', 'status', 'money');
+            }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost',
+                'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee','prescription_fee')
                 ->where('status', '<=', 18)->where('created_at','>',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
@@ -394,18 +397,32 @@ class AnalysisController extends Controller
             $result_tmp = [];
             if (!empty($orders)) {
                 foreach ($orders as $order) {
+                    $running_money = 0;
+                    if (isset($order->running->money)) {
+                        if ($order->running->status === 70) {
+                            $running_money = $order->running->money;
+                        }
+                    }
                     if (isset($result_tmp[$order->shop_id])) {
                         $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                         $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
                         $result_tmp[$order->shop_id]['order_number']++;
                         $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                         $result_tmp[$order->shop_id]['product_cost'] += $order->vip_cost;
+                        // 处方费
+                        $result_tmp[$order->shop_id]['prescription'] += $order->prescription_fee;
+                        // 配送费
+                        $result_tmp[$order->shop_id]['running_money'] += $running_money;
                     } else {
                         $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
                         $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
                         $result_tmp[$order->shop_id]['order_number'] = 1;
                         $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                         $result_tmp[$order->shop_id]['product_cost'] = $order->vip_cost;
+                        // 处方费
+                        $result_tmp[$order->shop_id]['prescription'] = $order->prescription_fee;
+                        // 配送费
+                        $result_tmp[$order->shop_id]['running_money'] = $running_money;
                     }
                 }
                 foreach ($user_shops as $v) {
@@ -420,6 +437,8 @@ class AnalysisController extends Controller
                             'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_number']),
                             'product_cost' => (float) sprintf("%.2f", $tmp['product_cost']),
                             'profit' => (float) sprintf("%.2f", $tmp['profit']),
+                            'prescription' => (float) sprintf("%.2f", $tmp['prescription']),
+                            'running_money' => (float) sprintf("%.2f", $tmp['running_money']),
                         ];
                     } else {
                         $result[] = [
@@ -455,8 +474,8 @@ class AnalysisController extends Controller
                     $data_shop_id[$datum->shop_id]['order_effective_number'] += $datum->order_effective_number;
                     // $data_shop_id[$datum->shop_id]['order_cancel_number'] += $datum->order_cancel_number;
                     $data_shop_id[$datum->shop_id]['product_cost'] += $datum->product_cost * 100;
-                    // $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
-                    // $data_shop_id[$datum->shop_id]['prescription'] += $datum->prescription * 100;
+                    $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
+                    $data_shop_id[$datum->shop_id]['prescription'] += $datum->prescription * 100;
                     $data_shop_id[$datum->shop_id]['profit'] += $datum->profit * 100;
                     // $data_shop_id[$datum->shop_id]['operate_service'] += $datum->operate_service * 100;
                 }
@@ -468,8 +487,8 @@ class AnalysisController extends Controller
                     $tmp['order_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_effective_number'] ?? 0));
                     // $tmp['order_cancel_number'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['order_cancel_number'] ?? 0));
                     $tmp['product_cost'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['product_cost'] ?? 0) / 100);
-                    // $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
-                    // $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
+                    $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
+                    $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
                     $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
                     // $tmp['operate_service'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100);
                     $unit_price = 0;
@@ -680,6 +699,8 @@ class AnalysisController extends Controller
                         $result[$v->platform]['shops'][$v->shop_id]['sales_volume'] = (float) sprintf("%.2f", $v->sales_volume + $result[$v->platform]['shops'][$v->shop_id]['sales_volume']);
                         $result[$v->platform]['shops'][$v->shop_id]['product_cost'] = (float) sprintf("%.2f", $v->product_cost + $result[$v->platform]['shops'][$v->shop_id]['product_cost']);
                         $result[$v->platform]['shops'][$v->shop_id]['profit'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['profit']);
+                        $result[$v->platform]['shops'][$v->shop_id]['running_money'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['running_money']);
+                        $result[$v->platform]['shops'][$v->shop_id]['prescription'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['prescription']);
                     } else {
                         $result[$v->platform]['shops'][$v->shop_id] = [
                             'shop_id' => $v->shop_id,
@@ -690,6 +711,8 @@ class AnalysisController extends Controller
                             'service_fee' => 0,
                             'product_cost' => (float) $v->product_cost,
                             'profit' => (float) $v->profit,
+                            'running_money' => (float) $v->running_money,
+                            'prescription' => (float) $v->prescription,
                         ];
                     }
                 } else {
@@ -711,6 +734,8 @@ class AnalysisController extends Controller
                                 'service_fee' => 0,
                                 'product_cost' => (float) $v->product_cost,
                                 'profit' => (float) $v->profit,
+                                'running_money' => (float) $v->running_money,
+                                'prescription' => (float) $v->prescription,
                             ]
                         ],
                     ];
