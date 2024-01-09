@@ -386,9 +386,11 @@ class OrderController
                     }
                 }
                 if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40 && $pt_order->status < 70) {
-                    // 已有其它平台接单，取消美团跑腿
-                    $this->ding_error("美团众包|{$pt_order->id}|{$pt_order->order_id}：已有其它平台接单，取消美团zb跑腿");
-                    $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
+                    if ($status === 10 || $status === 15 || $status === 20) {
+                        // 已有其它平台接单，取消美团跑腿
+                        $this->ding_error("美团众包|{$pt_order->id}|{$pt_order->order_id}：已有其它平台接单，取消美团zb跑腿");
+                        $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
+                    }
                 } elseif ($status === 0 && ($pt_order->zb_status < 20 || $pt_order->zb_status > 80)) {
                     $shop = Shop::select('id', 'shop_id_zb')->find($pt_order->shop_id);
                     if ($shop && $shop->shop_id_zb) {
