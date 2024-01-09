@@ -150,7 +150,7 @@ class AnalysisController extends Controller
                 // }
             }
             if (($res['order_complete_number'] + $res['order_ongoing_number']) > 0) {
-                $res['order_average'] = (float) sprintf("%.2f", $res['sales_volume'] / ($res['order_complete_number'] + $res['order_ongoing_number']) / 100);
+                $res['order_average'] = (float) sprintf("%.2f", $res['sales_volume'] / ($res['order_complete_number']) / 100);
             } else {
                 $res['order_average'] = 0;
             }
