@@ -732,7 +732,7 @@ class AnalysisController extends Controller
                         'order_effective_number' => $v->order_effective_number,
                         'unit_price' => 0,
                         'proportion' => 0,
-                        'profit' => 0,
+                        'profit' => (float) $v->profit,
                         'shops' => [
                             $v->shop_id => [
                                 'shop_id' => $v->shop_id,
