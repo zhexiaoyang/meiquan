@@ -128,12 +128,6 @@ class AnalysisController extends Controller
                 $res['order_total_number'] ++;
                 if ($order->status == 18) {
                     $res['order_complete_number']++;
-                } elseif ($order->status > 18) {
-                    $res['order_cancel_number'] ++;
-                } else {
-                    $res['order_ongoing_number'] ++;
-                }
-                if ($order->status <= 18) {
                     $res['sales_volume'] += $order->original_price * 100;
                     $res['order_receipts'] += $order->poi_receive * 100;
                     $res['product_cost'] += $order->vip_cost * 100;
@@ -146,7 +140,13 @@ class AnalysisController extends Controller
                     $res['prescription'] += $order->prescription_fee * 100;
                     $res['operate_service'] += $order->operate_service_fee * 100;
                     $res['profit'] += $order->poi_receive* 100 - $running_money - $order->vip_cost* 100 - $order->prescription_fee* 100;
+                } elseif ($order->status > 18) {
+                    $res['order_cancel_number'] ++;
+                } else {
+                    $res['order_ongoing_number'] ++;
                 }
+                // if ($order->status <= 18) {
+                // }
             }
             if (($res['order_complete_number'] + $res['order_ongoing_number']) > 0) {
                 $res['order_average'] = (float) sprintf("%.2f", $res['sales_volume'] / ($res['order_complete_number'] + $res['order_ongoing_number']) / 100);
@@ -386,7 +386,7 @@ class AnalysisController extends Controller
                 $query->select('id', 'wm_id', 'status', 'money');
             }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost',
                 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee','prescription_fee')
-                ->where('status', '<=', 18)->where('created_at','>',date('Y-m-d'));
+                ->where('status', 18)->where('created_at','>',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
