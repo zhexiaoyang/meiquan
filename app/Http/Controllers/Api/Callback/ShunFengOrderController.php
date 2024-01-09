@@ -56,6 +56,7 @@ class ShunFengOrderController extends Controller
         if ($order = Order::where('delivery_id', $order_id)->first()) {
             // 如果是接单状态，设置接单锁
             if ($status == 10) {
+                $_time1 = time();
                 try {
                     // 获取接单状态锁，如果锁存在，等待8秒
                     Cache::lock("jiedan_lock:{$order->id}", 3)->block(8);
@@ -63,6 +64,11 @@ class ShunFengOrderController extends Controller
                 } catch (LockTimeoutException $e) {
                     // 获取锁失败
                     $this->ding_error("自有顺丰|接单获取锁失败错误|{$order->id}|{$order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                }
+                $_time2 = time();
+                // 重新查找订单，防止锁之前更换状态
+                if ($_time1 !== $_time2) {
+                    $order = Order::find($order->id);
                 }
             }
             // 跑腿运力
