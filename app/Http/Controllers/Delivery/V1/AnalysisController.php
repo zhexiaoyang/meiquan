@@ -407,7 +407,7 @@ class AnalysisController extends Controller
                     if (isset($result_tmp[$order->shop_id])) {
                         $result_tmp[$order->shop_id]['order_number']++;
                         if ($order->status === 18) {
-                            $result_tmp[$order->shop_id]['order_complete_number'] = 1;
+                            $result_tmp[$order->shop_id]['order_complete_number']++;
                             $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
                             $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $running_money - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
