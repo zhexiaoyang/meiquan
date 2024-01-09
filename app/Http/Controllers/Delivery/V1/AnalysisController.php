@@ -126,6 +126,7 @@ class AnalysisController extends Controller
             foreach ($orders as $order) {
                 $running_money = 0;
                 if ($order->status == 18) {
+                    $res['order_cancel_number']++;
                     $res['order_complete_number']++;
                     $res['sales_volume'] += $order->original_price * 100;
                     $res['order_receipts'] += $order->poi_receive * 100;
@@ -142,7 +143,6 @@ class AnalysisController extends Controller
                     // $res['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                 } elseif ($order->status > 18) {
                     $res['order_total_number']++;
-                    $res['order_cancel_number']++;
                 } else {
                     $res['order_total_number']++;
                     $res['order_ongoing_number']++;
@@ -162,9 +162,9 @@ class AnalysisController extends Controller
                 $running_money = 0;
                 if ($order->status == 18 && (strtotime($order->finish_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
                     $res2['order_complete_number']++;
+                    $res2['order_total_number']++;
                 } elseif ($order->status > 18 && (strtotime($order->cancel_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
                     $res2['order_cancel_number']++;
-                    $res2['order_total_number']++;
                 } else {
                     $res2['order_ongoing_number']++;
                     $res2['order_total_number']++;
