@@ -183,7 +183,7 @@ class AnalysisController extends Controller
                 }
             }
             if (($res2['order_complete_number'] + $res2['order_ongoing_number']) > 0) {
-                $res2['order_average'] = (float) sprintf("%.2f", $res2['sales_volume'] / ($res2['order_complete_number'] + $res2['order_ongoing_number']) / 100);
+                $res2['order_average'] = (float) sprintf("%.2f", $res2['sales_volume'] / ($res2['order_complete_number']) / 100);
             } else {
                 $res2['order_average'] = 0;
             }
@@ -407,6 +407,7 @@ class AnalysisController extends Controller
                     if (isset($result_tmp[$order->shop_id])) {
                         $result_tmp[$order->shop_id]['order_number']++;
                         if ($order->status === 18) {
+                            $result_tmp[$order->shop_id]['order_complete_number'] = 1;
                             $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
                             $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $running_money - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
@@ -419,6 +420,7 @@ class AnalysisController extends Controller
                     } else {
                         $result_tmp[$order->shop_id]['order_number'] = 1;
                         if ($order->status === 18) {
+                            $result_tmp[$order->shop_id]['order_complete_number'] = 1;
                             $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
                             $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $running_money - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
@@ -439,7 +441,7 @@ class AnalysisController extends Controller
                             'poi_receive' => (float) sprintf("%.2f", $tmp['poi_receive']),
                             'original_price' => (float) sprintf("%.2f", $tmp['original_price']),
                             'order_number' => $tmp['order_number'],
-                            'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_number']),
+                            'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_complete_number']),
                             'product_cost' => (float) sprintf("%.2f", $tmp['product_cost']),
                             'profit' => (float) sprintf("%.2f", $tmp['profit']),
                             'prescription' => (float) sprintf("%.2f", $tmp['prescription']),
