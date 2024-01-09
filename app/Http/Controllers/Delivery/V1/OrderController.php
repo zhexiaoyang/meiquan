@@ -135,11 +135,11 @@ class OrderController extends Controller
             $query->where('status', 60);
         } elseif ($status === 50) {
             // 5 余额不足，10 暂无运力
-            $query->whereIn('status', [10, 5, 99]);
+            $query->whereIn('status', [10, 5]);
         } elseif ($status === 60) {
             // $query->where('status', 20);
             $query->whereHas('order', function ($query) {
-                $query->where('status', 30)->where(function ($query) {
+                $query->where(function ($query) {
                     $query->where('refund_at', '>=', date('Y-m-d'))->orWhere('cancel_at', '>=', date('Y-m-d'));
                 });
             })->where('created_at', '>', date('Y-m-d H:i:s', strtotime('-1 day')));;
