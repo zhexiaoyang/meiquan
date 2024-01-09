@@ -409,7 +409,7 @@ class AnalysisController extends Controller
                         if ($order->status === 18) {
                             $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
-                            $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                            $result_tmp[$order->shop_id]['profit'] +=  $order->poi_receive - $running_money - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                             $result_tmp[$order->shop_id]['product_cost'] += $order->vip_cost;
                             // 处方费
                             $result_tmp[$order->shop_id]['prescription'] += $order->prescription_fee;
@@ -421,7 +421,7 @@ class AnalysisController extends Controller
                         if ($order->status === 18) {
                             $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
-                            $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
+                            $result_tmp[$order->shop_id]['profit'] =  $order->poi_receive - $running_money - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                             $result_tmp[$order->shop_id]['product_cost'] = $order->vip_cost;
                             // 处方费
                             $result_tmp[$order->shop_id]['prescription'] = $order->prescription_fee;
