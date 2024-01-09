@@ -441,7 +441,7 @@ class AnalysisController extends Controller
                             'poi_receive' => (float) sprintf("%.2f", $tmp['poi_receive']),
                             'original_price' => (float) sprintf("%.2f", $tmp['original_price']),
                             'order_number' => $tmp['order_number'],
-                            'unit_price' => (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_complete_number']),
+                            'unit_price' => (float) sprintf("%.2f", $tmp['original_price'] / $tmp['order_complete_number']),
                             'product_cost' => (float) sprintf("%.2f", $tmp['product_cost']),
                             'profit' => (float) sprintf("%.2f", $tmp['profit']),
                             'prescription' => (float) sprintf("%.2f", $tmp['prescription']),
