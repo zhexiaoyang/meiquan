@@ -158,7 +158,11 @@ class TakeoutAnalysis extends Command
                         }
                     }
                 }
-                $order_average = (float) sprintf("%.2f", $sales_volume / $order_total_number / 100);
+                if ($order_effective_number > 0) {
+                    $order_average = (float) sprintf("%.2f", $sales_volume / $order_effective_number / 100);
+                } else {
+                    $order_average = 0;
+                }
                 WmAnalysis::create([
                     'shop_id' => $shop_id,
                     'platform' => 0,
@@ -175,44 +179,48 @@ class TakeoutAnalysis extends Command
                     'operate_service' => $operate_service / 100,
                     'date' => $date,
                 ]);
-                if ($order_total_number1 > 0) {
-                    $order_average1 = (float) sprintf("%.2f", $sales_volume1 / $order_total_number1 / 100);
-                    WmAnalysis::create([
-                        'shop_id' => $shop_id,
-                        'platform' => 1,
-                        'sales_volume' => $sales_volume1 / 100,
-                        'order_receipts' => $order_receipts1 / 100,
-                        'order_total_number' => $order_total_number1,
-                        'order_effective_number' => $order_effective_number1,
-                        'order_cancel_number' => $order_cancel_number1,
-                        'product_cost' => $product_cost1 / 100,
-                        'order_average' => $order_average1,
-                        'running_money' => $running_money_total1 / 100,
-                        'prescription' => $prescription1 / 100,
-                        'profit' => $profit1 / 100,
-                        'operate_service' => $operate_service1 / 100,
-                        'date' => $date,
-                    ]);
+                if ($order_effective_number1 > 0) {
+                    $order_average1 = (float) sprintf("%.2f", $sales_volume1 / $order_effective_number1 / 100);
+                } else {
+                    $order_average1 = 0;
                 }
-                if ($order_total_number2 > 0) {
-                    $order_average2 = (float) sprintf("%.2f", $sales_volume2 / $order_total_number2 / 100);
-                    WmAnalysis::create([
-                        'shop_id' => $shop_id,
-                        'platform' => 2,
-                        'sales_volume' => $sales_volume2 / 100,
-                        'order_receipts' => $order_receipts2 / 100,
-                        'order_total_number' => $order_total_number2,
-                        'order_effective_number' => $order_effective_number2,
-                        'order_cancel_number' => $order_cancel_number2,
-                        'product_cost' => $product_cost2 / 100,
-                        'order_average' => $order_average2,
-                        'running_money' => $running_money_total2 / 100,
-                        'prescription' => $prescription2 / 100,
-                        'profit' => $profit2 / 100,
-                        'operate_service' => $operate_service2 / 100,
-                        'date' => $date,
+                WmAnalysis::create([
+                    'shop_id' => $shop_id,
+                    'platform' => 1,
+                    'sales_volume' => $sales_volume1 / 100,
+                    'order_receipts' => $order_receipts1 / 100,
+                    'order_total_number' => $order_total_number1,
+                    'order_effective_number' => $order_effective_number1,
+                    'order_cancel_number' => $order_cancel_number1,
+                    'product_cost' => $product_cost1 / 100,
+                    'order_average' => $order_average1,
+                    'running_money' => $running_money_total1 / 100,
+                    'prescription' => $prescription1 / 100,
+                    'profit' => $profit1 / 100,
+                    'operate_service' => $operate_service1 / 100,
+                    'date' => $date,
                     ]);
+                if ($order_effective_number2 > 0) {
+                    $order_average2 = (float) sprintf("%.2f", $sales_volume2 / $order_effective_number2 / 100);
+                } else {
+                    $order_average2 = 0;
                 }
+                WmAnalysis::create([
+                    'shop_id' => $shop_id,
+                    'platform' => 2,
+                    'sales_volume' => $sales_volume2 / 100,
+                    'order_receipts' => $order_receipts2 / 100,
+                    'order_total_number' => $order_total_number2,
+                    'order_effective_number' => $order_effective_number2,
+                    'order_cancel_number' => $order_cancel_number2,
+                    'product_cost' => $product_cost2 / 100,
+                    'order_average' => $order_average2,
+                    'running_money' => $running_money_total2 / 100,
+                    'prescription' => $prescription2 / 100,
+                    'profit' => $profit2 / 100,
+                    'operate_service' => $operate_service2 / 100,
+                    'date' => $date,
+                ]);
             }
         }
     }
