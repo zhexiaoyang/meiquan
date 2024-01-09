@@ -139,7 +139,8 @@ class AnalysisController extends Controller
                     $res['running_money'] += $running_money;
                     $res['prescription'] += $order->prescription_fee * 100;
                     $res['operate_service'] += $order->operate_service_fee * 100;
-                    $res['profit'] += $order->poi_receive* 100 - $running_money - $order->vip_cost* 100 - $order->prescription_fee* 100;
+                    $res['profit'] += $order->poi_receive * 100 - $running_money - $order->vip_cost * 100 - $order->prescription_fee * 100 - $order->operate_service_fee * 100  + $order->refund_operate_service_fee * 100  + $order->refund_settle_amount * 100;
+                    // $res['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                 } elseif ($order->status > 18) {
                     $res['order_cancel_number'] ++;
                 } else {
@@ -386,7 +387,7 @@ class AnalysisController extends Controller
                 $query->select('id', 'wm_id', 'status', 'money');
             }])->select('id', 'shop_id', 'poi_receive', 'original_price', 'prescription_fee', 'vip_cost',
                 'status', 'finish_at', 'cancel_at', 'platform','operate_service_fee','prescription_fee')
-                ->where('status', 18)->where('created_at','>',date('Y-m-d'));
+                ->where('status', 18)->where('created_at','>=',date('Y-m-d'));
             if ($shop_id) {
                 $query->where('shop_id', $shop_id);
             } else {
