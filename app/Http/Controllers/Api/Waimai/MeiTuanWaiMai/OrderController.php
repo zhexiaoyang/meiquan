@@ -335,25 +335,28 @@ class OrderController
             $this->log_info("全部参数", $request->all());
             // 更改外卖订单状态
             if ($order = WmOrder::where('order_id', $order_id)->first()) {
-                if (in_array($status, [10, 20, 40]) && $order->status < 16) {
-                    if ($status == 10) {
-                        $order->status = 12;
-                        $order->receive_at = date("Y-m-d H:i:s", $time ?: time());
-                    } elseif ($status == 20) {
-                        $order->status = 14;
-                        $order->send_at = date("Y-m-d H:i:s", $time ?: time());
-                    } elseif ($status == 40) {
-                        $order->status = 16;
-                        $order->deliver_at = date("Y-m-d H:i:s", $time ?: time());
+                if (!$order->shipper_name) {
+                    // 没有骑手姓名可以更新，防止更新时已有其它平台骑手接单
+                    if (in_array($status, [10, 20, 40]) && $order->status < 16) {
+                        if ($status == 10) {
+                            $order->status = 12;
+                            $order->receive_at = date("Y-m-d H:i:s", $time ?: time());
+                        } elseif ($status == 20) {
+                            $order->status = 14;
+                            $order->send_at = date("Y-m-d H:i:s", $time ?: time());
+                        } elseif ($status == 40) {
+                            $order->status = 16;
+                            $order->deliver_at = date("Y-m-d H:i:s", $time ?: time());
+                        }
+                        if ($name) {
+                            $order->shipper_name = $name;
+                            $order->shipper_phone = $phone;
+                        }
+                        $order->save();
+                        $this->log_info("订单号：{$order_id}|操作完成");
+                    } else {
+                        $this->log_info("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                     }
-                    if ($name) {
-                        $order->shipper_name = $name;
-                        $order->shipper_phone = $phone;
-                    }
-                    $order->save();
-                    $this->log_info("订单号：{$order_id}|操作完成");
-                } else {
-                    $this->log_info("订单号：{$order_id}|操作失败|美团状态：{$status}|系统订单状态：{$order->status}");
                 }
             } else {
                 $this->log_info("订单号：{$order_id}|订单不存在");
@@ -365,8 +368,26 @@ class OrderController
                 // 跑腿运力
                 $delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
                 $this->log_info("订单号：{$order_id}|跑腿订单-开始");
+                if ($status === 10) {
+                    $_time1 = time();
+                    try {
+                        // 获取接单状态锁，如果锁存在，等待8秒
+                        Cache::lock("jiedan_lock:{$pt_order->id}", 3)->block(8);
+                        // 获取锁成功
+                    } catch (LockTimeoutException $e) {
+                        // 获取锁失败
+                        $this->ding_error("美团众包|接单获取锁失败错误|{$pt_order->id}|{$pt_order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
+                    }
+                    $_time2 = time();
+                    // 重新查找订单，防止锁之前更换状态
+                    if ($_time1 !== $_time2) {
+                        Log::info('zb重新查找pp订单');
+                        $order = Order::find($order->id);
+                    }
+                }
                 if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40 && $pt_order->status < 70) {
                     // 已有其它平台接单，取消美团跑腿
+                    $this->ding_error("美团众包|{$pt_order->id}|{$pt_order->order_id}：已有其它平台接单，取消美团zb跑腿");
                     $this->cancelRiderOrderMeiTuanZhongBao($pt_order, 2);
                 } elseif ($status === 0 && ($pt_order->zb_status < 20 || $pt_order->zb_status > 80)) {
                     $shop = Shop::select('id', 'shop_id_zb')->find($pt_order->shop_id);
@@ -422,14 +443,6 @@ class OrderController
                     }
                 } elseif ($status === 10) {
                     // 骑手接单
-                    try {
-                        // 获取接单状态锁，如果锁存在，等待8秒
-                        Cache::lock("jiedan_lock:{$pt_order->id}", 3)->block(8);
-                        // 获取锁成功
-                    } catch (LockTimeoutException $e) {
-                        // 获取锁失败
-                        $this->ding_error("美团众包|接单获取锁失败错误|{$pt_order->id}|{$pt_order->order_id}：" . json_encode($request->all(), JSON_UNESCAPED_UNICODE));
-                    }
                     // $jiedan_lock = Cache::lock("jiedan_lock:{$order->id}", 3);
                     // if (!$jiedan_lock->get()) {
                     //     // 获取锁定5秒...
