@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -37,13 +38,21 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
      */
     public function handle()
     {
+        $order_id = $this->order_id;
+        // 添加个锁，防止多次运行
+        $lock = Cache::lock("prescription_fee_job:{$order_id}", 5);
+        if (!$lock->get()) {
+            // 获取锁定5秒...
+            \Log::info("扣处方费被锁住{$order_id}");
+            return;
+        }
         // 处方费扣款逻辑:
         // 1. 如果中台是美团+不审方，系统不扣费；
         // 2. 如果系统抓取到美团处方扣费大于0，系统将自动设置的处方费用为0.2元，且需要把方式设置为 美团+代审方；
         // 3.如果系统抓取美团处方费用等于零，处方费用将按照系统设置的费用为准，且需要把方式设置为美全+代审方。
         $this->log('开始');
         // 处方订单
-        $order = DB::table('wm_orders')->find($this->order_id);
+        $order = DB::table('wm_orders')->find($order_id);
         if (!$order->is_prescription) {
             return $this->log("不是处方单{$order->order_id},{$order->id}");
         }

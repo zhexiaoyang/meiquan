@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class OperateServiceFeeDeductionJob implements ShouldQueue
@@ -36,12 +37,25 @@ class OperateServiceFeeDeductionJob implements ShouldQueue
     {
         // 外卖订单
         $order_id = $this->order_id;
-        $order = DB::table('wm_orders')->find($order_id);
+        // 添加个锁，防止多次运行
+        $lock = Cache::lock("service_fee_job:{$order_id}", 5);
+        if (!$lock->get()) {
+            // 获取锁定5秒...
+            \Log::info("扣代运营服务费被锁住{$order_id}");
+            return;
+        }
+        $order = DB::table('wm_orders')
+            ->select('id', 'operate_service_fee_status', 'operate_service_fee', 'refund_operate_service_fee','user_id','order_id','shop_id','ctime','')
+            ->find($order_id);
 
         if (!$order) {
             return;
         }
         if ($order->operate_service_fee_status) {
+            return;
+        }
+
+        if (DB::table('user_operate_balances')->where('type', 2)->where('order_id', $order->id)->first()) {
             return;
         }
 
