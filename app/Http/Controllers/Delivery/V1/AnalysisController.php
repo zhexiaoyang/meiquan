@@ -447,13 +447,17 @@ class AnalysisController extends Controller
                 foreach ($user_shops as $v) {
                     if (isset($result_tmp[$v->id])) {
                         $tmp = $result_tmp[$v->id];
+                        $unit_price = 0;
+                        if ($tmp['order_complete_number'] > 0) {
+                            $unit_price = (float) sprintf("%.2f", $tmp['original_price'] / $tmp['order_complete_number']);
+                        }
                         $result[] = [
                             'shop_id' => $v->id,
                             'shop_name' => $v->wm_shop_name ?: $v->shop_name,
                             'poi_receive' => (float) sprintf("%.2f", $tmp['poi_receive']),
                             'original_price' => (float) sprintf("%.2f", $tmp['original_price']),
                             'order_number' => $tmp['order_number'],
-                            'unit_price' => (float) sprintf("%.2f", $tmp['original_price'] / $tmp['order_complete_number']),
+                            'unit_price' => $unit_price,
                             'product_cost' => (float) sprintf("%.2f", $tmp['product_cost']),
                             'profit' => (float) sprintf("%.2f", $tmp['profit']),
                             'prescription' => (float) sprintf("%.2f", $tmp['prescription']),
@@ -763,10 +767,18 @@ class AnalysisController extends Controller
         }
         if (!empty($result)) {
             foreach ($result as $k => $v) {
-                $result[$k]['proportion'] = ceil($v['order_effective_number'] / $total_order_number * 100);
+                if ($total_order_number === 0) {
+                    $result[$k]['proportion'] = 0;
+                } else {
+                    $result[$k]['proportion'] = ceil($v['order_effective_number'] / $total_order_number * 100);
+                }
                 $result[$k]['profit'] = (float) sprintf("%.2f", $v['profit']);
                 $result[$k]['order_receipts'] = (float) sprintf("%.2f", $v['order_receipts']);
-                $result[$k]['unit_price'] = (float) sprintf("%.2f", $v['order_receipts'] / $v['order_effective_number']);
+                if ($v['order_effective_number'] === 0) {
+                    $result[$k]['unit_price'] = 0;
+                } else {
+                    $result[$k]['unit_price'] = (float) sprintf("%.2f", $v['order_receipts'] / $v['order_effective_number']);
+                }
                 if (!empty($v['shops'])) {
                     $result[$k]['shops'] = array_values($v['shops']);
                 }
