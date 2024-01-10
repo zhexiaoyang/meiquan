@@ -44,9 +44,7 @@ class OperateServiceFeeDeductionJob implements ShouldQueue
             \Log::info("扣代运营服务费被锁住{$order_id}");
             return;
         }
-        $order = DB::table('wm_orders')
-            ->select('id', 'operate_service_fee_status', 'operate_service_fee', 'refund_operate_service_fee','user_id','order_id','shop_id','ctime','')
-            ->find($order_id);
+        $order = DB::table('wm_orders')->find($order_id);
 
         if (!$order) {
             return;
