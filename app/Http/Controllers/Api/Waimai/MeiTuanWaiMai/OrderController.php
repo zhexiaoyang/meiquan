@@ -370,6 +370,7 @@ class OrderController
                 $delivery = OrderDelivery::where('order_id', $pt_order->id)->where('platform', 8)->where('status', '<=', 70)->orderByDesc('id')->first();
                 $this->log_info("订单号：{$order_id}|跑腿订单-开始");
                 if ($status === 10) {
+                    $this->log_info("订单号：{$order_id}|接单状态-判断是否需要重新获取订单");
                     $_time1 = time();
                     try {
                         // 获取接单状态锁，如果锁存在，等待8秒
@@ -382,8 +383,8 @@ class OrderController
                     $_time2 = time();
                     // 重新查找订单，防止锁之前更换状态
                     if ($_time1 !== $_time2) {
-                        Log::info('zb重新查找pp订单');
-                        $order = Order::find($order->id);
+                        $this->log_info("订单号：{$order_id}|zb重新查找pp订单");
+                        $pt_order = Order::find($order->id);
                     }
                 }
                 if (((int) $pt_order->ps !== 8) && $pt_order->status >= 40 && $pt_order->status < 70) {
