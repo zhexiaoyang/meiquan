@@ -360,6 +360,7 @@ class OrderController
                 }
             } else {
                 $this->log_info("订单号：{$order_id}|订单不存在");
+                sleep(2);
             }
             // 更改跑腿订单状态
             $pt_order = Order::where('order_id', $order_id)->first();
