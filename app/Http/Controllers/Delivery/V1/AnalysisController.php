@@ -418,6 +418,8 @@ class AnalysisController extends Controller
                             $result_tmp[$order->shop_id]['prescription'] += $order->prescription_fee;
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] += $running_money;
+                            // 代运营服务费
+                            $result_tmp[$order->shop_id]['operate_service'] += $order->prescription_fee;
                         }
                     } else {
                         $result_tmp[$order->shop_id]['order_number'] = 1;
@@ -431,6 +433,8 @@ class AnalysisController extends Controller
                             $result_tmp[$order->shop_id]['prescription'] = $order->prescription_fee;
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] = $running_money;
+                            // 代运营服务费
+                            $result_tmp[$order->shop_id]['operate_service'] = $order->prescription_fee;
                         } else {
                             $result_tmp[$order->shop_id]['order_complete_number'] = 0;
                             $result_tmp[$order->shop_id]['poi_receive'] = 0;
@@ -441,6 +445,8 @@ class AnalysisController extends Controller
                             $result_tmp[$order->shop_id]['prescription'] = 0;
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] = 0;
+                            // 配送费
+                            $result_tmp[$order->shop_id]['operate_service'] = 0;
                         }
                     }
                 }
@@ -462,16 +468,21 @@ class AnalysisController extends Controller
                             'profit' => (float) sprintf("%.2f", $tmp['profit']),
                             'prescription' => (float) sprintf("%.2f", $tmp['prescription']),
                             'running_money' => (float) sprintf("%.2f", $tmp['running_money']),
+                            'operate_service' => (float) sprintf("%.2f", $tmp['operate_service']),
                         ];
                     } else {
                         $result[] = [
+                            'shop_id' => $v->id,
                             'shop_name' => $v->wm_shop_name ?: $v->shop_name,
                             'poi_receive' => 0,
                             'original_price' => 0,
                             'order_number' => 0,
                             'unit_price' => 0,
                             'product_cost' => 0,
-                            'profit' => 0
+                            'profit' => 0,
+                            'prescription' => 0,
+                            'running_money' => 0,
+                            'operate_service_fee' => 0
                         ];
                     }
                 }
@@ -500,7 +511,7 @@ class AnalysisController extends Controller
                     $data_shop_id[$datum->shop_id]['running_money'] += $datum->running_money * 100;
                     $data_shop_id[$datum->shop_id]['prescription'] += $datum->prescription * 100;
                     $data_shop_id[$datum->shop_id]['profit'] += $datum->profit * 100;
-                    // $data_shop_id[$datum->shop_id]['operate_service'] += $datum->operate_service * 100;
+                    $data_shop_id[$datum->shop_id]['operate_service'] += $datum->operate_service * 100;
                 }
                 foreach ($user_shops as $shop) {
                     $tmp['shop_id'] = $shop->id;
@@ -513,7 +524,7 @@ class AnalysisController extends Controller
                     $tmp['running_money'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['running_money'] ?? 0) / 100);
                     $tmp['prescription'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['prescription'] ?? 0) / 100);
                     $tmp['profit'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['profit'] ?? 0) / 100);
-                    // $tmp['operate_service'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100);
+                    $tmp['operate_service'] = (float) sprintf("%.2f", ($data_shop_id[$shop->id]['operate_service'] ?? 0) / 100);
                     $unit_price = 0;
                     if ($tmp['order_number'] > 0) {
                         $unit_price =  (float) sprintf("%.2f", $tmp['poi_receive'] / $tmp['order_number']);
