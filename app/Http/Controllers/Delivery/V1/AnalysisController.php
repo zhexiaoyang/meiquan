@@ -125,7 +125,7 @@ class AnalysisController extends Controller
         if (!empty($orders)) {
             foreach ($orders as $order) {
                 $running_money = 0;
-                if ($order->status == 18) {
+                if ($order->status <= 18) {
                     $res['order_total_number']++;
                     $res['order_complete_number']++;
                     $res['sales_volume'] += $order->original_price * 100;
@@ -143,9 +143,9 @@ class AnalysisController extends Controller
                     // $res['profit'] +=  $order->poi_receive - $order->running_fee - $order->vip_cost - $order->prescription_fee - $order->operate_service_fee  + $order->refund_operate_service_fee  + $order->refund_settle_amount ;
                 } elseif ($order->status > 18) {
                     $res['order_cancel_number']++;
-                } else {
-                    $res['order_total_number']++;
-                    $res['order_ongoing_number']++;
+                // } else {
+                //     $res['order_total_number']++;
+                //     $res['order_ongoing_number']++;
                 }
                 // if ($order->status <= 18) {
                 // }
@@ -160,14 +160,14 @@ class AnalysisController extends Controller
         if (!empty($orders2)) {
             foreach ($orders2 as $order) {
                 $running_money = 0;
-                if ($order->status == 18 && (strtotime($order->finish_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
+                if ($order->status <= 18 && (strtotime($order->finish_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
                     $res2['order_total_number']++;
                     $res2['order_complete_number']++;
                 } elseif ($order->status > 18 && (strtotime($order->cancel_at) < strtotime(date("Y-m-d H:i:s", time() - 86400)))) {
                     $res2['order_cancel_number']++;
-                } else {
-                    $res2['order_total_number']++;
-                    $res2['order_ongoing_number']++;
+                // } else {
+                //     $res2['order_total_number']++;
+                //     $res2['order_ongoing_number']++;
                 }
                 if ($order->status <= 18) {
                     $res2['sales_volume'] += $order->original_price * 100;
@@ -408,7 +408,7 @@ class AnalysisController extends Controller
                     }
                     if (isset($result_tmp[$order->shop_id])) {
                         $result_tmp[$order->shop_id]['order_number']++;
-                        if ($order->status === 18) {
+                        if ($order->status <= 18) {
                             $result_tmp[$order->shop_id]['order_complete_number']++;
                             $result_tmp[$order->shop_id]['poi_receive'] += $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] += $order->original_price;
@@ -423,7 +423,7 @@ class AnalysisController extends Controller
                         }
                     } else {
                         $result_tmp[$order->shop_id]['order_number'] = 1;
-                        if ($order->status === 18) {
+                        if ($order->status <= 18) {
                             $result_tmp[$order->shop_id]['order_complete_number'] = 1;
                             $result_tmp[$order->shop_id]['poi_receive'] = $order->poi_receive;
                             $result_tmp[$order->shop_id]['original_price'] = $order->original_price;
