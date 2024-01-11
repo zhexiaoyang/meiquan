@@ -733,9 +733,9 @@ class AnalysisController extends Controller
                         $result[$v->platform]['shops'][$v->shop_id]['sales_volume'] = (float) sprintf("%.2f", $v->sales_volume + $result[$v->platform]['shops'][$v->shop_id]['sales_volume']);
                         $result[$v->platform]['shops'][$v->shop_id]['product_cost'] = (float) sprintf("%.2f", $v->product_cost + $result[$v->platform]['shops'][$v->shop_id]['product_cost']);
                         $result[$v->platform]['shops'][$v->shop_id]['profit'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['profit']);
-                        $result[$v->platform]['shops'][$v->shop_id]['running_money'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['running_money']);
-                        $result[$v->platform]['shops'][$v->shop_id]['prescription'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['prescription']);
-                        $result[$v->platform]['shops'][$v->shop_id]['operate_service'] = (float) sprintf("%.2f", $v->profit + $result[$v->platform]['shops'][$v->shop_id]['operate_service']);
+                        $result[$v->platform]['shops'][$v->shop_id]['running_money'] = (float) sprintf("%.2f", $v->running_money + $result[$v->platform]['shops'][$v->shop_id]['running_money']);
+                        $result[$v->platform]['shops'][$v->shop_id]['prescription'] = (float) sprintf("%.2f", $v->prescription + $result[$v->platform]['shops'][$v->shop_id]['prescription']);
+                        $result[$v->platform]['shops'][$v->shop_id]['operate_service'] = (float) sprintf("%.2f", $v->operate_service + $result[$v->platform]['shops'][$v->shop_id]['operate_service']);
                     } else {
                         $result[$v->platform]['shops'][$v->shop_id] = [
                             'shop_id' => $v->shop_id,
