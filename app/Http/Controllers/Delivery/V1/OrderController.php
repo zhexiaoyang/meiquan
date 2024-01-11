@@ -80,7 +80,9 @@ class OrderController extends Controller
             'pending' => Order::select('id')->where($order_where)->where('status', 20)->count(),
             'receiving' => Order::select('id')->where($order_where)->where('status', 50)->count(),
             'delivering' => Order::select('id')->where($order_where)->where('status', 60)->count(),
-            'exceptional' => Order::select('id')->where($exception_order_where)->whereIn('status', [10, 5, 99])->count(),
+            'exceptional' => Order::select('id')->where($exception_order_where)->whereIn('status', [10, 5, 99])->whereHas('order', function ($query) {
+                $query->where('status', '<=', 18);
+            })->count(),
             'refund' => WmOrder::select('id')->where(function ($query) {
                 $query->where('refund_at', '>=', date('Y-m-d'))->orWhere('cancel_at', '>=', date('Y-m-d'));
             })->where($refund_order_where)->count(),
@@ -144,7 +146,9 @@ class OrderController extends Controller
             $query->where('status', 60);
         } elseif ($status === 50) {
             // 5 余额不足，10 暂无运力
-            $query->whereIn('status', [10, 5, 99]);
+            $query->whereIn('status', [10, 5, 99])->whereHas('order', function ($query) {
+                $query->where('status', '<=', 18);
+            });
         } elseif ($status === 60) {
             // $query->where('status', 20);
             $query->whereHas('order', function ($query) {
