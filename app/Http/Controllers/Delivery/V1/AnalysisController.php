@@ -419,7 +419,7 @@ class AnalysisController extends Controller
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] += $running_money;
                             // 代运营服务费
-                            $result_tmp[$order->shop_id]['operate_service'] += $order->prescription_fee;
+                            $result_tmp[$order->shop_id]['operate_service'] += $order->operate_service_fee;
                         }
                     } else {
                         $result_tmp[$order->shop_id]['order_number'] = 1;
@@ -434,7 +434,7 @@ class AnalysisController extends Controller
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] = $running_money;
                             // 代运营服务费
-                            $result_tmp[$order->shop_id]['operate_service'] = $order->prescription_fee;
+                            $result_tmp[$order->shop_id]['operate_service'] = $order->operate_service_fee;
                         } else {
                             $result_tmp[$order->shop_id]['order_complete_number'] = 0;
                             $result_tmp[$order->shop_id]['poi_receive'] = 0;
@@ -445,7 +445,7 @@ class AnalysisController extends Controller
                             $result_tmp[$order->shop_id]['prescription'] = 0;
                             // 配送费
                             $result_tmp[$order->shop_id]['running_money'] = 0;
-                            // 配送费
+                            // 代运营服务费
                             $result_tmp[$order->shop_id]['operate_service'] = 0;
                         }
                     }
