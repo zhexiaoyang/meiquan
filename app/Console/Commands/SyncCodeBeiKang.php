@@ -112,8 +112,12 @@ class SyncCodeBeiKang extends Command
             Log::info("门店「{$name}}:{$id}」编码绑定同步-开始......");
             // $data = DB::connection('wanxiang_haidian')
             //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
-            $data = DB::connection('beikang')
-                ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            try {
+                $data = DB::connection('beikang')
+                    ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            } catch (\Exception $exception) {
+                continue;
+            }
             if (!empty($data)) {
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {
@@ -143,8 +147,12 @@ class SyncCodeBeiKang extends Command
             Log::info("门店「{$name}}:{$id}」编码绑定同步-开始......");
             // $data = DB::connection('wanxiang_haidian')
             //     ->select("SELECT 药品ID as id,upc,库存 as stock FROM [dbo].[v_store_m_mtxs] WHERE [门店ID] = N'0017' AND [upc] <> '' AND [upc] IS NOT NULL");
-            $data = DB::connection('beikang')
-                ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            try {
+                $data = DB::connection('beikang')
+                    ->select("SELECT 商品自编码 as id, 药品条形码 as upc FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            } catch (\Exception $exception) {
+                continue;
+            }
             if (!empty($data)) {
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {

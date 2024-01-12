@@ -109,8 +109,12 @@ class SyncStockBeiKang extends Command
             foreach ($shops as $name => $id) {
                 $this->info("门店「{$name}}:{$id}」库存同步-开始......");
                 Log::info("门店「{$name}}:{$id}」库存同步-开始......");
-                $data = DB::connection('beikang')
-                    ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+                try {
+                    $data = DB::connection('beikang')
+                        ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+                } catch (\Exception $exception) {
+                    continue;
+                }
                 if (!empty($data)) {
                     $data = array_chunk($data, 200);
                     foreach ($data as $items) {
@@ -134,8 +138,12 @@ class SyncStockBeiKang extends Command
             foreach ($shops2 as $name => $id) {
                 $this->info("门店「{$name}}:{$id}」库存同步-开始......");
                 Log::info("门店「{$name}}:{$id}」库存同步-开始......");
-                $data = DB::connection('beikang')
-                    ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+                try {
+                    $data = DB::connection('beikang')
+                        ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'{$id}' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+                } catch (\Exception $exception) {
+                    continue;
+                }
                 if (!empty($data)) {
                     $data = array_chunk($data, 200);
                     foreach ($data as $items) {
@@ -159,8 +167,12 @@ class SyncStockBeiKang extends Command
         } else {
             $this->info("仓库同步......");
             Log::info("仓库同步......");
-            $data = DB::connection('beikang')
-                ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'11889499' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            try {
+                $data = DB::connection('beikang')
+                    ->select("SELECT 商品自编码 as id, 库存 as stock FROM [dbo].[药品商品库存清单] WHERE [门店ID] = N'11889499' AND [药品条形码] <> '' AND [药品条形码] IS NOT NULL");
+            } catch (\Exception $exception) {
+                $data = [];
+            }
             if (!empty($data)) {
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {
