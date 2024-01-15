@@ -93,69 +93,71 @@ class PrescriptionFeeDeductionJob implements ShouldQueue
         $this->log("订单获取performanceServiceFee2金额:{$performanceServiceFee2}");
         if ($order->platform == 1) {
             $money = $shop->prescription_cost;
-            if (!is_null($performanceServiceFee2)) {
-                if ($performanceServiceFee2 == 0) {
-                    // 3.如果系统抓取美团处方费用等于零，处方费用将按照系统设置的费用为准，且需要把方式设置为美全+代审方。
-                    $money = $shop->prescription_cost;
-                    if ($shop->prescription_channel != 1) {
-                        DB::table('shops')->where('id', $shop->id)->update([
-                            'prescription_channel' => 1,
-                        ]);
+            if ($shop->prescription_modify) {
+                if (!is_null($performanceServiceFee2)) {
+                    if ($performanceServiceFee2 == 0) {
+                        // 3.如果系统抓取美团处方费用等于零，处方费用将按照系统设置的费用为准，且需要把方式设置为美全+代审方。
+                        $money = $shop->prescription_cost;
+                        if ($shop->prescription_channel != 1) {
+                            DB::table('shops')->where('id', $shop->id)->update([
+                                'prescription_channel' => 1,
+                            ]);
+                        }
+                        // $money = 0.8;
+                        // 美全+代审方 0.8 元
+                        // 处方金额错误
+                        // if ((float) $shop->prescription_cost == 0.2) {
+                        //     $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
+                        //     DB::table('shops')->where('id', $shop->id)->update([
+                        //         'prescription_cost' => 0.8,
+                        //         'prescription_channel' => 1,
+                        //     ]);
+                        //     // 添加修改记录 ？？？
+                        //     DB::table('shop_prescription_type_change_logs')->insert([
+                        //         'shop_id' => $shop->id,
+                        //         'mtid' => $shop->waimai_mt,
+                        //         'order_id' => $order->order_id,
+                        //         'prescription_cost_old' => $shop->prescription_cost,
+                        //         'prescription_channel_old' => $shop->prescription_channel,
+                        //         'prescription_cost' => 0.8,
+                        //         'prescription_channel' => 1,
+                        //         'created_at' => date("Y-m-d H:i:s"),
+                        //         'updated_at' => date("Y-m-d H:i:s"),
+                        //     ]);
+                        // }
+                    } elseif ($performanceServiceFee2 > 0) {
+                        // 2. 如果系统抓取到美团处方扣费大于0，系统将自动设置的处方费用为0.2元，且需要把方式设置为 美团+代审方；
+                        // 美团+代审方 0.2 元
+                        $money = 0.2;
+                        if (((float) $shop->prescription_cost != 0.2) || ($shop->prescription_channel != 2)) {
+                            $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
+                            DB::table('shops')->where('id', $shop->id)->update([
+                                'prescription_cost' => $money,
+                                'prescription_channel' => 2,
+                            ]);
+                        }
+                        // 美团+代审方 0.2 元
+                        // 处方金额错误
+                        // if ((float) $shop->prescription_cost == 0.8) {
+                        //     $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
+                        //     DB::table('shops')->where('id', $shop->id)->update([
+                        //         'prescription_cost' => 0.2,
+                        //         'prescription_channel' => 2,
+                        //     ]);
+                        //     // 添加修改记录 ？？？
+                        //     DB::table('shop_prescription_type_change_logs')->insert([
+                        //         'shop_id' => $shop->id,
+                        //         'mtid' => $shop->waimai_mt,
+                        //         'order_id' => $order->order_id,
+                        //         'prescription_cost_old' => $shop->prescription_cost,
+                        //         'prescription_channel_old' => $shop->prescription_channel,
+                        //         'prescription_cost' => 0.2,
+                        //         'prescription_channel' => 2,
+                        //         'created_at' => date("Y-m-d H:i:s"),
+                        //         'updated_at' => date("Y-m-d H:i:s"),
+                        //     ]);
+                        // }
                     }
-                    // $money = 0.8;
-                    // 美全+代审方 0.8 元
-                    // 处方金额错误
-                    // if ((float) $shop->prescription_cost == 0.2) {
-                    //     $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
-                    //     DB::table('shops')->where('id', $shop->id)->update([
-                    //         'prescription_cost' => 0.8,
-                    //         'prescription_channel' => 1,
-                    //     ]);
-                    //     // 添加修改记录 ？？？
-                    //     DB::table('shop_prescription_type_change_logs')->insert([
-                    //         'shop_id' => $shop->id,
-                    //         'mtid' => $shop->waimai_mt,
-                    //         'order_id' => $order->order_id,
-                    //         'prescription_cost_old' => $shop->prescription_cost,
-                    //         'prescription_channel_old' => $shop->prescription_channel,
-                    //         'prescription_cost' => 0.8,
-                    //         'prescription_channel' => 1,
-                    //         'created_at' => date("Y-m-d H:i:s"),
-                    //         'updated_at' => date("Y-m-d H:i:s"),
-                    //     ]);
-                    // }
-                } elseif ($performanceServiceFee2 > 0) {
-                    // 2. 如果系统抓取到美团处方扣费大于0，系统将自动设置的处方费用为0.2元，且需要把方式设置为 美团+代审方；
-                    // 美团+代审方 0.2 元
-                    $money = 0.2;
-                    if (((float) $shop->prescription_cost != 0.2) || ($shop->prescription_channel != 2)) {
-                        $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
-                        DB::table('shops')->where('id', $shop->id)->update([
-                            'prescription_cost' => $money,
-                            'prescription_channel' => 2,
-                        ]);
-                    }
-                    // 美团+代审方 0.2 元
-                    // 处方金额错误
-                    // if ((float) $shop->prescription_cost == 0.8) {
-                    //     $this->log("修改处方扣款|order:{$order->id},{$order->order_id}|shop:$shop->id,$shop->shop_name");
-                    //     DB::table('shops')->where('id', $shop->id)->update([
-                    //         'prescription_cost' => 0.2,
-                    //         'prescription_channel' => 2,
-                    //     ]);
-                    //     // 添加修改记录 ？？？
-                    //     DB::table('shop_prescription_type_change_logs')->insert([
-                    //         'shop_id' => $shop->id,
-                    //         'mtid' => $shop->waimai_mt,
-                    //         'order_id' => $order->order_id,
-                    //         'prescription_cost_old' => $shop->prescription_cost,
-                    //         'prescription_channel_old' => $shop->prescription_channel,
-                    //         'prescription_cost' => 0.2,
-                    //         'prescription_channel' => 2,
-                    //         'created_at' => date("Y-m-d H:i:s"),
-                    //         'updated_at' => date("Y-m-d H:i:s"),
-                    //     ]);
-                    // }
                 }
             }
         } else {
