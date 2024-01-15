@@ -45,10 +45,10 @@ class OrderCancelController
                 $wmOrder->cancel_at = date("Y-m-d H:i:s");
                 $wmOrder->save();
                 $this->log_info("取消外卖订单-成功");
-                // *********************
-                // *** 代运营服务费返款 ***
-                // *********************
-                // 1. 查询改订单代运营服务费-扣费记录
+                // ****************************
+                // *** 代运营服务费-处方费|返款 ***
+                // ****************************
+                // 1. 查询改该订单代运营服务费-扣费记录
                 if ($decr_log = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 2)->where('type2', 3)->first()) {
                     // 2. 查询改订单代运营服务费-退款总和
                     $incr_total = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 1)->where('type2', 3)->sum('money');
@@ -58,6 +58,19 @@ class OrderCancelController
                     if ($refund_money > 0 && $refund_money <= $wmOrder->operate_service_fee) {
                         $description = "{$wmOrder->order_id}订单，代运营服务费返还";
                         $tui_res = $this->operateIncrement($wmOrder->user_id, $refund_money, $description, $wmOrder->shop_id, $wmOrder->id, 3, $wmOrder->id);
+                        $this->log_info("退款状态", [$tui_res]);
+                    }
+                }
+                // 2. 查询改该订单处方费费-扣费记录
+                if ($prescription_decr_log = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 2)->where('type2', 2)->first()) {
+                    // 2. 查询改订单代运营服务费-退款总和
+                    $prescription_incr_total = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 1)->where('type2', 2)->sum('money');
+                    // 3. 计算退款金额
+                    $prescription_refund_money = (($prescription_decr_log->money * 100) - ($prescription_incr_total * 100)) / 100;
+                    // 4. 操作退款
+                    if ($prescription_refund_money > 0) {
+                        $description = "{$wmOrder->order_id}订单，处方费返还";
+                        $tui_res = $this->operateIncrement($wmOrder->user_id, $prescription_refund_money, $description, $wmOrder->shop_id, $wmOrder->id, 2, $wmOrder->id);
                         $this->log_info("退款状态", [$tui_res]);
                     }
                 }
