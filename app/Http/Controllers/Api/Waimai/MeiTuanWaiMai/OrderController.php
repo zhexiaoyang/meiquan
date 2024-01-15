@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController
 {
-    use RiderOrderCancel, UserMoneyAction;
+    use RiderOrderCancel;
 
     public $prefix_title = '[美团外卖回调&###]';
     // 部分扣款，退款商品成本价
@@ -103,22 +103,6 @@ class OrderController
                             'refund_at' => date("Y-m-d H:i:s"),
                         ]);
                         // Task::deliver(new TakeoutOrderVoiceNoticeTask(7, $order->user_id), true);
-                        // *********************
-                        // *** 代运营服务费返款 ***
-                        // *********************
-                        // 1. 查询改订单代运营服务费-扣费记录
-                        if ($decr_log = UserOperateBalance::where('order_id', $order->id)->where('type', 2)->where('type2', 3)->first()) {
-                            // 2. 查询改订单代运营服务费-退款总和
-                            $incr_total = UserOperateBalance::where('order_id', $order->id)->where('type', 1)->where('type2', 3)->sum('money');
-                            // 3. 计算退款金额
-                            $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
-                            // 4. 操作退款
-                            if ($refund_money > 0 && $refund_money <= $order->operate_service_fee) {
-                                $description = "{$order->order_id}订单，代运营服务费返还";
-                                $tui_res = $this->operateIncrement($order->user_id, $refund_money, $description, $order->shop_id, $order->id, 3, $order->id);
-                                $this->log_info("退款状态", [$tui_res]);
-                            }
-                        }
                     }
                 }
             }

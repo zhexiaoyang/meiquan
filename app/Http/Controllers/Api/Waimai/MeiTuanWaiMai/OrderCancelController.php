@@ -8,10 +8,12 @@ use App\Libraries\ShanSongService\ShanSongService;
 use App\Models\OrderDelivery;
 use App\Models\OrderDeliveryTrack;
 use App\Models\Shop;
+use App\Models\UserOperateBalance;
 use App\Models\VipBillItem;
 use App\Models\WmProduct;
 use App\Task\TakeoutOrderVoiceNoticeTask;
 use App\Traits\NoticeTool;
+use App\Traits\UserMoneyAction;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Http\Request;
 use App\Models\Order;
@@ -25,7 +27,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderCancelController
 {
-    use LogTool, NoticeTool;
+    use LogTool, NoticeTool, UserMoneyAction;
 
     public $prefix_title = '[美团外卖取消回调&###]';
 
@@ -38,11 +40,27 @@ class OrderCancelController
         $this->prefix = str_replace('###', get_meituan_develop_platform($platform) . "&订单号:{$order_id}", $this->prefix_title);
         // 查找外卖订单-更改外卖订单状态
         if ($wmOrder = WmOrder::where('order_id', $order_id)->first()) {
-            if ($wmOrder->status < 18) {
+            if ($wmOrder->status <= 18) {
                 $wmOrder->status = 30;
                 $wmOrder->cancel_at = date("Y-m-d H:i:s");
                 $wmOrder->save();
                 $this->log_info("取消外卖订单-成功");
+                // *********************
+                // *** 代运营服务费返款 ***
+                // *********************
+                // 1. 查询改订单代运营服务费-扣费记录
+                if ($decr_log = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 2)->where('type2', 3)->first()) {
+                    // 2. 查询改订单代运营服务费-退款总和
+                    $incr_total = UserOperateBalance::where('order_id', $wmOrder->id)->where('type', 1)->where('type2', 3)->sum('money');
+                    // 3. 计算退款金额
+                    $refund_money = (($decr_log->money * 100) - ($incr_total * 100)) / 100;
+                    // 4. 操作退款
+                    if ($refund_money > 0 && $refund_money <= $wmOrder->operate_service_fee) {
+                        $description = "{$wmOrder->order_id}订单，代运营服务费返还";
+                        $tui_res = $this->operateIncrement($wmOrder->user_id, $refund_money, $description, $wmOrder->shop_id, $wmOrder->id, 3, $wmOrder->id);
+                        $this->log_info("退款状态", [$tui_res]);
+                    }
+                }
             } else {
                 $this->log_info("外卖订单取消失败,外卖订单状态:{$wmOrder->status}");
             }
