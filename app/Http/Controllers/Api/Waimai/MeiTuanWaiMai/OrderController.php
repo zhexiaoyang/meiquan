@@ -37,7 +37,7 @@ use Illuminate\Support\Facades\Log;
 
 class OrderController
 {
-    use RiderOrderCancel;
+    use RiderOrderCancel, UserMoneyAction;
 
     public $prefix_title = '[美团外卖回调&###]';
     // 部分扣款，退款商品成本价
