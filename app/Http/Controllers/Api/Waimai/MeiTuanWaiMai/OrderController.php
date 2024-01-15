@@ -626,7 +626,7 @@ class OrderController
                     try {
                         DB::transaction(function () use ($pt_order, $name, $phone) {
                             // 更改订单信息
-                            Order::where("id", $pt_order->id)->update([
+                            $paotui_update_data = [
                                 'ps' => 8,
                                 'money' => $pt_order->money_zb,
                                 'profit' => 0,
@@ -647,17 +647,33 @@ class OrderController
                                 'courier_lat' => 0,
                                 'pay_status' => 1,
                                 'pay_at' => date("Y-m-d H:i:s"),
-                            ]);
-                            // 记录订单日志
-                            OrderLog::create([
-                                'ps' => 8,
-                                "order_id" => $pt_order->id,
-                                "des" => "「美团众包」跑腿，待取货",
-                                'name' => $name,
-                                'phone' => $phone,
-                            ]);
+                            ];
+                            if (Order::where("id", $pt_order->id)->update($paotui_update_data)) {
+                                // 记录订单日志
+                                OrderLog::create([
+                                    'ps' => 8,
+                                    "order_id" => $pt_order->id,
+                                    "des" => "「美团众包」跑腿，待取货",
+                                    'name' => $name,
+                                    'phone' => $phone,
+                                ]);
+                                $this->log_info('美团众包接单，更改信息成功');
+                            } else {
+                                if (Order::where("id", $pt_order->id)->update($paotui_update_data)) {
+                                    // 记录订单日志
+                                    OrderLog::create([
+                                        'ps' => 8,
+                                        "order_id" => $pt_order->id,
+                                        "des" => "「美团众包」跑腿，待取货",
+                                        'name' => $name,
+                                        'phone' => $phone,
+                                    ]);
+                                    $this->log_info('美团众包接单，更改信息成功');
+                                } else {
+                                    $this->ding_error('美团众包接单，更改信息失败');
+                                }
+                            }
                         });
-                        $this->log_info('美团众包接单，更改信息成功');
                     } catch (\Exception $e) {
                         $message = [
                             $e->getCode(),
