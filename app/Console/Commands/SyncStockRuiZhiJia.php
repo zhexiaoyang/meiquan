@@ -64,8 +64,12 @@ class SyncStockRuiZhiJia extends Command
         foreach ($shops_shangou as $name => $id) {
             $this->info("门店「{$name}}:{$id}」库存同步-开始......");
             Log::info("门店「{$name}}:{$id}」库存同步-开始......");
-            $data = DB::connection('ruizhijia')
-                ->select("SELECT 商品条码 as id, 库存数量 as stock FROM [dbo].[vZtGoods] WHERE [门店名称] = N'{$name}' AND [商品条码] <> '' AND [商品条码] IS NOT NULL GROUP BY [商品条码],[库存数量]");
+            try {
+                $data = DB::connection('ruizhijia')
+                    ->select("SELECT 商品条码 as id, 库存数量 as stock FROM [dbo].[vZtGoods] WHERE [门店名称] = N'{$name}' AND [商品条码] <> '' AND [商品条码] IS NOT NULL GROUP BY [商品条码],[库存数量]");
+            } catch (\Exception $exception) {
+                continue;
+            }
             if (!empty($data)) {
                 $data = array_chunk($data, 200);
                 foreach ($data as $items) {
