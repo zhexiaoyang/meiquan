@@ -628,10 +628,6 @@ class CloseShopMeiTuanCommands extends Command
                 'type' => 4
             ],
             [
-                'mtid' => '9784892',
-                'type' => 4
-            ],
-            [
                 'mtid' => '9805729',
                 'type' => 4
             ],
